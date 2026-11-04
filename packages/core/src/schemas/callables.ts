@@ -114,7 +114,7 @@ export const leavePodOutput = ok;
 /** Map-link hosts that chat moderation does not read as contact details (people paste map links to meet). */
 export const MAP_URL_HOSTS = ['maps.app.goo.gl', 'www.google.com', 'maps.google.com', 'goo.gl', 'maps.apple.com', 'www.openstreetmap.org', 'osm.org'] as const;
 
-/** A time and a place from Google Places (D8). No free-text place, so no home-address warning either. */
+/** A time and a place from Google Places (D8). The app has no free-text place; placeSchema refuses contact details and home-address shapes a modified client might type. */
 export const proposeOptionInput = z.strictObject({
   podId: podIdSchema,
   startsAt: epochMsSchema,
