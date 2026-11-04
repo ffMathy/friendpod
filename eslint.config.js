@@ -30,6 +30,12 @@ export default defineConfig(
     },
   },
   {
+    // Expo config plugins are loaded by Expo CLI with require(), so they are CommonJS.
+    files: ['apps/mobile/plugins/**/*.js'],
+    languageOptions: { sourceType: 'commonjs' },
+    rules: { '@typescript-eslint/no-require-imports': 'off' },
+  },
+  {
     // Shared core code also runs in React Native (Hermes): keep Node-only APIs out of it.
     files: ['packages/core/src/**/*.ts'],
     ignores: ['packages/core/src/node.ts'],

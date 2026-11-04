@@ -63,6 +63,8 @@ export const userDocSchema = z.object({
     pausedUntil: timestampSchema.optional(),
     pauseReason: z.enum(PAUSE_REASONS).optional(),
     skipWeekId: weekIdSchema.optional(),
+    // DESIGN-DEVIATION: §8.1 has no field for a manual-mode user's weekly opt-in ("manual for this week", §10.1).
+    optInWeekId: weekIdSchema.optional(),
   }),
   photo: z.object({ v: z.int().positive() }).nullable(),
   stats: z.object({ attended: z.int().min(0), noShows: z.int().min(0), lateCancels: z.int().min(0) }),
@@ -153,7 +155,11 @@ export const exportDocSchema = z.object({
   expiresAt: timestampSchema,
 });
 
-/** Pod theme in shared docs: a concept id and its sensitivity, never a label (§6.7). */
+/**
+ * Pod theme in shared docs: a concept id and its sensitivity, never a label (§6.7).
+ * DESIGN-DEVIATION: §8.1 has `theme: {conceptId, sensitive}`; the `kind` tag adds Q12's open-to-anyone
+ * theme, which has no concept (cards then carry `themeLabel: null`).
+ */
 export const podThemeSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('concept'), conceptId: conceptIdSchema, sensitive: z.boolean() }),
   z.object({ kind: z.literal('openToAnyone') }),
@@ -257,6 +263,14 @@ export const matchProfileDocSchema = z
     openReportCount: z.int().min(0),
     priority: z.boolean(),
     openToAnyone: z.boolean(),
+    // DESIGN-DEVIATION: §8.2 has no participation fields, but dropOrchestrator selects opted-in profiles and
+    // releaseDrop revalidates pause/skip from matchProfiles alone (§10.3), so setParticipation mirrors them here.
+    participation: z.object({
+      mode: z.enum(PARTICIPATION_MODES),
+      skipWeekId: weekIdSchema.nullable(),
+      optInWeekId: weekIdSchema.nullable(),
+      pausedUntil: timestampSchema.nullable(),
+    }),
     createdAt: timestampSchema,
     updatedAt: timestampSchema,
   })

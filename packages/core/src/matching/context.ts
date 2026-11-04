@@ -155,13 +155,15 @@ export function deriveContext(input: MatchInput): MatchContext {
         dropped.noConsent++;
         continue;
       }
+      // Several holdings can resolve to one concept (other wordings, or a concept merged into another): the
+      // strongest s(u,t) counts, and the concept once.
+      themeS.set(ci, Math.max(themeS.get(ci) ?? 0, themeStrength(t.starred)));
       if (seen.has(ci)) continue;
       seen.add(ci);
       if (t.sens) {
         sensitiveCount++;
         heldSensitive.push(ci);
       }
-      themeS.set(ci, Math.max(themeS.get(ci) ?? 0, themeStrength(t.starred)));
     }
     const eligibleS5 = s5Eligible(u, sensitiveCount, input);
     if (!eligibleS5) for (const ci of heldSensitive) themeS.delete(ci);

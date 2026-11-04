@@ -25,6 +25,11 @@ export interface CityOptions {
   readonly sensitiveShare?: number;
   /** Epoch ms of the first drop; accounts are created in the days before it. */
   readonly startAt: number;
+  /**
+   * Alpha recruiting (§6.10): testers are recruited in cohorts around this many seed themes, and each
+   * user also holds one of them. The seed themes are the top-ranked concepts, kept ordinary. 0 = open recruiting.
+   */
+  readonly cohorts?: number;
 }
 
 export interface SimUser {
@@ -110,13 +115,19 @@ function unit(v: Float32Array): Float32Array {
   return v;
 }
 
-/** Concepts in topical clusters, so p_u (the mean of a user's concept vectors) carries some signal. */
-export function generateConcepts(count: number, sensitiveShare: number, rng: Rng): ConceptProjection[] {
-  const topics = Array.from({ length: TOPICS }, () => unit(Float32Array.from({ length: 128 }, () => rng.normal())));
+/**
+ * Concepts in topical clusters inside EmbeddingGemma 2's narrow cone [CAL]: a shared direction plus a topic
+ * plus noise, so unrelated concepts sit at cos ≈ 0.81 and same-topic concepts at ≈ 0.90.
+ */
+export function generateConcepts(count: number, sensitiveShare: number, rng: Rng, ordinaryHead = 0): ConceptProjection[] {
+  const randomUnit = (): Float32Array => unit(Float32Array.from({ length: 128 }, () => rng.normal()));
+  const common = randomUnit();
+  const topics = Array.from({ length: TOPICS }, randomUnit);
   return Array.from({ length: count }, (_, rank) => {
     const topic = topics[rng.int(0, TOPICS - 1)]!;
-    const c128 = unit(Float32Array.from({ length: 128 }, (_, k) => topic[k]! + (0.7 * rng.normal()) / Math.sqrt(128)));
-    const sensitive = rng.chance(sensitiveShare);
+    const noise = randomUnit();
+    const c128 = unit(Float32Array.from({ length: 128 }, (_, k) => 0.9 * common[k]! + 0.3 * topic[k]! + 0.316 * noise[k]!));
+    const sensitive = rng.chance(sensitiveShare) && rank >= ordinaryHead;
     // Valid concept ids (c_ + 20 hex); the `_p` suffix marks the sensitive partition, as for self-flags.
     const id = `c_${rank.toString(16).padStart(20, '0')}${sensitive ? '_p' : ''}`;
     return { id, c128, sensitive, status: 'active' as const, mergedInto: null };
@@ -144,7 +155,8 @@ function pseudoUidH(i: number): string {
 export function generateCity(opts: CityOptions): City {
   const rng = new Rng(opts.seed);
   const conceptCount = opts.concepts ?? 2000;
-  const concepts = generateConcepts(conceptCount, opts.sensitiveShare ?? 0.05, rng.fork('concepts'));
+  const cohorts = opts.cohorts ?? 0;
+  const concepts = generateConcepts(conceptCount, opts.sensitiveShare ?? 0.05, rng.fork('concepts'), cohorts);
   const zipf = new Zipf(conceptCount, ZIPF_S, ZIPF_Q);
   const area = getLaunchArea('aarhus');
   if (!area) throw new Error('aarhus launch area missing');
@@ -170,6 +182,7 @@ export function generateCity(opts: CityOptions): City {
     if (availability === 0) availability = AVAILABILITY.weekdayEvening;
     const k = r.weighted(INTEREST_COUNTS);
     const picked = new Set<number>();
+    if (cohorts > 0) picked.add(r.int(0, cohorts - 1));
     while (picked.size < k) picked.add(zipf.sample(r));
     let stars = 0;
     const holdings = [...picked].map((rank) => {

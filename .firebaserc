@@ -1,0 +1,7 @@
+{
+  "projects": {
+    "default": "grouper-staging",
+    "staging": "grouper-staging",
+    "prod": "grouper-prod"
+  }
+}

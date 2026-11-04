@@ -1,0 +1,37 @@
+rules_version = '2';
+
+// DESIGN.md §9. Deny by default; clients never write. Every write goes through a callable (Admin SDK), which
+// bypasses these rules. Anything not matched below (matchProfiles, tags, concepts, podState, consentEvents,
+// reports, photoGrants, rateLimits, …) is server-only.
+service cloud.firestore {
+  match /databases/{db}/documents {
+    function signedIn()  { return request.auth != null; }
+    function onboarded() { return signedIn() && request.auth.token.onb == true; }
+
+    // DESIGN-DEVIATION: §9 also lists `match /users/{uid}` separately. In rules_version 2 a recursive wildcard
+    // matches zero or more segments, so this one block covers the profile doc and every subcollection
+    // (interests, sensitiveInterests, pods, blocks, notices, exports); tests/rules asserts both.
+    match /users/{uid}/{doc=**} {
+      allow read: if signedIn() && request.auth.uid == uid;
+    }
+
+    // memberUids is filled only at confirmation, so invitees cannot see each other before that (§9).
+    match /pods/{podId} {
+      allow read: if onboarded() && request.auth.uid in resource.data.memberUids;
+
+      match /options/{optionId} {
+        allow read: if onboarded() &&
+          request.auth.uid in get(/databases/$(db)/documents/pods/$(podId)).data.memberUids;
+      }
+    }
+
+    match /areas/{areaId} {
+      allow read: if onboarded();
+    }
+
+    // Read before sign-in: minimum app version, legal versions, kill switches.
+    match /config/app {
+      allow read: if true;
+    }
+  }
+}

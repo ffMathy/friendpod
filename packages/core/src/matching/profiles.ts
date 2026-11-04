@@ -26,7 +26,8 @@ const SHARED = {
   targetSize: 5,
   maxSize: 6,
   weights: { B: 1, wT: 0.3, wF: 0.3, wR: 0.15, wP: 0.6 },
-  tau: 0.3,
+  // [A] uncalibrated: v2 cosines of unrelated vectors already sit at 0.78–0.85 [CAL], so τ must be in that band.
+  tau: 0.85,
   topThemes: 5,
   topK: 60,
   candidateScan: 300,

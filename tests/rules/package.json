@@ -1,0 +1,22 @@
+{
+  "name": "grouper-rules-tests",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Firestore and Storage security-rules tests (DESIGN.md §9, §13). Standalone npm project; run under `firebase emulators:exec --only firestore,storage --project demo-grouper` from the repo root.",
+  "type": "module",
+  "engines": {
+    "node": ">=24.12"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "validate:indexes": "node scripts/validate-indexes.mjs"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "6.0.0",
+    "@types/node": "24.19.2",
+    "firebase": "13.2.0",
+    "typescript": "6.0.3",
+    "vitest": "5.1.0"
+  }
+}

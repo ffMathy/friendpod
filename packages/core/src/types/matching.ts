@@ -80,7 +80,7 @@ export interface MatchParams {
   readonly overbook: { readonly mode: 'expectedAttendance'; readonly sumRBelow: number } | { readonly mode: 'always' };
   readonly weights: MatchWeights;
   readonly sizePenalty: Readonly<Record<number, number>>;
-  /** τ in sec(u,v); uncalibrated (§6.2). */
+  /** τ in sec(u,v); uncalibrated, about 0.85 for EmbeddingGemma 2 (§6.2). */
   readonly tau: number;
   readonly topThemes: number;
   readonly topK: number;

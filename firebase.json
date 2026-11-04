@@ -1,0 +1,59 @@
+{
+  "$schema": "https://raw.githubusercontent.com/firebase/firebase-tools/v15.34.2/schema/firebase-config.json",
+  "firestore": {
+    "database": "(default)",
+    "location": "europe-west1",
+    "edition": "standard",
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "storage": {
+    "rules": "storage.rules"
+  },
+  "hosting": {
+    "public": "hosting/public",
+    "ignore": ["**/.*"],
+    "headers": [
+      {
+        "regex": "^/([a-z-]+\\.(html|css))?$",
+        "headers": [
+          { "key": "Content-Security-Policy", "value": "default-src 'none'; style-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'" },
+          { "key": "Referrer-Policy", "value": "no-referrer" },
+          { "key": "X-Content-Type-Options", "value": "nosniff" },
+          { "key": "Cache-Control", "value": "public, max-age=300" }
+        ]
+      }
+    ]
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "runtime": "nodejs24",
+      "ignore": ["node_modules", ".git", "*.local", "firebase-debug.log", "firebase-debug.*.log", "src", "test", "calibration"],
+      "predeploy": ["npm --prefix functions ci", "npm --prefix functions run build"]
+    },
+    {
+      "source": "services/embedder",
+      "codebase": "embedder",
+      "runtime": "nodejs24",
+      "ignore": ["node_modules", ".git", "*.local", "firebase-debug.log", "firebase-debug.*.log", "src", "test", "calibration"],
+      "predeploy": [
+        "npm --prefix services/embedder ci",
+        "npm --prefix services/embedder run fetch-model",
+        "npm --prefix services/embedder run build"
+      ]
+    }
+  ],
+  "emulators": {
+    "singleProjectMode": true,
+    "auth": { "port": 9099 },
+    "firestore": { "port": 8080, "edition": "standard" },
+    "functions": { "port": 5001 },
+    "storage": { "port": 9199 },
+    "tasks": { "port": 9499 },
+    "hub": { "port": 4400 },
+    "logging": { "port": 4500 },
+    "ui": { "enabled": true, "port": 4000 }
+  }
+}

@@ -1,0 +1,70 @@
+# DESIGN.md §13 "calibration.yml": the nightly detector and merge-threshold gate on the real, pinned model.
+#
+# SKELETON. It runs only when started by hand, and it fails at the first step until Workload Identity Federation
+# is configured. It must never run on pull requests: it needs cloud credentials and the model mirror.
+#
+# TODO(M0) before enabling the triggers below:
+#   - WIF pool and provider for this repository; a calibration service account with read access to
+#     gs://grouper-staging-models only (DESIGN.md §9: only CI reads the model bucket). No service-account keys.
+#   - Repository variables GCP_WORKLOAD_IDENTITY_PROVIDER and GCP_CALIBRATION_SERVICE_ACCOUNT.
+#   - The model mirror: `gcloud storage cp --recursive model/<hfRepo>/* gs://grouper-staging-models/<hfRepo>@<revision>/`
+#     (services/embedder/scripts/fetch-model.mjs), so the gate never downloads from Hugging Face.
+#   - services/embedder `calibrate` script (calibration/run.ts, not implemented yet).
+# Then add:
+#   schedule:
+#     - cron: '41 2 * * *'
+#   push:
+#     branches: [main]
+#     paths: ['services/embedder/**', 'packages/core/src/interests/**']
+name: Calibration
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write # WIF
+
+concurrency:
+  group: calibration
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  calibrate:
+    name: Calibration gate (pinned model)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      GCS_MODEL_BUCKET: grouper-staging-models
+    steps:
+      - name: Require Workload Identity Federation configuration
+        env:
+          WIF_PROVIDER: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          SERVICE_ACCOUNT: ${{ vars.GCP_CALIBRATION_SERVICE_ACCOUNT }}
+        run: |
+          if [ -z "$WIF_PROVIDER" ] || [ -z "$SERVICE_ACCOUNT" ]; then
+            echo "::error::Set GCP_WORKLOAD_IDENTITY_PROVIDER and GCP_CALIBRATION_SERVICE_ACCOUNT first (see the TODO at the top of this file)."
+            exit 1
+          fi
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup
+        with:
+          projects: services/embedder
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_CALIBRATION_SERVICE_ACCOUNT }}
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Fetch the pinned model from the EU mirror (hash-verified)
+        run: npm --prefix services/embedder run fetch-model
+      - name: Build detector prototypes with the real model
+        run: npm --prefix services/embedder run build-prototypes
+      # Fails if sensitive recall < 100 %, merge precision at the configured threshold < 0.93, or false flags rise
+      # by more than 5 points (DESIGN.md §13). The labelled set is synthetic or founder-written, never user tags.
+      - name: Calibration gate
+        run: npm --prefix services/embedder run calibrate

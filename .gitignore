@@ -11,9 +11,10 @@ services/embedder/model/
 *.bin
 *.onnx
 
-# Firebase
+# Firebase (emulator logs, deploy cache, emulator secrets in functions/.secret.local via *.local)
 .firebase/
 *-debug.log
+firebase-debug.*.log
 firebase-export-*/
 
 # Expo / React Native

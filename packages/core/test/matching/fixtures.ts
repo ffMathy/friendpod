@@ -20,9 +20,9 @@ export const CELLS = {
   far: encodeGeohash(55.6759, 12.5691, 5),
 } as const;
 
-export function vec(id: string): Float32Array {
+function randomUnit(seed: string): Float32Array {
   const v = new Float32Array(128);
-  let s = xxhash32(id);
+  let s = xxhash32(seed);
   let norm = 0;
   for (let i = 0; i < 128; i++) {
     s = xxhash32(String(s), i);
@@ -31,6 +31,16 @@ export function vec(id: string): Float32Array {
   }
   for (let i = 0; i < 128; i++) v[i]! /= Math.sqrt(norm);
   return v;
+}
+
+const COMMON = randomUnit('common-direction');
+
+/** Deterministic c128 in EmbeddingGemma 2's band: unrelated concepts at cos ≈ 0.8, as measured [CAL]. */
+export function vec(id: string): Float32Array {
+  const noise = randomUnit(id);
+  const v = COMMON.map((c, i) => 0.9 * c + 0.44 * noise[i]!);
+  const norm = Math.sqrt(v.reduce((s, x) => s + x * x, 0));
+  return v.map((x) => x / norm);
 }
 
 export function concept(id: string, sensitive = false, mergedInto: string | null = null): ConceptProjection {

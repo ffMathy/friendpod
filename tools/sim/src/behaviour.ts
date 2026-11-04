@@ -7,7 +7,7 @@ import { logistic, type Rng } from './rng';
 
 export const BEHAVIOUR = {
   /** accept = logistic(a + b·(x − x0) − c·(d / maxKm)); x = wT·q(t)·s(u,t) + wP·avgPair(u). */
-  accept: { a: 1.3, b: 3.0, x0: 0.35, c: 0.8 },
+  accept: { a: 1.0, b: 3.0, x0: 0.35, c: 0.8 },
   /** Probability that a confirmed pod agrees on an option. */
   planningSuccess: 0.85,
   /** Weeks a confirmed pod occupies one of the member's two active slots (planning + meetup). */

@@ -47,6 +47,12 @@ export const UNMATCHED_REASONS = [
 ] as const;
 export type UnmatchedReason = (typeof UNMATCHED_REASONS)[number];
 
+/**
+ * Reasons that only apply to holders of a sensitive interest. Each user sees their own; stored aggregates fold
+ * them into NO_FIT_THIS_WEEK, so no shared count of sensitive-interest holders exists (PRIVACY.md §4.3).
+ */
+export const SENSITIVE_UNMATCHED_REASONS: readonly UnmatchedReason[] = ['SENSITIVE_ELIGIBILITY', 'SENSITIVE_DENSITY'];
+
 /** Reasons that name a user-set constraint, so Home can name the setting after 3 drops (§6.7). */
 export const USER_SETTING_REASONS: readonly UnmatchedReason[] = ['RADIUS', 'AGE', 'GENDER_POOL', 'LANGUAGE', 'AVAILABILITY'];
 
@@ -60,6 +66,9 @@ export const MODERATION_REASONS = [
   'INTEREST_LIMIT',
   'SENSITIVE_ADD_LIMIT',
   'EMBED_BUDGET',
+  // DESIGN-DEVIATION: not in §5.2. Sensitive holdings are refused until withdrawal (withdrawSensitive,
+  // removeInterest) exists, because withdrawing must be as easy as consenting (Art. 7(3)). TODO(M1): remove.
+  'SENSITIVE_UNAVAILABLE',
 ] as const;
 export type ModerationReason = (typeof MODERATION_REASONS)[number];
 

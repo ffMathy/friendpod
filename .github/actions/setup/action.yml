@@ -1,0 +1,36 @@
+name: Set up Node and install dependencies
+description: >-
+  Node 24 from .nvmrc with the npm cache, `npm ci` at the root (the workspace, which also provides @grouper/core's
+  own dependencies), then `npm ci` in each standalone project (DESIGN.md §14).
+inputs:
+  projects:
+    description: Space-separated standalone npm projects (own package-lock.json) to install after the root.
+    required: false
+    default: ''
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v5
+      with:
+        node-version-file: .nvmrc
+        cache: npm
+        cache-dependency-path: |
+          package-lock.json
+          functions/package-lock.json
+          services/embedder/package-lock.json
+          tests/rules/package-lock.json
+    # .npmrc sets engine-strict, so npm ci fails on a Node older than the engines field (>= 24.12).
+    - name: npm ci (root)
+      shell: bash
+      run: npm ci
+    - name: npm ci (standalone projects)
+      if: inputs.projects != ''
+      shell: bash
+      env:
+        PROJECTS: ${{ inputs.projects }}
+      run: |
+        for dir in $PROJECTS; do
+          echo "::group::npm ci --prefix $dir"
+          npm ci --prefix "$dir"
+          echo "::endgroup::"
+        done

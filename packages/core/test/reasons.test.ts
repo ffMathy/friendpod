@@ -54,6 +54,15 @@ describe('holdings (§5.2 (5))', () => {
     });
   });
 
+  it('keeps a star when another wording of the same concept comes first', () => {
+    const doc = (display: string, starred: boolean) => ({ display, norm: display, conceptId: 'c_00000000000000000002', starred, state: 'active' as const, createdAt: ts });
+    const lob = ordinaryHoldingFromDoc('aaaaaaaaaaaaaaab', doc('løb', false))!;
+    const running = ordinaryHoldingFromDoc('aaaaaaaaaaaaaaac', doc('running', true))!;
+    for (const order of [[lob, running], [running, lob]]) {
+      expect(matchProfileInterests(order, []).themes).toEqual([{ c: 'c_00000000000000000002', starred: true, sens: false }]);
+    }
+  });
+
   it('excludes pending holdings and rejects sensitive holdings without consent', () => {
     expect(ordinaryHoldingFromDoc('cccccccccccccccc', { display: 'x', norm: 'xx', conceptId: null, starred: false, state: 'pendingConsent', createdAt: ts })).toBeNull();
     expect(() => sensitiveHoldingFromDoc('dddddddddddddddd', { ...sensitiveDoc(), consentEventId: '' })).toThrow();

@@ -1,0 +1,12 @@
+{
+  "//": "Standalone project; @grouper/core is source-aliased (and bundled by esbuild). Its zod resolves from the repo root node_modules, so run `npm ci` at the root first.",
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["node"],
+    "paths": {
+      "@grouper/core": ["../../packages/core/src/index.ts"],
+      "@grouper/core/node": ["../../packages/core/src/node.ts"]
+    }
+  },
+  "include": ["src/**/*.ts", "test/**/*.ts", "calibration/**/*.ts", "vitest.config.ts"]
+}

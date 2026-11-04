@@ -1,0 +1,35 @@
+{
+  "cli": {
+    "version": ">= 16.0.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "base": {
+      "node": "24.12.0",
+      "ios": { "resourceClass": "default" },
+      "android": { "resourceClass": "default" }
+    },
+    "development": {
+      "extends": "base",
+      "environment": "development",
+      "developmentClient": true,
+      "distribution": "internal",
+      "env": { "APP_ENV": "development", "EXPO_PUBLIC_USE_EMULATORS": "1" }
+    },
+    "staging": {
+      "extends": "base",
+      "environment": "preview",
+      "distribution": "internal",
+      "env": { "APP_ENV": "staging" }
+    },
+    "production": {
+      "extends": "base",
+      "environment": "production",
+      "autoIncrement": true,
+      "env": { "APP_ENV": "production" }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}

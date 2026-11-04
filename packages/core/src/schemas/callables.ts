@@ -184,7 +184,7 @@ export const addInterestsOutput = z.object({
       interestId: interestIdSchema.optional(),
       suggestion: z.object({ conceptId: conceptIdSchema, label: z.string().min(1).max(80) }).optional(),
       reasonCode: z.enum(MODERATION_REASONS).optional(),
-      /** Ordinary third-party tag: stored, with the "only add interests about yourself" warning. */
+      // DESIGN-DEVIATION: §10.2 lists no warning field, but §5.2 (2) warns on ordinary third-party tags.
       warning: z.literal('THIRD_PARTY').optional(),
     }),
   ),

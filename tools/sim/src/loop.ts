@@ -39,6 +39,8 @@ export interface SimOptions {
   readonly seed: number;
   readonly concepts?: number;
   readonly startWeek?: WeekId;
+  /** Seed-theme cohorts (alpha recruiting, §6.10); 0 = open recruiting. */
+  readonly cohorts?: number;
 }
 
 interface UserState {
@@ -75,6 +77,7 @@ interface Counters {
   sensitivePods: number;
   openToAnyonePods: number;
   podSize: Record<number, number>;
+  confirmedBySize: Record<number, number>;
   matchMs: number;
   matchMsMax: number;
 }
@@ -133,7 +136,14 @@ function remember(states: Map<string, UserState>, ctx: MatchContext, members: re
 export function simulate(opts: SimOptions) {
   const started = performance.now();
   const startWeek = opts.startWeek ?? ('2027-W02' as WeekId);
-  const city = generateCity({ n: opts.n, seed: opts.seed, profile: opts.profile, concepts: opts.concepts ?? 2000, startAt: dropSchedule(startWeek).computeAt });
+  const city = generateCity({
+    n: opts.n,
+    seed: opts.seed,
+    profile: opts.profile,
+    concepts: opts.concepts ?? 2000,
+    cohorts: opts.cohorts ?? 0,
+    startAt: dropSchedule(startWeek).computeAt,
+  });
   const rng = new Rng(opts.seed).fork('behaviour');
   const states = new Map<string, UserState>(
     city.users.map((u) => [
@@ -158,7 +168,7 @@ export function simulate(opts: SimOptions) {
   const c: Counters = {
     optedIn: 0, proposedUsers: 0, proposedPods: 0, confirmedPods: 0, invites: 0, accepts: 0, backfillInvites: 0, backfillRescues: 0,
     happened: 0, attendanceSlots: 0, attendees: 0, meetAgainPairs: 0, meetAgainYes: 0, kept: 0, sensitivePods: 0, openToAnyonePods: 0,
-    podSize: {}, matchMs: 0, matchMsMax: 0,
+    podSize: {}, confirmedBySize: {}, matchMs: 0, matchMsMax: 0,
   };
   const perWeek: { week: WeekId; optedIn: number; proposed: number; pods: number; confirmed: number; matchMs: number }[] = [];
 
@@ -253,6 +263,7 @@ export function simulate(opts: SimOptions) {
           return;
         }
         c.confirmedPods++;
+        c.confirmedBySize[invitees.length] = (c.confirmedBySize[invitees.length] ?? 0) + 1;
         week.confirmed++;
         remember(states, ctx, accepted, recentUntilWeek(weekId, 'coMember', opts.profile));
         for (const u of accepted) {
@@ -318,6 +329,7 @@ export function simulate(opts: SimOptions) {
       profile: opts.profile.id,
       seed: opts.seed,
       concepts: opts.concepts ?? 2000,
+      cohorts: opts.cohorts ?? 0,
       zipf: { s: ZIPF_S, q: ZIPF_Q },
       behaviour: BEHAVIOUR,
     },
@@ -330,6 +342,7 @@ export function simulate(opts: SimOptions) {
       backfillInvites: c.backfillInvites,
       backfillRescues: c.backfillRescues,
       podSizes: c.podSize,
+      confirmationBySize: Object.fromEntries(Object.entries(c.podSize).map(([size, n]) => [size, round((c.confirmedBySize[Number(size)] ?? 0) / n)])),
       sensitivePods: c.sensitivePods,
       openToAnyonePods: c.openToAnyonePods,
       weeksToFirstPod: { p50: censoredPercentile(firstPod, 0.5), p90: censoredPercentile(firstPod, 0.9) },

@@ -1,5 +1,5 @@
 /**
- * Thin-market experiment (DESIGN.md §6.9): n = 100, 200, 300 × launch / alpha × seeds 1–3, 12 weeks.
+ * Thin-market experiment (DESIGN.md §6.9): n = 100, 200, 300 × launch / alpha (± seed-theme cohorts) × seeds 1–3, 12 weeks.
  *   npm -w tools/sim run thin-market -- [--json out.json]
  * Prints a Markdown table (mean over seeds, min–max in brackets). Synthetic, with assumed behaviour.
  */
@@ -19,11 +19,18 @@ const { values } = parseArgs({
 
 const sizes = values.sizes.split(',').map(Number);
 const seeds = values.seeds.split(',').map(Number);
-const profiles: MatchingProfileId[] = ['launch', 'alpha'];
-const runs: SimResult[] = [];
+/** Launch and alpha parameters with open recruiting, plus the alpha as specified: seed-theme cohorts (§6.10). */
+const variants: { label: string; profile: MatchingProfileId; cohorts: number }[] = [
+  { label: 'launch', profile: 'launch', cohorts: 0 },
+  { label: 'alpha', profile: 'alpha', cohorts: 0 },
+  { label: 'alpha + 5 seed-theme cohorts', profile: 'alpha', cohorts: 5 },
+];
+const runs: (SimResult & { label: string })[] = [];
 for (const n of sizes) {
-  for (const profile of profiles) {
-    for (const seed of seeds) runs.push(simulate({ n, weeks: Number(values.weeks), profile: getMatchingProfile(profile), seed }));
+  for (const v of variants) {
+    for (const seed of seeds) {
+      runs.push({ label: v.label, ...simulate({ n, weeks: Number(values.weeks), profile: getMatchingProfile(v.profile), seed, cohorts: v.cohorts }) });
+    }
   }
 }
 if (values.json) writeFileSync(values.json, `${JSON.stringify(runs, null, 2)}\n`);
@@ -46,6 +53,7 @@ const columns: [string, Metric, boolean][] = [
   ['match rate', (r) => r.metrics.matchRate, true],
   ['invite accept', (r) => r.metrics.inviteAcceptance, true],
   ['confirmation', (r) => r.metrics.confirmationRate, true],
+  ['proposals of 6', (r) => (r.metrics.podSizes[6] ?? 0) / Math.max(1, r.metrics.proposedPods), true],
   ['wks to 1st pod P50', (r) => r.metrics.weeksToFirstPod.p50, false],
   ['P90', (r) => r.metrics.weeksToFirstPod.p90, false],
   ['never matched', (r) => r.metrics.neverMatchedShare, true],
@@ -58,12 +66,12 @@ const columns: [string, Metric, boolean][] = [
   ['match ms/week (max)', (r) => r.metrics.runtimeMs.matchMaxWeek, false],
 ];
 
-const header = ['n', 'profile', ...columns.map(([h]) => h)];
+const header = ['n', 'variant', ...columns.map(([h]) => h)];
 const lines = [`| ${header.join(' | ')} |`, `|${header.map(() => '---').join('|')}|`];
 for (const n of sizes) {
-  for (const profile of profiles) {
-    const rs = runs.filter((r) => r.config.n === n && r.config.profile === profile);
-    lines.push(`| ${n} | ${profile} | ${columns.map(([, f, pct]) => cell(rs, f, pct)).join(' | ')} |`);
+  for (const v of variants) {
+    const rs = runs.filter((r) => r.config.n === n && r.label === v.label);
+    lines.push(`| ${n} | ${v.label} | ${columns.map(([, f, pct]) => cell(rs, f, pct)).join(' | ')} |`);
   }
 }
 console.log(lines.join('\n'));

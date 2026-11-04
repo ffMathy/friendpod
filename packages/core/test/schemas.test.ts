@@ -15,7 +15,7 @@ import { matchProfileDocSchema, podCardDocSchema } from '../src/schemas/document
 import { prefsSchema } from '../src/schemas/profile';
 
 const ts = { toMillis: () => 0 };
-const consent = { ...consentProofFor('art9-tag-en-v1'), checked: true };
+const consent = { ...consentProofFor('art9-tag-en-v1'), appVersion: '0.1.0', checked: true };
 
 describe('callable schemas (§10)', () => {
   it('accepts a valid onboarding and rejects unknown keys (strict inputs)', () => {
@@ -28,7 +28,7 @@ describe('callable schemas (§10)', () => {
 
   it('requires gender consent with gender', () => {
     expect(updateProfileInput.safeParse({ gender: 'woman' }).success).toBe(false);
-    expect(updateProfileInput.safeParse({ gender: 'woman', genderConsent: { ...consentProofFor('gender-en-v1'), checked: true } }).success).toBe(true);
+    expect(updateProfileInput.safeParse({ gender: 'woman', genderConsent: { ...consentProofFor('gender-en-v1'), appVersion: '0.1.0', checked: true } }).success).toBe(true);
     expect(updateProfileInput.safeParse({}).success).toBe(false);
     expect(updateProfileInput.safeParse({ prefs: { ageMin: 30, ageMax: 33 } }).success).toBe(false);
   });
@@ -37,6 +37,10 @@ describe('callable schemas (§10)', () => {
     expect(addInterestsInput.parse({ items: [] })).toEqual({ items: [] });
     expect(addInterestsInput.safeParse({ items: [{ text: 'gravid', consent }] }).success).toBe(true);
     expect(addInterestsInput.safeParse({ items: [{ text: 'gravid', consent: { ...consent, checked: false } }] }).success).toBe(false);
+    // appVersion is recorded on the consent event (PRIVACY.md §3.4): required, and never free text.
+    const { appVersion: _omitted, ...withoutVersion } = consent;
+    expect(addInterestsInput.safeParse({ items: [{ text: 'gravid', consent: withoutVersion }] }).success).toBe(false);
+    expect(addInterestsInput.safeParse({ items: [{ text: 'gravid', consent: { ...consent, appVersion: 'call me 555 1234' } }] }).success).toBe(false);
     expect(addInterestsInput.safeParse({ items: [{ text: 'x', selfFlag: true }] }).success).toBe(false);
     expect(addInterestsInput.safeParse({ items: Array.from({ length: 11 }, () => ({ text: 'ab' })) }).success).toBe(false);
   });
@@ -114,7 +118,8 @@ describe('document schemas (§8)', () => {
       secondary: ['c_00000000000000000001'],
       blockedH: [], recentH: {}, recentMinUntil: null, reliability: 0.8, noShowEvents: [], waitingSinceWeek: '2026-W46', declinesInRow: 0, ignoredInRow: 0,
       activePods: 0, activeSensitivePods: 0, sensitiveProposals: [], sensitiveHold: null, weekClaim: null, lastDrop: null,
-      attendedVerified: 0, founderInvited: false, openReportCount: 0, priority: false, openToAnyone: false, createdAt: ts, updatedAt: ts,
+      attendedVerified: 0, founderInvited: false, openReportCount: 0, priority: false, openToAnyone: false,
+      participation: { mode: 'auto', skipWeekId: null, optInWeekId: null, pausedUntil: null }, createdAt: ts, updatedAt: ts,
     };
     expect(matchProfileDocSchema.safeParse(profile).success).toBe(true);
     expect(matchProfileDocSchema.safeParse({ ...profile, secondary: [...profile.secondary, 'c_00000000000000000002_p'] }).success).toBe(false);

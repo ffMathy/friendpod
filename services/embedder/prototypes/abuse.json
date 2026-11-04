@@ -1,0 +1,24 @@
+{
+  "//": "Starter abuse prototypes for the shadow-mode similarity check (DESIGN.md §5.2 (2)): aggregate counters only, nothing is held or rejected. Uncalibrated; the founder curates this list before holds are ever enabled.",
+  "version": "abuse-2026-11-04.1",
+  "phrases": [
+    "selling drugs",
+    "sælger stoffer",
+    "buying cocaine",
+    "køb af kokain",
+    "escort service",
+    "escortpige",
+    "sex for money",
+    "sex mod betaling",
+    "sending nude photos",
+    "nøgenbilleder",
+    "hate against immigrants",
+    "had mod indvandrere",
+    "threats of violence",
+    "trusler om vold",
+    "get rich quick crypto scheme",
+    "tjen hurtige penge på krypto",
+    "follow my profile for promotions",
+    "følg min profil for tilbud"
+  ]
+}

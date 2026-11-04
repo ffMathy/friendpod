@@ -54,3 +54,13 @@ export async function emailHash(hmac: HmacSha256, purpose: 'underage' | 'ban', e
   if (!normalized.includes('@')) throw new Error('emailHash: not an email address');
   return base32(await hmac(utf8Encode(`${purpose}|${normalized}`))).slice(0, EMAIL_H_LENGTH);
 }
+
+/**
+ * Hash of a sign-in provider's own user id (e.g. Apple's `sub`) for `underageMarkers`, for sign-ins without an
+ * email claim (Sign in with Apple does not request the email scope, §11). Unlike the Firebase uid, the provider's
+ * id survives deleting and recreating the Firebase user. `${purpose}.idp|` never prefixes an emailHash message.
+ */
+export async function identityHash(hmac: HmacSha256, purpose: 'underage', provider: string, providerUid: string): Promise<string> {
+  if (provider.length === 0 || providerUid.length === 0) throw new Error('identityHash: empty identity');
+  return base32(await hmac(utf8Encode(`${purpose}.idp|${provider}|${providerUid}`))).slice(0, EMAIL_H_LENGTH);
+}

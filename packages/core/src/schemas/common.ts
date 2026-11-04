@@ -58,10 +58,16 @@ export const firstNameSchema = z
       .refine((v) => /^[\p{L}\p{M}][\p{L}\p{M}' .’-]*$/u.test(v), { message: 'letters only' }),
   );
 
-/** What the client sends with an explicit consent (PRIVACY.md §3.4). */
+/**
+ * What the client sends with an explicit consent (PRIVACY.md §3.4).
+ * DESIGN-DEVIATION: §10 lists `{textVersion, textSha256, checked: true}`. The consent event must also record the
+ * app version that showed the text (PRIVACY.md §3.4, DESIGN.md §8.2), and RNFirebase callables cannot send
+ * custom headers, so the payload carries it. Version-like characters only, so it can never hold free text.
+ */
 export const consentPayloadSchema = z.strictObject({
   textVersion: z.string().regex(/^[a-z0-9-]{3,64}$/),
   textSha256: sha256HexSchema,
+  appVersion: z.string().regex(/^[0-9A-Za-z.+-]{1,32}$/),
   checked: z.literal(true),
 });
 

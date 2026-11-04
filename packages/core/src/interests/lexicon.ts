@@ -29,7 +29,7 @@ type Spec = Partial<Record<LexiconMatchKind, readonly (string | readonly [string
 const SPEC: Record<Art9Category, Spec> = {
   health: {
     exact: ['aa', 'ms', 'kol'],
-    token: ['hiv', 'aids', 'copd', 'ivf', 'icsi', 'pcos', 'adhd', 'ocd', 'ptsd', 'sober', 'rehab', 'cancer', 'døv', 'døve', 'deaf', 'addict', 'addicts', 'alcoholics', 'alcoholism', 'fertility', 'miscarriage'],
+    token: ['hiv', 'aids', 'copd', 'ivf', 'icsi', 'pcos', 'brca', 'adhd', 'ocd', 'ptsd', 'sober', 'rehab', 'cancer', 'døv', 'døve', 'deaf', 'addict', 'addicts', 'alcoholics', 'alcoholism', 'fertility', 'miscarriage'],
     prefix: [
       'diabet', 'pregnan', 'autis', 'asperger', 'depress', 'bipolar', 'parkinson', 'alzheimer', 'demens', 'dementia',
       'epilep', 'sclerosis', 'leukæmi', 'leukemi', 'leukaemia', 'anoreksi', 'anorexi', 'bulimi', 'skizofren', 'schizophren',
@@ -38,7 +38,7 @@ const SPEC: Record<Art9Category, Spec> = {
       'wheelchair', 'amput', 'døvblind', 'hørehæm', 'høretab', 'svagtseend', 'kronisk', 'stressramt', 'psykiatri',
       'psychiatr', 'selvmord', 'suicid', 'selvskad', 'alkoholiker', 'addiction', 'ædru', 'sobriety', 'afvænning', 'abort',
       'fødselsdepress', 'postpartum', 'tourette', 'ordblind', 'dyslexi', 'gigt', 'arthritis', 'diagnos', 'anxiety',
-      'transplant', 'patientforening',
+      'transplant', 'patientforening', 'sukkersyge',
     ],
     substring: [
       'gravid', 'kørestol', 'sklerose', 'sclerose', 'spiseforstyr', 'misbrug', 'sygemeld', 'lidelse',
@@ -54,19 +54,21 @@ const SPEC: Record<Art9Category, Spec> = {
       'psykisk sygdom', 'psykisk syg', 'psykisk sårbar', 'eating disorder', 'long covid', 'self harm', 'barnløs',
       'ufrivillig barnløs', 'ufrivilligt barnløs', 'spontan abort', 'chronic pain', 'chronic illness', 'chronic fatigue',
       'chronically ill', 'hearing loss', 'hearing impaired', 'visually impaired', 'sick leave', 'borderline personality',
-      'down syndrome', 'downs syndrom', 'cerebral parese', 'cerebral palsy',
+      'down syndrome', 'downs syndrom', 'cerebral parese', 'cerebral palsy', 'venter barn', 'venter vores første',
+      'expecting a baby', 'expecting our first',
     ],
   },
   religion: {
-    token: ['kristen', 'kristne', 'jøde', 'jøder', 'faith', 'prayer', 'imam', 'rabbi', 'baptist', 'quaker', 'kvæker', 'wicca', 'asatro'],
+    token: ['kristen', 'kristne', 'jøde', 'jøder', 'faith', 'prayer', 'imam', 'rabbi', 'baptist', 'quaker', 'kvæker', 'wicca', 'asatro', 'iftar'],
     prefix: [
       'kristendom', 'christianity', 'muslim', 'islam', 'jødisk', 'jødedom', 'jewish', 'judais', 'buddhis', 'hindu', 'sikh',
       'ateis', 'atheis', 'agnostic', 'agnostik', 'katolsk', 'katolik', 'catholic', 'protestant', 'luthersk', 'lutheran',
       'evangeli', 'pinsekirke', 'pentecostal', 'jehova', 'mormon', 'scientolog', 'synagog', 'moské', 'moske', 'mosque',
       'bibel', 'bible', 'koran', 'quran', 'ramadan', 'gudstjeneste', 'menighed', 'adventist', 'shinto', 'taois', 'bønnegrupp',
+      'kirkegænger',
     ],
     substring: ['folkekirke', 'frikirke', 'valgmenighed', 'kirkegang'],
-    phrase: ['christian faith', 'kristen tro', 'bible study', 'prayer group', 'hare krishna'],
+    phrase: ['christian faith', 'kristen tro', 'bible study', 'prayer group', 'hare krishna', 'indre mission'],
   },
   sexualOrientation: {
     token: ['gay', 'gays', 'trans', 'homo', 'homoer', 'lgbt+', 'lgbtq+', 'lgbtqia+', 'nonbinary', 'kink', 'bdsm'],
@@ -96,12 +98,13 @@ const SPEC: Record<Art9Category, Spec> = {
     ],
   },
   ethnicOrigin: {
-    token: ['romani', 'inuit', 'inuk', 'bipoc', 'poc'],
-    prefix: ['afrodansk', 'andengenerations', 'grønlænder', 'kurder'],
+    token: ['romani', 'inuit', 'inuk', 'bipoc', 'poc', 'diaspora'],
+    prefix: ['afrodansk', 'andengenerations', 'grønlænder', 'kurder', 'somalisk'],
     phrase: [
       'etnisk minoritet', 'etniske minoriteter', 'ethnic minority', 'ethnic minorities', 'people of colour', 'people of color',
       'person of colour', 'person of color', 'black community', 'second generation immigrant', 'anden generation',
-      'afro dansk', 'afro danish',
+      'afro dansk', 'afro danish', 'tyrkisk dansk', 'pakistansk dansk', 'arabisk dansk', 'somali community',
+      'grønlandsk fællesskab', 'black in copenhagen',
     ],
   },
   tradeUnion: {
@@ -111,7 +114,7 @@ const SPEC: Record<Art9Category, Spec> = {
     phrase: [
       'dansk metal', 'det faglige hus', 'teknisk landsforbund', 'blik og rør', 'dansk el forbund', 'dansk sygeplejeråd',
       'danmarks lærerforening', 'trade union', 'trade unions', 'labour union', 'labor union', 'union member',
-      'union rep', 'union representative', 'shop steward',
+      'union rep', 'union representative', 'shop steward', 'union organizing', 'union organising',
     ],
   },
 };

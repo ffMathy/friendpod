@@ -7,7 +7,7 @@ import { matchComponent } from '../../src/matching/matchComponent';
 import { matchSnapshotSchema } from '../../src/schemas/matching';
 import type { WeekId } from '../../src/types/ids';
 import { encodeGeohash } from '../../src/geo/geohash';
-import { CELLS, concept, mkInput, mkUser, ord, sens, WEEK } from './fixtures';
+import { BASE_CONCEPTS, CELLS, concept, mkInput, mkUser, ord, sens, WEEK } from './fixtures';
 
 describe('scoring (§6.2)', () => {
   it('reliability starts at 0.8 and follows (attended + 4)/(attended + noShowW + 5)', () => {
@@ -37,13 +37,24 @@ describe('scoring (§6.2)', () => {
     const pb = ctx.users[1]!.p!;
     let cos = 0;
     for (let i = 0; i < 128; i++) cos += pa[i]! * pb[i]!;
-    const sec = 0.5 * Math.max(0, (cos - 0.3) / 0.7) + 0.5 * Math.min(1, 2 / 3);
+    const tau = ctx.params.tau;
+    expect(cos).toBeGreaterThan(tau);
+    const sec = 0.5 * Math.max(0, (cos - tau) / (1 - tau)) + 0.5 * Math.min(1, 2 / 3);
     expect(secScore(ctx, 0, 1)).toBeCloseTo(sec, 12);
     const pair = 0.6 * sec + 0.2 * Math.exp(-6 / 6) + 0.2 * (1 - d / 10);
     expect(pairScore(ctx, 0, 1)).toBeCloseTo(pair, 12);
     // V(P, c_a) for the pair, q(c_a) = 0.3 with 2 holders of 2 users; f = 0, r = 0.8; sizePen(2) = 0.
     const perUser = (s: number) => 1 + 0.3 * 0.3 * s + 0.15 * 0.8 + 0.6 * pair;
     expect(podValue(ctx, [0, 1], 0)).toBeCloseTo(perUser(1.0) + perUser(0.8), 12);
+  });
+
+  it('scores a concept held twice (another wording, or merged into it) with the strongest strength', () => {
+    const concepts = [...BASE_CONCEPTS.filter((c) => c.id !== 'c_b'), concept('c_b', false, 'c_a')];
+    for (const themes of [[ord('c_a'), ord('c_b', true)], [ord('c_b', true), ord('c_a')], [ord('c_a'), ord('c_a', true)]]) {
+      const ctx = deriveContext(mkInput([mkUser('a', { themes: [...themes, ord('c_c')] }), mkUser('b')], { concepts }));
+      const a = ctx.users.find((u) => u.uid === 'a')!;
+      expect(a.themeS.get(ctx.conceptIds.indexOf('c_a'))).toBe(1.0);
+    }
   });
 
   it('never lets sensitive holdings into the secondary score (S2)', () => {

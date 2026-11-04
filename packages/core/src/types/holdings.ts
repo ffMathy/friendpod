@@ -75,17 +75,19 @@ export function matchProfileInterests(
   sensitive: readonly SensitiveHolding[],
 ): MatchProfileInterests {
   const themes: MatchTheme[] = [];
-  const seen = new Set<string>();
-  for (const h of ordinary) {
-    if (seen.has(h.conceptId)) continue;
-    seen.add(h.conceptId);
-    themes.push({ c: h.conceptId, starred: h.starred, sens: false });
-  }
-  for (const h of sensitive) {
-    if (seen.has(h.conceptId)) continue;
-    seen.add(h.conceptId);
-    themes.push({ c: h.conceptId, starred: h.starred, sens: true, consentRef: h.consentRef });
-  }
+  const at = new Map<string, number>();
+  const add = (theme: MatchTheme): void => {
+    const i = at.get(theme.c);
+    if (i === undefined) {
+      at.set(theme.c, themes.length);
+      themes.push(theme);
+    } else if (theme.starred) {
+      // Different wordings ("løb", "running") can resolve to one concept: a star on any of them counts.
+      themes[i] = { ...themes[i]!, starred: true };
+    }
+  };
+  for (const h of ordinary) add({ c: h.conceptId, starred: h.starred, sens: false });
+  for (const h of sensitive) add({ c: h.conceptId, starred: h.starred, sens: true, consentRef: h.consentRef });
   return {
     themes,
     themeIds: themes.map((t) => t.c),

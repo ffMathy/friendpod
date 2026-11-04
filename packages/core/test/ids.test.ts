@@ -2,7 +2,7 @@ import { webcrypto } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
 import { base32 } from '../src/ids/base32';
 import { webCryptoHmacSha256 } from '../src/ids/hmac';
-import { emailHash, interestId, podId, uidHash } from '../src/ids/podId';
+import { emailHash, identityHash, interestId, podId, uidHash } from '../src/ids/podId';
 import { nodeHmacSha256, sha256Hex } from '../src/node';
 import type { WeekId } from '../src/types/ids';
 
@@ -64,6 +64,10 @@ describe('pod ids and pseudonyms (§6.5, §8)', () => {
     expect(await interestId(hmac, 'abd', 'madlavning')).not.toBe(iid);
     expect(await emailHash(hmac, 'ban', ' Anna@Example.dk ')).toBe(await emailHash(hmac, 'ban', 'anna@example.dk'));
     expect(await emailHash(hmac, 'ban', 'anna@example.dk')).not.toBe(await emailHash(hmac, 'underage', 'anna@example.dk'));
+    const apple = await identityHash(hmac, 'underage', 'apple.com', '001234.abcdef.0001');
+    expect(apple).toMatch(/^[a-z2-7]{32}$/);
+    expect(await identityHash(hmac, 'underage', 'google.com', '001234.abcdef.0001')).not.toBe(apple);
+    await expect(identityHash(hmac, 'underage', 'apple.com', '')).rejects.toThrow();
   });
 
   it('exposes sha256 for the Node side', () => {

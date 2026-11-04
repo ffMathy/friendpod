@@ -1,5 +1,5 @@
 /**
- * npm -w tools/sim run sim -- --n 200 --weeks 12 --profile alpha --seed 1
+ * npm -w tools/sim run sim -- --n 200 --weeks 12 --profile alpha --seed 1 [--cohorts 5]
  * Prints the run's metrics as JSON. Synthetic simulation with assumed behaviour (see behaviour.ts).
  */
 import { parseArgs } from 'node:util';
@@ -13,6 +13,7 @@ const { values } = parseArgs({
     profile: { type: 'string', default: 'launch' },
     seed: { type: 'string', default: '1' },
     concepts: { type: 'string', default: '2000' },
+    cohorts: { type: 'string', default: '0' },
     'per-week': { type: 'boolean', default: false },
     'assert-smoke': { type: 'boolean', default: false },
   },
@@ -29,6 +30,7 @@ const result = simulate({
   profile: getMatchingProfile(profileId),
   seed: Number(values.seed),
   concepts: Number(values.concepts),
+  cohorts: Number(values.cohorts),
 });
 const { perWeek, ...summary } = result.metrics;
 console.log(JSON.stringify({ ...result, metrics: values['per-week'] ? result.metrics : summary }, null, 2));

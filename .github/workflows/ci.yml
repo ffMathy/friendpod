@@ -1,0 +1,122 @@
+# DESIGN.md §13 "ci.yml". Every emulator run uses the demo project (no real project, no credentials).
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  FIREBASE_TOOLS_VERSION: 15.34.2
+  EMULATOR_PROJECT: demo-grouper
+
+defaults:
+  run:
+    shell: bash # explicit bash runs with -eo pipefail, so a failing command piped into tee still fails the step
+
+jobs:
+  checks:
+    name: Typecheck, lint, unit tests, builds
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup
+        with:
+          projects: functions services/embedder tests/rules
+
+      # Workspaces: core, tools/sim, tools/admin and apps/mobile (expo customize, then tsc for app and tests).
+      - name: Typecheck (workspaces)
+        run: npm run typecheck
+      - name: Lint
+        run: npm run lint
+      # vitest for core, sim and admin; jest-expo for apps/mobile.
+      - name: Unit and property tests (workspaces)
+        run: npm test
+      - name: Mobile public config (development profile)
+        working-directory: apps/mobile
+        run: npx expo config --type public
+
+      - name: Functions (default) typecheck
+        run: npm --prefix functions run typecheck
+      - name: Functions (default) build
+        run: npm --prefix functions run build
+      - name: Embedder typecheck
+        run: npm --prefix services/embedder run typecheck
+      # Without ./model the build skips prototypes.bin; the tests use the stub model (DESIGN.md §13).
+      - name: Embedder build
+        run: npm --prefix services/embedder run build
+      - name: Rules tests typecheck
+        run: npm --prefix tests/rules run typecheck
+
+  emulators:
+    name: Emulator tests (rules, functions, embedder, discovery)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup
+        with:
+          projects: functions services/embedder tests/rules
+      # The Firestore emulator needs Java 21 or newer (DESIGN.md §13).
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Cache emulator binaries
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/firebase/emulators
+          key: firebase-emulators-${{ runner.os }}-${{ env.FIREBASE_TOOLS_VERSION }}
+      - name: Install firebase-tools
+        run: npm install --global "firebase-tools@${FIREBASE_TOOLS_VERSION}"
+
+      - name: Validate firestore.indexes.json with firebase-tools
+        run: node tests/rules/scripts/validate-indexes.mjs
+      - name: Security rules tests
+        run: firebase emulators:exec --only firestore,storage --project "$EMULATOR_PROJECT" "npm --prefix tests/rules test"
+      # Includes the log-scrubbing test (DESIGN.md §13): it captures every log line of the run.
+      - name: Functions emulator tests
+        run: firebase emulators:exec --only auth,firestore --project "$EMULATOR_PROJECT" "npm --prefix functions test"
+      - name: Embedder emulator tests (stub model)
+        run: firebase emulators:exec --only firestore --project "$EMULATOR_PROJECT" "npm --prefix services/embedder test"
+      # Both codebases must load from dist in the Functions emulator, the embedder without model weights.
+      - name: Build both functions codebases
+        run: |
+          npm --prefix functions run build
+          npm --prefix services/embedder run build
+      - name: Functions emulator discovery (both codebases)
+        run: firebase emulators:exec --only functions --project "$EMULATOR_PROJECT" "npx tsx scripts/check-functions-discovery.ts"
+      - name: Upload emulator logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: emulator-logs
+          path: '*-debug.log'
+          if-no-files-found: ignore
+          retention-days: 7
+
+  sim:
+    name: Simulation (smoke and thin market)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup
+      - name: Sim smoke (n = 2000, 4 weeks, launch profile, sanity assertions)
+        run: npm run sim:smoke
+      # n = 100/200/300 over 12 weeks, launch and alpha profiles (DESIGN.md §6.9). Reported, not gated.
+      - name: Thin-market runs
+        run: npm run sim:thin-market -- --json "$RUNNER_TEMP/thin-market.json" | tee -a "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: thin-market
+          path: ${{ runner.temp }}/thin-market.json
+          retention-days: 30

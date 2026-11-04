@@ -98,6 +98,10 @@ describe('Art. 9 lexicon (§5.2 (0), (5) row 2)', () => {
     expect(check(text).hit).toBe(false);
   });
 
+  it('covers the hardest true positives for EmbeddingGemma 2, all Danish [CAL]', () => {
+    for (const text of ['ufrivilligt barnløs', 'iftar under ramadanen', 'døv', 'bøsse']) expect(check(text).hit, text).toBe(true);
+  });
+
   it('lists several categories when a tag spans them, in a fixed order', () => {
     expect(check('queer muslim').categories).toEqual(['religion', 'sexualOrientation']);
   });

@@ -1,0 +1,134 @@
+# DESIGN.md §13 "deploy.yml": rules, indexes (with TTL policies), storage rules, hosting and functions:default;
+# functions:embedder only when asked (later: only when services/embedder changes); production behind approval.
+#
+# SKELETON. It runs only when started by hand, and it fails at the first step until Workload Identity Federation
+# is configured. It never runs on pull requests.
+#
+# TODO(M0) before the first deploy:
+#   - WIF pool and provider for this repository, and one deploy service account per project with the Firebase
+#     deploy roles. No service-account keys (DESIGN.md §9).
+#   - Repository variables GCP_WORKLOAD_IDENTITY_PROVIDER, and per GitHub environment (`staging`, `prod`)
+#     GCP_DEPLOY_SERVICE_ACCOUNT. The `prod` environment gets required reviewers: that is the manual approval.
+#   - Secrets in Secret Manager (POD_ID_KEY, UID_HMAC_KEY), set once with `firebase functions:secrets:set`.
+#   - Storage cross-service rules: grant the Firebase Rules service agent read access to Firestore once (the CLI
+#     asks interactively on the first deploy, and cannot in --non-interactive mode).
+#   - The model mirror gs://grouper-<env>-models (see calibration.yml) for the embedder's predeploy fetch-model.
+#   - Log buckets in europe-west1 (DESIGN.md §7 "Logging location"): the organization's default storage location
+#     is set before the projects are created, or the `_Default` sink points at a user-defined europe-west1 bucket.
+#     That bucket keeps 30 days (PRIVACY.md §5).
+#   - The `_Default` sink exclusion for Cloud Run request logs (IP address, user agent; DESIGN.md §13):
+#     `gcloud logging sinks update _Default --add-exclusion=name=run-requests,filter='logName:"run.googleapis.com%2Frequests"'`.
+#   - roles/logging.viewer (logging.sinks.get, logging.buckets.get) for the deploy service account: the logging
+#     check below runs before anything is deployed.
+#   - Then add `push: branches: [main]` for staging, with functions:embedder gated on a services/embedder/** diff.
+name: Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Firebase project alias (.firebaserc)
+        type: choice
+        options: [staging, prod]
+        default: staging
+      embedder:
+        description: Also deploy functions:embedder (fetches the pinned model from the EU mirror)
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  id-token: write # WIF
+
+concurrency:
+  group: deploy-${{ inputs.target }}
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  FIREBASE_TOOLS_VERSION: 15.34.2
+  REGION: europe-west1
+
+jobs:
+  deploy:
+    name: Deploy to ${{ inputs.target }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    environment: ${{ inputs.target }}
+    env:
+      PROJECT_ALIAS: ${{ inputs.target }}
+      GCP_PROJECT: grouper-${{ inputs.target }}
+    steps:
+      - name: Require Workload Identity Federation configuration
+        env:
+          WIF_PROVIDER: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          SERVICE_ACCOUNT: ${{ vars.GCP_DEPLOY_SERVICE_ACCOUNT }}
+        run: |
+          if [ -z "$WIF_PROVIDER" ] || [ -z "$SERVICE_ACCOUNT" ]; then
+            echo "::error::Set GCP_WORKLOAD_IDENTITY_PROVIDER and the ${PROJECT_ALIAS} environment's GCP_DEPLOY_SERVICE_ACCOUNT first (see the TODO at the top of this file)."
+            exit 1
+          fi
+      - uses: actions/checkout@v5
+      # The predeploy hooks in firebase.json run `npm ci` in functions/ and services/embedder/ themselves;
+      # the root install provides @grouper/core's dependencies for the esbuild bundles.
+      - uses: ./.github/actions/setup
+      - name: Install firebase-tools
+        run: npm install --global "firebase-tools@${FIREBASE_TOOLS_VERSION}"
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOY_SERVICE_ACCOUNT }}
+      - uses: google-github-actions/setup-gcloud@v2
+
+      # DESIGN.md §7 "Logging location", §13 Logs; PRIVACY.md §5. Checked before the first function is deployed,
+      # so nothing runs while Cloud Run request logs (IP address, user agent) reach the bucket.
+      - name: Check the logging controls (request-log exclusion, europe-west1 bucket, 30 days)
+        run: |
+          sink=$(gcloud logging sinks describe _Default --project "$GCP_PROJECT" --format=json)
+          if ! jq -e '[.exclusions[]? | select((.disabled // false) | not) | .filter | contains("run.googleapis.com%2Frequests")] | any' <<<"$sink" >/dev/null; then
+            echo "::error::The _Default sink has no enabled exclusion for logName:\"run.googleapis.com%2Frequests\" (see the TODO at the top of this file)."
+            exit 1
+          fi
+          destination=$(jq -r '.destination' <<<"$sink")
+          if [[ ! "$destination" =~ /locations/${REGION}/buckets/([^/]+)$ ]]; then
+            echo "::error::The _Default sink writes to ${destination}, not to a log bucket in ${REGION}."
+            exit 1
+          fi
+          bucket="${BASH_REMATCH[1]}"
+          retention=$(gcloud logging buckets describe "$bucket" --location="$REGION" --project "$GCP_PROJECT" --format='value(retentionDays)')
+          if [ "$retention" != "30" ]; then
+            echo "::error::Log bucket ${bucket} keeps ${retention:-an unknown number of} days, not 30."
+            exit 1
+          fi
+          echo "_Default sink -> ${destination} (${retention} days), request logs excluded"
+
+      - name: Validate firestore.indexes.json with firebase-tools
+        run: node tests/rules/scripts/validate-indexes.mjs
+      # No --force: indexes and field overrides missing from the repo are kept and reported, and a deploy that would
+      # delete a function fails, so removals stay deliberate (`firebase functions:delete`).
+      - name: Deploy rules, indexes and TTL policies, storage rules, hosting, functions:default
+        run: >-
+          firebase deploy --project "$PROJECT_ALIAS" --non-interactive
+          --only firestore:rules,firestore:indexes,storage,hosting,functions:default
+      - name: Deploy functions:embedder
+        if: inputs.embedder
+        env:
+          GCS_MODEL_BUCKET: grouper-${{ inputs.target }}-models
+        run: firebase deploy --project "$PROJECT_ALIAS" --non-interactive --only functions:embedder
+
+      # DESIGN.md §9: no Cloud Run service may run as a default service account. An empty serviceAccountName
+      # means the default compute service account.
+      - name: Check that no service runs as a default service account
+        run: |
+          gcloud run services list --project "$GCP_PROJECT" --region "$REGION" \
+            --format='csv[no-heading](metadata.name,spec.template.spec.serviceAccountName)' > services.csv
+          offenders=$(awk -F, '$2 == "" || $2 ~ /-compute@developer\.gserviceaccount\.com$|@appspot\.gserviceaccount\.com$/' services.csv)
+          if [ -n "$offenders" ]; then
+            echo "::error::Services running as a default service account:"
+            echo "$offenders"
+            exit 1
+          fi
+          echo "$(wc -l < services.csv) services checked"

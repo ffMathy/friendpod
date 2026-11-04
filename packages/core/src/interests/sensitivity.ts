@@ -1,6 +1,6 @@
 import type { SensitivitySource } from '../types/domain';
 
-/** Detector margin threshold for q4 / classification / 768-d: 100% recall on the labelled set [EXP]. */
+/** Detector margin threshold for EmbeddingGemma 2 q4 / STS prompt / 768-d: 100% recall on the labelled set [CAL]. */
 export const DETECTOR_MARGIN_THRESHOLD = -0.03;
 
 export interface SensitivitySignals {

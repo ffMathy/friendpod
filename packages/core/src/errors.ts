@@ -3,6 +3,9 @@
  * the canonical gRPC-style code is fixed here so both codebases map them identically.
  */
 export const APP_ERRORS = {
+  // Raised by the callable wrapper before any handler runs: no signed-in user, or no App Check token.
+  UNAUTHENTICATED: 'unauthenticated',
+  APP_CHECK: 'unauthenticated',
   VALIDATION: 'invalid-argument',
   URL: 'invalid-argument',
   CONTACT_INFO: 'invalid-argument',
@@ -24,6 +27,8 @@ export const APP_ERRORS = {
   EMBED_BUDGET: 'unavailable',
   FEATURE_DISABLED: 'unavailable',
   INTERNAL: 'internal',
+  /** A typed stub for later work; `details.design` names the DESIGN.md section. */
+  NOT_IMPLEMENTED: 'unimplemented',
 } as const;
 
 export type AppErrorCode = keyof typeof APP_ERRORS;

@@ -1,0 +1,259 @@
+/**
+ * firestore.rules (DESIGN.md §9): owner-only reads under users/{uid}, pods and options for confirmed members
+ * with the `onb` claim, areas for onboarded users, config/app for anyone, everything else server-only, and no
+ * client writes anywhere.
+ */
+import { assertFails, assertSucceeds, type RulesTestContext, type RulesTestEnvironment } from '@firebase/rules-unit-testing';
+import { afterAll, beforeAll, describe, it } from 'vitest';
+import { onboarded, rulesEnv, user } from './env';
+
+const ALICE = 'aliceUid0000000000000000000a';
+const BOB = 'bobUid000000000000000000000b';
+const CAROL = 'carolUid00000000000000000000';
+const MALLORY = 'malloryUid000000000000000000';
+const WEEK = '2026-W45';
+const AT = new Date('2026-11-05T17:00:00Z');
+
+type Data = Record<string, unknown>;
+
+/** Every client-readable document under users/{uid} (§8.1). */
+const ownerDocs = (uid: string, other: string): Record<string, Data> => ({
+  [`users/${uid}`]: { firstName: 'Ada', locale: 'da', status: 'active', createdAt: AT },
+  [`users/${uid}/interests/int1`]: { display: 'Bouldering', norm: 'bouldering', conceptId: 'c1', starred: true, state: 'active' },
+  [`users/${uid}/sensitiveInterests/sen1`]: { display: 'Theme', norm: 'theme', conceptId: 'c9', selfFlagged: false, source: 'lexicon' },
+  [`users/${uid}/pods/p1`]: { state: 'confirmed', myStatus: 'accepted', themeLabel: 'Bouldering', themeSensitive: false },
+  [`users/${uid}/blocks/${other}`]: { firstName: 'Bo', podId: 'p1', since: AT },
+  [`users/${uid}/notices/n1`]: { type: 'system', code: 'EXPORT_READY', params: {}, createdAt: AT, expiresAt: AT },
+  [`users/${uid}/exports/e1`]: { status: 'ready', expiresAt: AT },
+});
+
+const POD_DOCS: Record<string, Data> = {
+  'pods/p1': { state: 'confirmed', weekId: WEEK, memberUids: [ALICE, BOB], roster: { [ALICE]: { firstName: 'Ada', photoV: 1 } } },
+  'pods/p1/options/o1': { authorUid: BOB, placeText: 'Library café', publicPlace: true, votes: { [BOB]: 'yes' } },
+  'pods/p2': { state: 'confirmed', weekId: WEEK, memberUids: [BOB, CAROL] },
+  'pods/p2/options/o2': { authorUid: CAROL, placeText: 'Park', publicPlace: true, votes: {} },
+};
+
+const PUBLICISH_DOCS: Record<string, Data> = {
+  'areas/aarhus': { label: 'Aarhus', status: 'waitlist', chips: [] },
+  'config/app': { minAppVersion: '0.1.0', features: { embedder: true, uploads: true } },
+  'config/internal': { note: 'not public' },
+};
+
+/** Server-only collections (§8.2). Doc ids include Alice's uid where the real ids do. */
+const SERVER_ONLY_DOCS: Record<string, Data> = {
+  [`matchProfiles/${ALICE}`]: { status: 'active', themeIds: ['c1'], blockedH: [] },
+  'tags/t1': { norm: 'bouldering', refCount: 1 },
+  'concepts/c1': { sensitive: false, status: 'active', n: 1 },
+  'conceptLinks/c1__c2': { cos: 0.91, status: 'candidate' },
+  'podState/p1': { weekId: WEEK, state: 'confirmed', memberList: [ALICE, BOB] },
+  [`podFeedback/p1_${ALICE}`]: { met: true, keep: true },
+  [`drops/${WEEK}`]: { status: 'released' },
+  [`drops/${WEEK}/components/c0`]: { status: 'computed' },
+  'consentEvents/ev1': { uid: ALICE, scope: 'art9', action: 'grant', createdAt: AT },
+  [`blocks/${ALICE}_${BOB}`]: { blocker: ALICE, blocked: BOB, podId: 'p1', createdAt: AT },
+  'reports/r1': { reporterUid: ALICE, targetUid: BOB, podId: 'p1', category: 'other', expiresAt: AT },
+  [`sanctions/${ALICE}`]: { type: 'pause', reasonCode: 'SAFETY_REPORT' },
+  'bans/emailHash1': { reasonCode: 'UNDERAGE', createdAt: AT, expiresAt: AT },
+  'reviewQueue/q1': { kind: 'report', ref: 'r1', uid: ALICE, status: 'open' },
+  [`photoGrants/${ALICE}_${BOB}`]: { pods: ['p1'], createdAt: AT },
+  [`pushTokens/${ALICE}`]: { tokens: [] },
+  [`rateLimits/${ALICE}_embed`]: { count: 1, windowStart: AT, expiresAt: AT },
+  'rateLimits/global_embedMiss_2026-11-05': { count: 1, windowStart: AT, expiresAt: AT },
+  'erasureLedger/l1': { uidH: 'uidhash', kind: 'interest', at: AT, expiresAt: AT },
+  'underageMarkers/emailHash2': { createdAt: AT, expiresAt: AT },
+};
+
+const UNKNOWN_DOCS: Record<string, Data> = { 'misc/doc1': { x: 1 } };
+
+const ALL_DOCS: Record<string, Data> = {
+  ...ownerDocs(ALICE, BOB),
+  ...ownerDocs(BOB, ALICE),
+  ...POD_DOCS,
+  ...PUBLICISH_DOCS,
+  ...SERVER_ONLY_DOCS,
+  ...UNKNOWN_DOCS,
+};
+
+const parentOf = (path: string): string => path.slice(0, path.lastIndexOf('/'));
+const lastId = (path: string): string => path.slice(path.lastIndexOf('/') + 1);
+
+let env: RulesTestEnvironment;
+let anon: RulesTestContext;
+let alice: RulesTestContext; // signed in, not onboarded
+let aliceOnb: RulesTestContext;
+let bobOnb: RulesTestContext;
+let malloryOnb: RulesTestContext;
+
+beforeAll(async () => {
+  env = await rulesEnv();
+  await env.clearFirestore();
+  await env.withSecurityRulesDisabled(async (admin) => {
+    const db = admin.firestore();
+    await Promise.all(Object.entries(ALL_DOCS).map(([path, data]) => db.doc(path).set(data)));
+  });
+  anon = env.unauthenticatedContext();
+  alice = user(env, ALICE);
+  aliceOnb = onboarded(env, ALICE);
+  bobOnb = onboarded(env, BOB);
+  malloryOnb = onboarded(env, MALLORY);
+});
+
+afterAll(async () => {
+  await env?.clearFirestore();
+  await env?.cleanup();
+});
+
+const get = (ctx: RulesTestContext, path: string) => ctx.firestore().doc(path).get();
+const list = (ctx: RulesTestContext, collectionPath: string) => ctx.firestore().collection(collectionPath).get();
+
+describe('users/{uid}/** is readable by its owner only', () => {
+  for (const path of Object.keys(ownerDocs(ALICE, BOB))) {
+    it(`${path.replace(ALICE, '{alice}')}`, async () => {
+      await assertSucceeds(get(alice, path)); // the owner does not need the onb claim (onboarding reads)
+      await assertSucceeds(get(aliceOnb, path));
+      await assertFails(get(bobOnb, path));
+      await assertFails(get(anon, path));
+    });
+  }
+
+  for (const sub of ['interests', 'sensitiveInterests', 'pods', 'blocks', 'notices', 'exports']) {
+    it(`lists users/{alice}/${sub} only as Alice`, async () => {
+      await assertSucceeds(list(alice, `users/${ALICE}/${sub}`));
+      await assertFails(list(bobOnb, `users/${ALICE}/${sub}`));
+      await assertFails(list(anon, `users/${ALICE}/${sub}`));
+    });
+  }
+
+  it('denies listing the users collection', async () => {
+    await assertFails(list(aliceOnb, 'users'));
+  });
+
+  for (const group of ['interests', 'sensitiveInterests', 'pods', 'blocks']) {
+    it(`denies collection-group queries on ${group}`, async () => {
+      await assertFails(aliceOnb.firestore().collectionGroup(group).get());
+    });
+  }
+});
+
+describe('pods/{podId} is readable by current members with the onb claim', () => {
+  it('allows a member with onb', async () => {
+    await assertSucceeds(get(aliceOnb, 'pods/p1'));
+    await assertSucceeds(get(bobOnb, 'pods/p1'));
+  });
+
+  it('denies a member without onb, or with a non-boolean onb', async () => {
+    await assertFails(get(alice, 'pods/p1'));
+    await assertFails(get(user(env, ALICE, { onb: 'true' }), 'pods/p1'));
+    await assertFails(get(user(env, ALICE, { onb: 1 }), 'pods/p1'));
+    await assertFails(get(user(env, ALICE, { onb: false }), 'pods/p1'));
+  });
+
+  it('denies non-members and unauthenticated clients', async () => {
+    await assertFails(get(malloryOnb, 'pods/p1'));
+    await assertFails(get(aliceOnb, 'pods/p2'));
+    await assertFails(get(anon, 'pods/p1'));
+  });
+
+  it('denies a pod that does not exist', async () => {
+    await assertFails(get(aliceOnb, 'pods/missing'));
+  });
+
+  it('allows only queries constrained to the caller as a member', async () => {
+    const pods = aliceOnb.firestore().collection('pods');
+    await assertSucceeds(pods.where('memberUids', 'array-contains', ALICE).get());
+    await assertFails(pods.where('memberUids', 'array-contains', BOB).get());
+    await assertFails(pods.get());
+    await assertFails(alice.firestore().collection('pods').where('memberUids', 'array-contains', ALICE).get());
+  });
+});
+
+describe('pods/{podId}/options are readable by pod members with the onb claim', () => {
+  it('allows members', async () => {
+    await assertSucceeds(get(aliceOnb, 'pods/p1/options/o1'));
+    await assertSucceeds(list(aliceOnb, 'pods/p1/options'));
+  });
+
+  it('denies non-members, members without onb and unauthenticated clients', async () => {
+    await assertFails(get(malloryOnb, 'pods/p1/options/o1'));
+    await assertFails(list(malloryOnb, 'pods/p1/options'));
+    await assertFails(get(aliceOnb, 'pods/p2/options/o2'));
+    await assertFails(list(aliceOnb, 'pods/p2/options'));
+    await assertFails(get(alice, 'pods/p1/options/o1'));
+    await assertFails(get(anon, 'pods/p1/options/o1'));
+  });
+
+  it('denies options of a pod that does not exist', async () => {
+    await assertFails(list(aliceOnb, 'pods/missing/options'));
+  });
+
+  it('denies collection-group queries on options', async () => {
+    await assertFails(aliceOnb.firestore().collectionGroup('options').get());
+  });
+});
+
+describe('areas require the onb claim', () => {
+  it('allows onboarded users to get and list', async () => {
+    await assertSucceeds(get(aliceOnb, 'areas/aarhus'));
+    await assertSucceeds(list(aliceOnb, 'areas'));
+  });
+
+  it('denies users without onb and unauthenticated clients', async () => {
+    await assertFails(get(alice, 'areas/aarhus'));
+    await assertFails(list(alice, 'areas'));
+    await assertFails(get(anon, 'areas/aarhus'));
+  });
+});
+
+describe('config: only config/app is public', () => {
+  it('allows anyone to read config/app', async () => {
+    await assertSucceeds(get(anon, 'config/app'));
+    await assertSucceeds(get(aliceOnb, 'config/app'));
+  });
+
+  it('denies other config docs and listing', async () => {
+    await assertFails(get(anon, 'config/internal'));
+    await assertFails(get(aliceOnb, 'config/internal'));
+    await assertFails(list(anon, 'config'));
+  });
+});
+
+describe('server-only collections are unreadable by any client', () => {
+  for (const path of [...Object.keys(SERVER_ONLY_DOCS), ...Object.keys(UNKNOWN_DOCS)]) {
+    it(`${path.replaceAll(ALICE, '{alice}').replaceAll(BOB, '{bob}')}`, async () => {
+      for (const ctx of [anon, alice, aliceOnb, bobOnb]) {
+        await assertFails(get(ctx, path));
+        await assertFails(list(ctx, parentOf(path)));
+      }
+    });
+  }
+});
+
+describe('clients cannot write anywhere', () => {
+  // Alice is the most privileged client there is: owner of users/{alice}, member of p1, onboarded.
+  for (const path of Object.keys(ALL_DOCS)) {
+    it(`${path.replaceAll(ALICE, '{alice}').replaceAll(BOB, '{bob}')}`, async () => {
+      const db = aliceOnb.firestore();
+      const created = `${parentOf(path)}/new-${lastId(path)}`;
+      await assertFails(db.doc(created).set({ x: 1 }));
+      await assertFails(db.doc(path).set({ x: 1 }));
+      await assertFails(db.doc(path).set({ x: 1 }, { merge: true }));
+      await assertFails(db.doc(path).update({ x: 1 }));
+      await assertFails(db.doc(path).delete());
+      await assertFails(anon.firestore().doc(created).set({ x: 1 }));
+    });
+  }
+
+  it('denies batched writes and transactions', async () => {
+    const db = aliceOnb.firestore();
+    const batch = db.batch();
+    batch.set(db.doc(`users/${ALICE}/interests/batched`), { display: 'x' });
+    await assertFails(batch.commit());
+    await assertFails(
+      db.runTransaction(async (tx) => {
+        await tx.get(db.doc(`users/${ALICE}`));
+        tx.update(db.doc(`users/${ALICE}`), { firstName: 'Eve' });
+      }),
+    );
+  });
+});
