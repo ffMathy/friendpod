@@ -1,0 +1,8 @@
+# Fetched or generated; never committed
+models/
+node_modules/
+out/
+*.bin
+*.onnx
+*.onnx_data
+*.part

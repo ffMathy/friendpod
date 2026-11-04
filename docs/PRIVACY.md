@@ -15,7 +15,8 @@ Evidence tags are the same as in DESIGN.md:
 |---|---|
 | [GDPR] | GDPR research report |
 | [FBX] | Firebase / Expo report |
-| [EXP] | Embedding experiment |
+| [EXP] | First embedding experiment (v1) |
+| [CAL] | v1 vs v2 re-calibration (`research/embedding-calibration/`) |
 | [SRV] | Serving report |
 | [MAT] | Matching report |
 | [A] | Assumption |
@@ -183,7 +184,7 @@ What the design does now:
 - The only output is `needsConsent`.
 
 Options for counsel **[LAWYER]**:
-1. **On-device detector** (D§2.4 Q18): run the EmbeddingGemma q4 detector on the phone, so possibly-Art. 9 text leaves the device only after consent or after the same model and thresholds found it non-sensitive (the server still re-classifies). Cost: about 220 MB of download and a re-verification of thresholds on the mobile runtime. The M0 spike decides feasibility.
+1. **On-device detector** (D§2.4 Q18): run the EmbeddingGemma 2 q4 detector on the phone, so possibly-Art. 9 text leaves the device only after consent or after the same model and thresholds found it non-sensitive (the server still re-classifies). Cost: about 175 MB of download (v2 q4) and a re-verification of thresholds on the mobile runtime. The M0 spike decides feasibility.
 2. **Up-front consent** to "check my interests for sensitive content". This is only acceptable if refusing it does not block adding interests: a user who refuses must still be able to add every tag, each one through the per-tag consent sheet. Otherwise the consent would not be freely given.
 3. **Keep the current design** with a documented position.
 
@@ -217,7 +218,7 @@ Until counsel decides, R5 is rated **medium** residual risk, not low (§7.3).
 | Gender | Precautionary yes | §3.6 |
 
 ### 4.3 Controls
-- **Detection.** Layered: review decision > lexicon > self-flag > embedding detector. The detector is tuned for recall: 100% caught on the test set, with about 40% false flags [EXP]. A false positive costs one consent step; a miss is the real risk.
+- **Detection.** Layered: review decision > lexicon > self-flag > embedding detector. The detector is tuned for recall: 100% caught on the test set, with about 49% false flags, mostly ordinary Danish words [CAL]. A false positive costs one consent step; a miss is the real risk.
 - **No cross-sensitivity merges.** Sensitive and ordinary tags never share a concept. That blocks errors like "brystkræft" joining "brætspil" [EXP].
 - **Theme-only use (S1–S4, D§6.1):**
   - a sensitive holding is only ever a theme, and the rule is enforced per holding, so a self-flagged ordinary tag is covered;
@@ -433,7 +434,7 @@ Art. 37(1)(c) requires a DPO only when sensitive processing is both a **core act
 | Sign in with Apple, App Attest, APNs | Independent controller [GDPR] **[LAWYER]** | US / global | Apple terms; disclosed |
 | Google Sign-In, Play Integrity | Independent controller [GDPR] **[LAWYER]** | Global | Google terms; disclosed |
 | Expo (EAS Build) | None | — | Expo push and EAS Update not used [GDPR] |
-| Hugging Face | None. Weights are copied at build time to our EU bucket; no user data is sent | — | Gemma Terms (model licence) [SRV] |
+| Hugging Face | None. Weights are copied at build time to our EU bucket; no user data is sent | — | Apache-2.0 model licence (EmbeddingGemma 2); Gemma Terms only if the v1 fallback is used [CAL][SRV] |
 | Cloud Natural Language `moderateText`, if adopted | Processor | To verify | Only for queued non-sensitive items; decide in M2 [MAT] |
 
 **Transfers** [GDPR]:
@@ -608,4 +609,4 @@ Layered (in-app summary + full text), in Danish and English:
 13. Not designating a DPO, and the reassessment triggers (§8).
 14. DSA classification as a hosting service (§13).
 15. Breach templates and the privacy notice text (§14, §16).
-16. Gemma Terms for backend-only use of EmbeddingGemma v1, if v1 is kept (D§2.4 Q1) [SRV].
+16. Gemma Terms for backend-only use of EmbeddingGemma v1, only if the v1 fallback is ever used (D§2.4 Q1; v2 is Apache-2.0) [SRV].

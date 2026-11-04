@@ -11,14 +11,15 @@
 
 | Tag | Source |
 |---|---|
-| [EXP] | Embedding calibration experiment (measured in sandbox, EmbeddingGemma-300m ONNX) |
+| [EXP] | First embedding calibration experiment (measured in sandbox, EmbeddingGemma-300m ONNX, v1) |
+| [CAL] | v1 vs v2 re-calibration with the same test set and code, reproducible in [`research/embedding-calibration/`](../research/embedding-calibration/README.md) |
 | [SRV] | EmbeddingGemma serving research |
 | [FBX] | Firebase + Expo SDK 58 infrastructure research |
 | [GDPR] | GDPR / Danish data protection analysis |
 | [MAT] | Matching algorithm and product rules research |
 | [A] | Architect's assumption, to be validated |
 
-Where reports conflict, the resolution is stated inline and summarized in §2.3. Measured numbers from [EXP] win over estimates.
+Where reports conflict, the resolution is stated inline and summarized in §2.3. Measured numbers from [CAL] and [EXP] win over estimates; [CAL] supersedes [EXP] for every model-specific threshold.
 
 ---
 
@@ -70,11 +71,11 @@ The stack is an Expo SDK 58 app on React Native Firebase, with Firestore, Cloud 
 
 | # | Decision | Why |
 |---|---|---|
-| A1 | Model: EmbeddingGemma-300m ONNX **q4**, pinned `5090578d…`; EmbeddingGemma 2 only if it passes the M0 gate | The only calibrated variant [EXP]; v2 (Apache-2.0) is promising but uncalibrated [SRV] |
-| A2 | 768-d vectors for tags and concepts; 128-d only in the matching profile | Thresholds were measured at 768-d [EXP] |
-| A3 | `sentence similarity` prompt for tags; `classification` prompt for the detector | Best measured AUC per task [EXP] |
+| A1 | Model: **EmbeddingGemma 2** ONNX **q4**, text-only, pinned `daa72c51…` (v1 300m q4 kept as the calibrated fallback) | Passed the M0 gate [CAL]: merge recall at precision ≥ 0.95 rises 0.26 → 0.42 (paired bootstrap +0.16, 90% CI +0.03 to +0.32), detector no worse, Danish surface-form bias gone, Apache-2.0 instead of the Gemma Terms |
+| A2 | 768-d vectors for tags and concepts; 128-d only in the matching profile | Thresholds were measured at 768-d [CAL] |
+| A3 | `sentence similarity` prompt for both tags and the detector, so one embedding per tag | For v2 the STS prompt gives fewer detector false flags at 100% recall than `classification` (paired Δ −0.14, CI −0.245 to −0.032) [CAL] |
 | A4 | Embedder in its own Functions codebase: 1 GiB, scale to zero, model inside the deploy source | Cloud Run price, with Auth and App Check built in [SRV][EXP] |
-| A5 | Layered sensitivity, seed review, review queue; never merge across sensitivity | Detector: 100% recall, about 40% false flags [EXP] |
+| A5 | Layered sensitivity, seed review, review queue; never merge across sensitivity | Detector: 100% recall, about 49% false flags (55 of 112 ordinary tags), mostly Danish [CAL] |
 | A6 | Soft themes only through confirmed links | Cosine "related" thresholds fail [EXP] |
 | A7 | Clients only read; every write is a callable | One validation layer; simple rules |
 | A8 | Compute at 16:00, release at 18:00 | Retry slack |
@@ -104,9 +105,9 @@ Measured results win over estimates.
 
 | Conflict | Resolution |
 |---|---|
-| Model and quantization: [SRV] proposed v2 q8; [EXP] calibrated v1 | v1 q4 (A1). v1 q8 takes 221 ms per call and peaks at 1.6 GB [EXP][SRV]. |
+| Model and quantization: [SRV] proposed v2 q8; [EXP] calibrated v1 | v2 **q4** (A1), after [CAL] re-ran the calibration on v2. q8 is not better for matching and is about 5× slower per tag on CPU [CAL]; v1 q8 peaks at 1.6 GB [EXP]. |
 | Vector size: [SRV] 256-d; [EXP] 768-d | 768-d (A2) |
-| Detector prompt: [SRV] STS; [EXP] classification | Classification (A3) |
+| Detector prompt: [SRV] STS; [EXP] classification (v1) | STS for v2 (A3) [CAL] |
 | Embedder memory: [SRV] 2 GiB; [EXP] 1 GiB | 1 GiB |
 | Node runtime: [SRV] 22; [FBX] 24 | Node 24 (rules tests need 24.12 or newer). transformers.js on Node 24 must be verified in M0. nodejs24 is 2nd gen only (https://docs.cloud.google.com/functions/1stgendocs/runtime-support), so the design has no 1st-gen functions (§10.3). |
 | Drop time: [FBX] 18:00; [MAT] 16:00 | Compute at 16:00, release at 18:00 (A8) |
@@ -121,7 +122,7 @@ Measured results win over estimates.
 
 | # | Question | Default if no answer |
 |---|---|---|
-| Q1 | EmbeddingGemma v1 (Gemma Terms, calibrated) or v2 (Apache-2.0, 4 weeks old, uncalibrated)? | M0 gate: v2 only if it matches v1 on our labelled set; decide before any user data exists. |
+| Q1 | ~~EmbeddingGemma v1 or v2?~~ **Answered by the M0 gate [CAL]: v2 q4.** Founder can still veto (v2 is about 4 weeks old). | v2 q4. v1 stays documented as the fallback; switching back means re-embedding with v1's thresholds (§5.1). |
 | Q2 | Add meetup language and availability as inputs (A9)? | Yes, both. |
 | Q3 | Participation: default every week (A10) or explicit weekly opt-in? | Every week. |
 | Q4 | Who reviews flagged tags, and how often? | Founder, weekly, before each drop. |
@@ -138,7 +139,7 @@ Measured results win over estimates.
 | Q15 | Sensitive-theme eligibility gate (§6.1 S5): account ≥ 14 days old and ≥ 1 attended meetup? This delays a new user's first pregnancy or faith pod by several weeks. | Yes [A]; revisit with alpha data. |
 | Q16 | Same-gender pods for non-binary users: "non-binary only" or also "women + non-binary" / "men + non-binary"? | "Same gender" only in MVP; the app tells non-binary users when the pool is too small (`GENDER_POOL`). |
 | Q17 | Transactional email provider for inactivity warnings and Art. 34 notices (PRIVACY.md §9) | An EU provider with a DPA, chosen in M1 [A]. |
-| Q18 | Run the sensitivity detector on the device so that possibly-Art. 9 text leaves the phone only after consent (§5.2 (5))? Costs about 220 MB of model download. | Lexicon on the device in M1; on-device model decided at the M0 gate with counsel. |
+| Q18 | Run the sensitivity detector on the device so that possibly-Art. 9 text leaves the phone only after consent (§5.2 (5))? Costs about 175 MB of model download (v2 q4). | Lexicon on the device in M1; on-device model decided at the M0 gate with counsel. |
 
 ---
 
@@ -334,19 +335,18 @@ Every transition runs in a transaction on `podState/{podId}` with a `version` co
 
 | Parameter | Value | Source |
 |---|---|---|
-| Model | `onnx-community/embeddinggemma-300m-ONNX` @ `5090578d9565bb06545b4552f76e6bc2c93e4a66` | [EXP] |
-| Variant | q4 (`onnx/model_q4.onnx`, weights 196.7 MB; tokenizer 20.3 MB) | [EXP] |
-| Runtime | `@huggingface/transformers` 4.3.2 (onnxruntime-node 1.30.0), CPU | [EXP] |
-| Output | 768-d, L2-normalized in-graph (pooling + dense + normalize) | [EXP] |
-| Tag/concept prompt | `task: sentence similarity \| query: {norm}` | [EXP] |
-| Detector prompt | `task: classification \| query: {norm}` (prototypes use the same prompt) | [EXP] |
-| Never use | `task: clustering` (compresses similarities to about 0.85–0.92) | [EXP] |
-| Latency | about 31 ms/tag at 1 thread; batch-32 about 32 ms/tag at 1 thread | [EXP] |
-| Memory | 458–467 MB RSS after load; 532–578 MB peak | [EXP] |
-| Cold start (Cloud Run) | about 4–10 s, estimated; tokenizer load (about 1.25 s) dominates model load (0.3–0.7 s) | [SRV] est., [EXP] |
-| `modelId` in cache key | `eg300m-q4@5090578` | — |
+| Model | `onnx-community/embeddinggemma-2-ONNX` @ `daa72c51243991dfcaf9f9137d2c573d8f7790c0` (base `google/embeddinggemma-2` @ `f9972ac2…`, byte-identical tokenizer), Apache-2.0 | [CAL] |
+| Variant | q4 (`onnx/model_q4.onnx` + `_data`, 174.5 MB), loaded **text-only**: `AutoConfig` → `vision_config = audio_config = null` → `AutoModel.from_pretrained(id, {config, dtype: 'q4'})`. Never fp16 or q4f16 (NaN risk) | [CAL] |
+| Runtime | `@huggingface/transformers` 4.3.2 (onnxruntime-node 1.30.0), CPU | [CAL] |
+| Output | `sentence_embedding`: mean-pooled, projected to 768-d and L2-normalized in-graph; re-normalize after any truncation | [CAL] |
+| Prompt (tags, concepts, detector, prototypes) | `task: sentence similarity \| query: {norm}` | [CAL] |
+| Never use | `task: clustering` (pair AUC 0.786 vs 0.870 for STS) | [CAL] |
+| Latency | 25.5 ms/tag at 4 threads, 64.6 ms at 1 thread; batch-32 12.0 / 34.5 ms per tag (shared 4-vCPU sandbox, not Cloud Run) | [CAL] |
+| Memory | 484 MB RSS after load; 680 MB peak (fits the 1 GiB embedder) | [CAL] |
+| Cold start (Cloud Run) | about 4–10 s, estimated; tokenizer load (about 1.2 s) dominates model load (about 0.2 s) | [SRV] est., [CAL] |
+| `modelId` in cache key | `eg2-q4@daa72c5` | — |
 
-Candidate EmbeddingGemma 2 (text-only, 270M, Apache-2.0): q4 74 ms, 544 MB; scores in a narrow high band (unrelated 0.81–0.85, related 0.88–0.94) [SRV], so **none of the thresholds below transfer**. `modelId` in every cache key prevents mixing vectors.
+**v2 scores sit in a narrow, high band** (p05–p95: unrelated pairs 0.78–0.85, same-concept pairs 0.80–0.95) [CAL], so every threshold below is specific to v2 q4/768 and **none of v1's transfer**. **Fallback:** v1 (`onnx-community/embeddinggemma-300m-ONNX` @ `5090578d…`, Gemma Terms) stays calibrated in [CAL] with merge 0.86, did-you-mean 0.78–0.86 and the `classification` detector prompt. `modelId` in every cache key prevents mixing vectors.
 
 ### 5.2 Pipeline
 
@@ -356,7 +356,7 @@ client text
   → (1) normalize          packages/core normalizeTag()
   → (2) moderation         lexicons + PII + third-party patterns  → rejected + reason code (not persisted)
   → (3) cache lookup       LRU (persisted tags only) → Firestore getAll(tags/*)
-  → (4) embed misses       STS + classification, one batched call per prompt
+  → (4) embed misses       one batched STS call (the same vector serves matching and detection)
   → (5) sensitivity        per holding: reviewed > lexicon > self-flag > detector
         sensitive && no valid consent → needsConsent (NOTHING persisted, cached or logged)
   → (6) concept            nearest concept within the HOLDING's sensitivity partition
@@ -364,7 +364,7 @@ client text
   → (8) maintenance        weekly: labels, holder counts, snapshot, drift report, review queue
 ```
 
-**(0) On the device.** The app ships the same `normalizeTag()`, PII patterns and the high-precision Art. 9 lexicon (`packages/core/src/interests/lexicon.ts`). A lexicon hit opens the consent sheet before the text is sent, so the clearest Art. 9 text reaches the server only with a consent payload. The server repeats every check and never trusts the client. Running the embedding detector on the device too (EmbeddingGemma q4 is designed for on-device use, https://developers.googleblog.com/en/introducing-embeddinggemma/) would mean no possibly-Art. 9 text leaves the phone before consent. It costs about 220 MB of download and needs the thresholds re-verified on the mobile ONNX runtime, so it is an M0 spike and decision (Q18).
+**(0) On the device.** The app ships the same `normalizeTag()`, PII patterns and the high-precision Art. 9 lexicon (`packages/core/src/interests/lexicon.ts`). A lexicon hit opens the consent sheet before the text is sent, so the clearest Art. 9 text reaches the server only with a consent payload. The server repeats every check and never trusts the client. Running the embedding detector on the device too (EmbeddingGemma is designed for on-device use, https://developers.googleblog.com/en/introducing-embeddinggemma/) would mean no possibly-Art. 9 text leaves the phone before consent. It costs about 175 MB of download (v2 q4) and needs the thresholds re-verified on the mobile ONNX runtime, so it is an M0 spike and decision (Q18).
 
 **(1) Normalize.** Shared by client and server (`packages/core/src/interests/normalize.ts`):
 1. NFKC.
@@ -385,7 +385,7 @@ Never strip diacritics ("får" ≠ "far") [SRV]. Lowercasing is safe: cased vs l
 
 **(3) Cache.** `tagKey = sha256(modelId|768|sts|norm)`. Lookup is in-memory LRU (10k [SRV]) → one `getAll()` for the misses. The LRU holds only tags that exist in `tags` (persisted). Vectors computed in a request that ends in `needsConsent`, `rejected` or an error are discarded when the request ends and never enter the LRU. Cache docs never hold a uid.
 
-**(4) Embed.** One call per prompt covers all misses in the request; vectors are re-normalized after any truncation. Prototype vectors (Art. 9, abuse, hobby anchors) are precomputed at build time into `prototypes.bin`.
+**(4) Embed.** One STS call covers all misses in the request; vectors are re-normalized after any truncation. Prototype vectors (Art. 9, abuse, hobby anchors) are precomputed at build time into `prototypes.bin`.
 
 **(5) Sensitivity** (first match wins). Rows 1, 2 and 4 decide the **tag's** sensitivity (shared, no uid). Row 3 makes one **holding** sensitive. A holding is sensitive if its tag is sensitive or the user self-flagged it:
 
@@ -394,7 +394,7 @@ Never strip diacritics ("får" ≠ "far") [SRV]. Lowercasing is safe: cased vs l
 | 1 | Human review decision on this exact `norm` | sensitive or not |
 | 2 | High-precision lexicon (parties and unions such as 3F, HK, FOA; diagnoses; AA, IVF; religions) | sensitive |
 | 3 | User self-flag ("Keep this private"), at add time or later, always through `addInterests` with `selfFlag` + consent (§10.2) | sensitive for this holding only |
-| 4 | Detector margin ≥ −0.03 (q4, classification, 768-d) | suspected: treated as sensitive, queued for review |
+| 4 | Detector margin ≥ −0.03 (v2 q4, STS, 768-d) | suspected: treated as sensitive, queued for review |
 | 5 | Otherwise | not sensitive |
 
 **Holding-level sensitivity is the partition key everywhere.**
@@ -403,23 +403,23 @@ Never strip diacritics ("får" ≠ "far") [SRV]. Lowercasing is safe: cased vs l
 - **Types enforce this on the holding, not the concept:** `OrdinaryHolding` and `SensitiveHolding` are distinct branded types produced only by the repository layer that reads the two subcollections. `MatchUser.secondary` is built only from `OrdinaryHolding[]` (as `NonSensitiveConceptId[]`), and `MatchUser.themes` from both, with a `consentRef` required on every `SensitiveHolding`.
 - **Tests:** an emulator test self-flags "board games" for user A, then asserts that no other user's pod card, no `pods` doc (`podInterests`), no chip, no `holderCount` and no reason code includes A's holding, and that A's holding is matched only as a theme.
 
-**Detector margin** = max cosine to Art. 9 prototypes (108 da/en phrases) − max cosine to hobby anchors (32 phrases) [EXP].
+**Detector margin** = max cosine to Art. 9 prototypes (108 da/en phrases) − max cosine to hobby anchors (32 phrases) [CAL]. Margin AUC 0.955 (v1: 0.957).
 
 | Margin threshold | Recall (71 sensitive) | Precision | False flags (of 112 ordinary) |
 |---|---|---|---|
-| **−0.03 (chosen)** | 100% | 0.62 | 44 |
-| 0.01 | ≥ 95% | 0.74 | 24 |
+| **−0.03 (chosen)** | 100% (the last clear sensitive tag sits at −0.024; the 0.006 buffer lifts out-of-bag recall from about 0.976 to about 0.99) | 0.56 | 55 |
+| ≥ 95% recall point | ≥ 95% | — | 33 |
 
-All figures [EXP].
+All figures [CAL]. False flags fall mostly on Danish hobby words: 64% of Danish vs 16% of English ordinary tags at 100% recall. Better Danish anchor and prototype phrases are the next lever (M0).
 
-**Known gaps** [EXP]:
-- **Missed entirely:** "Pride parade volunteering" (−0.098) and "diabetes-friendly baking" (−0.078). Both are now in the lexicon.
-- **Near-misses,** all Danish compounds: brystkræft −0.028, kørestolsbruger −0.013.
-- **Typical false flags:** korsang, surdejsbrød, vandring, madlavning, brætspil.
+**Known gaps:**
+- **v1 misses** "Pride parade volunteering" and "diabetes-friendly baking" are in the lexicon regardless of model [EXP].
+- **Hardest true positives for v2** are Danish: ufrivilligt barnløs, iftar under ramadanen, døv, bøsse [CAL]. They set the threshold, so the lexicon covers them too.
+- **Typical false flags** are ordinary Danish hobby words (korsang, surdejsbrød, vandring, madlavning, brætspil in v1 [EXP]; the same pattern in v2 [CAL]), which the pre-launch seed review pins as ordinary.
 
 **Mitigations:**
 - **Seed review before launch.** The founder reviews detector flags on about 1,000 common da/en hobby tags [A]. The decisions become pinned `tags` docs, so nobody is asked to consent for "madlavning".
-- **No category guessing.** The detector's category guess is right only about 80% of the time [EXP], so the consent sheet names all Art. 9 categories, and the user can optionally pick one.
+- **No category guessing.** The detector's category guess was right only about 80% of the time with v1 [EXP] and is not re-measured for v2, so the consent sheet names all Art. 9 categories, and the user can optionally pick one.
 - **Review queue.** A suspected tag is queued (text only, no uid) once someone consents to it.
   - "Not sensitive" removes the consent step for **future adds only**. Existing holdings stay sensitive. Their holders get a notice: "This interest no longer needs special consent. Treat it as an ordinary interest?" Only an explicit "Treat as ordinary" moves a holding to `interests` (and then the consent event is closed as `superseded`). No answer means the holding stays sensitive, under its original consent.
   - "Sensitive" changes nothing.
@@ -429,7 +429,7 @@ All figures [EXP].
 - The consent-prompt and detector-flag metrics are in-memory counters per instance, flushed every 60 s (and on SIGTERM) as one uid-free `metric` log entry (`{kind: 'embedder', needsConsent: n, flagged: n, added: n}`). The log-based metrics read only those entries (§13).
 - The client then shows the sheet and repeats the call with `consent: {textVersion, textSha256, checked: true}`.
 - The server matches both values against the versioned texts in `packages/core/src/legal/`, so the record proves what was shown.
-- The server re-classifies the tag rather than trusting the client (about 31 ms).
+- The server re-classifies the tag rather than trusting the client (about 25–65 ms).
 - **Legal position.** The server-side classification before consent is the residual issue in PRIVACY.md §3.8 (risk R5, open until counsel decides). The device lexicon (step 0) and the optional on-device detector (Q18) shrink it.
 - **Tests:** the embedder test suite asserts that a `needsConsent` request writes no document, leaves the LRU unchanged, and emits no log entry containing the uidH, the text or the request body.
 
@@ -441,24 +441,27 @@ Firestore vector search is flat only and bills one read per 100 index entries sc
 
 Never run `findNearest` over `tags` on the hot path: that would cost about $124/month at 100k users [SRV]. Merged concepts (`status: 'merged'`) are excluded by the prefilter and the snapshot.
 
-| Tag vs best centroid c* (q4/768) | Action | Basis [EXP] |
+| Tag vs best centroid c* (v2 q4/768) | Action | Basis [CAL] |
 |---|---|---|
 | Other sensitivity partition | Never compared (prefilter) | Mixed clusters appeared without this (2.2 per run) |
-| Non-sensitive, cos ≥ **0.86** and cos to c*'s medoid ≥ 0.82 [A] | Merge | P 0.95 / R 0.31 |
-| Non-sensitive, 0.78–0.86 | New concept + candidate link; "Did you mean *cooking*?" if c* has ≥ 10 holders | Merging here would drop precision to 0.76–0.88 |
-| Sensitive, cos ≥ **0.90** | Merge | P 1.00 / R 0.12 |
-| Sensitive, 0.86–0.90 | New concept + merge proposal for review | Conservative |
-| Otherwise | New concept (medoid = this tag) | Singletons start new: 1.00 |
+| Non-sensitive, cos ≥ **0.93** and cos to c*'s medoid ≥ 0.91 [A] | Merge | P 0.986 / R 0.378; out-of-bag P 0.955 / R 0.40. Never use < 0.925: precision falls off a cliff (0.892 at 0.92) |
+| Non-sensitive, 0.90–0.93 | New concept + candidate link; "Did you mean *cooking*?" if c* has ≥ 10 holders | Band precision 0.66; 38% of new tags get a suggestion; total recall 0.65 if accepted |
+| Sensitive, cos ≥ **0.95** [A] | Merge | v1's sensitive margin (+0.04 above its merge threshold) mapped onto v2's band; confirm on the M0 labelled set |
+| Sensitive, 0.93–0.95 [A] | New concept + merge proposal for review | Conservative |
+| Otherwise | New concept (medoid = this tag) | Singletons start new: 0.94 |
 
-Other measured points (q4/768) [EXP]:
+Other measured points (v2 q4/768) [CAL]:
 
 | Threshold | Precision / recall |
 |---|---|
-| 0.80 | 0.76 / 0.57 |
-| 0.85 | 0.88 / 0.35 |
-| 0.88 | 0.98 / 0.21 |
+| 0.885 (best F1) | 0.75 / 0.76 |
+| 0.92 | 0.89 / 0.47 |
+| 0.925 | 0.95 / 0.42 |
+| 0.93 | 0.99 / 0.38 |
 
-At 256-d, about +0.02–0.03 is needed for the same precision.
+At 256-d use 0.935 for the same precision.
+
+**Do not lower τ.** Online clustering with v2 collapses at low thresholds: at τ ≤ 0.86 the test set forms only 1–12 clusters, and each 0.01 step between 0.90 and 0.87 merges 23–38 clusters, because tags sit close to a shared direction and a drifting centroid starts attracting everything [CAL]. Never go below 0.90 anywhere, keep the frozen-medoid guard, and alert on any concept whose membership grows unusually fast (drift report, step 8).
 
 **"Did you mean" never blocks.** "Yes" calls `confirmSuggestion`, which re-points the holding and records an alias vote. Once 3 distinct users confirm an alias, that text maps to the concept for everyone (non-sensitive only) [A].
 
@@ -488,10 +491,11 @@ If the tag doc appeared since the cache lookup (another user added the same text
 - **Seed concepts** (about 150, A22). Bilingual medoids such as "pregnant / gravid" and "på barsel / on parental leave".
 
 ### 5.3 Caveats
-- The test set is small (211 tags, 68 concepts) and self-labelled, and the thresholds were tuned on the same data. Expect ±0.02–0.03 on real tags [EXP].
-- **Danish surface-form bias.** Unrelated Danish–Danish pairs average 0.640, against 0.569 for English–English. False pairs reach 0.89 (vinsmagning ~ ølsmagning; havearbejde ~ frivilligt arbejde 0.870) [EXP]. Expect some wrong non-sensitive merges; feedback exposes them.
-- Direct translations can score low (healthy eating ~ sund kost 0.587; gay ~ bøsse 0.631) [EXP], hence seed concepts and alias votes.
-- **Fragmentation:** at precision ≈ 0.95, 211 tags made about 155 clusters [EXP]. This could starve thin markets (§16).
+- The test set is small (211 tags, 68 concepts) and self-labelled, and the thresholds were tuned on the same data. A 500-resample bootstrap puts the v2 merge threshold for P ≥ 0.95 between 0.925 and 0.945 [CAL]; expect real tags to move it.
+- **Danish surface-form bias is largely gone in v2.** Unrelated-pair means are 0.817 (da–da) vs 0.816 (en–en); v1 had 0.664 vs 0.597 [CAL]. Look-alikes remain but stay below 0.93 (havearbejde ~ frivilligt arbejde 0.896, sprogcafé ~ strikkecafé 0.904).
+- **Translations are much closer:** mean 0.907, weakest 0.822 (v1: 0.783 / 0.621) [CAL]. Seed concepts and alias votes are still useful for the 0.90–0.93 band.
+- **Cross-sensitivity look-alikes still score high** in v2: Christiania ~ christian 0.944, kirkekor ~ kirkegænger 0.936, baking ~ diabetes-friendly baking 0.929, yoga ~ graviditetsyoga 0.924 [CAL]. The partition rule (never compare across sensitivity) is what keeps them apart; with it, no cluster leaks.
+- **Fragmentation:** at τ = 0.93, 211 tags made about 163 clusters for 68 true concepts (B³ P 0.989 / R 0.451) [CAL]. This could starve thin markets (§16).
 - M0 builds a labelled set of ≥ 200 Danish/English pairs plus Art. 9 examples, and the calibration harness becomes a CI gate (§13).
 - **Labelled sets never contain user tags.** Everything under `services/embedder/calibration/labelled/` (in git, so on GitHub) is synthetic or written by the founder. Recalibration against real wording (§16) uses review-queue decisions only for tags reviewed as **not** sensitive (6(1)(f), PRIVACY.md P19). The sample is kept in the EU snapshots bucket under the Google DPA, without uid, for at most 12 months, and never in GitHub. Missed sensitive tags are added to the labelled set only as paraphrases written by the founder, not as the user's wording.
 
@@ -549,7 +553,7 @@ sec(u,v) = 0.5·relu((cos(p_u,p_v) − τ)/(1 − τ)) + 0.5·min(1, |A_u ∩ A_
 | Symbol | Definition | Default |
 |---|---|---|
 | `A_u` | the concepts of u's ordinary holdings (≤ 20) | — |
-| `p_u` | normalize(Σ `c128` of A_u) | τ ≈ 0.3, **uncalibrated**; set in simulation |
+| `p_u` | normalize(Σ `c128` of A_u) | τ ≈ 0.85 [A], **uncalibrated**: v2 cosines between unrelated vectors already sit around 0.78–0.85 [CAL], so τ must be inside that band; set in simulation |
 | `s(u,t)` | 1.0 starred, 0.8 held, 0.8·cos for a confirmed soft link (Phase 3) | — |
 | `q(t)` | clamp(1 − ln(holders_t)/ln(n), 0.3, 1): specific themes score higher | — |
 | `f(u)` | min(weeksWaiting, 4)/4, +1 if their last pod dissolved through no fault of theirs | — |
@@ -688,7 +692,7 @@ flowchart LR
     FS[("Firestore (default), Standard")]
     ST[("Cloud Storage: photos, exports")]
     API["Functions codebase 'default': callables, triggers, tasks"]
-    EMB["Functions codebase 'embedder': addInterests, embedderBatch (EmbeddingGemma q4)"]
+    EMB["Functions codebase 'embedder': addInterests, embedderBatch (EmbeddingGemma 2 q4)"]
     SCH["Cloud Scheduler: 3 jobs"]
     CT["Cloud Tasks queues"]
     SM["Secret Manager"]
@@ -876,7 +880,7 @@ service cloud.firestore {
 - `sa-embedder@` gets `roles/datastore.user`, enqueue on `embedderBatch`, `roles/iam.serviceAccountUser` on itself and invoker on `embedderBatch`, and object read/write on the snapshots bucket only. The model ships in the image, and only CI reads the model bucket.
 - Firestore IAM cannot be scoped to collections, so code review and tests guard that boundary.
 - Remove Editor from the default compute service account and, if it exists, the App Engine default service account. Keep the organization policy `iam.automaticIamGrantsForDefaultServiceAccounts` enforced. `deploy.yml` fails if any deployed Cloud Run service runs as a default service account.
-- The embedder **never returns vectors**, only statuses. That also keeps us clear of "offering the model as a service" under the Gemma Terms [SRV].
+- The embedder **never returns vectors**, only statuses: embeddings of sensitive tags are Art. 9 data and can be partly inverted (PRIVACY.md §4.2). (With the v1 fallback this also keeps us clear of "offering the model as a service" under the Gemma Terms [SRV].)
 
 **Admin access:**
 - Two named admins in a Google Group, on passkeys or hardware keys [GDPR].
@@ -1181,11 +1185,11 @@ grouper/
 | Fake accounts infiltrate sensitive-themed pods | Outing or targeting of holders | S5–S7 (eligibility, caps, photo opt-in, "not a genuine member" reports, anomaly review); disclosed residual risk (PRIVACY.md R15) |
 | Detector misses a sensitive tag (Russmedia duty) | Unconsented Art. 9 processing | Layered lexicon + recall-tuned margin + self-flag + rescan + reports; monitored by the CI gate |
 | Detector over-flags ordinary Danish words | Consent fatigue | Pre-launch seed review; weekly review queue; reviewed "not" decisions |
-| Wrong non-sensitive merges (Danish surface-form bias) | Odd pods | 0.86 threshold + medoid guard; feedback; review proposals |
+| Wrong non-sensitive merges (look-alikes; centroid drift) | Odd pods | 0.93 threshold (never < 0.925) + medoid guard; drift alerts; feedback; review proposals |
 | Inference of sensitive traits from pods | Art. 9 exposure | S1/S2 (holding-level), local density minimum, no sensitive labels or aggregates, card details withheld before confirmation, generic push |
 | Physical harm at meetups | Safety, reputation | 18+, public-place rules, safety tips, report/block, pauses, police referral (DSA Art. 18) |
-| EmbeddingGemma v2 too new / v1 licence terms | Rework | M0 gate; pinned revisions; fallback to Cloud Run container |
-| Embedder deploy or cold start is worse than estimated | Slow saves | Warm-up through `addInterests({items: []})` on the same service; Cloud Run fallback; q4 load is about 1.5 s on CPU [EXP] |
+| EmbeddingGemma 2 is about 4 weeks old | Rework if a regression or licence change appears | Pinned revision; mirrored weights in our EU bucket; v1 calibrated as fallback [CAL]; nightly calibration gate |
+| Embedder deploy or cold start is worse than estimated | Slow saves | Warm-up through `addInterests({items: []})` on the same service; Cloud Run fallback; v2 q4 tokenizer + model load is about 1.4 s on CPU [CAL] |
 | Embedder or upload cost abuse | Bill shock, denial of service | Lazy model load after auth; per-uid, per-IP and global limits; 1 h App Check TTL; kill switches; instance-seconds alert; ceiling about $345/month (§9) |
 | Firebase Auth US-only; DPF challenged at the CJEU (C-703/25 P) | Transfer basis | Minimal Auth data, SCC fallback, exit plan (PRIVACY.md §9) |
 | Matching runtime or memory above estimates | Late drop | Benchmarks in M0 with realistic doc sizes; projected concept fields; 2 h slack; sharding |
