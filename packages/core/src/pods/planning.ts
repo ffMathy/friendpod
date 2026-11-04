@@ -17,7 +17,10 @@ export function planningDeadlineOutcome(p: { readonly hasWinner: boolean; readon
   return p.hasMet ? 'archive' : 'dissolve';
 }
 
-/** Backfill only before the plan locks (D6), and once per pod (§4.2). */
-export function canBackfill(state: PodState, backfillUsed: boolean): boolean {
-  return !backfillUsed && BACKFILL_POD_STATES.includes(state);
+/**
+ * Backfill only before the plan locks (D6), and once per pod (§4.2). `planLockedBefore` (`podState.planLockedAt` is
+ * set): a pod that was ever `scheduled` never backfills again, not even in a reschedule, re-plan or keep-loop round.
+ */
+export function canBackfill(state: PodState, backfillUsed: boolean, planLockedBefore: boolean): boolean {
+  return !backfillUsed && !planLockedBefore && BACKFILL_POD_STATES.includes(state);
 }

@@ -21,6 +21,7 @@ interface Props {
 
 type MessageKey =
   | `moderation.${ModerationReason}`
+  | 'moderation.ART9_CONSENT_REQUIRED_SERVER'
   | 'interests.added'
   | 'interests.thirdPartyWarning'
   | 'interests.madePrivate'
@@ -45,6 +46,8 @@ function outcomeMessage(outcome: AddInterestOutcome): MessageKey {
     case 'limit':
       return 'interests.limit';
     case 'rejected':
+      // The text and its vector did reach the server here, so the device-side "Nothing was sent" would be untrue.
+      if (r.reasonCode === 'ART9_CONSENT_REQUIRED') return 'moderation.ART9_CONSENT_REQUIRED_SERVER';
       return r.reasonCode ? `moderation.${r.reasonCode}` : 'moderation.BLOCKLIST';
   }
 }
@@ -152,7 +155,7 @@ export function InterestManager({ uid, locale, mode }: Props) {
         onPress={() => void submit(text)}
       />
       {message ? <Body>{t(message)}</Body> : null}
-      {message === 'moderation.ART9_CONSENT_REQUIRED' ? (
+      {message === 'moderation.ART9_CONSENT_REQUIRED' || message === 'moderation.ART9_CONSENT_REQUIRED_SERVER' ? (
         <Button label={t('interests.openSensitiveConsent')} variant="secondary" onPress={openConsent} />
       ) : null}
       {mutationError ? <ErrorText>{t(errorMessageKey(mutationError))}</ErrorText> : null}

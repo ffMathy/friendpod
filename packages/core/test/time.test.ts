@@ -8,6 +8,7 @@ import {
   dropSchedule,
   feedbackClosesAt,
   feedbackTimers,
+  firstAttendanceAsk,
   isChatOpen,
   meetupTimers,
   nextDropWeek,
@@ -117,11 +118,22 @@ describe('drop schedule (§4.1)', () => {
   it('caps the backfill deadline at Sunday 18:00 and picks the later decision time', () => {
     const s = dropSchedule('2026-W46' as WeekId);
     const early = s.acceptBy;
-    expect(backfillDeadline(early, '2026-W46' as WeekId)).toBe(s.backfillLatest);
+    const proposed = { state: 'proposed', weekId: '2026-W46' as WeekId } as const;
+    expect(backfillDeadline(early, proposed)).toBe(s.backfillLatest);
     const thu = s.releaseAt + 3_600_000;
-    expect(backfillDeadline(thu, '2026-W46' as WeekId)).toBe(thu + 24 * 3_600_000);
+    expect(backfillDeadline(thu, proposed)).toBe(thu + 24 * 3_600_000);
     expect(proposalDecisionAt(s.acceptBy, null)).toBe(s.acceptBy);
     expect(proposalDecisionAt(s.acceptBy, s.backfillLatest)).toBe(s.backfillLatest);
+  });
+
+  it('caps a backfill in planning at the planning deadline, not at the drop week\'s Sunday (D6)', () => {
+    // Planning entered Sat 18:00 of W46; a member leaves on Monday 12:00 local, after Sunday 18:00 has passed.
+    const s = dropSchedule('2026-W46' as WeekId);
+    const planDeadline = planningDeadline(s.acceptBy, 'confirmation');
+    const monday = fromLocal({ year: 2026, month: 11, day: 16, hour: 12, minute: 0 });
+    expect(monday).toBeGreaterThan(s.backfillLatest);
+    expect(backfillDeadline(monday, { state: 'planning', planDeadline })).toBe(monday + 24 * 3_600_000);
+    expect(backfillDeadline(planDeadline - 3_600_000, { state: 'planning', planDeadline })).toBe(planDeadline);
   });
 
   it('computes planning, meetup and feedback timers as absolute offsets', () => {
@@ -136,6 +148,7 @@ describe('drop schedule (§4.1)', () => {
       stillComing24h: t - 24 * H,
       nudge6h: t - 6 * H,
       attendanceCheck: t - 3 * H,
+      markUnconfirmed: true,
       reminder: t - 2 * H,
       happened: t + 2 * H,
     });
@@ -149,6 +162,20 @@ describe('drop schedule (§4.1)', () => {
     expect(meetupTimers(t, t - 96 * H).stillComing3d).toBe(t - 72 * H);
     expect(meetupTimers(t, t - 96 * H + 1).stillComing3d).toBeNull();
     expect(meetupTimers(t, t - 30 * H).stillComing3d).toBeNull();
+  });
+
+  it('never schedules an ask, nudge or check before the plan locks, and marks nobody unconfirmed without an ask and a nudge', () => {
+    const t = at('2026-12-04T13:30:00Z');
+    const H = 3_600_000;
+    const locked = t - 2.5 * H;
+    const short = meetupTimers(t, locked);
+    expect(short).toMatchObject({ stillComing3d: null, stillComing24h: locked, nudge6h: null, attendanceCheck: locked, markUnconfirmed: false, reminder: t - 2 * H });
+    expect(firstAttendanceAsk(short)).toBe(locked);
+    // 10 h ahead: one ask at lock, the nudge at T−6 h, then the check may mark unconfirmed.
+    expect(meetupTimers(t, t - 10 * H)).toMatchObject({ stillComing24h: t - 10 * H, nudge6h: t - 6 * H, attendanceCheck: t - 3 * H, markUnconfirmed: true });
+    // Locked 5 h ahead: the first ask is after T−6 h, so there is no nudge.
+    expect(meetupTimers(t, t - 5 * H)).toMatchObject({ stillComing24h: t - 5 * H, nudge6h: null, markUnconfirmed: false });
+    expect(firstAttendanceAsk(meetupTimers(t, t - 5 * 24 * H))).toBe(t - 72 * H);
   });
 
   it('sends the feedback push at 10:00 Copenhagen the morning after, and one reminder 3 days later (D12)', () => {

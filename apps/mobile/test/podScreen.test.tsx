@@ -45,7 +45,7 @@ const place = {
 };
 const roster = { me: { firstName: 'Mia', photoV: null }, anna: { firstName: 'Anna', photoV: null }, bo: { firstName: 'Bo', photoV: null } };
 
-function scheduled(meetupIn: number, attendance: Record<string, string>) {
+function scheduled(meetupIn: number, attendance: Record<string, string>, lockedBefore: number = 5 * DAY_MS) {
   const meetupAt = Date.now() + meetupIn;
   mockCard = { state: 'scheduled', myStatus: 'accepted', themeLabel: 'Brætspil', themeSensitive: false };
   mockPod = {
@@ -53,7 +53,7 @@ function scheduled(meetupIn: number, attendance: Record<string, string>) {
     memberUids: ['me', 'anna', 'bo'],
     roster,
     podInterests: { da: [], en: [] },
-    planning: { deadline: ts(meetupAt - 5 * DAY_MS), meetupAt: ts(meetupAt), place },
+    planning: { deadline: ts(meetupAt - lockedBefore), meetupAt: ts(meetupAt), place, planLockedAt: ts(meetupAt - lockedBefore) },
     attendance,
     confirmedAt: ts(Date.now() - 10 * DAY_MS),
   };
@@ -94,6 +94,14 @@ describe('pod screen (D13)', () => {
     });
     expect(mockCall).toHaveBeenCalledWith('confirmAttendance', { podId: POD_ID, coming: false });
     alert.mockRestore();
+  });
+
+  it('asks "Still coming?" from the plan-lock time, not from confirmation: a late-locked plan waits for T−24 h', async () => {
+    // Confirmed 10 days ago, but the plan locked only 30 h before the meetup: the first ask is at T−24 h, 4 h from now.
+    scheduled(28 * HOUR, { me: 'pending', anna: 'coming', bo: 'coming' }, 30 * HOUR);
+    await renderPod();
+    expect(screen.queryByText(/^Still coming on /)).toBeNull();
+    expect(screen.queryByTestId('next-step')).toBeNull();
   });
 
   it('shows "<firstName> hasn\'t confirmed" for unconfirmed members only', async () => {
@@ -137,6 +145,31 @@ describe('pod screen (D13)', () => {
     mockOptions = [{ id: 'opt1', data: { votes: { anna: 'yes' } } }];
     await renderPod();
     expect(screen.getByText('No time works yet — add another option')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByTestId('next-step'));
+    expect(mockRouter.push).toHaveBeenCalledWith({ pathname: '/pod/[podId]/plan', params: { podId: POD_ID } });
+  });
+
+  it('keeps the extension card when the viewer has voted on every option, and asks for a first option in a new round', async () => {
+    mockCard = { state: 'planning', myStatus: 'accepted', themeLabel: 'Brætspil', themeSensitive: false };
+    const planning = (extended: boolean) => ({
+      state: 'planning',
+      memberUids: ['me', 'anna'],
+      roster,
+      podInterests: { da: [], en: [] },
+      planning: { deadline: ts(Date.now() + 20 * HOUR), extended },
+      confirmedAt: ts(Date.now() - 4 * DAY_MS),
+    });
+    mockPod = planning(true);
+    mockOptions = [{ id: 'opt1', data: { votes: { me: 'no', anna: 'yes' } } }];
+    await renderPod();
+    expect(screen.getByText('No time works yet — add another option')).toBeOnTheScreen();
+    expect(screen.getByText('Add an option')).toBeOnTheScreen();
+    client.clear();
+
+    mockPod = planning(false);
+    mockOptions = [];
+    await renderPod();
+    expect(screen.getByText('Suggest a time and place')).toBeOnTheScreen();
     await fireEvent.press(screen.getByTestId('next-step'));
     expect(mockRouter.push).toHaveBeenCalledWith({ pathname: '/pod/[podId]/plan', params: { podId: POD_ID } });
   });

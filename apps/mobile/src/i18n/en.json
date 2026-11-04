@@ -165,7 +165,8 @@
     "INTEREST_LIMIT": "You have reached 20 interests.",
     "SENSITIVE_ADD_LIMIT": "You can add at most 3 sensitive interests per week.",
     "SENSITIVE_UNAVAILABLE": "Sensitive interests can't be added yet.",
-    "ART9_CONSENT_REQUIRED": "This interest may be sensitive, so we only save it if you've agreed to sensitive interests. Nothing was sent or saved. You can give consent in Settings → Privacy."
+    "ART9_CONSENT_REQUIRED": "This interest may be sensitive, so we only save it if you've agreed to sensitive interests. Nothing was sent or saved. You can give consent in Settings → Privacy.",
+    "ART9_CONSENT_REQUIRED_SERVER": "This interest may be sensitive, so we only save it if you've agreed to sensitive interests. We didn't save it. You can give consent in Settings → Privacy."
   },
   "gender": {
     "title": "Same-gender pods",
@@ -302,6 +303,8 @@
       "vote": "Vote on a time and place",
       "voteBody": "Say yes to every option that works for you, by {{when}}.",
       "voteAction": "Open the planner",
+      "addOption": "Suggest a time and place",
+      "addOptionAction": "Add an option",
       "chat": "The meetup chat is open",
       "chatAction": "Open chat",
       "feedback": "How did it go?"

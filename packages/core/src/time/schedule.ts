@@ -40,9 +40,13 @@ export function dropSchedule(weekId: WeekId, timeZone: string = DROP_TIME_ZONE):
   };
 }
 
-/** Backfill deadline: min(backfill start + 24 h, Sun 18:00) (§4.1). */
-export function backfillDeadline(startedAt: number, weekId: WeekId, timeZone: string = DROP_TIME_ZONE): number {
-  return Math.min(startedAt + DAY_MS, dropSchedule(weekId, timeZone).backfillLatest);
+/** Where a backfill starts (D6): a `proposed` pod of drop week `weekId`, or a `planning` pod with its deadline. */
+export type BackfillRound = { readonly state: 'proposed'; readonly weekId: WeekId } | { readonly state: 'planning'; readonly planDeadline: number };
+
+/** Backfill deadline (§4.1, §4.2): min(start + 24 h, Sun 18:00) while `proposed`; min(start + 24 h, planning deadline) in `planning`. */
+export function backfillDeadline(startedAt: number, round: BackfillRound, timeZone: string = DROP_TIME_ZONE): number {
+  const cap = round.state === 'proposed' ? dropSchedule(round.weekId, timeZone).backfillLatest : round.planDeadline;
+  return Math.min(startedAt + DAY_MS, cap);
 }
 
 /** Decision time for a proposed pod: the later of `acceptBy` and its backfill deadline, if any (§4.6). */
@@ -71,12 +75,17 @@ export const STILL_COMING_3D_MIN_LEAD_MS = 4 * DAY_MS;
 export interface MeetupTimers {
   /** T−3 days "Still coming?"; null when the meetup is less than 4 days after plan lock. */
   readonly stillComing3d: number | null;
-  /** T−24 h "Still coming?" to every member; the meetup chat opens at the same time. */
+  /** T−24 h "Still coming?" to every member, or at plan lock when that is later; the chat opens at T−24 h regardless. */
   readonly stillComing24h: number;
-  /** T−6 h second nudge, to members who have not answered. */
-  readonly nudge6h: number;
-  /** T−3 h: still no answer → 'unconfirmed'; then the attendance check (fewer than 3 coming → reschedule round). */
+  /** T−6 h second nudge to members who have not answered; null when the first ask was not before T−6 h. */
+  readonly nudge6h: number | null;
+  /** T−3 h (or plan lock, if later): the attendance check (fewer than 3 coming → reschedule round). */
   readonly attendanceCheck: number;
+  /**
+   * Whether the check marks members who never answered as 'unconfirmed'. Only after an ask and the nudge (D5): with a
+   * short lead they stay 'pending', which is not counted as coming either but is not shown as "hasn't confirmed".
+   */
+  readonly markUnconfirmed: boolean;
   readonly reminder: number;
   /** T+2 h → `happened`. */
   readonly happened: number;
@@ -84,17 +93,28 @@ export interface MeetupTimers {
 
 /**
  * Timers around a meetup (§4.1, D5), as absolute offsets like the chat window. `planLockedAt` is when the pod
- * entered `scheduled`.
+ * entered `scheduled`. Nothing is due before the plan locks: an option can start a few hours after the planning
+ * deadline, so each pre-meetup timer is clamped to `planLockedAt`.
  */
 export function meetupTimers(meetupAt: number, planLockedAt: number): MeetupTimers {
+  const notBeforeLock = (t: number) => Math.max(t, planLockedAt);
+  const stillComing24h = notBeforeLock(meetupAt - 24 * HOUR_MS);
+  const nudge6h = meetupAt - 6 * HOUR_MS;
+  const hasNudge = stillComing24h < nudge6h;
   return {
     stillComing3d: meetupAt - planLockedAt >= STILL_COMING_3D_MIN_LEAD_MS ? meetupAt - 3 * DAY_MS : null,
-    stillComing24h: meetupAt - 24 * HOUR_MS,
-    nudge6h: meetupAt - 6 * HOUR_MS,
-    attendanceCheck: meetupAt - 3 * HOUR_MS,
-    reminder: meetupAt - 2 * HOUR_MS,
+    stillComing24h,
+    nudge6h: hasNudge ? nudge6h : null,
+    attendanceCheck: notBeforeLock(meetupAt - 3 * HOUR_MS),
+    markUnconfirmed: hasNudge,
+    reminder: notBeforeLock(meetupAt - 2 * HOUR_MS),
     happened: meetupAt + 2 * HOUR_MS,
   };
+}
+
+/** When "Still coming?" is first asked: T−3 d when the meetup was planned far enough ahead, else T−24 h (D5). */
+export function firstAttendanceAsk(t: MeetupTimers): number {
+  return t.stillComing3d ?? t.stillComing24h;
 }
 
 /** The feedback push goes out at this local hour on the morning after the meetup (D12). */

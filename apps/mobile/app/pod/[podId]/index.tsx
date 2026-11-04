@@ -1,4 +1,4 @@
-import { feedbackClosesAt, HOUR_MS, meetupTimers, podNextStep, type AttendanceStatus, type PodDoc } from '@grouper/core';
+import { feedbackClosesAt, firstAttendanceAsk, HOUR_MS, meetupTimers, podNextStep, type AttendanceStatus, type PodDoc } from '@grouper/core';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -20,15 +20,12 @@ import { currentLocale } from '@/i18n';
 import { errorMessageKey } from '@/lib/errors';
 import { formatDateTime } from '@/lib/format';
 
-/**
- * When "Still coming?" is first asked: T−3 d when the meetup was planned far enough ahead, else T−24 h (D5).
- * The pod doc has no plan-lock time, so confirmation stands in for it; at worst the card shows a little early.
- */
+/** When "Still coming?" is first asked, from the same timers the server uses (D5); null until the plan locks. */
 function attendanceAskedAt(pod: PodDoc): number | null {
   const meetupAt = pod.planning.meetupAt?.toMillis();
-  if (meetupAt === undefined) return null;
-  const timers = meetupTimers(meetupAt, pod.confirmedAt.toMillis());
-  return timers.stillComing3d ?? timers.stillComing24h;
+  const lockedAt = pod.planning.planLockedAt?.toMillis();
+  if (meetupAt === undefined || lockedAt === undefined) return null;
+  return firstAttendanceAsk(meetupTimers(meetupAt, lockedAt));
 }
 
 /**
@@ -84,6 +81,9 @@ export default function PodScreen() {
         state: p.state,
         now,
         votedOnAllOptions: (options.data ?? []).every((o) => o.data.votes[uid] !== undefined),
+        // Unknown while the options load: no "add an option" card flashes before they arrive.
+        optionCount: options.data?.length ?? (p.state === 'planning' ? 1 : 0),
+        extended: p.planning.extended === true,
         meetupAt,
         myAttendance: mine,
         attendanceAskedAt: attendanceAskedAt(p),
@@ -127,6 +127,13 @@ export default function PodScreen() {
           <Button testID="next-step" label={t('pod.next.voteAction')} onPress={() => go('/pod/[podId]/plan')} />
         </Card>
       ) : null}
+      {step === 'addOption' ? (
+        <Card>
+          <Body bold>{p?.planning.extended ? t('plan.extendedTitle') : t('pod.next.addOption')}</Body>
+          <Body muted>{t('pod.next.voteBody', { when: p ? formatDateTime(p.planning.deadline.toMillis(), locale) : '' })}</Body>
+          <Button testID="next-step" label={t('pod.next.addOptionAction')} onPress={() => go('/pod/[podId]/plan')} />
+        </Card>
+      ) : null}
       {step === 'confirmAttendance' ? <AttendanceCard podId={podId} when={when} mine={mine} ask /> : null}
       {step === 'chat' ? (
         <Card>
@@ -159,7 +166,7 @@ export default function PodScreen() {
             </View>
           ) : (
             <>
-              {p.planning.extended && step !== 'vote' ? <Body>{t('plan.extendedTitle')}</Body> : null}
+              {p.planning.extended && step !== 'vote' && step !== 'addOption' ? <Body>{t('plan.extendedTitle')}</Body> : null}
               <Body>{t('pod.planBy', { when: formatDateTime(p.planning.deadline.toMillis(), locale) })}</Body>
               {p.state === 'planning' ? <LinkRow label={t('pod.openPlanner')} onPress={() => go('/pod/[podId]/plan')} /> : null}
             </>

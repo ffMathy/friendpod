@@ -50,8 +50,12 @@ describe('planning (D6, D7)', () => {
   });
 
   it('backfills only before the plan locks, once', () => {
-    expect(POD_STATES.filter((s) => canBackfill(s, false))).toEqual(['proposed', 'planning']);
-    expect(canBackfill('planning', true)).toBe(false);
+    expect(POD_STATES.filter((s) => canBackfill(s, false, false))).toEqual(['proposed', 'planning']);
+    expect(canBackfill('planning', true, false)).toBe(false);
+  });
+
+  it('never backfills a pod whose plan locked once, even back in planning for a reschedule or keep-loop round', () => {
+    expect(POD_STATES.filter((s) => canBackfill(s, false, true))).toEqual([]);
   });
 });
 
@@ -60,8 +64,15 @@ describe('next step card (D13)', () => {
   const meetupAt = Date.UTC(2026, 10, 20, 17);
   const t = meetupTimers(meetupAt, meetupAt - 5 * 24 * H);
   const base: PodNextStepInput = {
-    state: 'scheduled', now: meetupAt - 4 * 24 * H, votedOnAllOptions: true, meetupAt, myAttendance: 'pending', attendanceAskedAt: null, feedbackGiven: false,
+    state: 'scheduled', now: meetupAt - 4 * 24 * H, votedOnAllOptions: true, optionCount: 2, extended: false, meetupAt, myAttendance: 'pending', attendanceAskedAt: null, feedbackGiven: false,
   };
+
+  it('asks for a new option when there is none yet, or in the extension round once the viewer has voted on all', () => {
+    const planning = { ...base, state: 'planning' as const, meetupAt: null };
+    expect(podNextStep({ ...planning, optionCount: 0 })).toBe('addOption');
+    expect(podNextStep({ ...planning, extended: true })).toBe('addOption');
+    expect(podNextStep({ ...planning, extended: true, votedOnAllOptions: false })).toBe('vote');
+  });
 
   it('walks vote → confirm attendance → chat → feedback', () => {
     expect(podNextStep({ ...base, state: 'planning', votedOnAllOptions: false, meetupAt: null })).toBe('vote');

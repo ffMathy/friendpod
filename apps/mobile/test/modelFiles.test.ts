@@ -70,6 +70,22 @@ describe('model download and verification (D1)', () => {
     expect(downloads).toEqual([]);
   });
 
+  it('hashes a file once per process: a later load trusts a verified path while its size still matches', async () => {
+    const { fs, disk } = fakeFs(good);
+    const hashed: string[] = [];
+    const counting: ModelFs = { ...fs, sha256: async (p) => (hashed.push(p), fs.sha256(p)) };
+    const verified = new Set<string>();
+    await ensureModelFiles({ ...opts(counting), verified });
+    hashed.length = 0;
+    await ensureModelFiles({ ...opts(counting, 'offline'), verified });
+    expect(hashed).toEqual([]);
+    // A file that changed size is hashed (and here replaced) again.
+    disk.set(`${DIR}tokenizer.json`, { sha256: 'f'.repeat(64), bytes: 11 });
+    await ensureModelFiles({ ...opts(counting), verified });
+    expect(disk.get(`${DIR}tokenizer.json`)?.sha256).toBe('a'.repeat(64));
+    expect(hashed).toContain(`${DIR}tokenizer.json.part`);
+  });
+
   it('deletes a file whose hash does not match and never moves it into place', async () => {
     const { fs, disk } = fakeFs({ ...good, 'onnx/model_q4.onnx': { sha256: 'c'.repeat(64), bytes: 20 } });
     await expect(ensureModelFiles(opts(fs))).rejects.toMatchObject({ reason: 'integrity' });

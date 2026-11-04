@@ -12,6 +12,7 @@ import type { Tokenizer } from '@huggingface/tokenizers';
 import { Directory, File, Paths } from 'expo-file-system';
 import * as Network from 'expo-network';
 import type * as Ort from 'onnxruntime-react-native';
+import { createLifecycle } from './lifecycle';
 import { ensureModelFiles, type Connectivity, type ModelFs } from './modelFiles';
 import { EmbedderUnavailableError, type Embedder, type LoadOptions } from './types';
 
@@ -62,8 +63,7 @@ export function createDeviceEmbedder(baseUrl: string): Embedder {
   const graph = EMBEDDING_MODEL.graph;
   if (!device || !graph) throw new Error('EMBEDDING_MODEL has no device runtime');
   const dir = new Directory(Paths.document, device.dir).uri.replace(/\/?$/, '/');
-  let loaded: Loaded | null = null;
-  let loading: Promise<Loaded> | null = null;
+  const verified = new Set<string>();
 
   const doLoad = async (opts: LoadOptions): Promise<Loaded> => {
     const files = deviceModelFiles();
@@ -75,6 +75,7 @@ export function createDeviceEmbedder(baseUrl: string): Embedder {
       files,
       connectivity,
       allowCellular: opts.allowCellular === true,
+      verified,
       ...(opts.onProgress ? { onProgress: opts.onProgress } : {}),
     });
     try {
@@ -98,10 +99,7 @@ export function createDeviceEmbedder(baseUrl: string): Embedder {
     }
   };
 
-  const ready = (): Loaded => {
-    if (!loaded) throw new Error('embedder not loaded: call load() first');
-    return loaded;
-  };
+  const runtime = createLifecycle(doLoad, (l) => l.session.release());
 
   const embedOne = async (l: Loaded, norm: string): Promise<Float32Array> => {
     const ids = l.tokenizer.encode(embeddingInput(norm)).ids;
@@ -122,25 +120,15 @@ export function createDeviceEmbedder(baseUrl: string): Embedder {
 
   return {
     kind: 'device',
-    async load(opts = {}) {
-      if (loaded) return;
-      loading ??= doLoad(opts).finally(() => {
-        loading = null;
-      });
-      loaded = await loading;
-    },
-    async embed(norms) {
-      const l = ready();
-      const out: Float32Array[] = [];
-      // One run per tag keeps memory flat; onboarding batches tags into one call, not one tensor.
-      for (const norm of norms) out.push(await embedOne(l, norm));
-      return out;
-    },
-    prototypes: async () => ready().prototypes,
-    async release() {
-      const l = loaded;
-      loaded = null;
-      await l?.session.release();
-    },
+    load: (opts = {}) => runtime.load(opts),
+    embed: (norms) =>
+      runtime.use(async (l) => {
+        const out: Float32Array[] = [];
+        // One run per tag keeps memory flat; onboarding batches tags into one call, not one tensor.
+        for (const norm of norms) out.push(await embedOne(l, norm));
+        return out;
+      }),
+    prototypes: () => runtime.use(async (l) => l.prototypes),
+    release: () => runtime.release(),
   };
 }

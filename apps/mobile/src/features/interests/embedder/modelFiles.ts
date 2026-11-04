@@ -25,13 +25,24 @@ export interface EnsureOptions {
   readonly connectivity: () => Promise<Connectivity>;
   readonly allowCellular: boolean;
   readonly onProgress?: (fraction: number) => void;
+  /**
+   * Paths this process has already hashed. A file there with the pinned size is trusted without hashing again, so a
+   * screen that releases the model on blur and loads it on focus does not re-read ~200 MB each time.
+   */
+  readonly verified?: Set<string>;
 }
 
 const PART = '.part';
 
-async function matches(fs: ModelFs, path: string, file: PinnedModelFile): Promise<boolean> {
-  if (fs.size(path) !== file.bytes) return false;
-  return (await fs.sha256(path)).toLowerCase() === file.sha256;
+async function matches(fs: ModelFs, path: string, file: PinnedModelFile, verified?: Set<string>): Promise<boolean> {
+  if (fs.size(path) !== file.bytes) {
+    verified?.delete(path);
+    return false;
+  }
+  if (verified?.has(path)) return true;
+  const ok = (await fs.sha256(path)).toLowerCase() === file.sha256;
+  if (ok) verified?.add(path);
+  return ok;
 }
 
 /**
@@ -45,7 +56,7 @@ export async function ensureModelFiles(o: EnsureOptions): Promise<Record<string,
   for (const file of o.files) {
     const path = o.dir + file.path;
     paths[file.path] = path;
-    if (await matches(o.fs, path, file)) continue;
+    if (await matches(o.fs, path, file, o.verified)) continue;
     if (o.fs.size(path) !== null) o.fs.remove(path);
     missing.push(file);
   }
@@ -71,6 +82,7 @@ export async function ensureModelFiles(o: EnsureOptions): Promise<Record<string,
       throw new EmbedderUnavailableError('integrity', file.path);
     }
     await o.fs.move(part, path);
+    o.verified?.add(path);
     done += file.bytes;
     o.onProgress?.(done / total);
   }

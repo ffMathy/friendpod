@@ -81,9 +81,23 @@ describe('InterestManager (D1, D3)', () => {
       await Promise.resolve();
     });
     expect(mockCall).not.toHaveBeenCalled();
-    expect(screen.getByText(/so we only save it if you've agreed to sensitive interests/)).toBeOnTheScreen();
+    expect(screen.getByText(/so we only save it if you've agreed to sensitive interests\. Nothing was sent or saved\./)).toBeOnTheScreen();
     await fireEvent.press(screen.getByRole('button', { name: 'Sensitive interests: give consent' }));
     expect(mockRouter.push).toHaveBeenCalledWith('/sensitive-consent');
+  });
+
+  it('when the server refuses for lack of consent, says it was not saved rather than "nothing was sent"', async () => {
+    mockCall.mockResolvedValue({ results: [{ status: 'rejected', reasonCode: 'ART9_CONSENT_REQUIRED' }] });
+    await renderManager();
+    await fireEvent.changeText(screen.getByLabelText('Add an interest in your own words'), 'Vinterbadning');
+    await fireEvent.press(screen.getByTestId('interest-add'));
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(mockCall).toHaveBeenCalledTimes(1);
+    expect(screen.getByText(/We didn't save it\./)).toBeOnTheScreen();
+    expect(screen.queryByText(/Nothing was sent/)).toBeNull();
+    expect(screen.getByRole('button', { name: 'Sensitive interests: give consent' })).toBeOnTheScreen();
   });
 
   it('with consent, "This isn\'t sensitive for me" resends the holding with that flag', async () => {

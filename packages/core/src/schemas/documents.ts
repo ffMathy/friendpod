@@ -191,6 +191,8 @@ export const podDocSchema = z
       extended: z.boolean().optional(),
       winningOptionId: docIdSchema.optional(),
       meetupAt: timestampSchema.optional(),
+      /** When the plan locked (`podState.planLockedAt`), so the app derives the same meetupTimers as the server. */
+      planLockedAt: timestampSchema.optional(),
       place: placeSchema.optional(),
     }),
     /** Per member while `scheduled` (D5); others see "<firstName> hasn't confirmed" for 'unconfirmed'. */

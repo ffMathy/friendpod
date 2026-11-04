@@ -165,7 +165,8 @@
     "INTEREST_LIMIT": "Du har nået 20 interesser.",
     "SENSITIVE_ADD_LIMIT": "Du kan højst tilføje 3 følsomme interesser om ugen.",
     "SENSITIVE_UNAVAILABLE": "Følsomme interesser kan ikke tilføjes endnu.",
-    "ART9_CONSENT_REQUIRED": "Interessen kan være følsom, så vi gemmer den kun, hvis du har sagt ja til følsomme interesser. Intet blev sendt eller gemt. Du kan give samtykke under Indstillinger → Privatliv."
+    "ART9_CONSENT_REQUIRED": "Interessen kan være følsom, så vi gemmer den kun, hvis du har sagt ja til følsomme interesser. Intet blev sendt eller gemt. Du kan give samtykke under Indstillinger → Privatliv.",
+    "ART9_CONSENT_REQUIRED_SERVER": "Interessen kan være følsom, så vi gemmer den kun, hvis du har sagt ja til følsomme interesser. Vi gemte den ikke. Du kan give samtykke under Indstillinger → Privatliv."
   },
   "gender": {
     "title": "Pods med samme køn",
@@ -302,6 +303,8 @@
       "vote": "Stem om tid og sted",
       "voteBody": "Sig ja til alle forslag, der passer dig, senest {{when}}.",
       "voteAction": "Åbn planlæggeren",
+      "addOption": "Foreslå et tidspunkt og et sted",
+      "addOptionAction": "Tilføj et forslag",
       "chat": "Mødechatten er åben",
       "chatAction": "Åbn chatten",
       "feedback": "Hvordan gik det?"
