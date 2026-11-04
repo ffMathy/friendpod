@@ -448,9 +448,9 @@ Since F16 (D1) the model runs **only on the phone**. The server never loads it; 
 | Memory | Sandbox process peak 466 MB, tokenizer JS heap about 124 MB. Phone estimate: 350–500 MB extra peak. The app loads the model when the interests screen opens, batches the onboarding tags and releases model and tokenizer when the screen closes. Minimum device about 4 GB RAM (Q22) | [ODV], est. |
 
 **Delivery** (F32). The model ships inside the app; nothing is downloaded at run time.
-- **Build time.** The fetch-model script downloads every file of `deviceModelFiles()` at the pinned revision (from Hugging Face; `prototypes.bin`, once built and pinned, from our models bucket), checks each against core's size and sha256 and fails the build on any mismatch. The files are gitignored, never committed; local and EAS builds run the script before the native build.
+- **Build time.** The fetch-model script downloads every file of `deviceModelFiles()` at the pinned revision (from Hugging Face; `prototypes.bin`, once built and pinned, from our private models bucket with a short-lived access token of the build service account `sa-build@`, §9), checks each against core's size and sha256 and fails the build on any mismatch. The files are gitignored, never committed; local and EAS builds run the script before the native build.
 - **iOS:** the files are resources in the app bundle, which the app signature protects. `InferenceSession.create(path)` loads `model_q4.onnx` by its bundle path, so `model_q4.onnx_data` is found next to it; nothing is copied.
-- **Android:** the files are stored **uncompressed** in the APK/AAB assets. An asset has no file path, and the runtime needs one (loading from a buffer would not find `model_q4.onnx_data`), so on first launch the app copies them once into `Paths.document/models/eg2-q4-daa72c5/`, checks each copy with the native `file.digest('SHA-256')` against core's value and loads from there. Android backup is off for the whole app (`allowBackup: false`). The copy doubles the model's disk use on Android (about 210 MB in the package plus 210 MB in app storage) [A: measure in the M0 spike].
+- **Android:** the files are stored **uncompressed** in the APK/AAB assets. An asset has no file path, and the runtime needs one (loading from a buffer would not find `model_q4.onnx_data`), so on first launch the app copies them once into `Paths.document/models/eg2-q4-daa72c5/`, checks each copy with the native `file.digest('SHA-256')` against core's value and loads from there. Android backup is off for the whole app (`allowBackup: false`). The copy doubles the model's disk use on Android (about 207 MB in the package plus 207 MB in app storage, ~415 MB) [A: measure in the M0 spike]. Before copying, the app deletes older model folders and partial copies to free space, then needs the copied bytes plus 50 MB free (~260 MB on first launch); with less it shows the storage error.
 - **Size:** the app grows by about 210 MB. Above 200 MB the App Store asks before a cellular download by default (accepted by the founder); Google Play's 500 MB limit for the base module leaves room, so no asset pack is needed.
 - **Updates:** every app update that changes the model ships it again; other updates are delta-patched by the stores. A model change is therefore an app release, together with the `modelKey` switch (A32).
 - **Privacy and cost:** no processor and no download request, because the stores already distribute the app; Hugging Face is contacted only by build machines. Distribution costs nothing ([COSTS.md §3.3](./COSTS.md#33-on-device-model-distribution-d1)).
@@ -808,7 +808,7 @@ flowchart LR
     SCH["Cloud Scheduler: 3 jobs"]
     CT["Cloud Tasks queues"]
     SM["Secret Manager"]
-    MOD[("GCS: model mirror for CI + prototypes.bin (pinned by sha256)")]
+    MOD[("GCS: model mirror for CI and app builds + prototypes.bin (pinned by sha256)")]
     GCS[("GCS: drop snapshots, concept snapshots")]
     LOG[("Cloud Logging buckets")]
   end
@@ -849,7 +849,7 @@ flowchart LR
 | Places | Google Places API (New): Autocomplete with session tokens and Place Details Essentials, called **from the app** with an API key restricted to the iOS bundle ID and the Android package + signing certificate, and to the Places API (New) only; per-day quota caps in the Cloud console (§9) | No server proxy, so no extra function and no place query in our logs; Google sees the query and the device IP (PRIVACY.md §9) [PX] |
 | Scheduler | 3 jobs: `dropOrchestrator`, `hourlySweeper`, `dailyMaintenance` | 3 free per billing account [FBX] |
 | Cloud Tasks | Queues `matchComponent`, `releaseDrop`, `backfillPod`, `buildExport`, `deleteExport`, `purgeUser`, `interestsBatch`, each with an explicit `retryConfig` and `rateLimits`. Long tasks are enqueued with `dispatchDeadlineSeconds: 1800` (the Cloud Tasks default is 10 minutes, the maximum 30) and deterministic task IDs (e.g. `${weekId}-${componentId}`) | 1M ops/month free [FBX] |
-| Storage | Bucket `grouper-prod.firebasestorage.app` in europe-west1 (photos, uploads, exports). Server-only buckets `grouper-<env>-drops` (lifecycle 2 days) and `grouper-<env>-snapshots` (14 days); `grouper-<env>-models` holds a mirror of the pinned model files for CI and `prototypes.bin` for `addInterests`; the app never reads it (F32) | EU buckets are billed from the first byte [FBX][PX] |
+| Storage | Bucket `grouper-prod.firebasestorage.app` in europe-west1 (photos, uploads, exports). Server-only buckets `grouper-<env>-drops` (lifecycle 2 days) and `grouper-<env>-snapshots` (14 days); `grouper-<env>-models` (private) holds a mirror of the pinned model files for CI and `prototypes.bin` for `addInterests` and app builds; the app never reads it (F32) | EU buckets are billed from the first byte [FBX][PX] |
 | Hosting | Firebase Hosting: the default domain serves the email-link handler (`/__/auth/links`) and two static pages (account deletion for Google Play, privacy notice) | Global CDN; receives IP addresses and one-time codes (PRIVACY.md §9) |
 | Email | An EU transactional email provider with a DPA (Q17), for inactivity warnings and Art. 34 notices only | Firebase Auth emails cannot carry custom messages |
 | App Check | RNFirebase provider: Play Integrity, App Attest with DeviceCheck fallback, debug in dev | JS SDK providers are web-only [FBX] |
@@ -921,7 +921,7 @@ Conventions:
 - `exports/{uid}/{id}.json`: owner read; deleted by a `deleteExport` task at +24 h; lifecycle 1 day as a backstop.
 - `gs://grouper-<env>-drops/{weekId}/…` (server only): drop input and result snapshots; deleted after release; lifecycle 2 days.
 - `gs://grouper-<env>-snapshots/` (server only): concept snapshots (14 days).
-- `gs://grouper-<env>-models/models/eg2-q4-daa72c5/` (server and CI only: read by `addInterests` for `prototypes.bin` and by CI, written by CI): a mirror of the pinned model files and `prototypes.bin`; no user data. The app never reads it; its model ships inside the app (F32).
+- `gs://grouper-<env>-models/models/eg2-q4-daa72c5/` (private; server and build machines only: read by `addInterests` for `prototypes.bin`, by CI through WIF, and by app builds through a 1-hour access token of `sa-build@` passed to `fetch-model` as `MODEL_MIRROR_TOKEN` (§9); written by CI): a mirror of the pinned model files and `prototypes.bin`; no user data. Not public: an unauthenticated read fails. The app never reads it; its model ships inside the app (F32).
 
 **Indexes (`firestore.indexes.json`):**
 - Two composite vector indexes on `concepts`: `sensitive` ASC + `status` ASC + `centroid`, and `sensitive` ASC + `status` ASC + `gen` ASC + `centroid`, both `{dimension: 768, flat: {}}` [SRV].
@@ -996,6 +996,7 @@ service cloud.firestore {
   - Firebase App Check Token Verifier (for `consumeAppCheckToken`);
   - secret accessor on its two secrets.
 - `sa-api@` also gets object read/write on the snapshots bucket. Only CI writes the model bucket; `addInterests` reads `prototypes.bin` from it, and the app has no access (§7 Storage).
+- `sa-build@` (per project) has only object read on the model bucket, for app builds (§13 "Mobile"). It has no key: the person who starts a release build holds `roles/iam.serviceAccountTokenCreator` on it and mints a 1-hour access token (`gcloud auth print-access-token --impersonate-service-account=…`) that EAS gets as the secret `MODEL_MIRROR_TOKEN`. The bucket gets no public or `allUsers` access.
 - Firestore IAM cannot be scoped to collections, so code review and tests guard that boundary.
 - Remove Editor from the default compute service account and, if it exists, the App Engine default service account. Keep the organization policy `iam.automaticIamGrantsForDefaultServiceAccounts` enforced. `deploy.yml` fails if any deployed Cloud Run service runs as a default service account.
 - The server **never returns vectors**, only statuses: stored embeddings of sensitive tags are Art. 9 data and can be partly inverted (PRIVACY.md §4.2). Clients cannot read `tags` or `concepts`.
@@ -1194,7 +1195,7 @@ The app picks its environment from `APP_ENV` in `app.config.ts`. Per-env `Google
   - pulls the pinned model from the GCS mirror via WIF and runs the labelled set on onnxruntime-node with the same tokenizer as the app, and checks the stored `prototypes.bin` against a rebuild;
   - fails if sensitive recall drops below 100%, merge precision at the configured threshold drops below 0.93, or false flags rise more than 5 points [A].
 - **`deploy.yml`:** `main` deploys rules, indexes (including TTL policies) and `functions:default` to staging. Production needs a manual approval. There is no `functions:embedder` any more. After each deploy a check fails the job if any Cloud Run service runs as a default service account (§9).
-- **Mobile:** `eas build` (or `--local`) on tags, after the fetch-model script has put the pinned, sha256-checked model files into the build (§5.1). Store submission is manual. The dev build runs the on-device **golden test** (§5.1) on EAS builds and Firebase Test Lab, and again whenever the model or ORT version changes.
+- **Mobile:** `eas build` (or `--local`) on tags, after the fetch-model script has put the pinned, sha256-checked model files into the build (§5.1). Once `prototypes.bin` is pinned, each build needs `MODEL_MIRROR_URL` and a fresh `MODEL_MIRROR_TOKEN` from `sa-build@` (§9; apps/mobile/README.md). Store submission is manual. The dev build runs the on-device **golden test** (§5.1) on EAS builds and Firebase Test Lab, and again whenever the model or ORT version changes.
 
 **Testing:**
 

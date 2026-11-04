@@ -81,6 +81,7 @@ The app calls Places directly with a key restricted to the apps (DESIGN §9). A 
 **Bundled in the app: $0.** `model_q4.onnx` (0.5 MB), `model_q4.onnx_data` (174.0 MB), `tokenizer.json` (32.2 MB) and the small config files ship inside the app (DESIGN §5.1, F32), fetched and sha256-checked at build time; nothing is hosted or downloaded at run time [ODV].
 
 - **App size:** about 210 MB more.
+- **Android device storage:** about twice that. The runtime needs a real file path, so the first launch copies the files out of the APK into app storage: ~207 MB in the APK plus ~207 MB copied (~415 MB). Older model folders are deleted before the copy, and the first launch needs ~260 MB free (the copy plus 50 MB headroom).
 - **Apple:** above 200 MB the App Store asks before downloading the app on cellular, by default (accepted).
 - **Google Play:** the base module limit is 500 MB, so no asset pack is needed.
 - **Updates:** every app update that changes the model ships it again; other updates are delta-patched by the stores.

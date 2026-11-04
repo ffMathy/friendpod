@@ -21,3 +21,14 @@ export declare function sha256File(file: string): string;
 export declare function sizeOf(file: string): number | null;
 export declare function matchesPin(file: string, pin: Pick<ModelPin, 'sha256' | 'bytes'>): boolean;
 export declare function checkFolder(dir: string, files: readonly Pick<ModelPin, 'path' | 'sha256' | 'bytes'>[]): { missing: string[]; mismatched: string[] };
+export interface ModelRequest {
+  readonly url: string;
+  readonly headers: Readonly<Record<string, string>>;
+  /** True when the URL is MODEL_MIRROR_URL's: redirects are refused so the bearer token never leaves its origin. */
+  readonly fromMirror: boolean;
+}
+export declare function requestFor(
+  pins: Pick<ModelPins, 'hfRepo' | 'revision'>,
+  file: Pick<ModelPin, 'path' | 'source'>,
+  env?: Readonly<Record<string, string | undefined>>,
+): ModelRequest;

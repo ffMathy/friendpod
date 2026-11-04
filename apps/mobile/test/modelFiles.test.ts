@@ -27,7 +27,8 @@ type Content = { sha256: string; bytes: number };
 const pinned = (f: PinnedModelFile): Content => ({ sha256: f.sha256, bytes: f.bytes });
 
 /** In-memory volume: a file's content is just the sha256 it hashes to and a size; directories are implied. */
-function fakeFs(initial: Record<string, Content> = {}, opts: { free?: number; failCopy?: boolean } = {}) {
+/** `volume`: the document volume's size; free space is what its files leave (APK assets do not count). */
+function fakeFs(initial: Record<string, Content> = {}, opts: { free?: number; volume?: number; failCopy?: boolean } = {}) {
   const disk = new Map<string, Content | string>(Object.entries(initial));
   const log = { copied: [] as string[], hashed: [] as string[], removed: [] as string[] };
   const under = (dir: string) => [...disk.keys()].filter((k) => k.startsWith(dir));
@@ -62,7 +63,11 @@ function fakeFs(initial: Record<string, Content> = {}, opts: { free?: number; fa
       return typeof c === 'string' ? c : null;
     },
     writeText: async (u, t) => void disk.set(u, t),
-    freeBytes: () => opts.free ?? 1e12,
+    freeBytes: () => {
+      if (opts.volume === undefined) return opts.free ?? 1e12;
+      const used = [...disk.entries()].filter(([k]) => k.startsWith('file://')).reduce((n, [, c]) => n + (typeof c === 'string' ? c.length : c.bytes), 0);
+      return opts.volume - used;
+    },
   };
   return { fs, disk, log };
 }
@@ -155,6 +160,21 @@ describe('bundled model files (D1)', () => {
       const { fs, log } = fakeFs({ ...assets(), ...installed(files.slice(0, 1)), [`${DOCS}${DIR}onnx/model_q4.onnx`]: { sha256: 'e'.repeat(64), bytes: 20 } });
       await prepare(fs);
       expect(log.copied).toEqual([`asset:///${DIR}onnx/model_q4.onnx`, `asset:///${DIR}onnx/model_q4.onnx_data`]);
+    });
+
+    it('deletes a partial copy left by a killed first launch before checking free space', async () => {
+      const MARGIN = 50 * 1024 * 1024;
+      const part = `${DOCS}${DIR}onnx/model_q4.onnx_data.part`;
+      const needed = files.reduce((n, f) => n + f.bytes, 0);
+      // With the stale 25-byte .part counted as used, the volume is one byte short of needed + margin.
+      const { fs, disk, log } = fakeFs({ ...assets(), [part]: { sha256: 'f'.repeat(64), bytes: 25 } }, { volume: 25 + needed + MARGIN - 1 });
+      await prepare(fs);
+      expect(log.removed).toContain(part);
+      expect(disk.has(part)).toBe(false);
+      expect(log.copied).toHaveLength(files.length);
+      expect(disk.has(`${DOCS}${DIR}${MARKER}`)).toBe(true);
+      // Without the .part, the same volume really is too small.
+      await expect(prepare(fakeFs(assets(), { volume: needed + MARGIN - 1 }).fs)).rejects.toMatchObject({ reason: 'storage' });
     });
 
     it('removes older model folders and keeps the current one', async () => {

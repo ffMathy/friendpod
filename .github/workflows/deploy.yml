@@ -13,7 +13,11 @@
 #   - Storage cross-service rules: grant the Firebase Rules service agent read access to Firestore once (the CLI
 #     asks interactively on the first deploy, and cannot in --non-interactive mode).
 #   - The model mirror gs://grouper-<env>-models in europe-west1 (see calibration.yml): the pinned device model files
-#     and prototypes.bin under models/eg2-q4-daa72c5/, readable by the app and, for prototypes.bin, by sa-api@.
+#     and prototypes.bin under models/eg2-q4-daa72c5/. Private (public access prevention on, no allUsers): read by
+#     sa-api@ (prototypes.bin), by CI through WIF, and at app build time by apps/mobile `fetch-model` with
+#     MODEL_MIRROR_URL plus MODEL_MIRROR_TOKEN, a 1-hour access token of sa-build@ (object read on this bucket only;
+#     release builders get roles/iam.serviceAccountTokenCreator on it; no keys). See apps/mobile/README.md and
+#     DESIGN.md §9. The app never reads it: the model ships inside it (F32).
 #   - Log buckets in europe-west1 (DESIGN.md §7 "Logging location"): the organization's default storage location
 #     is set before the projects are created, or the `_Default` sink points at a user-defined europe-west1 bucket.
 #     That bucket keeps 30 days (PRIVACY.md §5).

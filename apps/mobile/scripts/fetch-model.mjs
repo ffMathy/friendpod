@@ -5,7 +5,9 @@
  * pinned in packages/core (data/eg2-q4.model.json); a file that does not match is never moved into place.
  *
  *   npm run fetch-model                      from Hugging Face at the pinned revision
- *   MODEL_MIRROR_URL=https://…/ npm run fetch-model   from a mirror laid out like the model repo (our EU bucket)
+ *   MODEL_MIRROR_URL=https://…/ MODEL_MIRROR_TOKEN=… npm run fetch-model
+ *                                            from a mirror laid out like the model repo (our private EU models
+ *                                            bucket; the token is a short-lived OAuth access token that can read it)
  *
  * Idempotent: files that are already there and verified are skipped. Anything else in assets/model/ (an older
  * revision, a partial download) is removed, so a build never bundles a stale file. EAS runs it in the
@@ -24,27 +26,21 @@ import { pipeline } from 'node:stream/promises';
 import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url);
-const { readPins, sourceDir, sizeOf, matchesPin } = require('../plugins/modelPins.js');
+const { readPins, sourceDir, sizeOf, matchesPin, requestFor } = require('../plugins/modelPins.js');
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const ATTEMPTS = 3;
 const PART = '.part';
 
-function urlFor(pins, file) {
-  const mirror = process.env.MODEL_MIRROR_URL;
-  if (mirror) return new URL(file.path, mirror.endsWith('/') ? mirror : `${mirror}/`).toString();
-  if (file.source !== 'hf') {
-    throw new Error(`${file.path} is not on Hugging Face (source "${file.source}"); set MODEL_MIRROR_URL to the models bucket`);
-  }
-  return `https://huggingface.co/${pins.hfRepo}/resolve/${pins.revision}/${file.path}`;
-}
-
-/** Streams `url` to `dest`, hashing on the way; resolves to the byte count and SHA-256 actually written. */
-async function download(url, dest) {
-  const headers = {};
-  if (process.env.HF_TOKEN && new URL(url).hostname === 'huggingface.co') headers.authorization = `Bearer ${process.env.HF_TOKEN}`;
-  const res = await fetch(url, { headers, redirect: 'follow' });
+/** Streams the request to `dest`, hashing on the way; resolves to the byte count and SHA-256 actually written. */
+async function download({ url, headers, fromMirror }, dest) {
+  // The mirror's bearer token must not follow a redirect to another host; Hugging Face redirects to its CDN.
+  const res = await fetch(url, { headers, redirect: fromMirror ? 'error' : 'follow' });
   if (!res.ok || !res.body) {
+    if (fromMirror && (res.status === 401 || res.status === 403)) {
+      const why = headers.authorization ? 'MODEL_MIRROR_TOKEN was refused (expired, or no read access to the bucket)' : 'MODEL_MIRROR_TOKEN is not set';
+      throw Object.assign(new Error(`GET ${url}: HTTP ${res.status}. The models bucket is private: ${why} (apps/mobile/README.md)`), { fatal: true });
+    }
     // A 4xx other than a timeout or rate limit will not change on retry.
     const fatal = res.status >= 400 && res.status < 500 && res.status !== 408 && res.status !== 429;
     throw Object.assign(new Error(`GET ${url}: HTTP ${res.status}`), { fatal });
@@ -64,12 +60,12 @@ async function download(url, dest) {
 }
 
 async function fetchOne(pins, file, dest) {
-  const url = urlFor(pins, file);
+  const request = requestFor(pins, file);
   const part = dest + PART;
   let lastError;
   for (let attempt = 1; attempt <= ATTEMPTS; attempt++) {
     try {
-      const got = await download(url, part);
+      const got = await download(request, part);
       if (got.bytes !== file.bytes || got.sha256 !== file.sha256) {
         // A wrong file is not retried into place: the pin or the source is wrong, and a human has to look.
         await rm(part, { force: true });

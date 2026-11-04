@@ -111,7 +111,7 @@ function prepareIos(o: PrepareOptions): Record<string, string> {
  * Android: APK assets are not file paths and the runtime needs one, with model_q4.onnx_data next to the graph. On
  * first launch every file is copied to `<documents>/<dir>` (app-internal storage; `allowBackup` is off), verified
  * with a native SHA-256 once, and the marker is written last. Later launches trust the marker plus the file sizes.
- * An interrupted copy resumes: files already in place are hashed and kept if they match.
+ * An interrupted copy resumes: files already in place are hashed and kept if they match; partial copies are deleted.
  */
 async function prepareAndroid(o: PrepareOptions): Promise<Record<string, string>> {
   const from = bundledModelDir('android', o.bundleRoot, o.dir);
@@ -128,6 +128,8 @@ async function prepareAndroid(o: PrepareOptions): Promise<Record<string, string>
 
   const todo: PinnedModelFile[] = [];
   for (const file of o.files) {
+    // A copy killed midway leaves its .part behind (up to ~174 MB); it goes before the free-space check counts it.
+    o.fs.remove(to + file.path + PART);
     if (await verified(o.fs, to + file.path, file)) continue;
     o.fs.remove(to + file.path);
     todo.push(file);

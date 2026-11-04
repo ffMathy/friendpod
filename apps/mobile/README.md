@@ -39,7 +39,8 @@ permissions.
 | `EXPO_PUBLIC_USE_EMULATORS=1` | `eas.json` development profile, or your shell | Connects Auth, Firestore, Functions and Storage to the Emulator Suite; refused outside development |
 | `EXPO_PUBLIC_EMULATOR_HOST` | your shell | Emulator host for a physical device (default `localhost`; Android emulators are remapped to 10.0.2.2) |
 | `EXPO_PUBLIC_APP_CHECK_DEBUG_TOKEN` | your shell | Optional pre-registered App Check debug token (development only) |
-| `MODEL_MIRROR_URL` | EAS env var or your shell (optional) | Build-time source for `npm run fetch-model` instead of Hugging Face, laid out like the model repo (for example the EU models bucket's `models/eg2-q4-daa72c5/`); required once a `mirror`-only file such as `prototypes.bin` is pinned |
+| `MODEL_MIRROR_URL` | EAS env var or your shell (optional) | Build-time source for `npm run fetch-model` instead of Hugging Face, laid out like the model repo (`https://storage.googleapis.com/grouper-<env>-models/models/eg2-q4-daa72c5/`); required once a `mirror`-only file such as `prototypes.bin` is pinned |
+| `MODEL_MIRROR_TOKEN` | EAS **secret** env var, set right before each build, or your shell | OAuth access token for the private models bucket (DESIGN.md §8, §9), sent by `fetch-model` as `Authorization: Bearer` to the `MODEL_MIRROR_URL` origin only (no redirects followed). Mint it as the build service account, which has object read on that bucket only: `gcloud auth print-access-token --impersonate-service-account=sa-build@grouper-<env>.iam.gserviceaccount.com`. It expires after 1 hour, so set it with `eas env:create --name MODEL_MIRROR_TOKEN --visibility secret --force --environment <preview\|production> --value "$(…)"` immediately before `eas build` (or pass it in the shell to `eas build --local`). A 401/403 from the mirror fails the build and says whether the token was missing or refused |
 | `HF_TOKEN` | EAS secret or your shell (optional) | Sent to huggingface.co by `fetch-model` (the repo is public; only for rate limits) |
 | `EXPO_PUBLIC_EMBEDDER=stub` | your shell | Deterministic fake vectors instead of the bundled model; lets a development prebuild go without `assets/model/` and makes `fetch-model` a no-op; refused outside development, always on in jest |
 | `EXPO_PUBLIC_PLACES_KEY` | EAS env var | Google Places (New) API key, restricted to the app ids and the Places API |
@@ -103,7 +104,7 @@ scored by the core detector against `prototypes.bin`; `addInterests` receives `{
   `packages/core/src/interests/data/eg2-q4.model.json`, read by `EMBEDDING_MODEL`), about 207 MB. There is no runtime
   download, no URL and no Wi-Fi/cellular prompt.
   - **Build time:** `npm run fetch-model` (`scripts/fetch-model.mjs`, Node built-ins only) downloads them from Hugging
-    Face at the pinned revision, or from `MODEL_MIRROR_URL`, into `assets/model/eg2-q4-daa72c5/` (gitignored),
+    Face at the pinned revision, or from `MODEL_MIRROR_URL` (the private models bucket, with `MODEL_MIRROR_TOKEN`), into `assets/model/eg2-q4-daa72c5/` (gitignored),
     verifies every SHA-256, skips files already verified and removes anything else in `assets/model/`.
   - **Prebuild:** `plugins/withBundledModel.js` verifies the folder again and copies exactly the pinned files to
     `ios/<Project>/models/` (a folder reference in Copy Bundle Resources) and `android/app/src/main/assets/models/`
@@ -116,8 +117,11 @@ scored by the core detector against `prototypes.bin`; `addInterests` receives `{
   - **Runtime** (`src/features/interests/embedder/modelFiles.ts`): on iOS the session opens
     `<App>.app/models/eg2-q4-daa72c5/onnx/model_q4.onnx` in place (code-signed, size check only). Android assets are
     not file paths, so the first load copies the files to `<files>/models/eg2-q4-daa72c5/` (internal storage; the app
-    has `allowBackup: false`), checks free space first, verifies each copy's SHA-256 natively, writes a marker last,
-    then deletes older model folders; later launches trust the marker and file sizes. iOS deletes any
+    has `allowBackup: false`). It first deletes older model folders and any partial `.part` copy (they free the
+    space this copy needs, so after a model update the old model is gone before the new one is verified), then checks
+    free space (the copied bytes plus 50 MB), verifies each copy's SHA-256 natively and writes a marker last; later
+    launches trust the marker and file sizes. On Android the model therefore takes about twice its size on the
+    device: ~207 MB in the APK plus ~207 MB copied (~415 MB), and the first launch needs ~260 MB free. iOS deletes any
     `Documents/models/` an older download-on-first-use build left behind (Android re-verifies and reuses it). The UI
     shows only "preparing" meanwhile.
 - The model is loaded while an interests screen is focused and released when it loses focus.

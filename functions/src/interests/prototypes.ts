@@ -2,7 +2,7 @@
  * The detector's prototype vectors on the server (DESIGN.md §5.2 (5), D1). The app computes the margin on the device;
  * the server recomputes it from the client's vector when it has `prototypes.bin` and keeps the more cautious of the
  * two (core's reconcileDetectorMargin). The file is embedded offline with the pinned model and hosted in the EU
- * models bucket next to the model files, where the app downloads it too.
+ * models bucket next to the model files; the app's build fetches it from there and bundles it (DESIGN.md F32).
  *
  * Without the file (not built yet, not readable) the server decides with the client's margin alone, which is what
  * D1 trusts anyway; a stale file is a deploy error and fails loudly.

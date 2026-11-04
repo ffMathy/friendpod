@@ -71,4 +71,31 @@ function checkFolder(dir, files) {
   return { missing, mismatched };
 }
 
-module.exports = { PINS_FILE, readPins, sourceDir, sha256File, sizeOf, matchesPin, checkFolder };
+/**
+ * Where `npm run fetch-model` gets `file` and with which headers. With MODEL_MIRROR_URL every file comes from the
+ * mirror (laid out like the model repo); without it, `hf` files come from Hugging Face at the pinned revision and a
+ * `mirror`-only file (prototypes.bin) cannot be fetched.
+ *
+ * The models bucket is private (DESIGN.md §8, §9: no public or app access), so a mirror request carries
+ * `Authorization: Bearer $MODEL_MIRROR_TOKEN`, a short-lived OAuth access token with read access to the bucket
+ * (apps/mobile/README.md "Environment"). The token goes to the mirror's origin only and is never followed through a
+ * redirect; HF_TOKEN goes to huggingface.co only.
+ */
+function requestFor(pins, file, env = process.env) {
+  const mirror = env.MODEL_MIRROR_URL;
+  if (mirror) {
+    const url = new URL(file.path, mirror.endsWith('/') ? mirror : `${mirror}/`);
+    if (url.protocol !== 'https:' && env.MODEL_MIRROR_TOKEN) throw new Error('MODEL_MIRROR_URL must be https:// when MODEL_MIRROR_TOKEN is set');
+    const headers = env.MODEL_MIRROR_TOKEN ? { authorization: `Bearer ${env.MODEL_MIRROR_TOKEN}` } : {};
+    return { url: url.toString(), headers, fromMirror: true };
+  }
+  if (file.source !== 'hf') {
+    throw new Error(
+      `${file.path} is not on Hugging Face (source "${file.source}"); set MODEL_MIRROR_URL to the models bucket and MODEL_MIRROR_TOKEN to an access token that can read it`,
+    );
+  }
+  const headers = env.HF_TOKEN ? { authorization: `Bearer ${env.HF_TOKEN}` } : {};
+  return { url: `https://huggingface.co/${pins.hfRepo}/resolve/${pins.revision}/${file.path}`, headers, fromMirror: false };
+}
+
+module.exports = { PINS_FILE, readPins, sourceDir, sha256File, sizeOf, matchesPin, checkFolder, requestFor };

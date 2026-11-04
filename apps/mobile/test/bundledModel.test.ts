@@ -4,7 +4,7 @@ import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, 
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { IOSConfig } from 'expo/config-plugins';
-import { readPins, sourceDir, type ModelPins } from '../plugins/modelPins';
+import { readPins, requestFor, sourceDir, type ModelPins } from '../plugins/modelPins';
 import withBundledModel from '../plugins/withBundledModel';
 
 const { shouldBundle, stageModel, addModelFolderReference, addNoCompress } = withBundledModel;
@@ -98,5 +98,31 @@ describe('bundled model build (founder decision 2026-11-04)', () => {
     expect(refs[0]).toContain('lastKnownFileType = folder;');
     expect(refs[0]).not.toContain('undefined');
     expect(out.match(/\/\* models in Resources \*\//g)).toHaveLength(2); // the build file and its entry in the phase
+  });
+});
+
+describe('fetch-model sources: the models bucket is private (DESIGN.md §8, §9)', () => {
+  const hfFile = { path: 'onnx/model_q4.onnx', source: 'hf' as const };
+  const mirrorFile = { path: 'prototypes.bin', source: 'mirror' as const };
+  const MIRROR = 'https://storage.googleapis.com/grouper-staging-models/models/eg2-q4-daa72c5';
+
+  it('fetches hf files from Hugging Face at the pinned revision, with HF_TOKEN only there', () => {
+    expect(requestFor(pins, hfFile, {})).toEqual({ url: 'https://huggingface.co/example/model/resolve/abcdef0123/onnx/model_q4.onnx', headers: {}, fromMirror: false });
+    expect(requestFor(pins, hfFile, { HF_TOKEN: 'hf_x', MODEL_MIRROR_TOKEN: 'ya29.m' }).headers).toEqual({ authorization: 'Bearer hf_x' });
+  });
+
+  it('refuses a mirror-only file without the mirror, naming both variables', () => {
+    expect(() => requestFor(pins, mirrorFile, {})).toThrow(/MODEL_MIRROR_URL.*MODEL_MIRROR_TOKEN/);
+  });
+
+  it('sends MODEL_MIRROR_TOKEN as a bearer token to the mirror, never HF_TOKEN', () => {
+    const r = requestFor(pins, mirrorFile, { MODEL_MIRROR_URL: MIRROR, MODEL_MIRROR_TOKEN: 'ya29.m', HF_TOKEN: 'hf_x' });
+    expect(r).toEqual({ url: `${MIRROR}/prototypes.bin`, headers: { authorization: 'Bearer ya29.m' }, fromMirror: true });
+    expect(requestFor(pins, hfFile, { MODEL_MIRROR_URL: `${MIRROR}/`, MODEL_MIRROR_TOKEN: 'ya29.m' }).url).toBe(`${MIRROR}/onnx/model_q4.onnx`);
+  });
+
+  it('sends no token without MODEL_MIRROR_TOKEN, and none over plain http', () => {
+    expect(requestFor(pins, mirrorFile, { MODEL_MIRROR_URL: MIRROR }).headers).toEqual({});
+    expect(() => requestFor(pins, mirrorFile, { MODEL_MIRROR_URL: 'http://mirror.example/m/', MODEL_MIRROR_TOKEN: 'ya29.m' })).toThrow(/https/);
   });
 });
