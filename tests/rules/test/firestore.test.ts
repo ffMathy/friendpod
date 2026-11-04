@@ -18,7 +18,8 @@ type Data = Record<string, unknown>;
 
 /** Every client-readable document under users/{uid} (§8.1). */
 const ownerDocs = (uid: string, other: string): Record<string, Data> => ({
-  [`users/${uid}`]: { firstName: 'Ada', locale: 'da', status: 'active', createdAt: AT },
+  // "About me" (D4) lives on the users doc, so only its owner reads it there.
+  [`users/${uid}`]: { firstName: 'Ada', locale: 'da', status: 'active', aboutMe: 'Ny i byen, glad for brætspil', createdAt: AT },
   [`users/${uid}/interests/int1`]: { display: 'Bouldering', norm: 'bouldering', conceptId: 'c1', starred: true, state: 'active' },
   [`users/${uid}/sensitiveInterests/sen1`]: { display: 'Theme', norm: 'theme', conceptId: 'c9', selfFlagged: false, source: 'lexicon' },
   [`users/${uid}/pods/p1`]: { state: 'confirmed', myStatus: 'accepted', themeLabel: 'Bouldering', themeSensitive: false },
@@ -27,23 +28,27 @@ const ownerDocs = (uid: string, other: string): Record<string, Data> => ({
   [`users/${uid}/exports/e1`]: { status: 'ready', expiresAt: AT },
 });
 
+/** A Google Places pick (D8); the rules do not look inside it. */
+const place = (name: string): Data => ({ placeId: `ChIJ${name}0000000`, name, address: 'Aarhus C', lat: 56.1567, lng: 10.2108, type: 'cafe', mapUrl: 'https://www.google.com/maps/search/?api=1' });
+
 const POD_DOCS: Record<string, Data> = {
-  'pods/p1': { state: 'confirmed', weekId: WEEK, memberUids: [ALICE, BOB], roster: { [ALICE]: { firstName: 'Ada', photoV: 1 } } },
-  'pods/p1/options/o1': { authorUid: BOB, placeText: 'Library café', publicPlace: true, votes: { [BOB]: 'yes' } },
+  // The roster carries each confirmed member's "about me" (D4): pods are readable through memberUids only.
+  'pods/p1': { state: 'confirmed', weekId: WEEK, memberUids: [ALICE, BOB], roster: { [ALICE]: { firstName: 'Ada', photoV: 1, aboutMe: 'Ny i byen' } } },
+  'pods/p1/options/o1': { authorUid: BOB, startsAt: AT, place: place('Librarycafe'), votes: { [BOB]: 'yes' } },
   'pods/p2': { state: 'confirmed', weekId: WEEK, memberUids: [BOB, CAROL] },
-  'pods/p1/messages/m1': { authorUid: BOB, kind: 'text', text: 'Running 5 minutes late', createdAt: AT, expiresAt: AT },
-  'pods/p1/messages/m2': { authorUid: ALICE, kind: 'quickReply', quickReply: 'imHere', createdAt: AT, expiresAt: AT },
-  'pods/p2/options/o2': { authorUid: CAROL, placeText: 'Park', publicPlace: true, votes: {} },
-  'pods/p2/messages/m3': { authorUid: CAROL, kind: 'text', text: 'At the gate', createdAt: AT, expiresAt: AT },
+  'pods/p1/messages/m1': { authorUid: BOB, text: 'Running 5 minutes late', createdAt: AT, expiresAt: AT },
+  'pods/p1/messages/m2': { authorUid: ALICE, text: "I'm here", createdAt: AT, expiresAt: AT },
+  'pods/p2/options/o2': { authorUid: CAROL, startsAt: AT, place: place('Park'), votes: {} },
+  'pods/p2/messages/m3': { authorUid: CAROL, text: 'At the gate', createdAt: AT, expiresAt: AT },
   // Mutated by the removal test only.
   'pods/p3': { state: 'scheduled', weekId: WEEK, memberUids: [ALICE, CAROL] },
-  'pods/p3/options/o3': { authorUid: CAROL, placeText: 'Harbour', publicPlace: true, votes: {} },
-  'pods/p3/messages/m4': { authorUid: CAROL, kind: 'quickReply', quickReply: 'onMyWay', createdAt: AT, expiresAt: AT },
+  'pods/p3/options/o3': { authorUid: CAROL, startsAt: AT, place: place('Harbour'), votes: {} },
+  'pods/p3/messages/m4': { authorUid: CAROL, text: 'On my way', createdAt: AT, expiresAt: AT },
 };
 
 const PUBLICISH_DOCS: Record<string, Data> = {
   'areas/aarhus': { label: 'Aarhus', status: 'waitlist', chips: [] },
-  'config/app': { minAppVersion: '0.1.0', features: { embedder: true, uploads: true } },
+  'config/app': { minAppVersion: '0.1.0', features: { interests: true, uploads: true } },
   'config/internal': { note: 'not public' },
 };
 
@@ -62,11 +67,12 @@ const SERVER_ONLY_DOCS: Record<string, Data> = {
   'reports/r1': { reporterUid: ALICE, targetUid: BOB, podId: 'p1', category: 'other', expiresAt: AT },
   [`sanctions/${ALICE}`]: { type: 'pause', reasonCode: 'SAFETY_REPORT' },
   'bans/emailHash1': { reasonCode: 'UNDERAGE', createdAt: AT, expiresAt: AT },
-  'reviewQueue/q1': { kind: 'report', ref: 'r1', uid: ALICE, status: 'open' },
+  // Meet-again answers of a pair (D9): never shown to either member.
+  'pairSignals/pk0123456789abcdef0123456789abcd': { uidHs: ['uidhashA', 'uidhashB'], answers: { uidhashA: true }, meetWeek: WEEK, updatedAt: AT },
   [`photoGrants/${ALICE}_${BOB}`]: { pods: ['p1'], createdAt: AT },
   [`pushTokens/${ALICE}`]: { tokens: [] },
-  [`rateLimits/${ALICE}_embed`]: { count: 1, windowStart: AT, expiresAt: AT },
-  'rateLimits/global_embedMiss_2026-11-05': { count: 1, windowStart: AT, expiresAt: AT },
+  [`rateLimits/${ALICE}_addInterests`]: { count: 1, windowStart: AT, expiresAt: AT },
+  [`rateLimits/${ALICE}_sensitiveAdds`]: { count: 1, windowStart: AT, expiresAt: AT },
   'erasureLedger/l1': { uidH: 'uidhash', kind: 'interest', at: AT, expiresAt: AT },
   'underageMarkers/emailHash2': { createdAt: AT, expiresAt: AT },
 };

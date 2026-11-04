@@ -70,7 +70,7 @@ export default function Area() {
         onSuccess: async () => {
           update({ dob: null });
           await refreshClaims();
-          router.replace('/add-interests');
+          router.replace('/sensitive-consent');
         },
         onError: (error) => {
           if (error.code === 'UNDERAGE') reset();

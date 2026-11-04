@@ -6,7 +6,6 @@ export default function SheetsLayout() {
   const { t } = useTranslation();
   return (
     <Stack screenOptions={{ headerBackButtonDisplayMode: 'minimal' }}>
-      <Stack.Screen name="consent" options={{ title: t('consent.title') }} />
       <Stack.Screen name="why-this-pod" options={{ title: t('pods.whyThisPod') }} />
       <Stack.Screen name="report" options={{ title: t('report.title') }} />
     </Stack>

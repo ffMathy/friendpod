@@ -1,5 +1,7 @@
 import { z } from 'zod';
 import { GH5_PATTERN } from '../geo/geohash';
+import { isBlocklisted } from '../interests/blocklist';
+import { findPii, hasFloorAndSide, looksLikeAddress, looksLikeLink, mentionsHandle } from '../interests/pii';
 import { BASE32_ID_PATTERN } from '../ids/base32';
 import { INTEREST_ID_LENGTH, POD_ID_LENGTH, UID_H_LENGTH } from '../ids/podId';
 import { isWeekId } from '../time/weekId';
@@ -92,26 +94,51 @@ export function roundPlaceCoord(x: number): number {
 const roundedCoord = (min: number, max: number) =>
   z.number().min(min).max(max).refine((v) => Math.abs(v - roundPlaceCoord(v)) < 1e-9, { message: `round to ${PLACE_COORD_DECIMALS} decimals` });
 
+export const PLACE_ID_MAX = 300;
+export const PLACE_NAME_MAX = 120;
+export const PLACE_ADDRESS_MAX = 200;
+
 /** The Google Maps URL of a place: built, never typed, so it can only point at that place. */
 export function googleMapsPlaceUrl(placeId: string, name: string): string {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name)}&query_place_id=${encodeURIComponent(placeId)}`;
 }
 
+/** Longest built map URL: a UTF-16 unit encodes to at most 9 characters (3 UTF-8 bytes), a place id is URL-safe. */
+const PLACE_MAP_URL_MAX = googleMapsPlaceUrl('', '').length + PLACE_NAME_MAX * 9 + PLACE_ID_MAX;
+
 /**
- * A meetup place picked from Google Places (New) Autocomplete (D8): public place types only, no free text.
- * `address` is the formatted short address. The server checks the shape and the type; it does not call Places.
+ * Contact details in a place's text. The server does not call Places, so a modified client could type anything into
+ * `name` and `address`: the name must read like a place's name, and the address may be a street address but not a
+ * home's (floor and side) and carry no phone, e-mail, link or handle.
+ */
+export function placeTextProblem(p: { readonly name: string; readonly address: string }): 'name' | 'address' | null {
+  const name = p.name.normalize('NFKC');
+  if (findPii(name).length > 0 || mentionsHandle(name) || looksLikeLink(name) || looksLikeAddress(name) || isBlocklisted(name.toLowerCase(), 'chat')) return 'name';
+  const address = p.address.normalize('NFKC');
+  if (findPii(address).length > 0 || mentionsHandle(address) || looksLikeLink(address) || hasFloorAndSide(address)) return 'address';
+  return null;
+}
+
+/**
+ * A meetup place picked from Google Places (New) Autocomplete (D8): public place types only. `address` is the
+ * formatted short address. The server checks the shape, the type and the text (placeTextProblem); it does not call
+ * Places, so it trusts the client that the place id, name and address belong together (PRIVACY.md R19).
  */
 export const placeSchema = z
   .strictObject({
-    placeId: z.string().regex(/^[A-Za-z0-9_-]{10,300}$/),
-    name: z.string().trim().min(1).max(120),
-    address: z.string().trim().min(1).max(200),
+    placeId: z.string().regex(new RegExp(`^[A-Za-z0-9_-]{10,${PLACE_ID_MAX}}$`)),
+    name: z.string().trim().min(1).max(PLACE_NAME_MAX),
+    address: z.string().trim().min(1).max(PLACE_ADDRESS_MAX),
     lat: roundedCoord(-90, 90),
     lng: roundedCoord(-180, 180),
     type: z.enum(PUBLIC_PLACE_TYPES),
-    mapUrl: z.string().max(600),
+    mapUrl: z.string().max(PLACE_MAP_URL_MAX),
   })
-  .refine((p) => p.mapUrl === googleMapsPlaceUrl(p.placeId, p.name), { message: 'mapUrl must be googleMapsPlaceUrl(placeId, name)', path: ['mapUrl'] });
+  .refine((p) => p.mapUrl === googleMapsPlaceUrl(p.placeId, p.name), { message: 'mapUrl must be googleMapsPlaceUrl(placeId, name)', path: ['mapUrl'] })
+  .superRefine((p, ctx) => {
+    const problem = placeTextProblem(p);
+    if (problem) ctx.addIssue({ code: 'custom', message: 'contact details in a place', path: [problem] });
+  });
 export type Place = z.infer<typeof placeSchema>;
 
 export const legalVersionSchema = z.string().regex(/^[a-z0-9.-]{1,64}$/);

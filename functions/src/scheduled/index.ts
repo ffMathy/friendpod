@@ -47,8 +47,19 @@ export const dropOrchestrator = onSchedule(SCHEDULE_OPTIONS.dropOrchestrator, ()
   }),
 );
 
-// TODO(M1, §4.6): at T−24 h, together with "Still coming?", send the one generic `chatOpen` push ("Your pod chat
-// is open") to the current members; the chat itself opens by time alone (sendMessage checks isChatOpen).
+// TODO(M1, §4.6): every timer in podState.timers that has passed, each idempotent:
+// - planDeadline: planningDeadlineOutcome(): 'schedule' locks the plan; 'extend' (once per round, D7) sets
+//   planningExtended, pods.planning.extended and planDeadline = planningExtensionDeadline(); 'dissolve' / 'archive'.
+//   Backfill only while canBackfill(state, used): before the plan locks, never after `scheduled` (D6).
+// - stillComing3d (null unless the meetup is ≥ 4 days after plan lock) and stillComing24h: "Still coming?" to every
+//   member (D5). At T−24 h also the one generic `chatOpen` push ("Your pod chat is open"); the chat itself opens by
+//   time alone (sendMessage checks isChatOpen).
+// - nudge6h: a second "Still coming?" to membersToNudge() only.
+// - attendanceCheck (T−3 h): markUnconfirmed() into podState and pods.attendance ("<firstName> hasn't confirmed"),
+//   then attendanceCheckPasses(); unconfirmed is not coming, and below 3 the existing single reschedule round runs.
+//   No answer is never a no-show by itself.
+// - feedbackPush (10:00 Europe/Copenhagen the morning after) and feedbackReminder (3 days later), from
+//   feedbackTimers(); feedbackCloses stays 7 days (D12).
 export const hourlySweeper = onSchedule(SCHEDULE_OPTIONS.hourlySweeper, () =>
   runBackground('schedule', 'hourlySweeper', handlerDeps, async () => {
     throw notImplemented('§4.6');

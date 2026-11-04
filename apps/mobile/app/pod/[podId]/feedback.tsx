@@ -1,18 +1,19 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Body, Button, Card, ChipRow, ErrorText, Heading, Loading, Screen, Toggle } from '@/components/ui';
+import { Body, Button, Card, Checkbox, ChipRow, ErrorText, Heading, Loading, Screen, Toggle } from '@/components/ui';
 import { usePod, usePodCard } from '@/data/docs';
 import { useCallable } from '@/data/useCallable';
 import { isConfirmedMember } from '@/features/pods/membership';
 import { useUid } from '@/features/session/SessionProvider';
 import { errorMessageKey } from '@/lib/errors';
 
-type Attendance = 'came' | 'noShow';
+type MeetAgain = 'yes' | 'no';
 
 /**
- * "Did you meet?" (§3.6): attendance per member, a private "would meet again", a 1–5 rating and
- * Keep pod / Not for me. None of it is shown to the others.
+ * "Did you meet?" (§3.6): "Who was there?" with everyone pre-ticked, so the user only unticks whoever was missing
+ * (D15); a private "meet again" per person whose answer has an effect (D9); a 1–5 rating and Keep pod / Not for me.
+ * None of it is shown to the others.
  */
 export default function Feedback() {
   const { t } = useTranslation();
@@ -23,10 +24,16 @@ export default function Feedback() {
   const pod = usePod(podId, isConfirmedMember(card.data));
   const submit = useCallable('submitFeedback');
   const [met, setMet] = useState(true);
-  const [attendance, setAttendance] = useState<Record<string, Attendance>>({});
-  const [meetAgain, setMeetAgain] = useState<Record<string, boolean>>({});
+  const [notThere, setNotThere] = useState<ReadonlySet<string>>(new Set());
+  const [meetAgain, setMeetAgain] = useState<Record<string, MeetAgain>>({});
   const [rating, setRating] = useState<number | undefined>(undefined);
   const [keep, setKeep] = useState<boolean | null>(null);
+
+  const answerMeetAgain = (m: string, answer: MeetAgain | null) =>
+    setMeetAgain((x) => {
+      const { [m]: _dropped, ...rest } = x;
+      return answer ? { ...rest, [m]: answer } : rest;
+    });
 
   if (!pod.data) return <Loading label={t('common.loading')} />;
   const others = pod.data.memberUids.filter((m) => m !== uid);
@@ -38,8 +45,9 @@ export default function Feedback() {
       {
         podId,
         met,
-        attendance: met ? attendance : {},
-        meetAgain: met ? meetAgain : {},
+        notThere: met ? others.filter((m) => notThere.has(m)) : [],
+        // Only people who were there can be met again; no answer means no signal.
+        meetAgain: met ? Object.fromEntries(others.filter((m) => !notThere.has(m) && meetAgain[m]).map((m) => [m, meetAgain[m] === 'yes'])) : {},
         ...(rating !== undefined ? { rating } : {}),
         keep,
       },
@@ -54,18 +62,51 @@ export default function Feedback() {
         <Toggle label={t('feedback.yes')} value={met} onChange={() => setMet(true)} />
         <Toggle label={t('feedback.no')} value={!met} onChange={() => setMet(false)} />
       </ChipRow>
-      {met
-        ? others.map((m) => (
-            <Card key={m}>
-              <Body bold>{roster[m]?.firstName ?? ''}</Body>
-              <ChipRow>
-                <Toggle label={t('feedback.came')} value={attendance[m] === 'came'} onChange={() => setAttendance((a) => ({ ...a, [m]: 'came' }))} />
-                <Toggle label={t('feedback.noShow')} value={attendance[m] === 'noShow'} onChange={() => setAttendance((a) => ({ ...a, [m]: 'noShow' }))} />
-              </ChipRow>
-              <Toggle label={t('feedback.meetAgain')} value={meetAgain[m] === true} onChange={(on) => setMeetAgain((x) => ({ ...x, [m]: on }))} />
-            </Card>
-          ))
-        : null}
+      {met ? (
+        <>
+          <Heading>{t('feedback.whoWasThere')}</Heading>
+          <Body muted>{t('feedback.whoWasThereHint')}</Body>
+          {others.map((m) => {
+            const name = roster[m]?.firstName ?? '';
+            const there = !notThere.has(m);
+            return (
+              <Card key={m}>
+                <Checkbox
+                  testID={`there-${m}`}
+                  label={name}
+                  checked={there}
+                  onChange={(on) =>
+                    setNotThere((s) => {
+                      const next = new Set(s);
+                      if (on) next.delete(m);
+                      else next.add(m);
+                      return next;
+                    })
+                  }
+                />
+                {there ? (
+                  <>
+                    <Body>{t('feedback.meetAgain', { name })}</Body>
+                    <ChipRow>
+                      <Toggle
+                        label={t('feedback.yes')}
+                        value={meetAgain[m] === 'yes'}
+                        onChange={(on) => answerMeetAgain(m, on ? 'yes' : null)}
+                      />
+                      <Toggle
+                        label={t('feedback.no')}
+                        value={meetAgain[m] === 'no'}
+                        onChange={(on) => answerMeetAgain(m, on ? 'no' : null)}
+                      />
+                    </ChipRow>
+                  </>
+                ) : null}
+              </Card>
+            );
+          })}
+          <Body muted>{t('feedback.meetAgainEffect')}</Body>
+        </>
+      ) : null}
       {met ? (
         <>
           <Body>{t('feedback.rating')}</Body>

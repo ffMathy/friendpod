@@ -80,7 +80,7 @@
     { "collectionGroup": "messages", "fieldPath": "expiresAt", "ttl": true, "indexes": [] },
     { "collectionGroup": "reports", "fieldPath": "expiresAt", "ttl": true, "indexes": [] },
     { "collectionGroup": "bans", "fieldPath": "expiresAt", "ttl": true, "indexes": [] },
-    { "collectionGroup": "reviewQueue", "fieldPath": "expiresAt", "ttl": true, "indexes": [] },
+    { "collectionGroup": "pairSignals", "fieldPath": "expiresAt", "ttl": true, "indexes": [] },
     { "collectionGroup": "rateLimits", "fieldPath": "expiresAt", "ttl": true, "indexes": [] },
     { "collectionGroup": "erasureLedger", "fieldPath": "expiresAt", "ttl": true, "indexes": [] },
     { "collectionGroup": "underageMarkers", "fieldPath": "expiresAt", "ttl": true, "indexes": [] }

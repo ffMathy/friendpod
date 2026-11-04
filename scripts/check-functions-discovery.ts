@@ -1,11 +1,12 @@
 /**
- * Run under `firebase emulators:exec --only functions --project demo-grouper` after both builds (CI, DESIGN.md §13).
- * Fails unless both codebases load from their dist bundles, the embedder without model weights (the model loads on
- * the first request, §5.1), and every callable in core's registry is served by the codebase it names.
+ * Run under `firebase emulators:exec --only functions --project demo-grouper` after the build (CI, DESIGN.md §13).
+ * Fails unless the one functions codebase loads from its dist bundle and serves every callable in core's registry
+ * (addInterests included since the app embeds tags itself, D1), and unless firebase.json names no other codebase.
  */
+import { readFileSync } from 'node:fs';
 import { CALLABLES } from '@grouper/core';
 
-const CODEBASE_DIRS = { default: 'functions', embedder: 'services/embedder' } as const;
+const CODEBASE_DIRS = { default: 'functions' } as const;
 
 interface Backend {
   readonly directory: string;
@@ -18,13 +19,18 @@ async function getJson<T>(url: string): Promise<T> {
   return (await res.json()) as T;
 }
 
+const failures: string[] = [];
+const config = JSON.parse(readFileSync(new URL('../firebase.json', import.meta.url), 'utf8')) as { functions: { source: string; codebase: string }[] };
+const configured = config.functions.map((f) => `${f.codebase}:${f.source}`).sort();
+const expectedCodebases = Object.entries(CODEBASE_DIRS).map(([codebase, dir]) => `${codebase}:${dir}`).sort();
+if (JSON.stringify(configured) !== JSON.stringify(expectedCodebases)) failures.push(`firebase.json functions: ${configured.join(', ')}, expected ${expectedCodebases.join(', ')}`);
+
 const hub = process.env.FIREBASE_EMULATOR_HUB;
 if (!hub) throw new Error('FIREBASE_EMULATOR_HUB is not set: run under `firebase emulators:exec --only functions`');
 const { functions } = await getJson<{ functions?: { host: string; port: number } }>(`http://${hub}/emulators`);
 if (!functions) throw new Error('the functions emulator is not running');
 const { backends } = await getJson<{ backends: readonly Backend[] }>(`http://${functions.host}:${functions.port}/backends`);
 
-const failures: string[] = [];
 for (const [codebase, dir] of Object.entries(CODEBASE_DIRS)) {
   const backend = backends.find((b) => b.directory.replace(/\/+$/, '').endsWith(`/${dir}`));
   const loaded = new Set(backend?.functionTriggers.map((t) => t.name) ?? []);
@@ -35,6 +41,7 @@ for (const [codebase, dir] of Object.entries(CODEBASE_DIRS)) {
   for (const name of expected) if (!loaded.has(name)) failures.push(`${codebase}: callable ${name} not loaded`);
   console.log(`${codebase} (${dir}): ${loaded.size} functions loaded: ${[...loaded].sort().join(', ')}`);
 }
+if (backends.length !== Object.keys(CODEBASE_DIRS).length) failures.push(`${backends.length} backends loaded, expected ${Object.keys(CODEBASE_DIRS).length}`);
 if (failures.length > 0) {
   console.error(failures.join('\n'));
   process.exit(1);

@@ -25,8 +25,7 @@ export function run(argv: readonly string[]): CliResult {
   const command = findCommand(group, name);
   if (!command) return { code: EXIT_USAGE, stdout: '', stderr: `unknown command: ${[group, name].filter(Boolean).join(' ')}\n\n${help()}` };
   const reasonAt = argv.indexOf('--reason');
-  const needsReason = !(command.group === 'review' && command.name === 'list') && !(command.group === 'sanctions' && command.name === 'list');
-  if (needsReason && (reasonAt < 0 || !argv[reasonAt + 1])) {
+  if (reasonAt < 0 || !argv[reasonAt + 1]) {
     return { code: EXIT_USAGE, stdout: '', stderr: `${group} ${name}: --reason <text> is required (DESIGN.md §9)\nusage: ${command.usage}` };
   }
   return { code: EXIT_NOT_IMPLEMENTED, stdout: '', stderr: `${group} ${name}: not implemented (see ${command.design})` };

@@ -1,6 +1,5 @@
-import { consentProofFor, genderConsentText, type Gender, type GenderConsentSheet, type LegalTextId, type Locale } from '@grouper/core';
-import type { ConsentPayload } from '@/features/consent/art9';
-import { appVersion } from '@/lib/appVersion';
+import { genderConsentText, type Gender, type GenderConsentSheet, type LegalTextId, type Locale } from '@grouper/core';
+import { consentPayload, type ConsentPayload } from '@/features/consent/art9';
 
 export interface GenderConsentCopy {
   readonly textId: LegalTextId;
@@ -21,6 +20,5 @@ export function genderConsentCopy(locale: Locale, gender: Gender): GenderConsent
 }
 
 export function genderConsentPayload(textId: LegalTextId): ConsentPayload {
-  const proof = consentProofFor(textId);
-  return { textVersion: proof.textVersion, textSha256: proof.textSha256, appVersion, checked: true };
+  return consentPayload(textId);
 }

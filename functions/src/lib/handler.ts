@@ -5,7 +5,7 @@
  *
  * Logging rules: request data, zod messages and received values are never logged. Each call writes one uid-free
  * entry (function, outcome, code, latency); unexpected errors add one entry with uidH, the error class and stack
- * frames. Nothing here depends on Firestore, so the embedder codebase can reuse it.
+ * frames. Nothing here depends on Firestore.
  */
 import { CALLABLES, uidHash, type CallableInput, type CallableName, type CallableOutput, type HmacSha256 } from '@grouper/core';
 import { parseSafely, type Schema } from '@grouper/core/node';

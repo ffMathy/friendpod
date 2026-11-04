@@ -1,5 +1,5 @@
-# DESIGN.md §13 "deploy.yml": rules, indexes (with TTL policies), storage rules, hosting and functions:default;
-# functions:embedder only when asked (later: only when services/embedder changes); production behind approval.
+# DESIGN.md §13 "deploy.yml": rules, indexes (with TTL policies), storage rules, hosting and functions:default (the only
+# functions codebase since the app embeds tags itself, D1); production behind approval.
 #
 # SKELETON. It runs only when started by hand, and it fails at the first step until Workload Identity Federation
 # is configured. It never runs on pull requests.
@@ -12,7 +12,8 @@
 #   - Secrets in Secret Manager (POD_ID_KEY, UID_HMAC_KEY), set once with `firebase functions:secrets:set`.
 #   - Storage cross-service rules: grant the Firebase Rules service agent read access to Firestore once (the CLI
 #     asks interactively on the first deploy, and cannot in --non-interactive mode).
-#   - The model mirror gs://grouper-<env>-models (see calibration.yml) for the embedder's predeploy fetch-model.
+#   - The model mirror gs://grouper-<env>-models in europe-west1 (see calibration.yml): the pinned device model files
+#     and prototypes.bin under models/eg2-q4-daa72c5/, readable by the app and, for prototypes.bin, by sa-api@.
 #   - Log buckets in europe-west1 (DESIGN.md §7 "Logging location"): the organization's default storage location
 #     is set before the projects are created, or the `_Default` sink points at a user-defined europe-west1 bucket.
 #     That bucket keeps 30 days (PRIVACY.md §5).
@@ -20,7 +21,7 @@
 #     `gcloud logging sinks update _Default --add-exclusion=name=run-requests,filter='logName:"run.googleapis.com%2Frequests"'`.
 #   - roles/logging.viewer (logging.sinks.get, logging.buckets.get) for the deploy service account: the logging
 #     check below runs before anything is deployed.
-#   - Then add `push: branches: [main]` for staging, with functions:embedder gated on a services/embedder/** diff.
+#   - Then add `push: branches: [main]` for staging.
 name: Deploy
 
 on:
@@ -31,10 +32,6 @@ on:
         type: choice
         options: [staging, prod]
         default: staging
-      embedder:
-        description: Also deploy functions:embedder (fetches the pinned model from the EU mirror)
-        type: boolean
-        default: false
 
 permissions:
   contents: read
@@ -72,7 +69,7 @@ jobs:
             exit 1
           fi
       - uses: actions/checkout@v5
-      # The predeploy hooks in firebase.json run `npm ci` in functions/ and services/embedder/ themselves;
+      # The predeploy hook in firebase.json runs `npm ci` in functions/ itself;
       # the root install provides @grouper/core's dependencies for the esbuild bundles.
       - uses: ./.github/actions/setup
       - name: Install firebase-tools
@@ -113,11 +110,6 @@ jobs:
         run: >-
           firebase deploy --project "$PROJECT_ALIAS" --non-interactive
           --only firestore:rules,firestore:indexes,storage,hosting,functions:default
-      - name: Deploy functions:embedder
-        if: inputs.embedder
-        env:
-          GCS_MODEL_BUCKET: grouper-${{ inputs.target }}-models
-        run: firebase deploy --project "$PROJECT_ALIAS" --non-interactive --only functions:embedder
 
       # DESIGN.md §9: no Cloud Run service may run as a default service account. An empty serviceAccountName
       # means the default compute service account.

@@ -6,8 +6,10 @@ import { Body, Button, Card, ErrorText, Heading, LinkRow, Screen } from '@/compo
 import { useSensitiveInterests, useUserDoc } from '@/data/docs';
 import { useCallable } from '@/data/useCallable';
 import { requestDataExport } from '@/features/account/account';
+import { art9WithdrawCopy } from '@/features/consent/art9';
 import { useUid } from '@/features/session/SessionProvider';
 import { toAppError } from '@/firebase/callables';
+import { currentLocale } from '@/i18n';
 import { errorMessageKey } from '@/lib/errors';
 
 /** Settings → Privacy (§11, PRIVACY.md §6): consents, export, pause, delete. */
@@ -17,7 +19,7 @@ export default function Privacy() {
   const uid = useUid();
   const user = useUserDoc(uid);
   const sensitive = useSensitiveInterests(uid).data ?? [];
-  const withdraw = useCallable('withdrawSensitive');
+  const withdraw = useCallable('withdrawArt9Consent');
   const updateProfile = useCallable('updateProfile');
   const participation = useCallable('setParticipation');
   const deletePhoto = useCallable('deletePhoto');
@@ -33,6 +35,12 @@ export default function Privacy() {
     }
   };
 
+  const hasArt9Consent = user.data?.legal.art9 !== undefined;
+  const confirmWithdraw = () =>
+    Alert.alert(t('settings.privacy.withdrawSensitive'), art9WithdrawCopy(currentLocale()), [
+      { text: t('common.cancel'), style: 'cancel' },
+      { text: t('settings.privacy.withdrawSensitive'), style: 'destructive', onPress: () => withdraw.mutate({}) },
+    ]);
   const sameGender = user.data?.prefs.sameGenderOnly === true;
   const hasPhoto = user.data?.photo !== null && user.data?.photo !== undefined;
   const firstError = withdraw.error ?? updateProfile.error ?? participation.error ?? deletePhoto.error;
@@ -41,20 +49,13 @@ export default function Privacy() {
     <Screen>
       <Heading>{t('settings.privacy.consents')}</Heading>
       <Card>
-        <Body>{t('settings.privacy.sensitiveCount', { count: sensitive.length })}</Body>
-        {sensitive.length > 0 ? (
-          <Button
-            label={t('interests.withdrawAll')}
-            variant="danger"
-            busy={withdraw.isPending}
-            onPress={() =>
-              Alert.alert(t('interests.withdrawAllTitle'), t('interests.withdrawAllBody'), [
-                { text: t('common.cancel'), style: 'cancel' },
-                { text: t('interests.withdrawAll'), style: 'destructive', onPress: () => withdraw.mutate({}) },
-              ])
-            }
-          />
-        ) : null}
+        <Body bold>{t('settings.privacy.sensitiveTitle')}</Body>
+        <Body>{hasArt9Consent ? t('settings.privacy.sensitiveOn', { count: sensitive.length }) : t('settings.privacy.sensitiveOff')}</Body>
+        {hasArt9Consent ? (
+          <Button label={t('settings.privacy.withdrawSensitive')} variant="danger" busy={withdraw.isPending} onPress={confirmWithdraw} />
+        ) : (
+          <Button label={t('settings.privacy.giveSensitive')} variant="secondary" onPress={() => router.push('/settings/sensitive-consent')} />
+        )}
       </Card>
       <Card>
         <Body>{sameGender ? t('settings.privacy.genderOn') : t('settings.privacy.genderOff')}</Body>

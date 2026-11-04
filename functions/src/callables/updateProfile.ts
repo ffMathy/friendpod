@@ -2,9 +2,11 @@
  * updateProfile (DESIGN.md §10.1; PRIVACY.md §3.6). One transaction updates `users` and `matchProfiles`.
  * Gender is collected only for same-gender pods, with its own consent; turning the option off deletes it
  * everywhere, appends a `withdraw` consent event and an erasure-ledger entry (`gender`).
+ * "About me" (D4) lives on `users` only, never on `matchProfiles`: it is not used for matching.
  */
 import {
   LEGAL_TEXT_SHA256,
+  checkAboutMe,
   genderConsentText,
   getLegalText,
   isValidConsentProof,
@@ -43,6 +45,11 @@ function genderConsentTextFor(consent: NonNullable<Input['genderConsent']>, gend
 
 export async function updateProfile(deps: AppDeps, call: CallContext, input: Input): Promise<CallableOutput<'updateProfile'>> {
   if (input.genderConsent !== undefined && input.gender === undefined) throw new AppError('VALIDATION');
+  // Contact details are refused outright: the sentence is shown to pod members before anyone has met.
+  if (input.aboutMe) {
+    const check = checkAboutMe(input.aboutMe);
+    if (!check.ok) throw new AppError(check.code);
+  }
   const refs = docs(deps.db);
   const userRef = refs.user(call.uid);
   const profileRef = refs.matchProfile(call.uid);
@@ -78,8 +85,12 @@ export async function updateProfile(deps: AppDeps, call: CallContext, input: Inp
     const gh5 = input.area?.gh5 ?? user.area.gh5;
     const area = resolveLaunchArea(gh5);
     const { genderConsentAt: _withdrawn, ...legalWithoutGender } = user.legal;
+    const { aboutMe: _replaced, ...userWithoutAboutMe } = user;
+    // TODO(M1): refresh `roster[uid].aboutMe` in the user's confirmed pods once rosters carry it (respondToPod).
+    const aboutMe = input.aboutMe === undefined ? user.aboutMe : input.aboutMe || undefined;
     const nextUser: UserDoc = {
-      ...user,
+      ...userWithoutAboutMe,
+      ...(aboutMe !== undefined ? { aboutMe } : {}),
       firstName: input.firstName ?? user.firstName,
       locale,
       area: { gh5, label: area ? area.label[locale] : '', areaId: area?.id ?? null },

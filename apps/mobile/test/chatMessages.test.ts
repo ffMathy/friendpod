@@ -7,7 +7,7 @@ const POD_ID = 'abcdefghijklmnopqrst';
 const ts = (ms: number) => ({ toMillis: () => ms });
 const row = (id: string, expiresAt: number) => ({
   id,
-  data: { authorUid: 'anna', kind: 'quickReply', quickReply: 'imHere', createdAt: ts(T - 70 * 3_600_000), expiresAt: ts(expiresAt) },
+  data: { authorUid: 'anna', text: 'Jeg er her', createdAt: ts(T - 70 * 3_600_000), expiresAt: ts(expiresAt) },
 });
 
 let mockRows: unknown[] = [];

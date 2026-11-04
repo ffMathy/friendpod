@@ -106,10 +106,10 @@ describe('runCallable: validation and error mapping', () => {
   it('never logs record keys taken from the request', async () => {
     const leakyKey = 'my private diagnosis';
     forbidInLogs(leakyKey);
-    const data = { podId: 'a'.repeat(20), met: true, attendance: { [leakyKey]: 'came' }, meetAgain: {}, keep: true };
+    const data = { podId: 'a'.repeat(20), met: true, notThere: [], meetAgain: { [leakyKey]: true }, keep: true };
     await rejection(runCallable('submitFeedback', async () => ({ ok: true }), request(data, { nowMs: NOW }), deps));
     const entry = capturedEntries().find((x) => x.event === 'callable.invalidInput');
-    expect(JSON.stringify(entry?.issues)).toContain('attendance.*');
+    expect(JSON.stringify(entry?.issues)).toContain('meetAgain.*');
   });
 
   it('maps unexpected errors to internal and logs class, stack frames and uidH, never the message or uid', async () => {
@@ -160,9 +160,10 @@ describe('declaredKeys', () => {
   it('collects property names through optional, refined, piped and nested schemas', async () => {
     const { CALLABLES } = await import('@grouper/core');
     const keys = declaredKeys(CALLABLES.submitFeedback.input);
-    for (const k of ['podId', 'attendance', 'meetAgain', 'keep']) expect(keys.has(k)).toBe(true);
+    for (const k of ['podId', 'notThere', 'meetAgain', 'keep']) expect(keys.has(k)).toBe(true);
     const profile = declaredKeys(CALLABLES.updateProfile.input);
     for (const k of ['prefs', 'ageMin', 'genderConsent', 'textSha256', 'area', 'gh5']) expect(profile.has(k)).toBe(true);
-    expect(declaredKeys(CALLABLES.withdrawSensitive.input).has('interestId')).toBe(true);
+    const interests = declaredKeys(CALLABLES.addInterests.input);
+    for (const k of ['modelKey', 'items', 'vector', 'detector', 'margin', 'notSensitiveForMe']) expect(interests.has(k)).toBe(true);
   });
 });

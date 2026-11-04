@@ -22,12 +22,14 @@ interface Endpoint {
 const endpoint = (name: string): Endpoint => (index as unknown as Record<string, { __endpoint: Endpoint }>)[name]!.__endpoint;
 
 const DEFAULT_CALLABLES = (Object.keys(CALLABLES) as CallableName[]).filter((n) => CALLABLES[n].codebase === 'default');
-const BACKGROUND = ['dropOrchestrator', 'hourlySweeper', 'dailyMaintenance', 'matchComponent', 'releaseDrop', 'backfillPod', 'buildExport', 'deleteExport', 'purgeUser', 'onPhotoUploaded', 'onBudgetAlert'];
+const BACKGROUND = ['dropOrchestrator', 'hourlySweeper', 'dailyMaintenance', 'matchComponent', 'releaseDrop', 'backfillPod', 'buildExport', 'deleteExport', 'interestsBatch', 'purgeUser', 'onPhotoUploaded', 'onBudgetAlert'];
 
 describe('codebase "default" exports', () => {
   it('exports exactly the §10.1 callables and the §10.3 functions, and nothing else', () => {
     expect(Object.keys(index).sort()).toEqual([...DEFAULT_CALLABLES, ...BACKGROUND].sort());
-    expect(DEFAULT_CALLABLES).not.toContain('addInterests');
+    // Every callable lives here since the app embeds tags itself (D1).
+    expect(DEFAULT_CALLABLES).toEqual(Object.keys(CALLABLES));
+    expect(DEFAULT_CALLABLES).toContain('addInterests');
   });
 
   it('deploys every function to europe-west1 as sa-api@', () => {
@@ -79,6 +81,7 @@ describe('codebase "default" exports', () => {
     expect(endpoint('releaseDrop')).toMatchObject({ cpu: 1, availableMemoryMb: 1024, timeoutSeconds: 1800 });
     expect(endpoint('releaseDrop').secretEnvironmentVariables?.map((s) => s.key).sort()).toEqual(['POD_ID_KEY', 'UID_HMAC_KEY']);
     expect(endpoint('purgeUser').taskQueueTrigger?.retryConfig.maxAttempts).toBe(6);
+    expect(endpoint('interestsBatch')).toMatchObject({ timeoutSeconds: 1800, taskQueueTrigger: { rateLimits: { maxConcurrentDispatches: 1 } } });
   });
 
   it('wires the Storage and Pub/Sub triggers without retries', () => {

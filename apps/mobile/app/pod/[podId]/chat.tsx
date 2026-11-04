@@ -1,9 +1,7 @@
-import { QUICK_REPLIES, type QuickReply } from '@grouper/core';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  Alert,
   FlatList,
   KeyboardAvoidingView,
   StyleSheet,
@@ -13,15 +11,13 @@ import {
   type TextInputInstance,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Body, Button, ChipButton, ErrorText, Heading, Loading, Screen } from '@/components/ui';
+import { Body, Button, ErrorText, Heading, Loading, Screen } from '@/components/ui';
 import { Spacing, usePalette } from '@/components/theme';
 import { usePod, usePodCard } from '@/data/docs';
-import { useCallable } from '@/data/useCallable';
-import { toAppError } from '@/firebase/callables';
 import { Composer } from '@/features/chat/Composer';
 import { MessageBubble } from '@/features/chat/MessageBubble';
 import { useChatMessages } from '@/features/chat/useChatMessages';
-import { useSendMessage, type ChatContent } from '@/features/chat/useSendMessage';
+import { useSendMessage } from '@/features/chat/useSendMessage';
 import { useChatStatus } from '@/features/chat/window';
 import { isConfirmedMember } from '@/features/pods/membership';
 import { ScreenCaptureGuard } from '@/features/pods/ScreenCaptureGuard';
@@ -30,12 +26,12 @@ import { currentLocale } from '@/i18n';
 import { errorMessageKey } from '@/lib/errors';
 import { formatDateTime, formatMessageTime } from '@/lib/format';
 
-type NoticeKey = ReturnType<typeof errorMessageKey> | 'chat.cancelledChatClosed';
+type NoticeKey = ReturnType<typeof errorMessageKey>;
 
 /**
  * Meetup chat (§3.6): current members only, writable from 24 h before until 24 h after the meetup, read-only
- * while messages exist outside it. Contact details before the meetup need "Send anyway"; every other member's
- * message can be reported.
+ * while messages exist outside it. Text only (D14): "Can't make it" is on the pod's attendance card. Contact details
+ * before the meetup need "Send anyway"; every other member's message can be reported.
  */
 export default function Chat() {
   const { t } = useTranslation();
@@ -49,7 +45,6 @@ export default function Chat() {
   const messages = useChatMessages(uid, podId, member);
   const status = useChatStatus(pod.data);
   const { send, pending } = useSendMessage();
-  const attendance = useCallable('confirmAttendance');
   const locale = currentLocale();
 
   const [draft, setDraft] = useState('');
@@ -104,21 +99,19 @@ export default function Chat() {
         : rows.length > 0
           ? t('chat.closedOff')
           : t('chat.notScheduled');
-  // An attendance answer only makes sense before the meetup has happened.
-  const quickReplies = QUICK_REPLIES.filter((r) => r !== 'cantMakeIt' || pod.data?.state === 'scheduled');
   const warning = warnedText !== null && warnedText === draft;
 
   const authorName = (authorUid: string) =>
     authorUid === uid ? t('chat.you') : (roster[authorUid]?.firstName ?? t('member.formerMember'));
 
-  const post = async (content: ChatContent, ackContactWarning = false): Promise<boolean> => {
+  const post = async (text: string, ackContactWarning = false): Promise<boolean> => {
     setNotice(null);
-    const out = await send(podId, content, { ackContactWarning });
+    const out = await send(podId, text, { ackContactWarning });
     switch (out.kind) {
       case 'sent':
         return true;
       case 'warned':
-        setWarnedText('text' in content ? content.text : null);
+        setWarnedText(text);
         return false;
       case 'refused':
         setNotice(`errors.${out.code}`);
@@ -131,41 +124,16 @@ export default function Chat() {
 
   const sendDraft = async (ackContactWarning: boolean) => {
     const text = draft;
-    if (await post({ text }, ackContactWarning)) {
+    if (await post(text, ackContactWarning)) {
       setWarnedText(null);
       // Keep anything typed while the message was on its way.
       setDraft((current) => (current === text ? '' : current));
     }
   };
 
-  const cantMakeIt = async () => {
-    setNotice(null);
-    try {
-      await attendance.mutateAsync({ podId, coming: false });
-    } catch (e) {
-      setNotice(errorMessageKey(toAppError(e)));
-      return;
-    }
-    const out = await send(podId, { quickReply: 'cantMakeIt' });
-    // Too few left coming: the pod went back to planning (or was cancelled) and the server closed the chat (§3.6).
-    if (out.kind === 'failed') setNotice(out.error.code === 'CHAT_CLOSED' ? 'chat.cancelledChatClosed' : errorMessageKey(out.error));
-  };
-
   const editWarned = () => {
     setWarnedText(null);
     inputRef.current?.focus();
-  };
-
-  const onQuickReply = (reply: QuickReply) => {
-    if (pending || attendance.isPending) return;
-    if (reply !== 'cantMakeIt') {
-      void post({ quickReply: reply });
-      return;
-    }
-    Alert.alert(t('chat.cantMakeItTitle'), t('chat.cantMakeItBody'), [
-      { text: t('common.cancel'), style: 'cancel' },
-      { text: t('chat.cantMakeItConfirm'), style: 'destructive', onPress: () => void cantMakeIt() },
-    ]);
   };
 
   const report = (messageId: string) => router.push({ pathname: '/sheets/report', params: { podId, messageId } });
@@ -203,15 +171,7 @@ export default function Chat() {
           />
           <View style={[styles.footer, { borderColor: p.border }]}>
             {messages.error ? <ErrorText>{t('common.loadFailed')}</ErrorText> : null}
-            {open ? (
-              <View accessibilityRole="toolbar" accessibilityLabel={t('chat.quickRepliesLabel')} style={styles.chips}>
-                {quickReplies.map((r) => (
-                  <ChipButton key={r} label={t(`chat.quickReplies.${r}`)} onPress={() => onQuickReply(r)} />
-                ))}
-              </View>
-            ) : (
-              <Body muted>{closedNote}</Body>
-            )}
+            {open ? null : <Body muted>{closedNote}</Body>}
             {warning ? (
               <View style={[styles.warning, { backgroundColor: p.surface }]}>
                 <Text accessibilityRole="alert" style={[styles.warningTitle, { color: p.text }]}>
@@ -234,7 +194,7 @@ export default function Chat() {
               onChangeText={setDraft}
               onSend={() => void sendDraft(false)}
               enabled={open}
-              busy={pending || attendance.isPending}
+              busy={pending}
               hideSend={warning}
               inputRef={inputRef}
             />
@@ -250,7 +210,6 @@ const styles = StyleSheet.create({
   header: { paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, gap: Spacing.xs, borderBottomWidth: StyleSheet.hairlineWidth },
   list: { padding: Spacing.md, gap: Spacing.sm },
   footer: { padding: Spacing.md, gap: Spacing.sm, borderTopWidth: StyleSheet.hairlineWidth },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
   warning: { borderRadius: 12, padding: Spacing.md, gap: Spacing.sm },
   warningTitle: { fontSize: 16, lineHeight: 22, fontWeight: '600' },
   warningActions: { flexDirection: 'row', gap: Spacing.sm },

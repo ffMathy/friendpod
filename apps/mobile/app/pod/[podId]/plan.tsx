@@ -1,9 +1,11 @@
+import type { Place } from '@grouper/core';
 import { useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Body, Button, Card, Checkbox, ChipRow, ErrorText, Field, Heading, Loading, Screen, Toggle } from '@/components/ui';
-import { usePodCard, usePodOptions } from '@/data/docs';
+import { Body, Button, Card, ChipRow, ErrorText, Field, Heading, Loading, Screen, Toggle } from '@/components/ui';
+import { usePod, usePodCard, usePodOptions, useUserDoc } from '@/data/docs';
 import { useCallable } from '@/data/useCallable';
+import { PlacePicker } from '@/features/places/PlacePicker';
 import { isConfirmedMember } from '@/features/pods/membership';
 import { validateOptionForm, type OptionFormError } from '@/features/pods/optionForm';
 import { useUid } from '@/features/session/SessionProvider';
@@ -11,25 +13,27 @@ import { currentLocale } from '@/i18n';
 import { errorMessageKey } from '@/lib/errors';
 import { formatDateTime } from '@/lib/format';
 
-/** Meetup planner (§3.5): 2–3 options, yes/no votes. The only way to talk until the meetup chat opens (F6, §3.6). */
+/**
+ * Meetup planner (§3.5): 2–3 options of a time and a public place from Google Places (D8), yes/no votes. When the
+ * deadline passes without 3 yes votes on one option, the pod gets one 24 h extension round (D7).
+ */
 export default function Plan() {
   const { t } = useTranslation();
   const { podId } = useLocalSearchParams<{ podId: string }>();
   const uid = useUid();
   const card = usePodCard(uid, podId);
   const member = isConfirmedMember(card.data);
+  const pod = usePod(podId, member);
   const options = usePodOptions(podId, member);
+  const user = useUserDoc(uid);
   const vote = useCallable('voteOption');
   const propose = useCallable('proposeOption');
   const locale = currentLocale();
 
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
-  const [placeText, setPlaceText] = useState('');
-  const [mapUrl, setMapUrl] = useState('');
-  const [publicPlace, setPublicPlace] = useState(false);
+  const [place, setPlace] = useState<Place | null>(null);
   const [formError, setFormError] = useState<OptionFormError | null>(null);
-  const [homeWarning, setHomeWarning] = useState(false);
 
   if (card.isLoading || (member && options.isLoading)) return <Loading label={t('common.loading')} />;
   if (!member || card.data?.state !== 'planning') {
@@ -40,27 +44,20 @@ export default function Plan() {
     );
   }
 
-  const submit = (ackWarnings: boolean) => {
-    const v = validateOptionForm({ date, time, placeText, mapUrl, publicPlace }, Date.now());
+  const submit = () => {
+    const v = validateOptionForm({ date, time, place }, Date.now());
     if (!v.ok) {
       setFormError(v.error);
       return;
     }
     setFormError(null);
     propose.mutate(
-      { podId, startsAt: v.startsAt, placeText: v.placeText, publicPlace: true, ...(v.mapUrl ? { mapUrl: v.mapUrl } : {}), ...(ackWarnings ? { ackWarnings } : {}) },
+      { podId, startsAt: v.startsAt, place: v.place },
       {
-        onSuccess: (result) => {
-          if ('warnings' in result) {
-            setHomeWarning(true);
-            return;
-          }
-          setHomeWarning(false);
+        onSuccess: () => {
           setDate('');
           setTime('');
-          setPlaceText('');
-          setMapUrl('');
-          setPublicPlace(false);
+          setPlace(null);
         },
       },
     );
@@ -69,6 +66,12 @@ export default function Plan() {
   const rows = options.data ?? [];
   return (
     <Screen>
+      {pod.data?.planning.extended ? (
+        <Card>
+          <Body bold>{t('plan.extendedTitle')}</Body>
+          <Body>{t('plan.extendedBody', { when: formatDateTime(pod.data.planning.deadline.toMillis(), locale) })}</Body>
+        </Card>
+      ) : null}
       <Heading>{t('plan.options')}</Heading>
       {rows.length === 0 ? <Body muted>{t('plan.noOptions')}</Body> : null}
       {rows.map(({ id, data }) => {
@@ -77,8 +80,8 @@ export default function Plan() {
         return (
           <Card key={id}>
             <Body bold>{formatDateTime(data.startsAt.toMillis(), locale)}</Body>
-            <Body>{data.placeText}</Body>
-            {data.mapUrl ? <Body muted>{data.mapUrl}</Body> : null}
+            <Body>{data.place.name}</Body>
+            <Body muted>{data.place.address}</Body>
             <Body muted>{t('plan.yesVotes', { count: yes })}</Body>
             <ChipRow>
               <Toggle label={t('plan.yes')} value={mine === 'yes'} onChange={(on) => vote.mutate({ podId, optionId: id, vote: on ? 'yes' : null })} />
@@ -94,17 +97,10 @@ export default function Plan() {
           <Heading>{rows.length === 0 ? t('plan.proposeFirst') : t('plan.proposeAnother')}</Heading>
           <Field label={t('plan.date')} value={date} onChangeText={setDate} placeholder={t('plan.dateHint')} />
           <Field label={t('plan.time')} value={time} onChangeText={setTime} placeholder={t('plan.timeHint')} />
-          <Field label={t('plan.place')} value={placeText} onChangeText={setPlaceText} maxLength={120} />
-          <Field label={t('plan.mapUrl')} value={mapUrl} onChangeText={setMapUrl} autoCapitalize="none" keyboardType="url" />
-          <Checkbox label={t('plan.publicPlace')} checked={publicPlace} onChange={setPublicPlace} />
+          <PlacePicker language={locale} gh5={user.data?.area.gh5 ?? null} value={place} onChange={setPlace} />
           {formError ? <ErrorText>{t(`plan.errors.${formError}`)}</ErrorText> : null}
-          {homeWarning ? <ErrorText>{t('plan.homeAddressWarning')}</ErrorText> : null}
           {propose.error ? <ErrorText>{t(errorMessageKey(propose.error))}</ErrorText> : null}
-          <Button
-            label={homeWarning ? t('plan.proposeAnyway') : t('plan.propose')}
-            busy={propose.isPending}
-            onPress={() => submit(homeWarning)}
-          />
+          <Button label={t('plan.propose')} busy={propose.isPending} onPress={submit} />
         </Card>
       ) : null}
     </Screen>

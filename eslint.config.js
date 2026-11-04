@@ -11,7 +11,6 @@ export default defineConfig(
     '**/coverage/',
     '**/.expo/',
     '**/.firebase/',
-    'services/embedder/model/',
     'tools/sim/out/',
   ]),
   js.configs.recommended,

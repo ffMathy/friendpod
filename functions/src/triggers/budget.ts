@@ -1,6 +1,6 @@
 /**
  * Budget kill switches (DESIGN.md §9 Rate limits and abuse ceilings). A Cloud Billing budget publishes to
- * BUDGET_TOPIC; once actual spend reaches the budget, the embedder and photo uploads are switched off in
+ * BUDGET_TOPIC; once actual spend reaches the budget, addInterests and photo uploads are switched off in
  * `config/app.features`, which both paths check before doing any work. Budgets do not stop spending (§12).
  */
 import type { Firestore } from 'firebase-admin/firestore';
@@ -24,6 +24,6 @@ export function exceedsKillThreshold(notification: unknown): boolean {
 export async function handleBudgetAlert(db: Firestore, notification: unknown): Promise<LogFields> {
   if (!exceedsKillThreshold(notification)) return { tripped: false };
   // A partial merge: config/app may not exist yet, and its other fields belong to the admin CLI.
-  await db.doc(PATHS.configApp()).set({ features: { embedder: false, uploads: false } }, { merge: true });
+  await db.doc(PATHS.configApp()).set({ features: { interests: false, uploads: false } }, { merge: true });
   return { tripped: true };
 }

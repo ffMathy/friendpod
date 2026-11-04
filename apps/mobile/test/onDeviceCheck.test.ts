@@ -7,21 +7,16 @@ describe('on-device interest check (DESIGN.md §5.2 (0))', () => {
       kind: 'ok',
       display: 'Madlavning 🍳',
       norm: 'madlavning',
-      thirdPartyWarning: false,
+      lexiconHit: false,
+      thirdParty: false,
     });
     expect(checkInterestOnDevice('C++')).toMatchObject({ kind: 'ok', norm: 'c++' });
   });
 
-  it('asks for consent before sending a lexicon hit, in Danish and English', () => {
+  it('marks a lexicon hit, in Danish and English', () => {
     for (const text of ['gravid', 'Pregnant with our first', 'AA møder', 'ufrivilligt barnløs', 'Type 1 diabetes']) {
-      const result = checkInterestOnDevice(text);
-      expect(result.kind).toBe('needsConsent');
+      expect(checkInterestOnDevice(text)).toMatchObject({ kind: 'ok', lexiconHit: true });
     }
-    expect(checkInterestOnDevice('gravid')).toMatchObject({ kind: 'needsConsent', categories: ['health'] });
-  });
-
-  it('asks for consent for "Keep this private" on an ordinary tag', () => {
-    expect(checkInterestOnDevice('brætspil', { selfFlag: true })).toMatchObject({ kind: 'needsConsent', norm: 'brætspil', categories: [] });
   });
 
   it("refuses a family member's sensitive data without sending it", () => {
@@ -30,11 +25,11 @@ describe('on-device interest check (DESIGN.md §5.2 (0))', () => {
   });
 
   it('allows the reworded form about the user themself', () => {
-    expect(checkInterestOnDevice('forælder til et barn med autisme').kind).toBe('needsConsent');
+    expect(checkInterestOnDevice('forælder til et barn med autisme')).toMatchObject({ kind: 'ok', lexiconHit: true });
   });
 
   it('only warns for an ordinary third-party tag', () => {
-    expect(checkInterestOnDevice('min datters fodbold')).toMatchObject({ kind: 'ok', thirdPartyWarning: true });
+    expect(checkInterestOnDevice('min datters fodbold')).toMatchObject({ kind: 'ok', lexiconHit: false, thirdParty: true });
   });
 
   it('rejects contact details and invalid lengths before anything is sent', () => {
@@ -48,14 +43,14 @@ describe('on-device interest check (DESIGN.md §5.2 (0))', () => {
   it('cannot be bypassed with invisible characters', () => {
     const sneaky = 'gra​vid';
     expect(normalizeTag(sneaky)).toMatchObject({ ok: true, norm: 'gravid' });
-    expect(checkInterestOnDevice(sneaky).kind).toBe('needsConsent');
+    expect(checkInterestOnDevice(sneaky)).toMatchObject({ lexiconHit: true });
   });
 
   it('agrees with the server-side lexicon on the normalized text', () => {
     for (const text of ['Yoga', 'graviditetsyoga', 'kirkekor', 'Christiania', 'Pride parade volunteering']) {
       const n = normalizeTag(text);
       if (!n.ok) throw new Error('fixture must normalize');
-      expect(checkInterestOnDevice(text).kind === 'needsConsent').toBe(lexiconCheck(n.norm).hit);
+      expect(checkInterestOnDevice(text)).toMatchObject({ lexiconHit: lexiconCheck(n.norm).hit });
     }
   });
 });

@@ -7,7 +7,8 @@
     "notNow": "Not now",
     "ok": "OK",
     "loading": "Loading",
-    "loadFailed": "This could not be loaded. Try again later."
+    "loadFailed": "This could not be loaded. Try again later.",
+    "retry": "Try again"
   },
   "welcome": {
     "title": "Grouper",
@@ -97,7 +98,7 @@
     },
     "notifications": {
       "title": "Notifications",
-      "body": "We tell you when your weekly drop is here, when your pod is confirmed and when there's a new message in your pod's meetup chat. Notifications never mention an interest, a person or what anyone wrote.",
+      "body": "We tell you when your weekly drop is here, when your pod is confirmed, when there's a new message in your pod's meetup chat, and the morning after a meetup to ask how it went. Notifications never mention an interest, a person or what anyone wrote.",
       "enable": "Turn on notifications"
     },
     "pledge": {
@@ -126,7 +127,6 @@
     "madePrivate": "This interest is now private.",
     "duplicate": "You already have this interest.",
     "limit": "You have reached 20 interests. Remove one to add another.",
-    "discarded": "Not added. Nothing was saved.",
     "starLimit": "You can star up to 3 interests.",
     "didYouMean": "Did you mean “{{label}}”?",
     "useSuggestion": "Yes, use that",
@@ -138,17 +138,23 @@
     "star": "Star",
     "keepPrivate": "Keep this private",
     "remove": "Remove",
-    "pendingTitle": "Needs your decision",
-    "pendingBody": "We now think these may be sensitive. They are not used until you give consent, and are deleted after 14 days otherwise.",
-    "giveConsent": "Give consent",
-    "sensitiveTitle": "Sensitive interests",
-    "sensitiveBody": "Kept private. Used only as the theme of a pod whose members all added it too.",
-    "removeAndWithdraw": "Remove & withdraw",
-    "withdrawTitle": "Withdraw consent",
-    "withdrawAll": "Withdraw all sensitive interests",
-    "withdrawAllTitle": "Withdraw all sensitive interests?",
-    "withdrawAllBody": "We'll delete them now and take you out of pods built around them. Other members will only see that a member left.",
-    "readMoreSensitive": "Read more about sensitive interests"
+    "readMoreSensitive": "Read more about sensitive interests",
+    "madeOrdinary": "Done. We now treat this as an ordinary interest, for you only.",
+    "notSensitiveForMe": "This isn't sensitive for me",
+    "privateLabel": "{{name}}, private",
+    "privateExplainer": "🔒 Private: never shown on any profile, and used only as the theme of a pod whose members all added it too.",
+    "openSensitiveConsent": "Sensitive interests: give consent",
+    "model": {
+      "preparing": "Getting interests ready on your phone…",
+      "downloading": "Downloading what your phone needs to understand interests: {{percent}}%",
+      "cellular": "To add interests, your phone needs a one-time download of about 180 MB. You are on mobile data.",
+      "useCellular": "Download over mobile data",
+      "offline": "You're offline. Connect to the internet to add interests.",
+      "download": "The download didn't finish. Check your connection and free space, then try again.",
+      "integrity": "The download was damaged, so we deleted it. Please try again.",
+      "runtime": "This phone can't run the interest check right now (it may need more free memory). Close other apps and try again.",
+      "notPinned": "Adding interests isn't available in this version yet."
+    }
   },
   "moderation": {
     "TAG_TOO_SHORT": "An interest needs at least 2 characters.",
@@ -158,21 +164,8 @@
     "THIRD_PARTY_SENSITIVE": "This seems to describe someone else's sensitive situation. Describe your own instead, for example “parent of an autistic child”.",
     "INTEREST_LIMIT": "You have reached 20 interests.",
     "SENSITIVE_ADD_LIMIT": "You can add at most 3 sensitive interests per week.",
-    "EMBED_BUDGET": "We can't add new interests right now. Please try again tomorrow.",
-    "SENSITIVE_UNAVAILABLE": "Sensitive interests can't be added yet."
-  },
-  "consent": {
-    "title": "Your consent",
-    "categoryPrompt": "Optional: which kind of information is it?",
-    "expired": "This request has expired. Please add the interest again."
-  },
-  "categories": {
-    "health": "Health",
-    "religion": "Religion or beliefs",
-    "sexualOrientation": "Sexual orientation or sex life",
-    "politics": "Political opinions",
-    "ethnicOrigin": "Ethnic origin",
-    "tradeUnion": "Trade union membership"
+    "SENSITIVE_UNAVAILABLE": "Sensitive interests can't be added yet.",
+    "ART9_CONSENT_REQUIRED": "This interest may be sensitive, so we only save it if you've agreed to sensitive interests. Nothing was sent or saved. You can give consent in Settings → Privacy."
   },
   "gender": {
     "title": "Same-gender pods",
@@ -285,7 +278,6 @@
   "pod": {
     "title": "Pod",
     "gone": "This pod no longer exists.",
-    "members": "Members",
     "you": "{{name}} (you)",
     "photoOf": "Photo of {{name}}",
     "podInterests": "Pod interests: {{list}}",
@@ -300,7 +292,23 @@
     "chat": "Meetup chat",
     "chatOpens": "Opens {{when}}",
     "chatOpenNow": "Open now",
-    "chatClosed": "Closed"
+    "chatClosed": "Closed",
+    "sections": {
+      "plan": "Plan",
+      "chat": "Chat",
+      "members": "Members"
+    },
+    "next": {
+      "vote": "Vote on a time and place",
+      "voteBody": "Say yes to every option that works for you, by {{when}}.",
+      "voteAction": "Open the planner",
+      "chat": "The meetup chat is open",
+      "chatAction": "Open chat",
+      "feedback": "How did it go?"
+    },
+    "addToCalendar": "Add to calendar",
+    "calendarTitle": "Pod meetup",
+    "calendarFailed": "Your calendar couldn't be opened."
   },
   "plan": {
     "title": "Planner",
@@ -318,19 +326,20 @@
     "time": "Time",
     "timeHint": "HH:MM",
     "place": "Place",
-    "mapUrl": "Map link (optional)",
-    "publicPlace": "This is a public place",
     "propose": "Propose",
-    "proposeAnyway": "Propose anyway",
-    "homeAddressWarning": "This looks like a home address. Meet in a public place instead.",
     "errors": {
       "DATE": "Enter a date and time.",
       "WINDOW": "Pick a time within 14 days, between 08:00 and 22:00.",
-      "PLACE": "Describe the place in at most 120 characters.",
-      "CONTACT_INFO": "Don't include phone numbers, emails or handles.",
-      "URL": "Use a Google Maps, Apple Maps or OpenStreetMap link.",
-      "PUBLIC_PLACE": "Confirm that it is a public place."
-    }
+      "PLACE": "Pick a public place from the list."
+    },
+    "extendedTitle": "No time works yet — add another option",
+    "extendedBody": "You have one more day, until {{when}}. If no option gets 3 yes votes by then, the pod ends.",
+    "placeHint": "Search for a café, library, park…",
+    "placeNoResults": "No public places found. Try another name.",
+    "placeNotPublic": "That isn't a public place. Pick a café, library, park or similar.",
+    "placeFailed": "Places couldn't be searched right now. Try again.",
+    "placeAttribution": "Places from Google Maps.",
+    "changePlace": "Change place"
   },
   "chat": {
     "title": "Meetup chat",
@@ -345,18 +354,6 @@
     "notScheduled": "The chat opens 24 hours before your meetup, once you have picked a time.",
     "you": "You",
     "messageLabel": "{{name}}, {{time}}: {{text}}",
-    "quickReplyLine": "{{name}}: {{reply}}",
-    "quickRepliesLabel": "Quick replies",
-    "quickReplies": {
-      "onMyWay": "On my way",
-      "runningLate": "Running a bit late",
-      "imHere": "I'm here",
-      "cantMakeIt": "Can't make it"
-    },
-    "cantMakeItTitle": "Can't make it?",
-    "cantMakeItBody": "We'll tell your pod you're not coming. Cancelling this close to the meetup counts as a late cancellation.",
-    "cantMakeItConfirm": "I can't make it",
-    "cancelledChatClosed": "Your cancellation is saved. Too few people are coming now, so this chat has closed.",
     "inputLabel": "Message",
     "placeholder": "Write a message",
     "counter": "{{length}}/{{max}}",
@@ -373,14 +370,15 @@
     "didYouMeet": "Did you meet?",
     "yes": "Yes",
     "no": "No",
-    "came": "Came",
-    "noShow": "Didn't come",
-    "meetAgain": "I'd meet again",
+    "meetAgain": "Meet {{name}} again?",
     "rating": "How was it? (1–5)",
     "private": "Your answers are private. Nobody sees what you said about them.",
     "keep": "Keep pod",
     "notForMe": "Not for me",
-    "send": "Send"
+    "send": "Send",
+    "whoWasThere": "Who was there?",
+    "whoWasThereHint": "Everyone is ticked. Untick anyone who didn’t come.",
+    "meetAgainEffect": "If you both say yes, you can be matched together again after 4 weeks instead of 6 months. If either of you says no, you won't be matched together again. Nobody is told what you answered."
   },
   "member": {
     "title": "Member",
@@ -395,7 +393,7 @@
   "report": {
     "title": "Report",
     "intro": "Reports are confidential. We never tell anyone who reported them.",
-    "messageCopy": "We keep a copy of this message with your report, so we can review it after the chat is deleted.",
+    "messageCopy": "We keep a copy of this message with your report for 12 months, also after the chat is deleted.",
     "categories": {
       "harassment": "Harassment",
       "safety": "Safety",
@@ -421,10 +419,6 @@
     "OPEN_TO_ANYONE": "You are open to meet anyone nearby",
     "footer": "Pods are formed automatically. Read “How matching works” to see which information is used."
   },
-  "notices": {
-    "reviewedNotSensitive": "This interest no longer needs special consent. Treat it as an ordinary interest?",
-    "treatAsOrdinary": "Treat as ordinary"
-  },
   "me": {
     "participation": "Weekly drops",
     "modes": {
@@ -448,8 +442,6 @@
     "privacy": {
       "title": "Privacy",
       "consents": "Your consents",
-      "sensitiveCount_one": "{{count}} sensitive interest",
-      "sensitiveCount_other": "{{count}} sensitive interests",
       "genderOn": "Same-gender pods are on (uses your gender).",
       "genderOff": "Same-gender pods are off; we don't store your gender.",
       "withdrawGender": "Turn off and delete my gender",
@@ -460,7 +452,13 @@
       "exportRequested": "We're preparing your file and will let you know when it's ready.",
       "restrict": "Pause or delete",
       "pause": "Pause matching now",
-      "complaint": "You can complain to the Danish Data Protection Agency (datatilsynet.dk)."
+      "complaint": "You can complain to the Danish Data Protection Agency (datatilsynet.dk).",
+      "sensitiveTitle": "Sensitive interests",
+      "sensitiveOn_one": "You've agreed to sensitive interests. {{count}} of your interests is private.",
+      "sensitiveOn_other": "You've agreed to sensitive interests. {{count}} of your interests are private.",
+      "sensitiveOff": "You haven't agreed to sensitive interests, so we don't save interests that may be sensitive.",
+      "giveSensitive": "Agree to sensitive interests",
+      "withdrawSensitive": "Withdraw consent for sensitive interests"
     },
     "delete": {
       "title": "Delete account",
@@ -508,16 +506,16 @@
       "title": "How matching works",
       "inputs": "Every Thursday we form pods of 4–6 people who share an interest. We use your interests, your approximate area (a map cell), your birth year, your age range, distance, meetup languages and times, and how reliably you attend.",
       "notUsed": "We never use photos or anything we infer about you. Gender is used only if you turn on same-gender pods.",
-      "sensitive": "Sensitive interests are only ever used as the theme of a pod whose members all added them, and only after your account is 14 days old and you have attended a meetup.",
-      "pauses": "Some pauses happen automatically. Each comes with an explanation, and you can ask a person to review it.",
-      "humanReview": "To have a person review a decision, contact our privacy team (see the privacy notice).",
+      "sensitive": "Sensitive interests are only used if you have agreed to them, only as the theme of a pod whose members all added them, and only after your account is 14 days old and you have attended a meetup.",
+      "pauses": "Some pauses happen automatically. Each comes with an explanation and ends by itself.",
+      "humanReview": "No person reviews these decisions. You can still use your data protection rights by contacting our privacy team (see the privacy notice).",
       "pause": "You can pause matching at any time.",
       "pausesTitle": "Automatic pauses",
       "pauseList": {
-        "reports": "Two independent reports within 30 days, or one safety report, pause you until a person reviews them.",
+        "reports": "Two independent reports within 30 days, or one safety report, pause you for a while. The pause ends automatically.",
         "noShow": "Two missed meetups within 8 weeks pause you for 2 weeks.",
-        "underage": "A “suspected under 18” report pauses the account until it is resolved.",
-        "notGenuine": "A “not a genuine member” report holds you out of pods about sensitive interests until a person reviews it."
+        "underage": "A “suspected under 18” report pauses the account for a while. The pause ends automatically.",
+        "notGenuine": "A “not a genuine member” report holds you out of pods about sensitive interests for 4 weeks."
       }
     },
     "safety": {
@@ -535,9 +533,9 @@
     "sensitive": {
       "title": "Sensitive interests",
       "what": "Some interests say something about your health, beliefs, sexuality, politics, ethnic origin or union membership. The law calls this special category data.",
-      "where": "We save them privately on your account. They are never shown on any profile.",
+      "where": "If you have agreed to sensitive interests, we save them privately on your account, marked with a lock. They are never shown on any profile. If you have not agreed, we don’t save them at all.",
       "who": "Such an interest is shown only as the theme of a pod, only to people invited to that pod who added it too.",
-      "withdraw": "You can withdraw at any time under Interests → Remove & withdraw. We then delete it and take you out of pods built around it.",
+      "withdraw": "You can withdraw your consent at any time in Settings → Privacy. We then delete all your sensitive interests and take you out of pods built around them. To stop one interest only, remove it.",
       "risk": "We cannot verify who people are, so only share in a pod what you are comfortable with."
     }
   },
@@ -567,11 +565,42 @@
     "NOT_FOUND": "This no longer exists.",
     "ALREADY_EXISTS": "This already exists.",
     "RATE_LIMITED": "Too many attempts. Please wait a little.",
-    "EMBED_BUDGET": "We can't add new interests right now. Please try again tomorrow.",
     "FEATURE_DISABLED": "This isn't available right now.",
     "INTERNAL": "Something went wrong on our side.",
     "NOT_IMPLEMENTED": "This isn't available yet.",
     "NETWORK": "No connection. Please try again.",
-    "UNKNOWN": "Something went wrong. Please try again."
+    "UNKNOWN": "Something went wrong. Please try again.",
+    "ART9_CONSENT": "This needs your consent for sensitive interests (Settings → Privacy)."
+  },
+  "aboutMe": {
+    "intro": "Optional: one sentence about you. Only people in a confirmed pod with you see it, and it is never used for matching.",
+    "label": "About me",
+    "placeholder": "For example: New in Aarhus and always up for a long walk.",
+    "hint": "{{count}}/{{max}} characters",
+    "tooLong": "At most {{max}} characters.",
+    "CONTACT_INFO": "No contact details here: you haven't met yet. Share them in person if you like.",
+    "BLOCKLIST": "This contains words that aren't allowed on Grouper.",
+    "save": "Save",
+    "saved": "Saved."
+  },
+  "attendance": {
+    "stillComing": "Still coming on {{when}}?",
+    "why": "If fewer than 3 are coming, the pod picks a new time. Not answering never counts as a no-show.",
+    "coming": "I'm coming",
+    "comingAfterAll": "I'm coming after all",
+    "cantMakeIt": "Can't make it",
+    "cantMakeItTitle": "Can't make it?",
+    "cantMakeItBody": "We'll tell your pod you're not coming. Cancelling close to the meetup counts as a late cancellation.",
+    "mine": {
+      "pending": "You haven't said if you're coming yet.",
+      "coming": "You're coming.",
+      "notComing": "You said you can't make it.",
+      "unconfirmed": "You haven't confirmed. Let the others know if you're coming."
+    },
+    "other": {
+      "coming": "Coming",
+      "notComing": "Can't make it"
+    },
+    "hasntConfirmed": "{{name}} hasn't confirmed"
   }
 }

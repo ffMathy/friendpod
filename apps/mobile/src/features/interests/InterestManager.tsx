@@ -1,29 +1,30 @@
-import { currentLegalText, fillTag, type Locale, type ModerationReason } from '@grouper/core';
+import { currentLegalText, type Locale, type ModerationReason } from '@grouper/core';
 import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, View } from 'react-native';
+import { View } from 'react-native';
 import { Body, Button, Card, ChipButton, ChipRow, ErrorText, Field, Heading, Toggle } from '@/components/ui';
 import { useAreaDoc, useInterests, useSensitiveInterests, useUserDoc } from '@/data/docs';
 import { useCallable } from '@/data/useCallable';
 import { errorMessageKey } from '@/lib/errors';
-import { useAddInterest, warmUpEmbedder, type AddInterestOutcome } from './useAddInterest';
+import { useAddInterest, type AddInterestOutcome, type HoldingChoice } from './useAddInterest';
+import { useEmbedder } from './useEmbedder';
 
 const MAX_STARRED = 3;
 
 interface Props {
   readonly uid: string;
   readonly locale: Locale;
-  /** Onboarding shows the add flow and the list only; the Interests tab also manages holdings. */
+  /** Onboarding shows the add flow and the list; the Interests tab also stars holdings. */
   readonly mode: 'onboarding' | 'full';
 }
 
 type MessageKey =
   | `moderation.${ModerationReason}`
-  | 'interests.discarded'
   | 'interests.added'
   | 'interests.thirdPartyWarning'
   | 'interests.madePrivate'
+  | 'interests.madeOrdinary'
   | 'interests.duplicate'
   | 'interests.limit'
   | 'interests.starLimit';
@@ -31,28 +32,36 @@ type MessageKey =
 /** Input-time rejections are rendered from the reason code (DSA Art. 17); nothing is stored. */
 function outcomeMessage(outcome: AddInterestOutcome): MessageKey {
   if (outcome.kind === 'rejected') return `moderation.${outcome.code}`;
-  if (outcome.kind === 'discarded') return 'interests.discarded';
   const r = outcome.result;
   switch (r.status) {
     case 'added':
       return r.warning === 'THIRD_PARTY' ? 'interests.thirdPartyWarning' : 'interests.added';
     case 'madePrivate':
       return 'interests.madePrivate';
+    case 'madeOrdinary':
+      return 'interests.madeOrdinary';
     case 'duplicate':
       return 'interests.duplicate';
     case 'limit':
       return 'interests.limit';
     case 'rejected':
       return r.reasonCode ? `moderation.${r.reasonCode}` : 'moderation.BLOCKLIST';
-    case 'needsConsent':
-      return 'interests.discarded';
   }
 }
 
+interface Row {
+  readonly id: string;
+  readonly display: string;
+  readonly starred: boolean;
+  /** Stored as sensitive: lock icon, nothing else (D3). */
+  readonly locked: boolean;
+}
+
 /**
- * Interests (§3.1 step 7, §11 Interests tab): the standing notice, on-device checks and consent sheet
- * before sending, ordinary holdings (star, remove, "Keep this private") and the sensitive section
- * (lock, "Remove & withdraw").
+ * Interests (§3.1 step 7, §11 Interests tab). Tags are embedded on the phone (D1), so adding waits for the model.
+ * With the blanket Art. 9 consent, a tag detected as sensitive is stored privately without any prompt and shows a
+ * lock; without it, such a tag is refused on the device with a pointer to the consent (D3). Each holding can be made
+ * private ("Keep this private") or, when locked, ordinary for this user only ("This isn't sensitive for me").
  */
 export function InterestManager({ uid, locale, mode }: Props) {
   const { t } = useTranslation();
@@ -60,38 +69,37 @@ export function InterestManager({ uid, locale, mode }: Props) {
   const [text, setText] = useState('');
   const [message, setMessage] = useState<MessageKey | null>(null);
   const [suggestion, setSuggestion] = useState<{ interestId: string; conceptId: string; label: string } | null>(null);
-  const { add, pending, error } = useAddInterest();
+  const embedder = useEmbedder();
+  const { add, pending, error, unavailable } = useAddInterest();
   const interests = useInterests(uid);
   const sensitive = useSensitiveInterests(uid);
   const user = useUserDoc(uid);
   const area = useAreaDoc(user.data?.area.areaId ?? null);
   const star = useCallable('updateInterest');
   const remove = useCallable('removeInterest');
-  const withdraw = useCallable('withdrawSensitive');
   const confirmSuggestion = useCallable('confirmSuggestion');
 
-  useEffect(warmUpEmbedder, []);
-
+  const hasArt9Consent = user.data?.legal.art9 !== undefined;
   const notice = currentLegalText('interestNotice', locale);
-  const ordinary = interests.data ?? [];
-  const active = ordinary.filter((i) => i.data.state === 'active');
-  const pendingConsent = ordinary.filter((i) => i.data.state === 'pendingConsent');
-  const sensitiveRows = sensitive.data ?? [];
-  const count = ordinary.length + sensitiveRows.length;
-  const starredCount = active.filter((i) => i.data.starred).length + sensitiveRows.filter((i) => i.data.starred).length;
+  const rows: Row[] = [
+    ...(interests.data ?? []).map(({ id, data }) => ({ id, display: data.display, starred: data.starred, locked: false })),
+    ...(sensitive.data ?? []).map(({ id, data }) => ({ id, display: data.display, starred: data.starred, locked: true })),
+  ];
+  const starredCount = rows.filter((r) => r.starred).length;
+  const ready = embedder.state.status === 'ready';
+  const unavailableReason = unavailable ?? (embedder.state.status === 'unavailable' ? embedder.state.reason : null);
 
-  const submit = async (value: string, selfFlag = false) => {
+  const submit = async (value: string, choice: HoldingChoice = null) => {
     setMessage(null);
     setSuggestion(null);
-    const outcome = await add(value, { selfFlag });
+    const outcome = await add(value, { hasArt9Consent, choice });
     if (!outcome) return;
     setMessage(outcomeMessage(outcome));
     if (outcome.kind === 'done' && outcome.result.suggestion && outcome.result.interestId) {
       setSuggestion({ interestId: outcome.result.interestId, ...outcome.result.suggestion });
     }
-    // "Don't add" discards the tag (PRIVACY.md §3.1); a rejection keeps it so the user can reword it.
-    const settled = outcome.kind === 'discarded' || (outcome.kind === 'done' && outcome.result.status !== 'rejected');
-    if (settled && !selfFlag) setText('');
+    // A rejection keeps the text so the user can reword it.
+    if (choice === null && outcome.kind === 'done' && outcome.result.status !== 'rejected') setText('');
   };
 
   const setStar = (interestId: string, on: boolean) => {
@@ -102,20 +110,30 @@ export function InterestManager({ uid, locale, mode }: Props) {
     star.mutate({ interestId, starred: on });
   };
 
-  const confirmWithdraw = (interestId: string, display: string) => {
-    const copy = currentLegalText('withdrawConfirmation', locale);
-    if (copy.kind !== 'withdrawConfirmation') return;
-    Alert.alert(t('interests.withdrawTitle'), fillTag(copy.content.text, display), [
-      { text: t('common.cancel'), style: 'cancel' },
-      { text: t('interests.removeAndWithdraw'), style: 'destructive', onPress: () => withdraw.mutate({ interestId }) },
-    ]);
-  };
-
-  const mutationError = error ?? star.error ?? remove.error ?? withdraw.error ?? confirmSuggestion.error;
+  const openConsent = () => router.push(mode === 'onboarding' ? '/sensitive-consent' : '/settings/sensitive-consent');
+  const mutationError = error ?? star.error ?? remove.error ?? confirmSuggestion.error;
 
   return (
     <View style={{ gap: 16 }}>
       <Body muted>{notice.kind === 'interestNotice' ? notice.content.text : ''}</Body>
+
+      {embedder.state.status === 'loading' ? (
+        <Body muted>
+          {embedder.state.progress === null
+            ? t('interests.model.preparing')
+            : t('interests.model.downloading', { percent: Math.round(embedder.state.progress * 100) })}
+        </Body>
+      ) : null}
+      {unavailableReason ? (
+        <Card>
+          <ErrorText>{t(`interests.model.${unavailableReason}`)}</ErrorText>
+          {unavailableReason === 'cellular' ? (
+            <Button testID="model-use-cellular" label={t('interests.model.useCellular')} onPress={() => void embedder.retry(true)} />
+          ) : null}
+          <Button testID="model-retry" label={t('common.retry')} variant="secondary" onPress={() => void embedder.retry(false)} />
+        </Card>
+      ) : null}
+
       <Field
         label={t('interests.fieldLabel')}
         value={text}
@@ -123,10 +141,20 @@ export function InterestManager({ uid, locale, mode }: Props) {
         maxLength={80}
         autoCapitalize="none"
         returnKeyType="done"
+        editable={ready}
         onSubmitEditing={() => void submit(text)}
       />
-      <Button label={t('interests.add')} busy={pending} disabled={text.trim().length === 0} onPress={() => void submit(text)} />
+      <Button
+        testID="interest-add"
+        label={t('interests.add')}
+        busy={pending}
+        disabled={!ready || text.trim().length === 0}
+        onPress={() => void submit(text)}
+      />
       {message ? <Body>{t(message)}</Body> : null}
+      {message === 'moderation.ART9_CONSENT_REQUIRED' ? (
+        <Button label={t('interests.openSensitiveConsent')} variant="secondary" onPress={openConsent} />
+      ) : null}
       {mutationError ? <ErrorText>{t(errorMessageKey(mutationError))}</ErrorText> : null}
       {suggestion ? (
         <Card>
@@ -147,86 +175,36 @@ export function InterestManager({ uid, locale, mode }: Props) {
           <Body muted>{t('interests.popularNearYou')}</Body>
           <ChipRow>
             {area.data.chips.map((chip) => (
-              <ChipButton key={chip.conceptId} label={chip[locale]} onPress={() => void submit(chip[locale])} />
+              <ChipButton key={chip.conceptId} label={chip[locale]} onPress={() => (ready ? void submit(chip[locale]) : undefined)} />
             ))}
           </ChipRow>
         </View>
       ) : null}
 
-      <Body muted>{t('interests.count', { count, min: 3, nudge: 5 })}</Body>
+      <Body muted>{t('interests.count', { count: rows.length, min: 3, nudge: 5 })}</Body>
 
       <Heading>{t('interests.yours')}</Heading>
-      {active.length === 0 && sensitiveRows.length === 0 ? <Body muted>{t('interests.empty')}</Body> : null}
-      {active.map(({ id, data }) => (
-        <Card key={id}>
-          <Body bold>{data.starred ? `★ ${data.display}` : data.display}</Body>
-          {mode === 'full' ? (
-            <ChipRow>
-              <Toggle
-                label={t('interests.star')}
-                value={data.starred}
-                onChange={(on) => setStar(id, on)}
+      {rows.length === 0 ? <Body muted>{t('interests.empty')}</Body> : null}
+      {rows.map((row) => (
+        <Card key={row.id}>
+          <View accessible accessibilityLabel={row.locked ? t('interests.privateLabel', { name: row.display }) : row.display}>
+            <Body bold>{`${row.locked ? '🔒 ' : ''}${row.starred ? '★ ' : ''}${row.display}`}</Body>
+          </View>
+          <ChipRow>
+            {mode === 'full' ? <Toggle label={t('interests.star')} value={row.starred} onChange={(on) => setStar(row.id, on)} /> : null}
+            {row.locked ? (
+              <ChipButton
+                label={t('interests.notSensitiveForMe')}
+                onPress={() => (ready ? void submit(row.display, 'notSensitiveForMe') : undefined)}
               />
-              <ChipButton label={t('interests.keepPrivate')} onPress={() => void submit(data.display, true)} />
-              <ChipButton label={t('interests.remove')} onPress={() => remove.mutate({ interestId: id })} />
-            </ChipRow>
-          ) : (
-            <Button label={t('interests.remove')} variant="secondary" onPress={() => remove.mutate({ interestId: id })} />
-          )}
+            ) : (
+              <ChipButton label={t('interests.keepPrivate')} onPress={() => (ready ? void submit(row.display, 'selfFlagPrivate') : undefined)} />
+            )}
+            <ChipButton label={t('interests.remove')} onPress={() => remove.mutate({ interestId: row.id })} />
+          </ChipRow>
         </Card>
       ))}
-
-      {pendingConsent.length > 0 ? (
-        <View style={{ gap: 8 }}>
-          <Heading>{t('interests.pendingTitle')}</Heading>
-          <Body muted>{t('interests.pendingBody')}</Body>
-          {pendingConsent.map(({ id, data }) => (
-            <Card key={id}>
-              <Body bold>{data.display}</Body>
-              <ChipRow>
-                <ChipButton label={t('interests.giveConsent')} onPress={() => void submit(data.display)} />
-                <ChipButton label={t('interests.remove')} onPress={() => remove.mutate({ interestId: id })} />
-              </ChipRow>
-            </Card>
-          ))}
-        </View>
-      ) : null}
-
-      {sensitiveRows.length > 0 ? (
-        <View style={{ gap: 8 }}>
-          <Heading>{t('interests.sensitiveTitle')}</Heading>
-          <Body muted>{t('interests.sensitiveBody')}</Body>
-          {sensitiveRows.map(({ id, data }) => (
-            <Card key={id}>
-              <Body bold>{`🔒 ${data.display}`}</Body>
-              {mode === 'full' ? (
-                <ChipRow>
-                  <Toggle
-                    label={t('interests.star')}
-                    value={data.starred}
-                    onChange={(on) => setStar(id, on)}
-                  />
-                  <ChipButton label={t('interests.removeAndWithdraw')} onPress={() => confirmWithdraw(id, data.display)} />
-                </ChipRow>
-              ) : (
-                <Button label={t('interests.removeAndWithdraw')} variant="secondary" onPress={() => confirmWithdraw(id, data.display)} />
-              )}
-            </Card>
-          ))}
-          {mode === 'full' ? (
-            <Button
-              label={t('interests.withdrawAll')}
-              variant="danger"
-              onPress={() =>
-                Alert.alert(t('interests.withdrawAllTitle'), t('interests.withdrawAllBody'), [
-                  { text: t('common.cancel'), style: 'cancel' },
-                  { text: t('interests.withdrawAll'), style: 'destructive', onPress: () => withdraw.mutate({}) },
-                ])
-              }
-            />
-          ) : null}
-        </View>
-      ) : null}
+      {rows.some((r) => r.locked) ? <Body muted>{t('interests.privateExplainer')}</Body> : null}
 
       <Button label={t('interests.readMoreSensitive')} variant="secondary" onPress={() => router.push('/info/sensitive-interests')} />
     </View>

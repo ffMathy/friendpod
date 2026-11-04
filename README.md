@@ -2,10 +2,11 @@
 
 Grouper ("Pods") is friendship dating for groups in Denmark. People describe themselves with free-form interests in
 their own words ("madlavning", "on paternity leave", "Fortnite"); every Thursday a weekly **drop** forms local pods of
-4–6 strangers who share one of them, embedded with a self-hosted EmbeddingGemma model so different wordings meet.
+4–6 strangers who share one of them, embedded on the phone with a pinned EmbeddingGemma model so different wordings
+meet.
 Once at least 4 accept, first names and photos are revealed and the pod plans one in-person meetup by voting; a
 short meetup chat opens 24 hours before it and closes 24 hours after. Sensitive interests (GDPR Art. 9) are allowed
-only with explicit consent and are only ever revealed inside a pod formed around them. Everything runs on Firebase in
+only with a one-time explicit consent and are only ever revealed inside a pod formed around them. Everything runs on Firebase in
 `europe-west1`. The product and technical design is [docs/DESIGN.md](docs/DESIGN.md); the GDPR design is
 [docs/PRIVACY.md](docs/PRIVACY.md). This repository is the M0 scaffold (DESIGN.md §15): structure, configuration,
 schemas, security-critical logic and tests, with later feature logic as typed stubs
@@ -17,8 +18,7 @@ schemas, security-critical logic and tests, with later feature logic as typed st
 |---|---|---|
 | `packages/core/` | Shared domain logic consumed as TypeScript source: zod schemas, interest normalization and lexicon, geo, time, ids, consent texts, the pure matcher, app error codes. `@grouper/core/node` adds server-only helpers (HMAC, log-safe parsing) | workspace |
 | `apps/mobile/` | Expo SDK 58 app with React Native Firebase 27 and expo-router (§11); development builds only | workspace |
-| `functions/` | Functions codebase `default`: callables, scheduled, task and event functions (§10.1, §10.3) | standalone npm project |
-| `services/embedder/` | Functions codebase `embedder`: `addInterests` and `embedderBatch` with EmbeddingGemma on CPU (§5, §10.2) | standalone npm project |
+| `functions/` | The one Functions codebase, `default`: callables (`addInterests` included), scheduled, task and event functions (§10.1, §10.3) | standalone npm project |
 | `tests/rules/` | Firestore and Storage security-rules tests and the index validator (§9, §13) | standalone npm project |
 | `tools/sim/` | Synthetic-city simulation harness, thin-market runs and matcher benchmarks (§6.9) | workspace |
 | `tools/admin/` | Admin CLI skeleton (§9 Admin access, §13 Backups) | workspace |
@@ -26,12 +26,18 @@ schemas, security-critical logic and tests, with later feature logic as typed st
 | `firebase.json`, `.firebaserc`, `firestore.rules`, `storage.rules`, `firestore.indexes.json` | Firebase configuration, rules, indexes and TTL policies (§7–§9) | root |
 | `hosting/public/` | Static privacy and account-deletion pages | root |
 | `.github/` | CI (`ci.yml`), calibration and deploy workflows, shared setup action (§13) | root |
-| `docs/`, `research/` | Design, privacy design and research reports | root |
+| `docs/`, `research/` | Founder overview, design, privacy design, cost overview (`COSTS.md`) and research reports | root |
 
-The root is an npm workspace for `apps/*`, `packages/*` and `tools/*`. `functions/`, `services/embedder/` and
-`tests/rules/` each have their own `package-lock.json` (DESIGN.md §14; `tests/rules` deliberately so, unlike the §14
-sketch). The two functions projects import `@grouper/core` through a tsconfig `paths` alias and esbuild bundles it into
-`dist/index.js`; core's own dependencies (zod) resolve from the root `node_modules`, so **install the root first**.
+The root is an npm workspace for `apps/*`, `packages/*` and `tools/*`. `functions/` and `tests/rules/` each have their
+own `package-lock.json` (DESIGN.md §14; `tests/rules` deliberately so, unlike the §14 sketch). `functions/` imports
+`@grouper/core` through a tsconfig `paths` alias and esbuild bundles it into `dist/index.js`; core's own dependencies
+(zod) resolve from the root `node_modules`, so **install the root first**.
+
+**Embedding happens on the phone (D1).** The app runs the pinned EmbeddingGemma 2 q4 (onnxruntime-react-native, CPU)
+for every tag and sends `{text, vector, detector}` with the model key; `addInterests` trusts the vector (an accepted
+manipulation risk) and repeats normalisation, moderation, the lexicon and, with `prototypes.bin`, the detector margin.
+The model id, pinned files with their sha256, prompt and thresholds live in `packages/core/src/interests/model.ts`,
+shared by app and server. The former `services/embedder` codebase is retired.
 
 ## Prerequisites
 
@@ -47,7 +53,6 @@ sketch). The two functions projects import `@grouper/core` through a tsconfig `p
 ```sh
 npm ci                                  # root workspace, also provides @grouper/core's dependencies
 npm ci --prefix functions
-npm ci --prefix services/embedder
 npm ci --prefix tests/rules
 ```
 
@@ -58,16 +63,16 @@ Ports come from `firebase.json`: auth 9099, firestore 8080, functions 5001, stor
 logging 4500, UI 4000.
 
 ```sh
-npm run build:functions && npm run build:embedder   # the Functions emulator loads each codebase's dist/index.js
-npm run emulators                                    # firebase emulators:start --project demo-grouper
+npm run build:functions   # the Functions emulator loads functions/dist/index.js
+npm run emulators         # firebase emulators:start --project demo-grouper
 ```
 
-- **Secrets.** The callables need `UID_HMAC_KEY` (both codebases) and `POD_ID_KEY` (`functions`), each base64 of at
-  least 32 random bytes. For the emulator, put test values in `functions/.secret.local` and
-  `services/embedder/.secret.local` (gitignored), for example the output of
+- **Secrets.** The callables need `UID_HMAC_KEY` and `POD_ID_KEY`, each base64 of at least 32 random bytes. For the
+  emulator, put test values in `functions/.secret.local` (gitignored), for example the output of
   `node -e "console.log('UID_HMAC_KEY=' + require('crypto').randomBytes(32).toString('base64'))"`.
-- **The embedder loads without model weights.** The model is read on the first request that needs it, so discovery
-  works without `./model`; to actually embed in the emulator, fetch the model first (below).
+- **Detector prototypes.** `addInterests` reads `prototypes.bin` from `gs://<projectId>-models/models/eg2-q4-daa72c5/`.
+  Without it (the emulator, or before the file is built) the server decides with the client's margin alone and logs
+  `addInterests.prototypesUnavailable`; the lexicon still runs on the server.
 - **Skipped locally:** no Pub/Sub emulator is configured, so `dropOrchestrator`, `hourlySweeper`, `dailyMaintenance`
   and `onBudgetAlert` are not loaded by `emulators:start`.
 - **Behind an HTTPS proxy:** firebase-tools 15.34.2 sends its emulator-to-emulator calls through `HTTPS_PROXY` and
@@ -99,14 +104,12 @@ npm run lint
 npm test                          # vitest (core, sim, admin) and jest-expo (mobile)
 (cd apps/mobile && npx expo config --type public)
 npm --prefix functions run typecheck && npm --prefix functions run build
-npm --prefix services/embedder run typecheck && npm --prefix services/embedder run build
 npm --prefix tests/rules run typecheck
 
 npm run validate:indexes          # firestore.indexes.json through firebase-tools' own parser
 npm run test:rules                # emulators:exec --only firestore,storage
-npm run test:functions            # emulators:exec --only auth,firestore (includes the log-scrubbing test)
-npm run test:embedder             # emulators:exec --only firestore, stub model
-npm run check:discovery           # emulators:exec --only functions: both codebases load from dist
+npm run test:functions            # emulators:exec --only auth,firestore (log scrubbing, addInterests with stand-in vectors)
+npm run check:discovery           # emulators:exec --only functions: every callable loads from dist
 
 npm run sim:smoke
 npm run sim:thin-market -- --json /tmp/thin-market.json
@@ -125,17 +128,13 @@ npm run sim:thin-market -- --json out.json                     # n = 100/200/300
 npm run bench:match -- --n 20000 --concepts 30000 --history 30 # matcher runtime and peak RSS (§6.4)
 ```
 
-### Fetch the model
+### The model
 
-```sh
-npm --prefix services/embedder run fetch-model                        # Hugging Face at the pinned revision
-GCS_MODEL_BUCKET=grouper-<env>-models npm --prefix services/embedder run fetch-model   # our EU mirror (CI, deploy)
-npm --prefix services/embedder run build                              # now also writes dist/prototypes.bin
-```
-
-Files land in `services/embedder/model/` and are verified against the hashes in `services/embedder/src/config.ts`.
-Model weights are gitignored and never committed. With the model present, the embedder's real-model smoke test runs
-too.
+Nothing in this repository downloads or runs the model on a server any more (D1). The app downloads the device files
+listed by `deviceModelFiles()` in `packages/core` from the EU models bucket and checks each sha256 before loading;
+see [apps/mobile/README.md](apps/mobile/README.md). Building `prototypes.bin` and the nightly calibration gate need an
+offline tool with the pinned model that does not exist yet (`.github/workflows/calibration.yml`). Model weights are
+never committed.
 
 ## Firebase configuration
 
@@ -162,41 +161,46 @@ Stubs keep their final name, trigger, options and input validation, then fail lo
 `not implemented (see DESIGN.md §…)`. Nothing pretends to succeed (a silent `purgeUser` would look like a completed
 erasure).
 
-**Implemented end to end:** `completeOnboarding`, `updateProfile`, `setParticipation`, `sendMessage` (the meetup
-chat: membership, window, moderation with the contact-info warning, rate limit, throttled generic pushes), the
-`matchComponent` task body, `onBudgetAlert`, `addInterests` (pipeline steps 1–7, consent gate, self-flag, detector),
-the security rules, the matcher and the app's onboarding, consent, interest and meetup-chat flows. No pod reaches
-`scheduled` until the pod lifecycle stubs below exist, so the chat works end to end only in M1.
+**Implemented end to end:** `completeOnboarding`, `updateProfile` (with "about me", D4), `setParticipation`,
+`sendMessage` (the text-only meetup chat: membership, window, moderation with the contact-info warning, rate limit,
+throttled generic pushes), `addInterests` (pipeline steps 1–7 on the client's vector, the blanket-consent gate,
+"Keep this private", "This isn't sensitive for me", the known-ordinary list, the server-side lexicon and margin),
+`setArt9Consent`, `withdrawArt9Consent` for a user without sensitive holdings, the `matchComponent` task body,
+`onBudgetAlert`, the security rules, the matcher and the app's main flows. No pod reaches `scheduled` until the pod
+lifecycle stubs below exist, so the chat works end to end only in M1.
 
-**Sensitive interests are switched off** until withdrawal exists: `ART9_HOLDINGS_ENABLED` in
-`services/embedder/src/config.ts` is `false`, so `addInterests` answers every sensitive holding with
-`limit`/`SENSITIVE_UNAVAILABLE` before asking for consent (withdrawing must be as easy as consenting, Art. 7(3)).
-Switch it on together with `withdrawSensitive` and `removeInterest` (M1); a config test fails if it is on while they
-are stubs. The emulator tests cover the sensitive path with the gate open.
+**Sensitive interests are switched off** until their withdrawal exists: `ART9_HOLDINGS_ENABLED` in
+`functions/src/interests/config.ts` is `false`, so `addInterests` answers every sensitive holding with
+`limit`/`SENSITIVE_UNAVAILABLE`, with or without the blanket consent, and keeps nothing about it (withdrawing must be
+as easy as consenting, Art. 7(3)). Users can give and withdraw the blanket consent itself. Switch the gate on together
+with `removeInterest` and the holding steps of `withdrawArt9Consent` (`WITHDRAWAL_REMOVES_HOLDINGS`, M1); a unit test
+fails if it is on before then. The emulator tests cover the sensitive path with the gate open.
 
 | Stub | Where | DESIGN.md |
 |---|---|---|
-| `removeInterest`, `updateInterest`, `withdrawSensitive`, `registerPushToken` | `functions/src/callables/index.ts` | §10.1 |
+| `removeInterest`, `updateInterest`, `registerPushToken` | `functions/src/callables/index.ts` | §10.1 |
+| `withdrawArt9Consent` for a user who holds sensitive interests (PRIVACY.md §3.5 steps 1–8) | `functions/src/callables/art9Consent.ts` | §10.1 |
 | `confirmSuggestion` | same | §5.2 (6) |
 | `respondToPod` | same | §4.6 |
 | `setPhotoSharing` | same | §6.1 (S6) |
 | `leavePod` | same | §3.8 |
-| `proposeOption`, `voteOption` | same | §3.5 |
-| `confirmAttendance`, `submitFeedback` | same | §3.6 |
+| `proposeOption` (the Places shape of the option is validated), `voteOption` | same | §3.5 |
+| `confirmAttendance`, `submitFeedback` (attendance from `notThere`, meet-again pair signals) | same | §3.6 |
 | `blockUser`, `unblockUser`, `report` (including message reports, whose input is already validated) | same | §3.7 |
 | `deletePhoto` | same | §9 |
 | `exportData` | same | §3.9 |
 | `deleteAccount` | same | §3.10 |
 | `dropOrchestrator`, `dailyMaintenance` | `functions/src/scheduled/index.ts` | §10.3 |
-| `hourlySweeper` (including the "Your pod chat is open" push) | same | §4.6 |
+| `hourlySweeper` (planning extension, "Still coming?" at T−3 d and T−24 h, the T−6 h nudge, the T−3 h attendance check, the feedback pushes, "Your pod chat is open") | same | §4.6 |
 | `releaseDrop`, `backfillPod`, `purgeUser` | `functions/src/tasks/index.ts` | §10.3 |
 | `buildExport`, `deleteExport` | same | §3.9 |
 | `onPhotoUploaded` processing (the pending-upload filter is implemented) | `functions/src/triggers/index.ts` | §9 |
-| `embedderBatch` (rescan, re-embed, maintenance, seed) | `services/embedder/src/batch.ts` | §5.2 (8), §10.2 |
-| "Keep this private" while the user is in an active pod (`podInterests` recompute) | `services/embedder/src/persist.ts` | §10.2 |
-| Concept shortlist above 20k concepts (stage 1 index only) | `services/embedder/src/assign.ts` | §5.2 (6) |
-| Interest-add limits (30 adds per hour, 100 per day per user; only the 30-calls-per-hour limit exists) | `services/embedder/src/callable.ts` | §4.3 |
-| Nightly calibration gate | `services/embedder/calibration/run.ts`, `.github/workflows/calibration.yml` | §13 |
-| "Treat as ordinary" after a review (no callable in §10 yet) | `apps/mobile/src/features/interests/treatAsOrdinary.ts` | §5.2 (5) |
-| Every admin command (review queue, sanctions, launch areas, restore runbook) | `tools/admin/src/commands.ts` | §9, §13 |
-| Staging and production deploys (WIF, secrets, model mirror) | `.github/workflows/deploy.yml` | §13 |
+| `interestsBatch` (rescan of stored tags, maintenance) | `functions/src/tasks/index.ts` | §5.2 (8) |
+| Moving a holding between partitions ("Keep this private", "This isn't sensitive for me") while the user is in an active pod (`podInterests` recompute) | `functions/src/interests/persist.ts` | §10.2 |
+| Concept shortlist above 20k concepts (stage 1 index only) | `functions/src/interests/assign.ts` | §5.2 (6) |
+| Interest-add limits (30 adds per hour, 100 per day per user; only the 30-calls-per-hour limit exists) | `functions/src/callables/addInterests.ts` | §4.3 |
+| `prototypes.bin` build and the nightly calibration gate (offline model tooling, not built) | `.github/workflows/calibration.yml` | §13 |
+| `prototypes.bin` pin in `EMBEDDING_MODEL.files` (until it exists the device embedder refuses to load, so interests cannot be added on a device) | `packages/core/src/interests/model.ts` | §5.1 |
+| Device golden test reference vectors (the comparison logic exists) | `apps/mobile/src/features/interests/embedder/golden.ts` | §5.1 |
+| Every admin command (launch areas, restore runbook; no review or sanction commands, F17) | `tools/admin/src/commands.ts` | §9, §13 |
+| Staging and production deploys (WIF, secrets, model bucket) | `.github/workflows/deploy.yml` | §13 |

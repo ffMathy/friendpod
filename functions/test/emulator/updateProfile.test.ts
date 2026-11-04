@@ -78,7 +78,7 @@ describeEmulator('updateProfile (emulator)', () => {
     const uid = await onboarded();
     expect(await errorCode(update(uid, { prefs: { sameGenderOnly: true } }))).toBe('GENDER_CONSENT');
     expect(await errorCode(update(uid, { prefs: { sameGenderOnly: true }, gender: 'woman', genderConsent: { ...consent('gender-en-v1'), textSha256: '0'.repeat(64) } }))).toBe('GENDER_CONSENT');
-    expect(await errorCode(update(uid, { prefs: { sameGenderOnly: true }, gender: 'woman', genderConsent: consent('art9-tag-en-v1') }))).toBe('GENDER_CONSENT');
+    expect(await errorCode(update(uid, { prefs: { sameGenderOnly: true }, gender: 'woman', genderConsent: consent('art9-blanket-en-v1') }))).toBe('GENDER_CONSENT');
     expect(await errorCode(update(uid, { prefs: { sameGenderOnly: true }, gender: 'nonbinary', genderConsent: consent('gender-en-v1') }))).toBe('GENDER_CONSENT');
     expect(await errorCode(update(uid, { gender: 'woman', genderConsent: consent('gender-en-v1') }))).toBe('VALIDATION');
     expect(await errorCode(update(uid, { gender: 'woman' }))).toBe('VALIDATION');
@@ -96,6 +96,31 @@ describeEmulator('updateProfile (emulator)', () => {
     expect(user).toMatchObject({ firstName: 'Bodil', locale: 'da', area: { gh5: COPENHAGEN.cells[0], areaId: 'copenhagen', label: COPENHAGEN.label.da } });
     expect((await deps.db.doc(PATHS.matchProfile(uid)).get()).data()).toMatchObject({ areaId: 'copenhagen', gh5: COPENHAGEN.cells[0], maxKm: 5, languages: ['da', 'en'] });
     expect(await errorCode(update(uid, { prefs: { ageMin: 40 } }))).toBe('VALIDATION');
+  });
+
+  it('stores "about me" on the user doc only, normalised, and clears it with an empty string', async () => {
+    const uid = await onboarded();
+    const text = 'Ny i Aarhus,   glad for\nbrætspil og lange gåture.';
+    forbidInLogs(text, 'brætspil');
+    await expect(update(uid, { aboutMe: text })).resolves.toEqual({ ok: true });
+    expect((await deps.db.doc(PATHS.user(uid)).get()).data()!.aboutMe).toBe('Ny i Aarhus, glad for brætspil og lange gåture.');
+    expect(JSON.stringify((await deps.db.doc(PATHS.matchProfile(uid)).get()).data())).not.toContain('brætspil');
+
+    await update(uid, { locale: 'da' });
+    expect((await deps.db.doc(PATHS.user(uid)).get()).data()!.aboutMe).toBe('Ny i Aarhus, glad for brætspil og lange gåture.');
+    await expect(update(uid, { aboutMe: '' })).resolves.toEqual({ ok: true });
+    expect((await deps.db.doc(PATHS.user(uid)).get()).data()!).not.toHaveProperty('aboutMe');
+  });
+
+  it('refuses contact details, blocklisted text and over-long "about me" without storing anything', async () => {
+    const uid = await onboarded();
+    const phone = 'Skriv på 20 30 40 50';
+    forbidInLogs(phone, '20 30 40 50');
+    expect(await errorCode(update(uid, { aboutMe: phone }))).toBe('CONTACT_INFO');
+    expect(await errorCode(update(uid, { aboutMe: 'Find mig på @bo_aarhus' }))).toBe('CONTACT_INFO');
+    expect(await errorCode(update(uid, { aboutMe: 'Sugar daddy søges' }))).toBe('BLOCKLIST');
+    expect(await errorCode(update(uid, { aboutMe: 'x'.repeat(141) }))).toBe('VALIDATION');
+    expect((await deps.db.doc(PATHS.user(uid)).get()).data()!).not.toHaveProperty('aboutMe');
   });
 
   it('answers NOT_FOUND for a caller without a profile', async () => {

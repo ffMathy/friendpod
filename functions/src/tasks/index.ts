@@ -7,6 +7,7 @@ import {
   backfillPodTask,
   buildExportTask,
   deleteExportTask,
+  interestsBatchTask,
   matchComponentTask,
   purgeUserTask,
   releaseDropTask,
@@ -56,6 +57,17 @@ export const TASK_OPTIONS = {
     retryConfig: { maxAttempts: 5, minBackoffSeconds: 300, maxBackoffSeconds: 3600 },
     rateLimits: { maxConcurrentDispatches: 5, maxDispatchesPerSecond: 5 },
   },
+  // Re-classification of stored tags from their stored vectors and weekly maintenance (D1, §5.2 (8)): one batch at a
+  // time, each continuing from its cursor. Callers enqueue with `dispatchDeadlineSeconds: 1800`.
+  interestsBatch: {
+    ...BASE_OPTIONS,
+    cpu: 1,
+    memory: '1GiB',
+    timeoutSeconds: 1800,
+    secrets: [UID_HMAC_KEY],
+    retryConfig: { maxAttempts: 3, minBackoffSeconds: 60, maxBackoffSeconds: 600 },
+    rateLimits: { maxConcurrentDispatches: 1, maxDispatchesPerSecond: 1 },
+  },
   // "retries 5" (§10.3); erasure must eventually complete, so backoff stretches to an hour.
   purgeUser: {
     ...BASE_OPTIONS,
@@ -88,10 +100,11 @@ export const backfillPod = onTaskDispatched(TASK_OPTIONS.backfillPod, (req) =>
   }),
 );
 
-// The export lists the user's own meetup-chat messages that still exist (text or quick reply, pod id, time),
+// The export lists "about me" (D4) and the user's own meetup-chat messages that still exist (text, pod id, time),
 // found through podState.memberList and pods/{podId}/messages where authorUid == uid; never other members' (§3.9).
-// Reports about the user include the copy of their reported message (kind, text or quick reply, date), without the
-// reporter or the report text (PRIVACY.md §6).
+// Reports about the user include the copy of their reported message (text, date), without the reporter or the report
+// text (PRIVACY.md §6). The user's own meet-again answers come from podFeedback; pairSignals adds only the other member's answer, which is
+// theirs and never shown (D9).
 export const buildExport = onTaskDispatched(TASK_OPTIONS.buildExport, (req) =>
   runTask('buildExport', buildExportTask, req.data, handlerDeps, async () => {
     throw notImplemented('§3.9');
@@ -108,7 +121,18 @@ export const deleteExport = onTaskDispatched(TASK_OPTIONS.deleteExport, (req) =>
 // (PRIVACY.md §6 step 3) and their rateLimits buckets, whose ids start with `{uid}_` (the per-pod chat and chat-push
 // buckets included). Step 3 order: find the pods through memberList, leave memberUids, delete the messages, and
 // leave podState.members and memberList last, so that a retry still finds every pod. Reports keep their copy of a
-// reported message, with targetH instead of targetUid (step 5).
+// reported message, with targetH instead of targetUid (step 5). "About me" goes with the users doc. Pair signals
+// (D9): delete pairSignals where uidHs array-contains the user's uidH, and remove that uidH from the other member's
+// matchProfiles.recentH.
+// rescan: re-run decideSensitivity on each stored tag (stored vector, margin from prototypes.bin, lexicon and
+// known-ordinary list of this build) and move holdings whose partition changed, leaving `notSensitiveForMe` holdings
+// alone; maintenance: concept garbage collection and links. Embedding never happens here (D1).
+export const interestsBatch = onTaskDispatched(TASK_OPTIONS.interestsBatch, (req) =>
+  runTask('interestsBatch', interestsBatchTask, req.data, handlerDeps, async () => {
+    throw notImplemented('§5.2 (8)');
+  }),
+);
+
 export const purgeUser = onTaskDispatched(TASK_OPTIONS.purgeUser, (req) =>
   runTask('purgeUser', purgeUserTask, req.data, handlerDeps, async () => {
     throw notImplemented('§10.3');

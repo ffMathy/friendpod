@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Body, Card, ChipRow, ErrorText, Heading, LinkRow, Loading, Screen, Toggle } from '@/components/ui';
 import { useUserDoc } from '@/data/docs';
 import { useCallable } from '@/data/useCallable';
+import { AboutMeField } from '@/features/profile/AboutMeField';
 import { useUid } from '@/features/session/SessionProvider';
 import { currentLocale, initI18n } from '@/i18n';
 import { errorMessageKey } from '@/lib/errors';
@@ -11,7 +12,7 @@ import { isUserSettingReason } from '@/lib/reasons';
 
 const MODES: readonly SetParticipationMode[] = ['auto', 'manual', 'skipNext', 'pause'];
 
-/** Me (§11): profile, preferences, participation, the user's own reliability record, blocking setting. */
+/** Me (§11): profile ("About me", D4), preferences, participation, the user's own reliability record, blocking setting. */
 export default function Me() {
   const { t } = useTranslation();
   const router = useRouter();
@@ -32,6 +33,11 @@ export default function Me() {
     <Screen>
       <Heading>{u.firstName}</Heading>
       <Body muted>{u.area.label}</Body>
+
+      <Card>
+        <Body muted>{t('aboutMe.intro')}</Body>
+        <AboutMeField initial={u.aboutMe ?? ''} />
+      </Card>
 
       <Card>
         <Body bold>{t('me.participation')}</Body>

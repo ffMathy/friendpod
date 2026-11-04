@@ -30,19 +30,8 @@
       "source": "functions",
       "codebase": "default",
       "runtime": "nodejs24",
-      "ignore": ["node_modules", ".git", "*.local", "firebase-debug.log", "firebase-debug.*.log", "src", "test", "calibration"],
+      "ignore": ["node_modules", ".git", "*.local", "firebase-debug.log", "firebase-debug.*.log", "src", "test"],
       "predeploy": ["npm --prefix functions ci", "npm --prefix functions run build"]
-    },
-    {
-      "source": "services/embedder",
-      "codebase": "embedder",
-      "runtime": "nodejs24",
-      "ignore": ["node_modules", ".git", "*.local", "firebase-debug.log", "firebase-debug.*.log", "src", "test", "calibration"],
-      "predeploy": [
-        "npm --prefix services/embedder ci",
-        "npm --prefix services/embedder run fetch-model",
-        "npm --prefix services/embedder run build"
-      ]
     }
   ],
   "emulators": {

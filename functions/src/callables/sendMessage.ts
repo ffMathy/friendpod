@@ -2,7 +2,8 @@
  * sendMessage (DESIGN.md §3.6 "Meetup chat", §4.6, §10.1; A28). One transaction reads the pod, the caller's
  * account and their per-pod bucket, then stores the message and the charge together, so a block, a leave, a
  * return to `planning` or an account deletion that commits first leaves no message behind. Warnings and
- * rejections store and charge nothing. The text is never logged.
+ * rejections store and charge nothing. Messages are text only (D14): "Can't make it" is confirmAttendance on the
+ * attendance card. The text is never logged.
  */
 import {
   CHAT_PUSH_THROTTLE_MS,
@@ -65,16 +66,13 @@ export async function sendMessage(deps: AppDeps, call: CallContext, input: Input
     const bucket = takeWindow(bucketSnap.data(), now, { limit: CHAT_RATE_LIMIT_PER_HOUR, windowMs: HOUR_MS });
     if (!bucket) throw new AppError('RATE_LIMITED');
 
-    if (input.text !== undefined) {
-      const check = checkChatText(input.text, { beforeMeetup: now < meetupAtMs });
-      if (!check.ok) throw new AppError(check.code);
-      if (check.warning !== undefined && input.ackContactWarning !== true) return { warnings: [check.warning] };
-    }
+    const check = checkChatText(input.text, { beforeMeetup: now < meetupAtMs });
+    if (!check.ok) throw new AppError(check.code);
+    if (check.warning !== undefined && input.ackContactWarning !== true) return { warnings: [check.warning] };
 
     tx.create(messageRef, {
       authorUid: uid,
-      // The input schema allows exactly one of text and quickReply.
-      ...(input.text !== undefined ? { kind: 'text', text: input.text } : { kind: 'quickReply', quickReply: input.quickReply! }),
+      text: input.text,
       createdAt: ts(now),
       expiresAt: ts(chatWindow(new Date(meetupAtMs)).deleteAt.getTime()),
     });

@@ -17,7 +17,6 @@ runs:
         cache-dependency-path: |
           package-lock.json
           functions/package-lock.json
-          services/embedder/package-lock.json
           tests/rules/package-lock.json
     # .npmrc sets engine-strict, so npm ci fails on a Node older than the engines field (>= 24.12).
     - name: npm ci (root)

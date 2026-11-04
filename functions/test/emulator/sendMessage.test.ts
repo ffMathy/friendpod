@@ -1,5 +1,5 @@
 import { randomBytes } from 'node:crypto';
-import { CHAT_DELETE_AFTER_MS, CHAT_PUSH_THROTTLE_MS, CHAT_RATE_LIMIT_PER_HOUR, getLaunchArea, type PodDoc } from '@grouper/core';
+import { CHAT_DELETE_AFTER_MS, CHAT_PUSH_THROTTLE_MS, CHAT_RATE_LIMIT_PER_HOUR, getLaunchArea, googleMapsPlaceUrl, type PodDoc } from '@grouper/core';
 import { expect, it } from 'vitest';
 import { completeOnboarding } from '../../src/callables/completeOnboarding';
 import { CHAT_BUCKET, CHAT_PUSH_BUCKET, sendMessage } from '../../src/callables/sendMessage';
@@ -22,6 +22,8 @@ const newPodId = (): string => [...randomBytes(20)].map((b) => BASE32[b % 32]).j
 describeEmulator('sendMessage (emulator)', () => {
   const deps = emulatorDeps(NOW);
   const refs = () => docs(deps.db);
+  const placeId = 'ChIJdokk1aarhus0001';
+  const place = { placeId, name: 'Dokk1', address: 'Hack Kampmanns Plads 2, Aarhus', lat: 56.1532, lng: 10.214, type: 'library' as const, mapUrl: googleMapsPlaceUrl(placeId, 'Dokk1') };
 
   async function onboarded(firstName: string, locale: 'da' | 'en'): Promise<string> {
     const uid = newUid();
@@ -53,7 +55,7 @@ describeEmulator('sendMessage (emulator)', () => {
         podInterests: { da: [], en: [] },
         planning: {
           deadline: ts(NOW - 2 * DAY),
-          ...(meetupAt === null ? {} : { meetupAt: ts(meetupAt), winningOptionId: 'opt1', placeText: 'Dokk1', mapUrl: 'https://maps.app.goo.gl/Xy12AbCd' }),
+          ...(meetupAt === null ? {} : { meetupAt: ts(meetupAt), winningOptionId: 'opt1', place }),
         },
         confirmedAt: ts(NOW - 5 * DAY),
       });
@@ -70,7 +72,7 @@ describeEmulator('sendMessage (emulator)', () => {
   const bucket = async (uid: string, podId: string) => (await deps.db.doc(PATHS.rateLimit(rateLimitKey(uid, CHAT_BUCKET, podId))).get()).data();
   const pushedTokens = (from: number) => deps.pushes.slice(from).flatMap((p) => p.recipients.flatMap((r) => r.tokens)).sort();
 
-  it('stores a member text message and a quick reply, with expiresAt = meetupAt + 72 h', async () => {
+  it('stores member text messages, with expiresAt = meetupAt + 72 h', async () => {
     const { podId, members } = await pod();
     const [ada] = members;
     const text = 'Running 5 minutes late, sorry!';
@@ -78,7 +80,7 @@ describeEmulator('sendMessage (emulator)', () => {
 
     const first = await send(ada, { podId, text: `  ${text}\n` });
     expect(first).toEqual({ messageId: expect.any(String) });
-    const second = await send(ada, { podId, quickReply: 'onMyWay' }, NOW + 1000);
+    const second = await send(ada, { podId, text: 'On my way' }, NOW + 1000);
     const idOf = (out: object): string => (out as { messageId: string }).messageId;
 
     const stored = await messages(podId);
@@ -87,21 +89,28 @@ describeEmulator('sendMessage (emulator)', () => {
     expect(byId.get(idOf(first))).toEqual({
       id: idOf(first),
       authorUid: ada,
-      kind: 'text',
       text,
       createdAt: ts(NOW),
       expiresAt: ts(MEETUP + CHAT_DELETE_AFTER_MS),
     });
-    expect(byId.get(idOf(second))).toMatchObject({ authorUid: ada, kind: 'quickReply', quickReply: 'onMyWay', createdAt: ts(NOW + 1000) });
+    expect(byId.get(idOf(second))).toEqual({ id: idOf(second), authorUid: ada, text: 'On my way', createdAt: ts(NOW + 1000), expiresAt: ts(MEETUP + CHAT_DELETE_AFTER_MS) });
     for (const m of stored) expect(m.expiresAt.toMillis()).toBe(MEETUP + 72 * HOUR);
     expect(await bucket(ada, podId)).toEqual({ count: 2, windowStart: ts(NOW), expiresAt: ts(NOW + DAY) });
+  });
+
+  it('accepts text only: a quick reply is not a message any more (D14)', async () => {
+    const { podId, members } = await pod();
+    expect(await errorCode(send(members[0], { podId, quickReply: 'onMyWay' }))).toBe('VALIDATION');
+    expect(await errorCode(send(members[0], { podId, text: 'Hi', quickReply: 'onMyWay' }))).toBe('VALIDATION');
+    expect(await errorCode(send(members[0], { podId }))).toBe('VALIDATION');
+    expect(await messages(podId)).toEqual([]);
   });
 
   it('refuses non-members and unknown pods with NOT_MEMBER, storing nothing', async () => {
     const { podId } = await pod();
     const outsider = await onboarded('Eve', 'en');
-    expect(await errorCode(send(outsider, { podId, quickReply: 'imHere' }))).toBe('NOT_MEMBER');
-    expect(await errorCode(send(outsider, { podId: newPodId(), quickReply: 'imHere' }))).toBe('NOT_MEMBER');
+    expect(await errorCode(send(outsider, { podId, text: "I'm here" }))).toBe('NOT_MEMBER');
+    expect(await errorCode(send(outsider, { podId: newPodId(), text: "I'm here" }))).toBe('NOT_MEMBER');
     expect(await messages(podId)).toEqual([]);
     expect(await bucket(outsider, podId)).toBeUndefined();
   });
@@ -109,26 +118,26 @@ describeEmulator('sendMessage (emulator)', () => {
   it('is open from meetupAt − 24 h until meetupAt + 24 h (exclusive), and closed outside', async () => {
     const { podId, members } = await pod();
     const [ada] = members;
-    expect(await errorCode(send(ada, { podId, quickReply: 'onMyWay' }, OPENS - 1))).toBe('CHAT_CLOSED');
-    await expect(send(ada, { podId, quickReply: 'onMyWay' }, OPENS)).resolves.toHaveProperty('messageId');
-    await expect(send(ada, { podId, quickReply: 'imHere' }, CLOSES - 1)).resolves.toHaveProperty('messageId');
-    expect(await errorCode(send(ada, { podId, quickReply: 'imHere' }, CLOSES))).toBe('CHAT_CLOSED');
-    expect(await errorCode(send(ada, { podId, quickReply: 'imHere' }, CLOSES + DAY))).toBe('CHAT_CLOSED');
+    expect(await errorCode(send(ada, { podId, text: 'On my way' }, OPENS - 1))).toBe('CHAT_CLOSED');
+    await expect(send(ada, { podId, text: 'On my way' }, OPENS)).resolves.toHaveProperty('messageId');
+    await expect(send(ada, { podId, text: "I'm here" }, CLOSES - 1)).resolves.toHaveProperty('messageId');
+    expect(await errorCode(send(ada, { podId, text: "I'm here" }, CLOSES))).toBe('CHAT_CLOSED');
+    expect(await errorCode(send(ada, { podId, text: "I'm here" }, CLOSES + DAY))).toBe('CHAT_CLOSED');
     expect(await messages(podId)).toHaveLength(2);
   });
 
   it('is closed without a meetupAt and outside scheduled/happened', async () => {
     const planning = await pod({ state: 'planning', meetupAt: null });
-    expect(await errorCode(send(planning.members[0], { podId: planning.podId, quickReply: 'onMyWay' }))).toBe('CHAT_CLOSED');
+    expect(await errorCode(send(planning.members[0], { podId: planning.podId, text: 'On my way' }))).toBe('CHAT_CLOSED');
     const noMeetup = await pod({ state: 'scheduled', meetupAt: null, members: planning.members });
-    expect(await errorCode(send(noMeetup.members[0], { podId: noMeetup.podId, quickReply: 'onMyWay' }))).toBe('CHAT_CLOSED');
+    expect(await errorCode(send(noMeetup.members[0], { podId: noMeetup.podId, text: 'On my way' }))).toBe('CHAT_CLOSED');
     // A stale meetupAt after a return to planning or an archive must not keep the chat open.
     for (const state of ['planning', 'archived', 'dissolved'] as const) {
       const p = await pod({ state, members: planning.members });
-      expect(await errorCode(send(p.members[1], { podId: p.podId, quickReply: 'onMyWay' })), state).toBe('CHAT_CLOSED');
+      expect(await errorCode(send(p.members[1], { podId: p.podId, text: 'On my way' })), state).toBe('CHAT_CLOSED');
     }
     const happened = await pod({ state: 'happened', members: planning.members });
-    await expect(send(happened.members[1], { podId: happened.podId, quickReply: 'imHere' }, MEETUP + 3 * HOUR)).resolves.toHaveProperty('messageId');
+    await expect(send(happened.members[1], { podId: happened.podId, text: "I'm here" }, MEETUP + 3 * HOUR)).resolves.toHaveProperty('messageId');
   });
 
   it('holds contact details back before the meetup until the sender acknowledges the warning', async () => {
@@ -145,7 +154,7 @@ describeEmulator('sendMessage (emulator)', () => {
 
     const sent = await send(ada, { podId, text, ackContactWarning: true });
     expect(sent).toEqual({ messageId: expect.any(String) });
-    expect(await messages(podId)).toEqual([expect.objectContaining({ kind: 'text', text })]);
+    expect(await messages(podId)).toEqual([expect.objectContaining({ text })]);
 
     const mapLink = 'Vi mødes her: https://maps.app.goo.gl/Xy12AbCd';
     await expect(send(ada, { podId, text: mapLink })).resolves.toHaveProperty('messageId');
@@ -185,19 +194,19 @@ describeEmulator('sendMessage (emulator)', () => {
     const first = await pod();
     const [ada, bo] = first.members;
     for (let i = 0; i < CHAT_RATE_LIMIT_PER_HOUR; i++) {
-      await expect(send(ada, { podId: first.podId, quickReply: 'runningLate' }, NOW + i * 60_000)).resolves.toHaveProperty('messageId');
+      await expect(send(ada, { podId: first.podId, text: 'Running a bit late' }, NOW + i * 60_000)).resolves.toHaveProperty('messageId');
     }
     const last = NOW + 59 * 60_000;
-    expect(await errorCode(send(ada, { podId: first.podId, quickReply: 'runningLate' }, last))).toBe('RATE_LIMITED');
+    expect(await errorCode(send(ada, { podId: first.podId, text: 'Running a bit late' }, last))).toBe('RATE_LIMITED');
     expect(await errorCode(send(ada, { podId: first.podId, text: 'still here' }, last))).toBe('RATE_LIMITED');
     expect(await messages(first.podId)).toHaveLength(CHAT_RATE_LIMIT_PER_HOUR);
     expect((await bucket(ada, first.podId))?.count).toBe(CHAT_RATE_LIMIT_PER_HOUR);
 
     // Other members and other pods have their own buckets; the window resets after an hour.
-    await expect(send(bo, { podId: first.podId, quickReply: 'imHere' }, last)).resolves.toHaveProperty('messageId');
+    await expect(send(bo, { podId: first.podId, text: "I'm here" }, last)).resolves.toHaveProperty('messageId');
     const second = await pod({ members: first.members });
-    await expect(send(ada, { podId: second.podId, quickReply: 'imHere' }, last)).resolves.toHaveProperty('messageId');
-    await expect(send(ada, { podId: first.podId, quickReply: 'imHere' }, NOW + HOUR)).resolves.toHaveProperty('messageId');
+    await expect(send(ada, { podId: second.podId, text: "I'm here" }, last)).resolves.toHaveProperty('messageId');
+    await expect(send(ada, { podId: first.podId, text: "I'm here" }, NOW + HOUR)).resolves.toHaveProperty('messageId');
     expect(await bucket(ada, first.podId)).toEqual({ count: 1, windowStart: ts(NOW + HOUR), expiresAt: ts(NOW + HOUR + DAY) });
   });
 
@@ -219,16 +228,16 @@ describeEmulator('sendMessage (emulator)', () => {
     expect(await slot(ada)).toBeUndefined();
 
     mark = deps.pushes.length;
-    await send(ada, { podId, quickReply: 'onMyWay' }, NOW + 60_000);
+    await send(ada, { podId, text: 'On my way' }, NOW + 60_000);
     expect(pushedTokens(mark)).toEqual([]);
 
-    await send(bo, { podId, quickReply: 'imHere' }, NOW + 2 * 60_000);
+    await send(bo, { podId, text: "I'm here" }, NOW + 2 * 60_000);
     expect(pushedTokens(mark)).toEqual([tok(ada)]);
 
     mark = deps.pushes.length;
-    await send(ada, { podId, quickReply: 'imHere' }, NOW + CHAT_PUSH_THROTTLE_MS - 1);
+    await send(ada, { podId, text: "I'm here" }, NOW + CHAT_PUSH_THROTTLE_MS - 1);
     expect(pushedTokens(mark)).toEqual([]);
-    await send(ada, { podId, quickReply: 'imHere' }, NOW + CHAT_PUSH_THROTTLE_MS);
+    await send(ada, { podId, text: "I'm here" }, NOW + CHAT_PUSH_THROTTLE_MS);
     expect(pushedTokens(mark)).toEqual([tok(bo), tok(cai)].sort());
     expect(await slot(cai)).toEqual({ count: 1, windowStart: ts(NOW + CHAT_PUSH_THROTTLE_MS), expiresAt: ts(NOW + CHAT_PUSH_THROTTLE_MS + DAY) });
   });
@@ -251,7 +260,7 @@ describeEmulator('sendMessage (emulator)', () => {
   it('refuses an account that is being deleted', async () => {
     const { podId, members } = await pod();
     await deps.db.doc(PATHS.user(members[2])).update({ status: 'deleting' });
-    expect(await errorCode(send(members[2], { podId, quickReply: 'cantMakeIt' }))).toBe('STATE');
+    expect(await errorCode(send(members[2], { podId, text: "Can't make it" }))).toBe('STATE');
     expect(await messages(podId)).toEqual([]);
   });
 });

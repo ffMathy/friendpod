@@ -138,4 +138,27 @@ describe('"about me" moderation (D4)', () => {
     expect(checkAboutMe('add me on snap annak92')).toEqual({ ok: false, code: 'CONTACT_INFO' });
     expect(checkAboutMe('looking for a sugar daddy')).toEqual({ ok: false, code: 'BLOCKLIST' });
   });
+
+  it('refuses a street address and handles or links that findPii alone misses', () => {
+    for (const text of [
+      'Jeg bor på Vestergade 12, 2. tv, 8000 Aarhus C',
+      'Bor på Nørrebrogade 4b.',
+      'Kig forbi nr. 12, st. th',
+      'I live at 12 Baker Street',
+      'Ring på hos os, 8000 Aarhus',
+      'discord annak#1234',
+      'linktr.ee/annak',
+      'find me on bsky annak.bsky.social',
+    ]) {
+      expect(checkAboutMe(text), text).toEqual({ ok: false, code: 'CONTACT_INFO' });
+    }
+    for (const text of [
+      'Løber på Strandvejen 5 dage om ugen, bl.a. med hunden.',
+      'Ny i Aarhus siden 2024 og glad for o.s.v. lange gåture',
+      'I run 5 km down the road most mornings',
+      'Spiller discord-spil og strikker',
+    ]) {
+      expect(checkAboutMe(text), text).toEqual({ ok: true });
+    }
+  });
 });

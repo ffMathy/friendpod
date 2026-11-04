@@ -27,8 +27,8 @@ export interface ParticipationState {
 }
 
 /**
- * Pauses the user may lift themselves. The others are automated safety pauses that only a human review or the
- * re-commit flow lifts (§3.7, §4.4).
+ * Pauses the user may lift themselves. The others are automated safety pauses that end at their fixed end date or
+ * through the re-commit flow; no human lifts them (D2, §3.7, §4.4).
  */
 const USER_LIFTABLE: ReadonlySet<PauseReason> = new Set<PauseReason>(['user', 'declines', 'ignored']);
 

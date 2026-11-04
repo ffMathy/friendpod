@@ -6,6 +6,7 @@
  *   GOOGLE_SERVICES_JSON     EAS file env var: google-services.json for this environment
  *   GOOGLE_WEB_CLIENT_ID     OAuth web client id (Firebase console, Auth > Google), needed for Google ID tokens
  *   EAS_PROJECT_ID           set once `eas init` has linked the project
+ *   MODEL_BASE_URL           optional override of where the pinned on-device model files are served (D1)
  *
  * Development falls back to committed placeholders for the `demo-grouper` emulator project; staging and
  * production refuse to build without their real files.
@@ -23,6 +24,20 @@ interface EnvSettings {
   readonly linkProjectId: string;
   readonly apsEnvironment: 'development' | 'production';
   readonly appAttestEnvironment: 'development' | 'production';
+}
+
+/** The native ONNX Runtime the detector thresholds were verified on (core EMBEDDING_MODEL.device.nativeOrt). */
+const ORT_NATIVE_VERSION = '1.30.0';
+/** Pinned model revision directory (core EMBEDDING_MODEL.device.dir); a test keeps both in step with core. */
+const MODEL_DIR = 'eg2-q4-daa72c5/';
+
+/**
+ * The model files are public (Apache-2.0 weights, no user data) and served from the project's EU models bucket
+ * (DESIGN.md §5.1, §8), so a download reveals nothing but the IP address to Google Cloud, which already processes it.
+ */
+function modelBaseUrl(projectId: string): string {
+  const url = process.env.MODEL_BASE_URL ?? `https://storage.googleapis.com/${projectId}-models/models/${MODEL_DIR}`;
+  return url.endsWith('/') ? url : `${url}/`;
 }
 
 const ENVIRONMENTS: Record<AppEnv, EnvSettings> = {
@@ -159,6 +174,9 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         'android.permission.READ_MEDIA_VIDEO',
         'android.permission.DETECT_SCREEN_CAPTURE',
         'com.google.android.gms.permission.AD_ID',
+        // Add-to-calendar opens the system's new-event screen (D11); Grouper never reads or writes calendars itself.
+        'android.permission.READ_CALENDAR',
+        'android.permission.WRITE_CALENDAR',
         // The RN template adds it for the dev menu overlay; only development builds need it.
         ...(env === 'development' ? [] : ['android.permission.SYSTEM_ALERT_WINDOW']),
       ],
@@ -218,8 +236,12 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       ['expo-secure-store', { faceIDPermission: false, configureAndroidBackup: true }],
       // iOS counterpart of `allowBackup: false`: Firestore's offline cache stays out of iCloud backups.
       './plugins/withFirestoreBackupExclusion.js',
+      // On-device embedding (D1): pins the native ONNX Runtime under onnxruntime-react-native on both platforms.
+      ['./plugins/withOrtPinned.js', { version: ORT_NATIVE_VERSION }],
       // DESIGN-DEVIATION: expo-screen-capture and expo-image-manipulator (SDK 58) ship no config plugin,
       // and of RNFirebase 27 only app, auth, app-check and messaging do; the rest autolink without one.
+      // expo-calendar's plugin is left out on purpose: it only adds calendar permissions, and the system new-event
+      // sheet needs none (iOS 17+, Android intent). onnxruntime-react-native's own plugin is replaced by withOrtPinned.
     ],
     experiments: {
       typedRoutes: true,
@@ -228,6 +250,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     extra: {
       appEnv: env,
       emailLinkDomain: linkDomain,
+      modelBaseUrl: modelBaseUrl(s.linkProjectId),
       ...(process.env.GOOGLE_WEB_CLIENT_ID ? { googleWebClientId: process.env.GOOGLE_WEB_CLIENT_ID } : {}),
       ...(easProjectId ? { eas: { projectId: easProjectId } } : {}),
     },

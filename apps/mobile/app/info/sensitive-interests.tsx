@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Body, Screen } from '@/components/ui';
 import { currentLocale } from '@/i18n';
 
-/** "Read more about sensitive interests" from the consent sheet (PRIVACY.md §3). */
+/** "Read more about sensitive interests" from the blanket consent and the interests screen (PRIVACY.md §3). */
 export default function SensitiveInterests() {
   const { t } = useTranslation();
   const notice = currentLegalText('interestNotice', currentLocale());

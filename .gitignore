@@ -7,9 +7,9 @@ coverage/
 .eslintcache
 
 # Model weights and binary artefacts (fetched or built, never committed)
-services/embedder/model/
 *.bin
 *.onnx
+*.onnx_data
 
 # Firebase (emulator logs, deploy cache, emulator secrets in functions/.secret.local via *.local)
 .firebase/

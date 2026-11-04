@@ -1,3 +1,4 @@
+import { EMBEDDING_MODEL } from '@grouper/core';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import withFirestoreBackupExclusion from '../plugins/withFirestoreBackupExclusion';
@@ -6,7 +7,7 @@ import withFirestoreBackupExclusion from '../plugins/withFirestoreBackupExclusio
 const TEMPLATE = readFileSync(join(__dirname, 'fixtures', 'AppDelegate.sdk58.swift'), 'utf8');
 const { addBackupExclusion } = withFirestoreBackupExclusion;
 
-describe('Firestore backup exclusion (iOS, PRIVACY.md §5)', () => {
+describe('Firestore cache and model backup exclusion (iOS, PRIVACY.md §5)', () => {
   it('flags the Firestore cache directory before React Native starts, once', () => {
     const out = addBackupExclusion(TEMPLATE);
     const exclusion = out.indexOf('excludedFromBackup.isExcludedFromBackup = true');
@@ -14,6 +15,8 @@ describe('Firestore backup exclusion (iOS, PRIVACY.md §5)', () => {
     expect(exclusion).toBeLessThan(out.indexOf('return super.application(application, didFinishLaunchingWithOptions: launchOptions)'));
     expect(out).toContain('.applicationSupportDirectory');
     expect(out).toContain('appendingPathComponent("firestore", isDirectory: true)');
+    expect(out).toContain('.documentDirectory');
+    expect(out).toContain(`appendingPathComponent("${EMBEDDING_MODEL.device?.dir.split('/')[0]}", isDirectory: true)`);
     expect(addBackupExclusion(out)).toBe(out);
   });
 

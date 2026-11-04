@@ -23,12 +23,12 @@ describeEmulator('background functions (emulator)', () => {
     expect((await store.get(weekId, componentId))!.computed).toEqual(pointer);
   });
 
-  it('switches off the embedder and uploads when actual spend reaches the budget, keeping other config', async () => {
+  it('switches off addInterests and uploads when actual spend reaches the budget, keeping other config', async () => {
     const config = deps.db.doc(PATHS.configApp());
-    await config.set({ minAppVersion: '1.0.0', legalVersions: {}, skipWeeks: [], features: { embedder: true, uploads: true, chips: true } });
+    await config.set({ minAppVersion: '1.0.0', legalVersions: {}, skipWeeks: [], features: { interests: true, uploads: true, chips: true } });
     await expect(handleBudgetAlert(deps.db, { alertThresholdExceeded: 0.5 })).resolves.toEqual({ tripped: false });
-    expect((await config.get()).data()!.features).toEqual({ embedder: true, uploads: true, chips: true });
+    expect((await config.get()).data()!.features).toEqual({ interests: true, uploads: true, chips: true });
     await expect(handleBudgetAlert(deps.db, { alertThresholdExceeded: 1, costAmount: 120, budgetAmount: 100 })).resolves.toEqual({ tripped: true });
-    expect((await config.get()).data()).toEqual({ minAppVersion: '1.0.0', legalVersions: {}, skipWeeks: [], features: { embedder: false, uploads: false, chips: true } });
+    expect((await config.get()).data()).toEqual({ minAppVersion: '1.0.0', legalVersions: {}, skipWeeks: [], features: { interests: false, uploads: false, chips: true } });
   });
 });

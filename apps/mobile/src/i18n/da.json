@@ -7,7 +7,8 @@
     "notNow": "Ikke nu",
     "ok": "OK",
     "loading": "Indlæser",
-    "loadFailed": "Det kunne ikke indlæses. Prøv igen senere."
+    "loadFailed": "Det kunne ikke indlæses. Prøv igen senere.",
+    "retry": "Prøv igen"
   },
   "welcome": {
     "title": "Grouper",
@@ -97,7 +98,7 @@
     },
     "notifications": {
       "title": "Notifikationer",
-      "body": "Vi giver besked, når dit ugentlige drop er her, når din pod er bekræftet, og når der er en ny besked i jeres mødechat. Notifikationer nævner aldrig en interesse, en person eller hvad nogen har skrevet.",
+      "body": "Vi giver besked, når dit ugentlige drop er her, når din pod er bekræftet, når der er en ny besked i podens mødechat, og morgenen efter et møde for at høre, hvordan det gik. Notifikationer nævner aldrig en interesse, en person eller hvad nogen har skrevet.",
       "enable": "Slå notifikationer til"
     },
     "pledge": {
@@ -126,7 +127,6 @@
     "madePrivate": "Interessen er nu privat.",
     "duplicate": "Du har allerede denne interesse.",
     "limit": "Du har nået 20 interesser. Fjern en for at tilføje en ny.",
-    "discarded": "Ikke tilføjet. Intet blev gemt.",
     "starLimit": "Du kan stjernemarkere op til 3 interesser.",
     "didYouMean": "Mente du »{{label}}«?",
     "useSuggestion": "Ja, brug den",
@@ -138,17 +138,23 @@
     "star": "Stjerne",
     "keepPrivate": "Hold den privat",
     "remove": "Fjern",
-    "pendingTitle": "Kræver din beslutning",
-    "pendingBody": "Vi mener nu, at disse kan være følsomme. De bruges ikke, før du giver samtykke, og slettes ellers efter 14 dage.",
-    "giveConsent": "Giv samtykke",
-    "sensitiveTitle": "Følsomme interesser",
-    "sensitiveBody": "Holdes private. Bruges kun som tema for en pod, hvor alle medlemmer også har tilføjet den.",
-    "removeAndWithdraw": "Fjern og træk samtykke tilbage",
-    "withdrawTitle": "Træk samtykke tilbage",
-    "withdrawAll": "Træk alle følsomme interesser tilbage",
-    "withdrawAllTitle": "Træk alle følsomme interesser tilbage?",
-    "withdrawAllBody": "Vi sletter dem nu og tager dig ud af pods, der er bygget op om dem. De andre medlemmer ser kun, at et medlem er gået.",
-    "readMoreSensitive": "Læs mere om følsomme interesser"
+    "readMoreSensitive": "Læs mere om følsomme interesser",
+    "madeOrdinary": "Sådan. Vi behandler den nu som en almindelig interesse, kun for dig.",
+    "notSensitiveForMe": "Den er ikke følsom for mig",
+    "privateLabel": "{{name}}, privat",
+    "privateExplainer": "🔒 Privat: vises aldrig på nogen profil og bruges kun som tema for en pod, hvor alle medlemmer også har tilføjet den.",
+    "openSensitiveConsent": "Følsomme interesser: giv samtykke",
+    "model": {
+      "preparing": "Gør interesser klar på din telefon …",
+      "downloading": "Henter det, din telefon skal bruge for at forstå interesser: {{percent}} %",
+      "cellular": "For at tilføje interesser skal din telefon hente ca. 180 MB én gang. Du er på mobildata.",
+      "useCellular": "Hent over mobildata",
+      "offline": "Du er offline. Gå på internettet for at tilføje interesser.",
+      "download": "Overførslen blev ikke færdig. Tjek din forbindelse og den ledige plads, og prøv igen.",
+      "integrity": "Overførslen var beskadiget, så vi har slettet den. Prøv igen.",
+      "runtime": "Telefonen kan ikke køre tjekket af interesser lige nu (den mangler måske ledig hukommelse). Luk andre apps, og prøv igen.",
+      "notPinned": "Du kan ikke tilføje interesser i denne version endnu."
+    }
   },
   "moderation": {
     "TAG_TOO_SHORT": "En interesse skal have mindst 2 tegn.",
@@ -158,21 +164,8 @@
     "THIRD_PARTY_SENSITIVE": "Det ser ud til at handle om en andens følsomme situation. Beskriv din egen i stedet, fx »forælder til et barn med autisme«.",
     "INTEREST_LIMIT": "Du har nået 20 interesser.",
     "SENSITIVE_ADD_LIMIT": "Du kan højst tilføje 3 følsomme interesser om ugen.",
-    "EMBED_BUDGET": "Vi kan ikke tilføje nye interesser lige nu. Prøv igen i morgen.",
-    "SENSITIVE_UNAVAILABLE": "Følsomme interesser kan ikke tilføjes endnu."
-  },
-  "consent": {
-    "title": "Dit samtykke",
-    "categoryPrompt": "Valgfrit: hvilken slags oplysning er det?",
-    "expired": "Anmodningen er udløbet. Tilføj interessen igen."
-  },
-  "categories": {
-    "health": "Helbred",
-    "religion": "Religion eller overbevisning",
-    "sexualOrientation": "Seksuel orientering eller seksualliv",
-    "politics": "Politiske holdninger",
-    "ethnicOrigin": "Etnisk oprindelse",
-    "tradeUnion": "Fagforeningsmedlemskab"
+    "SENSITIVE_UNAVAILABLE": "Følsomme interesser kan ikke tilføjes endnu.",
+    "ART9_CONSENT_REQUIRED": "Interessen kan være følsom, så vi gemmer den kun, hvis du har sagt ja til følsomme interesser. Intet blev sendt eller gemt. Du kan give samtykke under Indstillinger → Privatliv."
   },
   "gender": {
     "title": "Pods med samme køn",
@@ -285,7 +278,6 @@
   "pod": {
     "title": "Pod",
     "gone": "Denne pod findes ikke længere.",
-    "members": "Medlemmer",
     "you": "{{name}} (dig)",
     "photoOf": "Billede af {{name}}",
     "podInterests": "Podens interesser: {{list}}",
@@ -300,7 +292,23 @@
     "chat": "Mødechat",
     "chatOpens": "Åbner {{when}}",
     "chatOpenNow": "Åben nu",
-    "chatClosed": "Lukket"
+    "chatClosed": "Lukket",
+    "sections": {
+      "plan": "Plan",
+      "chat": "Chat",
+      "members": "Medlemmer"
+    },
+    "next": {
+      "vote": "Stem om tid og sted",
+      "voteBody": "Sig ja til alle forslag, der passer dig, senest {{when}}.",
+      "voteAction": "Åbn planlæggeren",
+      "chat": "Mødechatten er åben",
+      "chatAction": "Åbn chatten",
+      "feedback": "Hvordan gik det?"
+    },
+    "addToCalendar": "Føj til kalender",
+    "calendarTitle": "Pod-møde",
+    "calendarFailed": "Kalenderen kunne ikke åbnes."
   },
   "plan": {
     "title": "Planlægger",
@@ -318,19 +326,20 @@
     "time": "Tidspunkt",
     "timeHint": "TT:MM",
     "place": "Sted",
-    "mapUrl": "Link til kort (valgfrit)",
-    "publicPlace": "Det er et offentligt sted",
     "propose": "Foreslå",
-    "proposeAnyway": "Foreslå alligevel",
-    "homeAddressWarning": "Det ligner en privatadresse. Mød hinanden på et offentligt sted i stedet.",
     "errors": {
       "DATE": "Indtast en dato og et tidspunkt.",
       "WINDOW": "Vælg et tidspunkt inden for 14 dage mellem kl. 8 og 22.",
-      "PLACE": "Beskriv stedet med højst 120 tegn.",
-      "CONTACT_INFO": "Skriv ikke telefonnumre, e-mails eller brugernavne.",
-      "URL": "Brug et link fra Google Maps, Apple Maps eller OpenStreetMap.",
-      "PUBLIC_PLACE": "Bekræft, at det er et offentligt sted."
-    }
+      "PLACE": "Vælg et offentligt sted fra listen."
+    },
+    "extendedTitle": "Intet tidspunkt passer endnu – tilføj et forslag mere",
+    "extendedBody": "I har én dag mere, indtil {{when}}. Hvis intet forslag får 3 ja-stemmer inden da, stopper poden.",
+    "placeHint": "Søg efter en café, et bibliotek, en park …",
+    "placeNoResults": "Ingen offentlige steder fundet. Prøv et andet navn.",
+    "placeNotPublic": "Det er ikke et offentligt sted. Vælg en café, et bibliotek, en park eller lignende.",
+    "placeFailed": "Vi kan ikke søge efter steder lige nu. Prøv igen.",
+    "placeAttribution": "Steder fra Google Maps.",
+    "changePlace": "Skift sted"
   },
   "chat": {
     "title": "Mødechat",
@@ -345,18 +354,6 @@
     "notScheduled": "Chatten åbner 24 timer før jeres møde, når I har valgt et tidspunkt.",
     "you": "Dig",
     "messageLabel": "{{name}}, {{time}}: {{text}}",
-    "quickReplyLine": "{{name}}: {{reply}}",
-    "quickRepliesLabel": "Hurtige svar",
-    "quickReplies": {
-      "onMyWay": "Jeg er på vej",
-      "runningLate": "Jeg er lidt forsinket",
-      "imHere": "Jeg er her",
-      "cantMakeIt": "Jeg kan ikke komme"
-    },
-    "cantMakeItTitle": "Kan du ikke komme?",
-    "cantMakeItBody": "Vi fortæller din pod, at du ikke kommer. Et afbud så tæt på mødet tæller som et sent afbud.",
-    "cantMakeItConfirm": "Jeg kan ikke komme",
-    "cancelledChatClosed": "Dit afbud er gemt. Der kommer nu for få, så chatten er lukket.",
     "inputLabel": "Besked",
     "placeholder": "Skriv en besked",
     "counter": "{{length}}/{{max}}",
@@ -373,14 +370,15 @@
     "didYouMeet": "Mødtes I?",
     "yes": "Ja",
     "no": "Nej",
-    "came": "Kom",
-    "noShow": "Kom ikke",
-    "meetAgain": "Jeg vil gerne mødes igen",
+    "meetAgain": "Vil du mødes med {{name}} igen?",
     "rating": "Hvordan var det? (1–5)",
     "private": "Dine svar er private. Ingen ser, hvad du har svaret om dem.",
     "keep": "Behold poden",
     "notForMe": "Ikke noget for mig",
-    "send": "Send"
+    "send": "Send",
+    "whoWasThere": "Hvem var der?",
+    "whoWasThereHint": "Alle er krydset af. Fjern krydset ved dem, der ikke kom.",
+    "meetAgainEffect": "Hvis I begge siger ja, kan I komme i pod sammen igen efter 4 uger i stedet for 6 måneder. Hvis en af jer siger nej, kommer I ikke i pod sammen igen. Ingen får at vide, hvad du har svaret."
   },
   "member": {
     "title": "Medlem",
@@ -395,7 +393,7 @@
   "report": {
     "title": "Anmeld",
     "intro": "Anmeldelser er fortrolige. Vi fortæller aldrig nogen, hvem der har anmeldt dem.",
-    "messageCopy": "Vi gemmer en kopi af beskeden sammen med din anmeldelse, så vi kan se på den, når chatten er slettet.",
+    "messageCopy": "Vi gemmer en kopi af beskeden sammen med din anmeldelse i 12 måneder, også efter chatten er slettet.",
     "categories": {
       "harassment": "Chikane",
       "safety": "Sikkerhed",
@@ -421,10 +419,6 @@
     "OPEN_TO_ANYONE": "Du er åben for at møde hvem som helst i nærheden",
     "footer": "Pods dannes automatisk. Læs »Sådan virker matchningen« for at se, hvilke oplysninger der bruges."
   },
-  "notices": {
-    "reviewedNotSensitive": "Denne interesse kræver ikke længere særligt samtykke. Skal den behandles som en almindelig interesse?",
-    "treatAsOrdinary": "Behandl som almindelig"
-  },
   "me": {
     "participation": "Ugentlige drops",
     "modes": {
@@ -448,8 +442,6 @@
     "privacy": {
       "title": "Privatliv",
       "consents": "Dine samtykker",
-      "sensitiveCount_one": "{{count}} følsom interesse",
-      "sensitiveCount_other": "{{count}} følsomme interesser",
       "genderOn": "Pods med samme køn er slået til (bruger dit køn).",
       "genderOff": "Pods med samme køn er slået fra; vi gemmer ikke dit køn.",
       "withdrawGender": "Slå fra og slet mit køn",
@@ -460,7 +452,13 @@
       "exportRequested": "Vi laver din fil og giver besked, når den er klar.",
       "restrict": "Pause eller slet",
       "pause": "Sæt matchning på pause nu",
-      "complaint": "Du kan klage til Datatilsynet (datatilsynet.dk)."
+      "complaint": "Du kan klage til Datatilsynet (datatilsynet.dk).",
+      "sensitiveTitle": "Følsomme interesser",
+      "sensitiveOn_one": "Du har sagt ja til følsomme interesser. {{count}} af dine interesser er privat.",
+      "sensitiveOn_other": "Du har sagt ja til følsomme interesser. {{count}} af dine interesser er private.",
+      "sensitiveOff": "Du har ikke sagt ja til følsomme interesser, så vi gemmer ikke interesser, der kan være følsomme.",
+      "giveSensitive": "Sig ja til følsomme interesser",
+      "withdrawSensitive": "Træk samtykket til følsomme interesser tilbage"
     },
     "delete": {
       "title": "Slet konto",
@@ -508,16 +506,16 @@
       "title": "Sådan virker matchningen",
       "inputs": "Hver torsdag danner vi pods med 4–6 personer, som deler en interesse. Vi bruger dine interesser, dit omtrentlige område (et kortfelt), dit fødselsår, dit aldersinterval, din afstand, dine sprog og tidspunkter ved møder, og hvor stabilt du møder op.",
       "notUsed": "Vi bruger aldrig billeder eller noget, vi udleder om dig. Køn bruges kun, hvis du slår pods med samme køn til.",
-      "sensitive": "Følsomme interesser bruges kun som tema for en pod, hvor alle medlemmer har tilføjet dem, og først når din konto er 14 dage gammel, og du har været til et møde.",
-      "pauses": "Nogle pauser sker automatisk. Hver pause kommer med en forklaring, og du kan bede en person om at se på den.",
-      "humanReview": "Kontakt vores privatlivsteam (se privatlivserklæringen), hvis du vil have en person til at se på en afgørelse.",
+      "sensitive": "Følsomme interesser bruges kun, hvis du har sagt ja til dem, kun som tema for en pod, hvor alle medlemmer har tilføjet dem, og først når din konto er 14 dage gammel, og du har været til et møde.",
+      "pauses": "Nogle pauser sker automatisk. Hver pause kommer med en forklaring og ophører af sig selv.",
+      "humanReview": "Ingen person gennemgår disse afgørelser. Du kan stadig bruge dine rettigheder efter databeskyttelsesreglerne ved at kontakte vores privatlivsteam (se privatlivserklæringen).",
       "pause": "Du kan altid sætte matchning på pause.",
       "pausesTitle": "Automatiske pauser",
       "pauseList": {
-        "reports": "To uafhængige anmeldelser inden for 30 dage eller én sikkerhedsanmeldelse sætter dig på pause, indtil en person har set på dem.",
+        "reports": "To uafhængige anmeldelser inden for 30 dage eller én sikkerhedsanmeldelse sætter dig på pause i en periode. Pausen ophører automatisk.",
         "noShow": "To udeblivelser inden for 8 uger giver 2 ugers pause.",
-        "underage": "En anmeldelse om »mistanke om under 18« sætter kontoen på pause, indtil sagen er afklaret.",
-        "notGenuine": "En anmeldelse om »ikke et ægte medlem« holder dig ude af pods om følsomme interesser, indtil en person har set på den."
+        "underage": "En anmeldelse om »mistanke om under 18« sætter kontoen på pause i en periode. Pausen ophører automatisk.",
+        "notGenuine": "En anmeldelse om »ikke et ægte medlem« holder dig ude af pods om følsomme interesser i 4 uger."
       }
     },
     "safety": {
@@ -535,9 +533,9 @@
     "sensitive": {
       "title": "Følsomme interesser",
       "what": "Nogle interesser siger noget om dit helbred, din tro, din seksualitet, politik, etniske oprindelse eller fagforening. Loven kalder det særlige kategorier af personoplysninger.",
-      "where": "Vi gemmer dem privat på din konto. De vises aldrig på nogen profil.",
+      "where": "Hvis du har sagt ja til følsomme interesser, gemmer vi dem privat på din konto, markeret med en hængelås. De vises aldrig på nogen profil. Har du ikke sagt ja, gemmer vi dem slet ikke.",
       "who": "En sådan interesse vises kun som tema for en pod og kun for de personer, der er inviteret til poden, og som også selv har tilføjet den.",
-      "withdraw": "Du kan til enhver tid trække samtykket tilbage under Interesser → Fjern og træk samtykke tilbage. Så sletter vi interessen og tager dig ud af pods, der er bygget op om den.",
+      "withdraw": "Du kan til enhver tid trække dit samtykke tilbage under Indstillinger → Privatliv. Så sletter vi alle dine følsomme interesser og tager dig ud af pods, der er bygget op om dem. Vil du kun stoppe én interesse, så fjern den.",
       "risk": "Vi kan ikke kontrollere, hvem folk er, så del kun det i en pod, som du er tryg ved."
     }
   },
@@ -567,11 +565,42 @@
     "NOT_FOUND": "Det findes ikke længere.",
     "ALREADY_EXISTS": "Det findes allerede.",
     "RATE_LIMITED": "For mange forsøg. Vent lidt.",
-    "EMBED_BUDGET": "Vi kan ikke tilføje nye interesser lige nu. Prøv igen i morgen.",
     "FEATURE_DISABLED": "Det er ikke tilgængeligt lige nu.",
     "INTERNAL": "Der gik noget galt hos os.",
     "NOT_IMPLEMENTED": "Det er ikke tilgængeligt endnu.",
     "NETWORK": "Ingen forbindelse. Prøv igen.",
-    "UNKNOWN": "Der gik noget galt. Prøv igen."
+    "UNKNOWN": "Der gik noget galt. Prøv igen.",
+    "ART9_CONSENT": "Det kræver dit samtykke til følsomme interesser (Indstillinger → Privatliv)."
+  },
+  "aboutMe": {
+    "intro": "Valgfrit: én sætning om dig. Kun personer i en bekræftet pod med dig kan se den, og den bruges aldrig til matchning.",
+    "label": "Om mig",
+    "placeholder": "Fx: Ny i Aarhus og altid frisk på en lang gåtur.",
+    "hint": "{{count}}/{{max}} tegn",
+    "tooLong": "Højst {{max}} tegn.",
+    "CONTACT_INFO": "Ingen kontaktoplysninger her: I har ikke mødt hinanden endnu. Del dem gerne, når I ses.",
+    "BLOCKLIST": "Teksten indeholder ord, der ikke er tilladt på Grouper.",
+    "save": "Gem",
+    "saved": "Gemt."
+  },
+  "attendance": {
+    "stillComing": "Kommer du stadig {{when}}?",
+    "why": "Hvis færre end 3 kommer, finder poden et nyt tidspunkt. Hvis du ikke svarer, tæller det aldrig som en udeblivelse.",
+    "coming": "Jeg kommer",
+    "comingAfterAll": "Jeg kommer alligevel",
+    "cantMakeIt": "Jeg kan ikke komme",
+    "cantMakeItTitle": "Kan du ikke komme?",
+    "cantMakeItBody": "Vi fortæller din pod, at du ikke kommer. Et afbud tæt på mødet tæller som et sent afbud.",
+    "mine": {
+      "pending": "Du har ikke sagt, om du kommer, endnu.",
+      "coming": "Du kommer.",
+      "notComing": "Du har meldt afbud.",
+      "unconfirmed": "Du har ikke bekræftet. Fortæl de andre, om du kommer."
+    },
+    "other": {
+      "coming": "Kommer",
+      "notComing": "Kan ikke komme"
+    },
+    "hasntConfirmed": "{{name}} har ikke bekræftet"
   }
 }

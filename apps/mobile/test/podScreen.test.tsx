@@ -1,0 +1,143 @@
+import { DAY_MS, googleMapsPlaceUrl } from '@grouper/core';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { createEventInCalendarAsync } from 'expo-calendar/legacy';
+import { Alert, type AlertButton } from 'react-native';
+import PodScreen from '../app/pod/[podId]/index';
+
+const POD_ID = 'abcdefghijklmnopqrst';
+const HOUR = 3_600_000;
+
+const mockRouter = { push: jest.fn(), back: jest.fn() };
+jest.mock('expo-router', () => ({ useRouter: () => mockRouter, useLocalSearchParams: () => ({ podId: 'abcdefghijklmnopqrst' }) }));
+jest.mock('expo-calendar/legacy', () => ({ createEventInCalendarAsync: jest.fn(async () => ({ action: 'saved' })) }));
+jest.mock('@/features/session/SessionProvider', () => ({ useUid: () => 'me' }));
+jest.mock('@/features/pods/ScreenCaptureGuard', () => ({ ScreenCaptureGuard: () => null }));
+jest.mock('@/features/photos/AuthenticatedPhoto', () => ({ AuthenticatedPhoto: () => null }));
+jest.mock('@/features/account/useDeviceCacheHygiene', () => ({ rememberCachedMessages: async () => undefined }));
+
+const live = (data: unknown) => ({ data, error: null, isLoading: false });
+let mockCard: Record<string, unknown> = {};
+let mockPod: Record<string, unknown> = {};
+let mockOptions: unknown[] = [];
+jest.mock('@/data/docs', () => ({
+  usePodCard: () => live(mockCard),
+  usePod: () => live(mockPod),
+  usePodOptions: () => live(mockOptions),
+  usePodMessages: () => live([]),
+}));
+
+const mockCall = jest.fn();
+jest.mock('@/firebase/callables', () => ({
+  callFunction: (...args: unknown[]) => mockCall(...args),
+  toAppError: (e: unknown) => e,
+}));
+
+const ts = (ms: number) => ({ toMillis: () => ms });
+const place = {
+  placeId: 'ChIJstubDokk1Aarhus01',
+  name: 'Dokk1',
+  address: 'Hack Kampmanns Plads 2, Aarhus',
+  lat: 56.1535,
+  lng: 10.2142,
+  type: 'library',
+  mapUrl: googleMapsPlaceUrl('ChIJstubDokk1Aarhus01', 'Dokk1'),
+};
+const roster = { me: { firstName: 'Mia', photoV: null }, anna: { firstName: 'Anna', photoV: null }, bo: { firstName: 'Bo', photoV: null } };
+
+function scheduled(meetupIn: number, attendance: Record<string, string>) {
+  const meetupAt = Date.now() + meetupIn;
+  mockCard = { state: 'scheduled', myStatus: 'accepted', themeLabel: 'Brætspil', themeSensitive: false };
+  mockPod = {
+    state: 'scheduled',
+    memberUids: ['me', 'anna', 'bo'],
+    roster,
+    podInterests: { da: [], en: [] },
+    planning: { deadline: ts(meetupAt - 5 * DAY_MS), meetupAt: ts(meetupAt), place },
+    attendance,
+    confirmedAt: ts(Date.now() - 10 * DAY_MS),
+  };
+}
+
+let client: QueryClient;
+async function renderPod() {
+  client = new QueryClient({ defaultOptions: { queries: { gcTime: Infinity }, mutations: { retry: false, gcTime: Infinity } } });
+  await render(
+    <QueryClientProvider client={client}>
+      <PodScreen />
+    </QueryClientProvider>,
+  );
+}
+
+beforeEach(() => {
+  mockCall.mockReset();
+  mockRouter.push.mockClear();
+  mockOptions = [];
+  jest.mocked(createEventInCalendarAsync).mockClear();
+});
+afterEach(() => client.clear());
+
+describe('pod screen (D13)', () => {
+  it('asks "Still coming?" as the one next step, and "Can\'t make it" calls confirmAttendance after a confirmation', async () => {
+    const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
+    mockCall.mockResolvedValue({ ok: true });
+    scheduled(30 * HOUR, { me: 'pending', anna: 'coming', bo: 'coming' });
+    await renderPod();
+    expect(screen.getByText(/^Still coming on /)).toBeOnTheScreen();
+    expect(screen.getAllByTestId('attendance-cant')).toHaveLength(1);
+
+    await fireEvent.press(screen.getByTestId('attendance-cant'));
+    expect(mockCall).not.toHaveBeenCalled();
+    const buttons = alert.mock.calls[0]?.[2] as AlertButton[];
+    await act(async () => {
+      buttons.find((b) => b.style === 'destructive')?.onPress?.();
+    });
+    expect(mockCall).toHaveBeenCalledWith('confirmAttendance', { podId: POD_ID, coming: false });
+    alert.mockRestore();
+  });
+
+  it('shows "<firstName> hasn\'t confirmed" for unconfirmed members only', async () => {
+    scheduled(2 * HOUR, { me: 'coming', anna: 'unconfirmed', bo: 'notComing' });
+    await renderPod();
+    expect(screen.getByText("Anna hasn't confirmed")).toBeOnTheScreen();
+    expect(screen.queryByText("Bo hasn't confirmed")).toBeNull();
+    // Bo's status line, plus the viewer's own "Can't make it" on the attendance line.
+    expect(screen.getAllByText("Can't make it")).toHaveLength(2);
+    expect(screen.getByTestId('attendance-cant')).toBeOnTheScreen();
+    // Already answered: the chat is the next step, and the calm attendance line sits in the Plan section.
+    expect(screen.getByText('The meetup chat is open')).toBeOnTheScreen();
+    expect(screen.getByText("You're coming.")).toBeOnTheScreen();
+  });
+
+  it('adds the meetup to the calendar in one tap, without the theme', async () => {
+    scheduled(30 * HOUR, { me: 'coming', anna: 'coming', bo: 'coming' });
+    const meetupAt = (mockPod.planning as { meetupAt: { toMillis(): number } }).meetupAt.toMillis();
+    await renderPod();
+    await fireEvent.press(screen.getByTestId('add-to-calendar'));
+    expect(createEventInCalendarAsync).toHaveBeenCalledTimes(1);
+    expect(createEventInCalendarAsync).toHaveBeenCalledWith({
+      title: 'Pod meetup',
+      startDate: new Date(meetupAt),
+      endDate: new Date(meetupAt + 2 * HOUR),
+      location: 'Dokk1, Hack Kampmanns Plads 2, Aarhus',
+    });
+    expect(JSON.stringify(jest.mocked(createEventInCalendarAsync).mock.calls)).not.toContain('Brætspil');
+  });
+
+  it('during the extension round, the next step says "No time works yet — add another option"', async () => {
+    mockCard = { state: 'planning', myStatus: 'accepted', themeLabel: 'Brætspil', themeSensitive: false };
+    mockPod = {
+      state: 'planning',
+      memberUids: ['me', 'anna'],
+      roster,
+      podInterests: { da: [], en: [] },
+      planning: { deadline: ts(Date.now() + 20 * HOUR), extended: true },
+      confirmedAt: ts(Date.now() - 4 * DAY_MS),
+    };
+    mockOptions = [{ id: 'opt1', data: { votes: { anna: 'yes' } } }];
+    await renderPod();
+    expect(screen.getByText('No time works yet — add another option')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByTestId('next-step'));
+    expect(mockRouter.push).toHaveBeenCalledWith({ pathname: '/pod/[podId]/plan', params: { podId: POD_ID } });
+  });
+});

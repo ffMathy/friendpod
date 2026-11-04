@@ -20,6 +20,7 @@ import {
   matchProfileDocSchema,
   noticeDocSchema,
   optionDocSchema,
+  pairSignalDocSchema,
   photoGrantDocSchema,
   podCardDocSchema,
   podDocSchema,
@@ -29,7 +30,6 @@ import {
   pushTokensDocSchema,
   rateLimitDocSchema,
   reportDocSchema,
-  reviewQueueDocSchema,
   sanctionDocSchema,
   sensitiveInterestDocSchema,
   tagDocSchema,
@@ -91,7 +91,8 @@ export const PATHS = {
   report: (reportId: string) => `reports/${seg(reportId)}`,
   sanction: (uid: string) => `sanctions/${seg(uid)}`,
   ban: (emailH: string) => `bans/${seg(emailH)}`,
-  reviewItem: (id: string) => `reviewQueue/${seg(id)}`,
+  /** `pairKey(hmac, a, b)` (D9): server-only meet-again answers of two members about each other. */
+  pairSignal: (pairKey: string) => `pairSignals/${seg(pairKey)}`,
   photoGrant: (owner: string, viewer: string) => `photoGrants/${seg(owner)}_${seg(viewer)}`,
   pushTokens: (uid: string) => `pushTokens/${seg(uid)}`,
   rateLimit: (key: string) => `rateLimits/${seg(key)}`,
@@ -102,7 +103,7 @@ export const COLLECTIONS = {
   consentEvents: 'consentEvents',
   erasureLedger: 'erasureLedger',
   reports: 'reports',
-  reviewQueue: 'reviewQueue',
+  pairSignals: 'pairSignals',
 } as const;
 
 const CONVERTERS = {
@@ -129,7 +130,7 @@ const CONVERTERS = {
   report: converter(reportDocSchema),
   sanction: converter(sanctionDocSchema),
   ban: converter(banDocSchema),
-  reviewItem: converter(reviewQueueDocSchema),
+  pairSignal: converter(pairSignalDocSchema),
   photoGrant: converter(photoGrantDocSchema),
   pushTokens: converter(pushTokensDocSchema),
   rateLimit: converter(rateLimitDocSchema),

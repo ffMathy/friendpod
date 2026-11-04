@@ -2,10 +2,11 @@ import { getLaunchArea } from '@grouper/core';
 import { useTranslation } from 'react-i18next';
 import { Body, Button, Heading, Loading, Screen } from '@/components/ui';
 import { useAreaDoc, useUserDoc } from '@/data/docs';
+import { AboutMeField } from '@/features/profile/AboutMeField';
 import { useSession, useUid } from '@/features/session/SessionProvider';
 import { currentLocale } from '@/i18n';
 
-/** §3.1 step 11: live area, waitlist progress (bucketed) or "not in your area yet". */
+/** §3.1 step 11: live area, waitlist progress (bucketed) or "not in your area yet", and the optional "About me" (D4). */
 export default function Done() {
   const { t } = useTranslation();
   const { finishOnboarding } = useSession();
@@ -32,6 +33,8 @@ export default function Done() {
     <Screen>
       <Heading>{t('onboarding.done.title')}</Heading>
       <Body>{message}</Body>
+      <Body muted>{t('aboutMe.intro')}</Body>
+      <AboutMeField initial={user.data?.aboutMe ?? ''} />
       <Button label={t('onboarding.done.go')} onPress={() => void finishOnboarding()} />
     </Screen>
   );

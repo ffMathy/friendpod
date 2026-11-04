@@ -89,10 +89,29 @@ describe('callables over HTTP', () => {
   it('logs no meetup-chat text when a message fails validation', async () => {
     const text = 'ring 20 30 40 50, jeg er gravid og sidder ved vinduet';
     forbidInLogs(text, '20 30 40 50', 'gravid', 'HttpUser0005');
-    const res = await call(fns.sendMessage as unknown as HttpFn, { podId: 'c'.repeat(20), text, quickReply: 'imHere' }, { uid: 'HttpUser0005' });
+    const res = await call(fns.sendMessage as unknown as HttpFn, { podId: 'c'.repeat(20), text, kind: 'text' }, { uid: 'HttpUser0005' });
     expect(res.statusCode).toBe(400);
     expect(errorOf(res)).toEqual({ status: 'INVALID_ARGUMENT', message: 'VALIDATION', details: { code: 'VALIDATION' } });
     expect(capturedLogs().some((l) => l.includes('callable.invalidInput') && l.includes('sendMessage'))).toBe(true);
+  });
+
+  it('checks a proposed place against the Places shape before the proposeOption stub (D8)', async () => {
+    const { googleMapsPlaceUrl } = await import('@grouper/core');
+    const placeId = 'ChIJ0000aarhusLibrary';
+    const place = { placeId, name: 'Dokk1', address: 'Hack Kampmanns Plads 2, Aarhus', lat: 56.1532, lng: 10.214, type: 'library', mapUrl: googleMapsPlaceUrl(placeId, 'Dokk1') };
+    const data = { podId: 'e'.repeat(20), startsAt: Date.UTC(2026, 10, 20, 17), place };
+    expect((await call(fns.proposeOption as unknown as HttpFn, data, { uid: 'HttpUser0007' })).statusCode).toBe(501);
+    for (const bad of [
+      { ...place, mapUrl: 'https://maps.app.goo.gl/Xy12AbCd' },
+      { ...place, type: 'night_club' },
+      { ...place, lat: 56.15321 },
+      { ...place, placeText: 'my place' },
+    ]) {
+      const res = await call(fns.proposeOption as unknown as HttpFn, { ...data, place: bad }, { uid: 'HttpUser0007' });
+      expect(errorOf(res).details).toEqual({ code: 'VALIDATION' });
+    }
+    const freeText = await call(fns.proposeOption as unknown as HttpFn, { podId: data.podId, startsAt: data.startsAt, placeText: 'Dokk1', publicPlace: true }, { uid: 'HttpUser0007' });
+    expect(errorOf(freeText).details).toEqual({ code: 'VALIDATION' });
   });
 
   it('accepts a report of a chat message by its id, and requires the id', async () => {

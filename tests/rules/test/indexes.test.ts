@@ -36,7 +36,7 @@ const TTL_GROUPS = [
   'consentEvents',
   'reports',
   'bans',
-  'reviewQueue',
+  'pairSignals', // meet-again pair signals (D9), when the schema sets expiresAt
   'rateLimits',
   'erasureLedger',
   'underageMarkers',
@@ -76,6 +76,15 @@ describe('firestore.indexes.json', () => {
   it('leaves matchProfiles.blockedH and recentH on automatic indexing (erasure queries them)', () => {
     expect(override('matchProfiles', 'blockedH')).toBeUndefined();
     expect(spec.fieldOverrides.filter((f) => f.collectionGroup === 'matchProfiles' && f.fieldPath.startsWith('recentH'))).toEqual([]);
+  });
+
+  it('leaves pairSignals.uidHs on automatic indexing (erasure finds a user\'s pairs with array-contains)', () => {
+    expect(spec.fieldOverrides.filter((f) => f.collectionGroup === 'pairSignals' && f.fieldPath === 'uidHs')).toEqual([]);
+  });
+
+  it('has no review queue any more (D2)', () => {
+    expect(spec.fieldOverrides.filter((f) => f.collectionGroup === 'reviewQueue')).toEqual([]);
+    expect(spec.indexes.filter((i) => i.collectionGroup === 'reviewQueue')).toEqual([]);
   });
 
   it('exempts the large fields from automatic indexing', () => {

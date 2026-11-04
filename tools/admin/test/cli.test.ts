@@ -7,7 +7,9 @@ describe('admin CLI skeleton', () => {
     const r = run(['--help']);
     expect(r.code).toBe(0);
     for (const c of COMMANDS) expect(r.stdout).toContain(c.usage);
-    for (const group of ['review', 'sanctions', 'areas', 'restore']) expect(COMMANDS.some((c) => c.group === group)).toBe(true);
+    for (const group of ['areas', 'restore']) expect(COMMANDS.some((c) => c.group === group)).toBe(true);
+    // No human review or sanctions since F17 (D2).
+    for (const group of ['review', 'sanctions']) expect(COMMANDS.some((c) => c.group === group)).toBe(false);
   });
 
   it('answers "not implemented" for every command, pointing at the design', () => {
@@ -19,9 +21,9 @@ describe('admin CLI skeleton', () => {
   });
 
   it('requires a reason for state-changing commands and rejects unknown ones', () => {
-    expect(run(['sanctions', 'apply', 'uid1']).code).toBe(EXIT_USAGE);
+    expect(run(['areas', 'set-status', 'aarhus', 'live']).code).toBe(EXIT_USAGE);
     expect(run(['restore', 'replay-ledger', '--reason']).code).toBe(EXIT_USAGE);
-    expect(run(['review', 'list']).code).toBe(EXIT_NOT_IMPLEMENTED);
+    expect(run(['review', 'list']).code).toBe(EXIT_USAGE);
     expect(run(['drop', 'everything']).code).toBe(EXIT_USAGE);
   });
 });

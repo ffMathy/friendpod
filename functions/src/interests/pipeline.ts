@@ -166,7 +166,7 @@ async function planItems(deps: PipelineDeps, candidates: readonly Candidate[], r
   snaps.forEach((snap, k) => {
     if (snap.exists) stored.set(candidates[k]!.tagKey, tagStateFromDoc(snap, EMBEDDING_MODEL.dim));
   });
-  const prototypes = candidates.some((c) => !stored.has(c.tagKey)) ? await deps.prototypes() : null;
+  const prototypes = await deps.prototypes();
 
   const plan: PersistItem[] = [];
   for (const c of candidates) {
@@ -174,7 +174,7 @@ async function planItems(deps: PipelineDeps, candidates: readonly Candidate[], r
     const state = known ?? newTagState(c, prototypes);
     const decision = decideSensitivity({
       lexiconHit: c.lexiconHit || state.sens.lexiconHit,
-      detectorMargin: state.sens.margin,
+      detectorMargin: known ? holdingMargin(c, known, prototypes) : state.sens.margin,
       knownOrdinary: state.sens.knownOrdinary,
       selfFlagPrivate: c.input.selfFlagPrivate === true,
       notSensitiveForMe: c.input.notSensitiveForMe === true,
@@ -213,6 +213,17 @@ async function planItems(deps: PipelineDeps, candidates: readonly Candidate[], r
     });
   }
   return plan;
+}
+
+/**
+ * The margin a holding of an already stored text is decided with. The stored margin came from the first writer's
+ * vector, which may have been crafted (D1), so this request's own client margin can still raise it: sensitivity only
+ * ratchets upward per holding. The tag's own partition stays as first stored; such a holding uses the private slot.
+ */
+function holdingMargin(c: Candidate, known: TagState, prototypes: Prototypes | null): number | null {
+  if (known.sens.margin === null || !Number.isFinite(known.sens.margin)) return null;
+  const server = prototypes ? Math.max(known.sens.margin, detectorMargin(known.vec, prototypes)) : known.sens.margin;
+  return reconcileDetectorMargin(c.input.detector.margin, server);
 }
 
 /** A text first seen now: the client's vector (trusted, D1) and the tag-level signals at this moment. */

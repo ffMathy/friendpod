@@ -38,7 +38,7 @@ describe('holdings (§5.2 (5))', () => {
     selfFlagged: true,
     source: 'self',
     consentEventId: 'ce1',
-    consentTextVersion: 'art9-tag-da-v1',
+    consentTextVersion: 'art9-blanket-da-v1',
     consentedAt: ts,
     starred: false,
   });
