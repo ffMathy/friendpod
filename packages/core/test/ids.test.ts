@@ -2,7 +2,7 @@ import { webcrypto } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
 import { base32 } from '../src/ids/base32';
 import { webCryptoHmacSha256 } from '../src/ids/hmac';
-import { emailHash, identityHash, interestId, podId, uidHash } from '../src/ids/podId';
+import { emailHash, identityHash, interestId, PAIR_KEY_LENGTH, pairKey, podId, uidHash } from '../src/ids/podId';
 import { nodeHmacSha256, sha256Hex } from '../src/node';
 import type { WeekId } from '../src/types/ids';
 
@@ -72,5 +72,18 @@ describe('pod ids and pseudonyms (§6.5, §8)', () => {
 
   it('exposes sha256 for the Node side', () => {
     expect(sha256Hex('abc')).toBe('ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad');
+  });
+});
+
+describe('pairKey (D9)', () => {
+  it('is symmetric, keyed and refuses a pair of one', async () => {
+    const hmac = nodeHmacSha256(KEY);
+    const k = await pairKey(hmac, 'alice', 'bob');
+    expect(k).toHaveLength(PAIR_KEY_LENGTH);
+    expect(await pairKey(hmac, 'bob', 'alice')).toBe(k);
+    expect(await pairKey(nodeHmacSha256(new Uint8Array(32).fill(9)), 'alice', 'bob')).not.toBe(k);
+    expect(k).not.toBe(await pairKey(hmac, 'alice', 'bobby'));
+    await expect(pairKey(hmac, 'alice', 'alice')).rejects.toThrow();
+    await expect(pairKey(hmac, 'alice', 'a/b')).rejects.toThrow();
   });
 });

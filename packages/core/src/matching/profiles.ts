@@ -10,8 +10,11 @@ export interface ProfileDefaults {
   readonly ageHalfWidth: number;
   /** "Open to anyone" (Q12): opt-in at launch, on by default (opt-out) in the alpha. */
   readonly openToAnyoneDefault: boolean;
-  /** H5 windows written into `recentH` at release. */
-  readonly h5: { readonly coMemberWeeks: number; readonly coProposedWeeks: number };
+  /**
+   * H5 windows written into `recentH`: at release, and after a mutual meet-again "yes" (D9), which shortens the
+   * pair's co-member window to `meetAgainWeeks` (never lengthens it).
+   */
+  readonly h5: { readonly coMemberWeeks: number; readonly coProposedWeeks: number; readonly meetAgainWeeks: number };
   readonly confirmationMin: number;
 }
 
@@ -57,7 +60,7 @@ export const LAUNCH_PROFILE: MatchingProfile = {
     sizePenalty: { 4: 0.5, 5: 0, 6: 0.2 },
     sensitive: { ...SENSITIVE, waiveActivityForFounderInvited: false },
   },
-  defaults: { ageHalfWidth: 7, openToAnyoneDefault: false, h5: { coMemberWeeks: 26, coProposedWeeks: 4 }, confirmationMin: 4 },
+  defaults: { ageHalfWidth: 7, openToAnyoneDefault: false, h5: { coMemberWeeks: 26, coProposedWeeks: 4, meetAgainWeeks: 4 }, confirmationMin: 4 },
 };
 
 /** Thin-market profile for the 50–150-tester alpha (A26). S1 density is a privacy guard and is never relaxed. */
@@ -70,7 +73,7 @@ export const ALPHA_PROFILE: MatchingProfile = {
     sizePenalty: { 4: 0.5, 5: 0.1, 6: 0 },
     sensitive: { ...SENSITIVE, waiveActivityForFounderInvited: true },
   },
-  defaults: { ageHalfWidth: 10, openToAnyoneDefault: true, h5: { coMemberWeeks: 8, coProposedWeeks: 2 }, confirmationMin: 4 },
+  defaults: { ageHalfWidth: 10, openToAnyoneDefault: true, h5: { coMemberWeeks: 8, coProposedWeeks: 2, meetAgainWeeks: 4 }, confirmationMin: 4 },
 };
 
 export const MATCHING_PROFILES: Readonly<Record<MatchingProfileId, MatchingProfile>> = {

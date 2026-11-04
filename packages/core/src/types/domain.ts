@@ -33,24 +33,63 @@ export type LaunchAreaStatus = (typeof LAUNCH_AREA_STATUSES)[number];
 export const MATCHING_PROFILE_IDS = ['launch', 'alpha'] as const;
 export type MatchingProfileId = (typeof MATCHING_PROFILE_IDS)[number];
 
-/** GDPR Art. 9 categories named on the consent sheet (PRIVACY.md §3.3). */
+/** GDPR Art. 9 categories named in the blanket consent (PRIVACY.md §3.3); the lexicon files its terms under them. */
 export const ART9_CATEGORIES = ['health', 'religion', 'sexualOrientation', 'politics', 'ethnicOrigin', 'tradeUnion'] as const;
 export type Art9Category = (typeof ART9_CATEGORIES)[number];
 
-/** `sensitiveInterests.source` (§8.1). */
-export const SENSITIVITY_SOURCES = ['review', 'lexicon', 'self', 'model'] as const;
+/** `sensitiveInterests.source` (§8.1). There is no human review (D2). */
+export const SENSITIVITY_SOURCES = ['lexicon', 'self', 'model'] as const;
 export type SensitivitySource = (typeof SENSITIVITY_SOURCES)[number];
 
 export const REPORT_CATEGORIES = ['harassment', 'safety', 'noShow', 'content', 'underage', 'notGenuine'] as const;
 export type ReportCategory = (typeof REPORT_CATEGORIES)[number];
-export const REPORT_TARGET_TYPES = ['user', 'option', 'interest', 'message'] as const;
+// No 'interest' target: an interest's wording could only be acted on by a human reviewer (D2).
+export const REPORT_TARGET_TYPES = ['user', 'option', 'message'] as const;
 export type ReportTargetType = (typeof REPORT_TARGET_TYPES)[number];
 
-/** One-tap meetup-chat messages; only the key is stored, each device renders it in its own language. */
-export const QUICK_REPLIES = ['onMyWay', 'runningLate', 'imHere', 'cantMakeIt'] as const;
-export type QuickReply = (typeof QUICK_REPLIES)[number];
-export const POD_MESSAGE_KINDS = ['text', 'quickReply'] as const;
-export type PodMessageKind = (typeof POD_MESSAGE_KINDS)[number];
+/**
+ * A member's answer to "Still coming?" (D5). A yes vote for the winning option counts as 'coming' at plan lock;
+ * 'unconfirmed' is set when the T−6 h nudge also goes unanswered. Only 'coming' counts for the attendance check,
+ * and no answer is never a no-show by itself.
+ */
+export const ATTENDANCE_STATUSES = ['pending', 'coming', 'notComing', 'unconfirmed'] as const;
+export type AttendanceStatus = (typeof ATTENDANCE_STATUSES)[number];
+
+/** Pod states in which a backfill invite may still be sent (D6): never once the plan is locked. */
+export const BACKFILL_POD_STATES: readonly PodState[] = ['proposed', 'planning'];
+
+/**
+ * Google Places (New) primary types a meetup option may use (D8, §4.5): public places only. The app filters
+ * Autocomplete predictions to these, and proposeOption refuses any other.
+ */
+export const PUBLIC_PLACE_TYPES = [
+  'cafe',
+  'coffee_shop',
+  'tea_house',
+  'bakery',
+  'ice_cream_shop',
+  'restaurant',
+  'bar',
+  'pub',
+  'wine_bar',
+  'library',
+  'book_store',
+  'museum',
+  'art_gallery',
+  'cultural_center',
+  'community_center',
+  'movie_theater',
+  'bowling_alley',
+  'park',
+  'dog_park',
+  'botanical_garden',
+  'hiking_area',
+  'plaza',
+  'tourist_attraction',
+  'zoo',
+  'aquarium',
+] as const;
+export type PublicPlaceType = (typeof PUBLIC_PLACE_TYPES)[number];
 
 export const PLATFORMS = ['ios', 'android'] as const;
 export type Platform = (typeof PLATFORMS)[number];
@@ -66,11 +105,11 @@ export type ConsentAction = (typeof CONSENT_ACTIONS)[number];
 export const ERASURE_KINDS = ['account', 'interest', 'consentWithdrawal', 'gender', 'photo', 'block', 'unblock'] as const;
 export type ErasureKind = (typeof ERASURE_KINDS)[number];
 
-export const REVIEW_KINDS = ['tagSensitivity', 'conceptMerge', 'abuseHold', 'report', 'sensitiveAnomaly'] as const;
-export type ReviewKind = (typeof REVIEW_KINDS)[number];
-
+/** Automatic holds on sensitive-themed pods; nobody reviews them, so each expires on its own (D2). */
 export const SENSITIVE_HOLD_REASONS = ['notGenuine', 'anomaly'] as const;
 export type SensitiveHoldReason = (typeof SENSITIVE_HOLD_REASONS)[number];
+/** [A] Length of an automatic sensitive hold. */
+export const SENSITIVE_HOLD_DAYS = 28;
 
 /**
  * Availability is a 6-bit mask: weekday / Saturday / Sunday × day / evening (A9).

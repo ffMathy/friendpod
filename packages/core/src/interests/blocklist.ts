@@ -1,7 +1,7 @@
 import { tagTokens } from './normalize';
 
 /**
- * Starter blocklist (§5.2 (2)), the one list for interest tags (the embedder's moderateTag) and meetup-chat text
+ * Starter blocklist (§5.2 (2)), the one list for interest tags (addInterests, on the device and the server), "about me" and meetup-chat text
  * (checkChatText), checked on a leetspeak-folded copy. Deliberately phrase-based: bare drug or illness words would
  * also block recovery and support interests, which are core sensitive use cases.
  * TODO(M0): the founder curates the full da/en lists, including slurs and anything sexualising minors.

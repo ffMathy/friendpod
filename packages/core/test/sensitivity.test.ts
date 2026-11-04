@@ -1,58 +1,69 @@
 import { describe, expect, it } from 'vitest';
 import { sha256Hex, nodeHmacSha256 } from '../src/node';
 import { decideSensitivity, type SensitivitySignals } from '../src/interests/sensitivity';
-import {
-  assertV2ThresholdFloors,
-  DEFAULT_ASSIGN_THRESHOLDS,
-  decideAssignment,
-  EMBEDDING_MODEL_ID,
-  EMBEDDING_MODEL_ID_V1,
-  newConceptId,
-  PartitionMismatchError,
-  tagKeyMaterial,
-  V1_ASSIGN_THRESHOLDS,
-} from '../src/interests/assign';
+import { assertV2ThresholdFloors, DEFAULT_ASSIGN_THRESHOLDS, decideAssignment, newConceptId, PartitionMismatchError, V1_ASSIGN_THRESHOLDS } from '../src/interests/assign';
+import { EMBEDDING_MODEL_ID, EMBEDDING_MODEL_ID_V1, tagKeyMaterial } from '../src/interests/model';
 
-const base: SensitivitySignals = { reviewed: null, lexiconHit: false, selfFlag: false, detectorMargin: -0.2, thirdParty: false };
+const base: SensitivitySignals = {
+  lexiconHit: false,
+  detectorMargin: -0.2,
+  knownOrdinary: false,
+  selfFlagPrivate: false,
+  notSensitiveForMe: false,
+  thirdParty: false,
+  hasArt9Consent: true,
+};
 const decide = (s: Partial<SensitivitySignals>) => decideSensitivity({ ...base, ...s });
 
-describe('sensitivity ordering (§5.2 (5)): reviewed > lexicon > self-flag > detector', () => {
+describe('sensitivity (§5.2 (5), D2, D3): lexicon > known-ordinary > detector; holding flags on top', () => {
   it('ordinary when no signal fires', () => {
-    expect(decide({})).toMatchObject({ tag: 'ordinary', holdingSensitive: false, outcome: 'ordinary', queueForReview: false });
+    expect(decide({})).toMatchObject({ tag: 'ordinary', tagSource: null, holdingSensitive: false, outcome: 'ordinary', overridden: false });
   });
 
-  it('a review decision beats the lexicon and the detector', () => {
-    expect(decide({ reviewed: 'not', lexiconHit: true, detectorMargin: 0.5 })).toMatchObject({ tag: 'ordinary', tagSource: 'review', outcome: 'ordinary' });
-    expect(decide({ reviewed: 'sensitive', detectorMargin: -1 })).toMatchObject({ tag: 'sensitive', holdingSource: 'review', outcome: 'needsConsent' });
+  it('a lexicon hit makes the tag sensitive without the detector, and beats the known-ordinary list', () => {
+    expect(decide({ lexiconHit: true, detectorMargin: null })).toMatchObject({ tag: 'sensitive', tagSource: 'lexicon', holdingSource: 'lexicon', outcome: 'sensitive' });
+    expect(decide({ lexiconHit: true, knownOrdinary: true })).toMatchObject({ tag: 'sensitive', tagSource: 'lexicon' });
   });
 
-  it('the lexicon decides the tag without the detector', () => {
-    expect(decide({ lexiconHit: true, detectorMargin: null })).toMatchObject({ tag: 'sensitive', tagSource: 'lexicon', holdingSource: 'lexicon', queueForReview: false });
-  });
-
-  it('a self-flag makes only the holding sensitive and outranks the detector as the source', () => {
-    expect(decide({ selfFlag: true })).toMatchObject({ tag: 'ordinary', holdingSensitive: true, holdingSource: 'self', outcome: 'needsConsent' });
-    expect(decide({ selfFlag: true, detectorMargin: 0.1 })).toMatchObject({ tag: 'suspected', holdingSource: 'self', queueForReview: true });
-    expect(decide({ selfFlag: true, reviewed: 'not' })).toMatchObject({ tag: 'ordinary', holdingSensitive: true, holdingSource: 'self' });
-    expect(decide({ selfFlag: true, lexiconHit: true })).toMatchObject({ holdingSource: 'lexicon' });
-  });
-
-  it('the detector suspects at margin ≥ −0.03 and queues the tag for review', () => {
-    expect(decide({ detectorMargin: -0.03 })).toMatchObject({ tag: 'suspected', tagSource: 'model', holdingSource: 'model', queueForReview: true, outcome: 'needsConsent' });
+  it('the detector flags at margin ≥ −0.03 and fails closed when the margin is missing or not finite', () => {
+    expect(decide({ detectorMargin: -0.03 })).toMatchObject({ tag: 'sensitive', tagSource: 'model', holdingSource: 'model', outcome: 'sensitive' });
     expect(decide({ detectorMargin: -0.0301 })).toMatchObject({ tag: 'ordinary' });
     expect(decideSensitivity({ ...base, detectorMargin: 0.005 }, 0.01)).toMatchObject({ tag: 'ordinary' });
+    expect(decide({ detectorMargin: null }).tag).toBe('sensitive');
+    expect(decide({ detectorMargin: Number.NaN }).tag).toBe('sensitive');
   });
 
-  it('fails closed when the detector result is missing or not finite', () => {
-    expect(decide({ detectorMargin: null }).tag).toBe('suspected');
-    expect(decide({ detectorMargin: Number.NaN }).tag).toBe('suspected');
+  it('the known-ordinary list turns a detector flag off', () => {
+    expect(decide({ detectorMargin: 0.2, knownOrdinary: true })).toMatchObject({ tag: 'ordinary', tagSource: 'knownOrdinary', outcome: 'ordinary' });
+    expect(decide({ detectorMargin: null, knownOrdinary: true })).toMatchObject({ tag: 'ordinary' });
   });
 
-  it('refuses third-party tags that are sensitive or suspected, and only warns on ordinary ones', () => {
-    expect(decide({ thirdParty: true, lexiconHit: true })).toMatchObject({ outcome: 'refuseThirdParty', queueForReview: false });
+  it('"Keep this private" makes only the holding sensitive', () => {
+    expect(decide({ selfFlagPrivate: true })).toMatchObject({ tag: 'ordinary', holdingSensitive: true, holdingSource: 'self', outcome: 'sensitive' });
+    expect(decide({ selfFlagPrivate: true, knownOrdinary: true })).toMatchObject({ holdingSource: 'self' });
+    expect(decide({ selfFlagPrivate: true, lexiconHit: true })).toMatchObject({ holdingSource: 'lexicon' });
+    // Contradictory flags (the schema refuses them) fail safe: private wins.
+    expect(decide({ selfFlagPrivate: true, notSensitiveForMe: true, lexiconHit: true })).toMatchObject({ holdingSensitive: true, overridden: false });
+  });
+
+  it('"This isn\'t sensitive for me" makes a sensitive tag ordinary for this holding only', () => {
+    expect(decide({ lexiconHit: true, notSensitiveForMe: true })).toMatchObject({ tag: 'sensitive', holdingSensitive: false, overridden: true, outcome: 'ordinary' });
+    expect(decide({ detectorMargin: 0.1, notSensitiveForMe: true, hasArt9Consent: false })).toMatchObject({ overridden: true, outcome: 'ordinary' });
+    expect(decide({ notSensitiveForMe: true })).toMatchObject({ overridden: false, outcome: 'ordinary' });
+  });
+
+  it('refuses a sensitive holding without the blanket consent, so refusing consent costs only those tags', () => {
+    expect(decide({ lexiconHit: true, hasArt9Consent: false })).toMatchObject({ holdingSensitive: true, outcome: 'refuseNoConsent' });
+    expect(decide({ selfFlagPrivate: true, hasArt9Consent: false })).toMatchObject({ outcome: 'refuseNoConsent' });
+    expect(decide({ hasArt9Consent: false })).toMatchObject({ outcome: 'ordinary' });
+  });
+
+  it('refuses sensitive third-party tags even with consent or an override, and only warns on ordinary ones', () => {
+    expect(decide({ thirdParty: true, lexiconHit: true })).toMatchObject({ outcome: 'refuseThirdParty', holdingSensitive: false });
     expect(decide({ thirdParty: true, detectorMargin: 0 })).toMatchObject({ outcome: 'refuseThirdParty' });
+    expect(decide({ thirdParty: true, lexiconHit: true, notSensitiveForMe: true })).toMatchObject({ outcome: 'refuseThirdParty' });
     expect(decide({ thirdParty: true })).toMatchObject({ outcome: 'ordinary', thirdPartyWarning: true });
-    expect(decide({ thirdParty: true, reviewed: 'not', lexiconHit: true })).toMatchObject({ outcome: 'ordinary', thirdPartyWarning: true });
+    expect(decide({ thirdParty: true, detectorMargin: 0.2, knownOrdinary: true })).toMatchObject({ outcome: 'ordinary', thirdPartyWarning: true });
   });
 });
 
@@ -76,10 +87,9 @@ describe('concept assignment decision table (§5.2 (6), EmbeddingGemma 2)', () =
 
   it.each([
     [0.95, { action: 'merge', conceptId: 'c_x' }],
-    [0.9499, { action: 'newWithMergeProposal', proposeMergeInto: 'c_x' }],
-    [0.93, { action: 'newWithMergeProposal', proposeMergeInto: 'c_x' }],
-    [0.9299, { action: 'new' }],
-  ] as const)('sensitive cos %d', (cos, expected) => {
+    [0.9499, { action: 'new' }],
+    [0.93, { action: 'new' }],
+  ] as const)('sensitive cos %d: merge or new, never a proposal (D2)', (cos, expected) => {
     expect(decideAssignment('sensitive', near(cos, 0, true, 0))).toEqual(expected);
   });
 

@@ -26,4 +26,13 @@ export {
   type ProfileDefaults,
 } from './profiles';
 export { unmatchedReason } from './unmatched';
+export {
+  meetAgainOutcome,
+  mergeRecentUntil,
+  NEVER_WEEK_ID,
+  recentUntilAfterMeetAgain,
+  setRecentAfterMeetAgain,
+  type MeetAgainAnswer,
+  type PairOutcome,
+} from './pairHistory';
 export { decodeC128, decodeMatchSnapshot, encodeC128, encodeMatchSnapshot, matchResultFile, type DecodedSnapshot } from './snapshot';

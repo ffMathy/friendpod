@@ -3,5 +3,8 @@ export * from './pii';
 export * from './blocklist';
 export * from './lexicon';
 export * from './thirdParty';
+export * from './model';
+export * from './detector';
+export * from './knownOrdinary';
 export * from './sensitivity';
 export * from './assign';

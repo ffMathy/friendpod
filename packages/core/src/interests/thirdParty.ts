@@ -1,8 +1,8 @@
 import { tagTokens } from './normalize';
 
 /**
- * Possessive kinship patterns (§5.2 (2)): "min datters …", "my son's …". A hit plus a sensitive or
- * suspected tag is refused (THIRD_PARTY_SENSITIVE): the user's consent cannot cover a family member's
+ * Possessive kinship patterns (§5.2 (2)): "min datters …", "my son's …". A hit plus a sensitive
+ * tag is refused (THIRD_PARTY_SENSITIVE): the user's consent cannot cover a family member's
  * Art. 9 data (PRIVACY.md §4.3). An ordinary hit only warns. "forælder til et barn med autisme" /
  * "parent of an autistic child" is about the user and does not match.
  */

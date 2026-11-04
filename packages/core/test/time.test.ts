@@ -7,11 +7,13 @@ import {
   chatWindow,
   dropSchedule,
   feedbackClosesAt,
+  feedbackTimers,
   isChatOpen,
   meetupTimers,
   nextDropWeek,
   participationEffectiveWeek,
   planningDeadline,
+  planningExtensionDeadline,
   proposalDecisionAt,
 } from '../src/time/schedule';
 import { addWeeks, dateInWeek, isoWeekOfDate, isoWeeksInYear, isWeekId, parseWeekId, weekIdAt, weeksBetween } from '../src/time/weekId';
@@ -128,8 +130,51 @@ describe('drop schedule (§4.1)', () => {
     expect(planningDeadline(t, 'keep') - t).toBe(72 * 3_600_000);
     expect(planningDeadline(t, 'reschedule') - t).toBe(48 * 3_600_000);
     expect(planningDeadline(t, 'replan') - t).toBe(48 * 3_600_000);
-    expect(meetupTimers(t)).toEqual({ stillComingAt: t - 86_400_000, attendanceCheckAt: t - 6 * 3_600_000, reminderAt: t - 2 * 3_600_000, happenedAt: t + 2 * 3_600_000 });
+    const H = 3_600_000;
+    expect(meetupTimers(t, t - 5 * 24 * H)).toEqual({
+      stillComing3d: t - 72 * H,
+      stillComing24h: t - 24 * H,
+      nudge6h: t - 6 * H,
+      attendanceCheck: t - 3 * H,
+      reminder: t - 2 * H,
+      happened: t + 2 * H,
+    });
     expect(feedbackClosesAt(t) - t).toBe(7 * 86_400_000);
+    expect(planningExtensionDeadline(t) - t).toBe(24 * H);
+  });
+
+  it('asks "Still coming?" at T−3 days only when the meetup is at least 4 days after plan lock (D5)', () => {
+    const t = at('2026-11-20T17:00:00Z');
+    const H = 3_600_000;
+    expect(meetupTimers(t, t - 96 * H).stillComing3d).toBe(t - 72 * H);
+    expect(meetupTimers(t, t - 96 * H + 1).stillComing3d).toBeNull();
+    expect(meetupTimers(t, t - 30 * H).stillComing3d).toBeNull();
+  });
+
+  it('sends the feedback push at 10:00 Copenhagen the morning after, and one reminder 3 days later (D12)', () => {
+    const meetup = fromLocal({ year: 2026, month: 11, day: 14, hour: 19, minute: 0 });
+    const f = feedbackTimers(meetup);
+    expect(toLocal(f.push)).toMatchObject({ year: 2026, month: 11, day: 15, hour: 10, minute: 0 });
+    expect(toLocal(f.reminder)).toMatchObject({ month: 11, day: 18, hour: 10, minute: 0 });
+    expect(f.reminder - f.push).toBe(72 * 3_600_000);
+    // A late meetup still gets the next calendar morning, after `happened` (T+2 h).
+    const late = fromLocal({ year: 2026, month: 11, day: 14, hour: 22, minute: 0 });
+    expect(toLocal(feedbackTimers(late).push)).toMatchObject({ day: 15, hour: 10 });
+    expect(feedbackTimers(late).push).toBeGreaterThan(meetupTimers(late, late - 86_400_000 * 5).happened);
+    // Month end.
+    expect(toLocal(feedbackTimers(fromLocal({ year: 2026, month: 12, day: 31, hour: 12, minute: 0 })).push)).toMatchObject({ year: 2027, month: 1, day: 1, hour: 10 });
+  });
+
+  it('keeps 10:00 local across DST changes (D12)', () => {
+    // Fall back on Sunday 25 October 2026: push Sat 24th, reminder Tue 27th, 73 elapsed hours.
+    const autumn = feedbackTimers(fromLocal({ year: 2026, month: 10, day: 23, hour: 18, minute: 0 }));
+    expect(new Date(autumn.push).toISOString()).toBe('2026-10-24T08:00:00.000Z');
+    expect(new Date(autumn.reminder).toISOString()).toBe('2026-10-27T09:00:00.000Z');
+    // Spring forward on Sunday 29 March 2026: the push falls on the DST day, at 10:00 CEST.
+    const spring = feedbackTimers(fromLocal({ year: 2026, month: 3, day: 28, hour: 18, minute: 0 }));
+    expect(new Date(spring.push).toISOString()).toBe('2026-03-29T08:00:00.000Z');
+    expect(toLocal(spring.reminder)).toMatchObject({ month: 4, day: 1, hour: 10 });
+    expect(spring.push - fromLocal({ year: 2026, month: 3, day: 28, hour: 18, minute: 0 })).toBe(15 * 3_600_000);
   });
 
   it('applies participation changes at the right drop', () => {
@@ -151,7 +196,7 @@ describe('meetup chat window', () => {
 
   it('opens with "Still coming?" at T−24 h, closes at T+24 h and expires messages at T+72 h', () => {
     const w = chatWindow(meetupAt);
-    expect(w.opensAt.getTime()).toBe(meetupTimers(meetupAt.getTime()).stillComingAt);
+    expect(w.opensAt.getTime()).toBe(meetupTimers(meetupAt.getTime(), 0).stillComing24h);
     expect(w.opensAt.toISOString()).toBe('2026-11-13T13:00:00.000Z');
     expect(w.closesAt.toISOString()).toBe('2026-11-15T13:00:00.000Z');
     expect(w.deleteAt.toISOString()).toBe('2026-11-17T13:00:00.000Z');

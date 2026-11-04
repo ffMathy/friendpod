@@ -2,19 +2,19 @@ import type { ConsentScope } from '../types/domain';
 import { getLegalText, LEGAL_TEXTS, type LegalTextId } from './consent-texts';
 
 /**
- * SHA-256 (hex) of `canonicalLegalText()` of each unfilled template. Precomputed so the device needs
+ * SHA-256 (hex) of `canonicalLegalText()` of each text. Precomputed so the device needs
  * no hashing; test/legal.test.ts recomputes every value and locks it.
  */
 export const LEGAL_TEXT_SHA256 = {
-  'art9-tag-en-v1': 'd5458e681a1a5afc4f8be9d5576a415b095ea0a5653e5bfb2dd611f6c1b7b843',
-  'art9-tag-da-v1': 'b6453d61cfcd340bc5ac824798c5e5876ea54267b67625aa882dd1fd1419eb5c',
+  'art9-blanket-en-v1': '0fd60c2dfeea917ba93d31635bb80ad9423f31815f25fde628f041e53d9bc60c',
+  'art9-blanket-da-v1': '443dbe0ab033c96307879c6a975f96220f95cd45f7f2a00b7f817b9ff19068ba',
   'gender-en-v1': '1dee9a6f14751e78b3421d9709df1407cd0454e12386429bd29fcb7d1e077004',
   'gender-nonbinary-en-v1': '5749af3c6bd3faff814fddd802af9d84031fe343474fbe33776296d17e59a44c',
   'gender-da-v1': 'e10d655e35efbb81bb67d79b4122d92f0cc8b69d42f8881e4b39868576f19974',
-  'interest-notice-en-v1': 'b6840ae41002dc8f0f435036dc7c3ec8893aea7e3bce85a291d19a43e29b5d80',
-  'interest-notice-da-v1': '112c7c125ca91b74d5c608fea7a167d01304009fc28fb5eec38224b9ab46f058',
-  'art9-withdraw-en-v1': '82ee0a12f3f3fb170eaf777ec15d5f8fab1526f2e911a2602f4ccd1bdfac1f70',
-  'art9-withdraw-da-v1': '8bf1aaff1fa65806928c8efd44e733fa330aa6bd9af6559e27c5965e1a57aa44',
+  'interest-notice-en-v2': '596f74a7aaaa5f702483d7c474b68cf41cecfcf3e5d9308c251c76c93f36385c',
+  'interest-notice-da-v2': 'b63d67b68971a7a3d2166b15fc69b000928d0dfe9e58e7619be8d43d69bcf3d0',
+  'art9-withdraw-all-en-v1': '984ec9e1a0d3b196745db8d757390eae48cc7422ccee9e16dcfd3163c7807416',
+  'art9-withdraw-all-da-v1': '958d083e39f64d4411bfe769763538d6bcb700f330b5977b553999d7b05e9632',
 } as const satisfies Record<LegalTextId, string>;
 
 export interface ConsentProof {
@@ -35,6 +35,11 @@ export function isValidConsentProof(proof: ConsentProof, scope: ConsentScope): b
   const text = getLegalText(proof.textVersion);
   if (!text || text.scope !== scope) return false;
   return (LEGAL_TEXT_SHA256 as Record<string, string>)[proof.textVersion] === proof.textSha256;
+}
+
+/** The blanket Art. 9 consent proof for setArt9Consent (D3): a known `art9Blanket` text with its exact hash. */
+export function isValidArt9ConsentProof(proof: ConsentProof): boolean {
+  return isValidConsentProof(proof, 'art9') && getLegalText(proof.textVersion)?.kind === 'art9Blanket';
 }
 
 export const CONSENT_TEXT_IDS: readonly LegalTextId[] = LEGAL_TEXTS.filter((t) => t.scope !== null).map((t) => t.id);

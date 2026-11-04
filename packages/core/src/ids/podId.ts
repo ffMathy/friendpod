@@ -64,3 +64,17 @@ export async function identityHash(hmac: HmacSha256, purpose: 'underage', provid
   if (provider.length === 0 || providerUid.length === 0) throw new Error('identityHash: empty identity');
   return base32(await hmac(utf8Encode(`${purpose}.idp|${provider}|${providerUid}`))).slice(0, EMAIL_H_LENGTH);
 }
+
+export const PAIR_KEY_LENGTH = 32;
+
+/**
+ * Key of a pair's server-only meet-again signals (D9): `base32(HMAC(UID_HMAC_KEY, 'pair|' + sorted uids))[0..32]`.
+ * Symmetric, so either member's answer lands on the same document; keyed, so the id reveals neither uid.
+ */
+export async function pairKey(hmac: HmacSha256, a: Uid, b: Uid): Promise<string> {
+  assertUid(a);
+  assertUid(b);
+  if (a === b) throw new Error('pairKey: a pair needs two different uids');
+  const [x, y] = a < b ? [a, b] : [b, a];
+  return base32(await hmac(utf8Encode(`pair|${x}|${y}`))).slice(0, PAIR_KEY_LENGTH);
+}

@@ -70,76 +70,82 @@ A contract is not an Art. 9 exception (EDPB 05/2020 §99) [GDPR]. Every sensitiv
 ## 3. Art. 9 explicit consent design
 
 ### 3.1 When and how consent is asked
-A tag flagged by the layered detector (D§5.2), or self-flagged by the user, opens the consent sheet **before anything is stored**. The lexicon runs on the device too, so a clear Art. 9 tag opens the sheet before the text is sent. Self-flagging an existing interest ("Keep this private") also needs this consent; without it nothing changes.
-
-Consent is **per tag**: it names the user's own wording, which makes it specific. The sheet lists every Art. 9 category, because the automatic category guess is only about 80% right [EXP]. The user may optionally pick one.
+**One blanket explicit consent** (founder decision D3, 2026-11-04), as many dating apps do. It is asked once during onboarding, on its own screen, and can be given or withdrawn later in Settings → Privacy. It covers every interest of the user's that may be sensitive and every interest they mark "Keep this private".
 
 The design follows EDPB 05/2020 [GDPR]:
 - an express statement through an unticked checkbox (§§93–96);
-- a separate screen;
-- "Add" stays disabled until the box is ticked;
-- "Don't add" discards the tag with no other consequence, so consent is freely given.
+- a separate screen with specific purposes (§3.3);
+- "I agree" stays disabled until the box is ticked;
+- **freely given:** "Not now" keeps the app fully usable. Without the consent, a tag that the device detects as sensitive, or that the user marks private, is refused with a clear message and nothing is stored. The user can add every other interest.
+
+With the consent, the interests step shows **no prompt** for a detected tag: the protections apply silently (theme-only use, no chips, labels or explanations, separate storage) and the tag list shows a lock icon. The per-tag consent sheet is gone.
+
+Detection runs **on the phone** (D1): the lexicon, the known-ordinary hobby list and the EmbeddingGemma 2 detector run before anything is sent. Without the consent, possibly-Art. 9 text therefore never leaves the device. The server repeats the lexicon and fails closed.
+
+A user may also choose **"This isn't sensitive for me"** on a tag treated as sensitive. That holding is then ordinary, for that user only. **[LAWYER]** confirm this user downgrade (it re-enables chips, labels and explanations for that holding).
 
 Gender has its own consent (§3.6).
 
 ### 3.2 Standing notice at the interest field
-- **EN:** "Tip: if an interest says something about your health, beliefs, sexuality, politics, ethnic origin or union membership, we'll ask for your explicit consent before saving it. Only add things about yourself."
-- **DA:** "Tip: Hvis en interesse siger noget om dit helbred, din tro, din seksualitet, politik, etniske oprindelse eller fagforening, beder vi om dit udtrykkelige samtykke, før vi gemmer den. Tilføj kun noget om dig selv."
+- **EN:** "Tip: interests that say something about your health, beliefs, sexuality, politics, ethnic origin or union membership are only saved if you have agreed to sensitive interests (Settings → Privacy). We then keep them private and use them only as a pod's theme. Only add things about yourself."
+- **DA:** "Tip: Interesser, der siger noget om dit helbred, din tro, din seksualitet, politik, etniske oprindelse eller fagforening, gemmer vi kun, hvis du har sagt ja til følsomme interesser (Indstillinger → Privatliv). Så holder vi dem private og bruger dem kun som tema for en pod. Tilføj kun noget om dig selv."
 
-### 3.3 Consent sheet: draft copy
+### 3.3 Consent screen: draft copy
 
-**English (`art9-tag-en-v1`)**
+**English (`art9-blanket-en-v1`)**
 
-> **This interest may be sensitive**
+> **Sensitive interests**
 >
-> "{tag}" may reveal information about your health, religion or beliefs, sexual orientation or sex life, political opinions, ethnic origin or trade union membership. The law calls this special category data, so we need your explicit consent before we save it.
+> Some interests can reveal your health, religion or beliefs, sexual orientation or sex life, political opinions, ethnic origin or trade union membership, for example "pregnant", "Ramadan" or "queer book club". The law calls this special category data, so we need your explicit consent before we use interests like these. You can say no and still use Grouper with your other interests. We then just won't save interests like these.
 >
-> If you agree, Grouper will:
-> - save "{tag}" privately on your account. It is never shown on any profile.
-> - use it in automated matching to propose pods of 4–6 people near you who added the same interest and also consented;
-> - show it as the pod's theme only to the people invited to those pods, who all added it too. Some of them may decline. Once a pod is confirmed, its members see your first name. They see your photo only if you choose to show it in that pod;
-> - let members of a confirmed pod write to each other in a short meetup chat, open from 24 hours before until 24 hours after each meetup. Messages are deleted 3 days after the meetup;
-> - let a Grouper team member see the wording of the interest, without your name, to check how it is classified;
-> - check accounts for signs that someone is not genuine, for example an account that adds many unrelated sensitive interests.
+> If you agree, Grouper does the following with your interests that may be sensitive, and with any you mark "Keep this private":
+> - checks automatically, on your phone and before anything is sent, whether an interest may be sensitive;
+> - saves it privately on your account, apart from your other interests. It is never shown on any profile, and we never show it as a label, suggestion or explanation;
+> - uses it in automated matching to propose pods of 4–6 people near you who added the same interest and also consented;
+> - shows it as the pod's theme only to the people invited to those pods, who all added it too. Some of them may decline. Once a pod is confirmed, its members see your first name. They see your photo only if you choose to show it in that pod;
+> - lets members of such a pod write to each other in a short meetup chat, open from 24 hours before until 24 hours after each meetup. What you write there may reveal the theme. Messages are deleted about 3 days after the meetup;
+> - checks accounts automatically for signs that someone is not genuine, for example an account that adds many unrelated sensitive interests, and then pauses that account's sensitive pods for a while.
 >
-> **Please note:** we cannot verify who people are. Someone could create an account and pretend to share this interest in order to find out who has it. We make that harder (new accounts wait, accounts are limited in how many such pods they join, and you can report "not a genuine member"), but we cannot rule it out. Only share in a pod what you are comfortable with.
+> **Please note:** we cannot verify who people are. Someone could create an account and pretend to share an interest in order to find out who has it. We make that harder (new accounts wait, accounts are limited in how many such pods they join, and you can report "not a genuine member"), but we cannot rule it out. Only share in a pod what you are comfortable with.
 >
-> You can withdraw at any time: Interests → "{tag}" → Remove & withdraw. We then delete it and take you out of pods built around it. Your other interests are not affected.
+> If we treat an interest as sensitive and it isn't for you, choose "This isn't sensitive for me" on it. We then treat it as an ordinary interest, for you only, and the protections above no longer apply to it.
 >
-> ☐ **I explicitly consent to Grouper processing "{tag}", which may reveal sensitive information about me, for the purposes above.**
+> You can withdraw your consent at any time in Settings → Privacy. We then delete all your sensitive interests at once and take you out of pods built around them. Your other interests are not affected.
 >
-> [Add interest] (disabled until ticked) [Don't add] · Read more about sensitive interests
+> ☐ **I explicitly consent to Grouper processing interests that may reveal sensitive information about me, for the purposes above.**
+>
+> [I agree] (disabled until ticked) [Not now] · Read more about sensitive interests
 
-**Danish (`art9-tag-da-v1`)**
+**Danish (`art9-blanket-da-v1`)**
 
-> **Denne interesse kan være følsom**
+> **Følsomme interesser**
 >
-> »{tag}« kan afsløre oplysninger om dit helbred, din religion eller overbevisning, din seksuelle orientering eller dit seksualliv, dine politiske holdninger, din etniske oprindelse eller dit fagforeningsmedlemskab. Det er særlige kategorier af personoplysninger, så vi skal have dit udtrykkelige samtykke, før vi gemmer den.
+> Nogle interesser kan afsløre noget om dit helbred, din religion eller overbevisning, din seksuelle orientering eller dit seksualliv, dine politiske holdninger, din etniske oprindelse eller dit fagforeningsmedlemskab, fx »gravid«, »ramadan« eller »queer læseklub«. Det er særlige kategorier af personoplysninger, så vi skal have dit udtrykkelige samtykke, før vi bruger den slags interesser. Du kan sagtens sige nej og stadig bruge Grouper med dine andre interesser. Så gemmer vi bare ikke interesser som dem.
 >
-> Hvis du siger ja, vil Grouper:
-> - gemme »{tag}« privat på din konto. Den vises aldrig på nogen profil.
-> - bruge den til automatisk matchning, så vi kan foreslå pods med 4–6 personer i nærheden, som har tilføjet samme interesse og også har givet samtykke;
-> - kun vise den som podens tema for de personer, der bliver inviteret til de pods, og som alle selv har tilføjet den. Nogle af dem siger måske nej. Når poden er bekræftet, ser medlemmerne dit fornavn. Dit billede ser de kun, hvis du selv vælger at vise det i den pod;
-> - lade medlemmerne af en bekræftet pod skrive sammen i en kort mødechat, der er åben fra 24 timer før til 24 timer efter hvert møde. Beskederne slettes 3 dage efter mødet;
-> - lade en medarbejder hos Grouper se ordlyden af interessen, uden dit navn, for at kontrollere, hvordan den er klassificeret;
-> - holde øje med tegn på, at en konto ikke er ægte, fx en konto, der tilføjer mange forskellige følsomme interesser.
+> Hvis du siger ja, gør Grouper følgende med dine interesser, der kan være følsomme, og med dem, du markerer med »Hold den privat«:
+> - tjekker automatisk på din telefon, før noget bliver sendt, om en interesse kan være følsom;
+> - gemmer den privat på din konto, adskilt fra dine andre interesser. Den vises aldrig på nogen profil, og vi viser den aldrig som etiket, forslag eller forklaring;
+> - bruger den til automatisk matchning, så vi kan foreslå pods med 4–6 personer i nærheden, som har tilføjet samme interesse og også har givet samtykke;
+> - viser den kun som podens tema for de personer, der bliver inviteret til de pods, og som alle selv har tilføjet den. Nogle af dem siger måske nej. Når poden er bekræftet, ser medlemmerne dit fornavn. Dit billede ser de kun, hvis du selv vælger at vise det i den pod;
+> - lader medlemmerne af sådan en pod skrive sammen i en kort mødechat, der er åben fra 24 timer før til 24 timer efter hvert møde. Det, du skriver dér, kan afsløre temaet. Beskederne slettes ca. 3 dage efter mødet;
+> - tjekker automatisk konti for tegn på, at nogen ikke er ægte, fx en konto, der tilføjer mange forskellige følsomme interesser, og sætter i så fald kontoens følsomme pods på pause i en periode.
 >
-> **Vær opmærksom på:** Vi kan ikke kontrollere, hvem folk er. Nogen kan oprette en konto og lade som om, de deler interessen, for at finde ud af, hvem der har den. Vi gør det sværere (nye konti skal vente, en konto kan kun være med i et begrænset antal af den slags pods, og du kan anmelde »ikke et ægte medlem«), men vi kan ikke udelukke det. Del kun det i en pod, som du er tryg ved.
+> **Vær opmærksom på:** Vi kan ikke kontrollere, hvem folk er. Nogen kan oprette en konto og lade som om, de deler en interesse, for at finde ud af, hvem der har den. Vi gør det sværere (nye konti skal vente, en konto kan kun være med i et begrænset antal af den slags pods, og du kan anmelde »ikke et ægte medlem«), men vi kan ikke udelukke det. Del kun det i en pod, som du er tryg ved.
 >
-> Du kan til enhver tid trække dit samtykke tilbage: Interesser → »{tag}« → Fjern og træk samtykke tilbage. Så sletter vi interessen og tager dig ud af pods, der er bygget op om den. Dine andre interesser påvirkes ikke.
+> Hvis vi behandler en interesse som følsom, og den ikke er det for dig, så vælg »Den er ikke følsom for mig« på interessen. Så behandler vi den som en almindelig interesse, kun for dig, og beskyttelsen ovenfor gælder ikke længere for den.
 >
-> ☐ **Jeg giver udtrykkeligt samtykke til, at Grouper behandler »{tag}«, som kan afsløre følsomme oplysninger om mig, til de formål, der er beskrevet ovenfor.**
+> Du kan til enhver tid trække dit samtykke tilbage under Indstillinger → Privatliv. Så sletter vi straks alle dine følsomme interesser og tager dig ud af pods, der er bygget op om dem. Dine andre interesser påvirkes ikke.
 >
-> [Tilføj interesse] (inaktiv indtil afkrydset) [Tilføj ikke] · Læs mere om følsomme interesser
-
-The meetup-chat bullet was added to both texts on 2026-11-04. Nothing had shipped, so they keep their version IDs and only their hash locks changed (§3.4).
+> ☐ **Jeg giver udtrykkeligt samtykke til, at Grouper behandler interesser, der kan afsløre følsomme oplysninger om mig, til de formål, der er beskrevet ovenfor.**
+>
+> [Jeg siger ja] (inaktiv indtil afkrydset) [Ikke nu] · Læs mere om følsomme interesser
 
 **[LAWYER]** to review:
 - the wording, including the residual-risk paragraph (R15);
-- whether per-tag consent is specific enough, or per-category scope would be better;
-- listing all categories when the category is uncertain;
-- whether the anomaly review (last bullet) belongs in this consent or rests on 6(1)(f) alone;
-- whether the meetup-chat bullet is enough to cover messages that reveal the theme, and its "deleted 3 days after the meetup", given that TTL can take up to another 24 h (§5);
+- whether a blanket consent is specific and freely given enough here (refusal only blocks sensitive tags; the purposes are listed once for all such interests);
+- the user downgrade ("This isn't sensitive for me");
+- whether the automatic anomaly check (last bullet) belongs in this consent or rests on 6(1)(f) alone;
+- whether the meetup-chat bullet is enough to cover messages that reveal the theme, and its "about 3 days after the meetup", given that TTL can take up to another 24 h (§5);
 - the Danish copy, with a native speaker.
 
 ### 3.4 Recording consent
@@ -151,12 +157,12 @@ The meetup-chat bullet was added to both texts on 2026-11-04. Nothing had shippe
 
 ### 3.5 Withdrawal (as easy as giving consent, Art. 7(3))
 - **Where:**
-  - "Remove & withdraw" on each sensitive interest;
-  - "Withdraw all sensitive interests" on the same screen and in Settings → Privacy.
+  - "Remove" on each sensitive interest (`removeInterest`, the effects below for that holding only);
+  - "Withdraw consent for sensitive interests" in Settings → Privacy (`withdrawArt9Consent`, every sensitive holding at once, then `users.legal.art9` is removed).
 - **Confirmation copy:**
-  - **EN:** "Remove ‘{tag}’ and withdraw consent? We'll delete it now and take you out of pods built around it. Other members will only see that a member left."
-  - **DA:** "Fjern »{tag}« og træk samtykket tilbage? Vi sletter den nu og tager dig ud af pods, der er bygget op om den. De andre medlemmer ser kun, at et medlem er gået."
-- **Effects, immediate** (`withdrawSensitive`, also run by `removeInterest` for a sensitive holding; Art. 7(3) and 17(1)(b) mean processing stops now, not at the next drop):
+  - **EN:** "Withdraw your consent for sensitive interests? We'll delete all your sensitive interests now and take you out of pods built around them. Other members will only see that a member left. You can keep using Grouper with your other interests."
+  - **DA:** "Vil du trække dit samtykke til følsomme interesser tilbage? Vi sletter alle dine følsomme interesser nu og tager dig ud af pods, der er bygget op om dem. De andre medlemmer ser kun, at et medlem er gået. Du kan fortsat bruge Grouper med dine andre interesser."
+- **Effects, immediate** (`withdrawArt9Consent` for every sensitive holding, `removeInterest` for one; Art. 7(3) and 17(1)(b) mean processing stops now, not at the next drop):
   1. Delete the holding.
   2. Decrement the tag's count (`refCount`, or `privateAssign.refCount` for a self-flagged holding). At 0, delete the tag text and vector and subtract the vector from its concept.
   3. **Pod cards:** delete every `users/{uid}/pods/*` card themed on that concept, in every state (invited, declined, active, archived).

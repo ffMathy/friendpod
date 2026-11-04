@@ -10,18 +10,19 @@ export interface AssignThresholds {
   readonly ordinaryMedoidGuard: number;
   readonly ordinaryLink: number;
   readonly sensitiveMerge: number;
-  readonly sensitiveProposal: number;
   /** "Did you mean …?" only when the concept has at least this many holders. */
   readonly suggestMinHolders: number;
 }
 
-/** EmbeddingGemma 2 q4 / 768-d [CAL]. Sensitive values are [A]: v1's margin mapped onto v2's band. */
+/**
+ * EmbeddingGemma 2 q4 / 768-d [CAL]: merge 0.93, "Did you mean" band [0.90, 0.93). The sensitive merge value is [A]:
+ * v1's margin mapped onto v2's band. Concepts merge only through these thresholds and alias votes (D2).
+ */
 export const DEFAULT_ASSIGN_THRESHOLDS: AssignThresholds = {
   ordinaryMerge: 0.93,
   ordinaryMedoidGuard: 0.91,
   ordinaryLink: 0.9,
   sensitiveMerge: 0.95,
-  sensitiveProposal: 0.93,
   suggestMinHolders: 10,
 };
 
@@ -31,7 +32,6 @@ export const V1_ASSIGN_THRESHOLDS: AssignThresholds = {
   ordinaryMedoidGuard: 0.82,
   ordinaryLink: 0.78,
   sensitiveMerge: 0.9,
-  sensitiveProposal: 0.86,
   suggestMinHolders: 10,
 };
 
@@ -40,7 +40,7 @@ export const V1_ASSIGN_THRESHOLDS: AssignThresholds = {
  * 0.90 anywhere, never merge below 0.925. Call when loading thresholds from configuration.
  */
 export function assertV2ThresholdFloors(t: AssignThresholds): void {
-  const values = [t.ordinaryMerge, t.ordinaryMedoidGuard, t.ordinaryLink, t.sensitiveMerge, t.sensitiveProposal];
+  const values = [t.ordinaryMerge, t.ordinaryMedoidGuard, t.ordinaryLink, t.sensitiveMerge];
   if (values.some((v) => !(v >= 0.9)) || t.ordinaryMerge < 0.925 || t.sensitiveMerge < t.ordinaryMerge) {
     throw new Error('assignment thresholds below the EmbeddingGemma 2 floors (DESIGN.md §5.2 (6))');
   }
@@ -62,7 +62,6 @@ export interface NearestConcept {
 export type AssignDecision =
   | { readonly action: 'merge'; readonly conceptId: string }
   | { readonly action: 'newWithLink'; readonly linkTo: string; readonly suggest: boolean }
-  | { readonly action: 'newWithMergeProposal'; readonly proposeMergeInto: string }
   | { readonly action: 'new' };
 
 export class PartitionMismatchError extends Error {
@@ -82,9 +81,8 @@ export function decideAssignment(
   if (nearest.sensitive !== (partition === 'sensitive')) throw new PartitionMismatchError();
   const cos = nearest.cosCentroid;
   if (partition === 'sensitive') {
-    if (cos >= t.sensitiveMerge) return { action: 'merge', conceptId: nearest.conceptId };
-    if (cos >= t.sensitiveProposal) return { action: 'newWithMergeProposal', proposeMergeInto: nearest.conceptId };
-    return { action: 'new' };
+    // No link band and no "Did you mean" here: suggestions would reveal a sensitive concept's existence.
+    return cos >= t.sensitiveMerge ? { action: 'merge', conceptId: nearest.conceptId } : { action: 'new' };
   }
   if (cos >= t.ordinaryMerge && nearest.cosMedoid >= t.ordinaryMedoidGuard) {
     return { action: 'merge', conceptId: nearest.conceptId };
@@ -95,17 +93,6 @@ export function decideAssignment(
     return { action: 'newWithLink', linkTo: nearest.conceptId, suggest: nearest.holderCount >= t.suggestMinHolders };
   }
   return { action: 'new' };
-}
-
-/** `modelId` part of every cache key, so vectors of different models never mix (§5.1): EmbeddingGemma 2 q4. */
-export const EMBEDDING_MODEL_ID = 'eg2-q4@daa72c5';
-/** The calibrated fallback, EmbeddingGemma-300m q4 (§5.1). */
-export const EMBEDDING_MODEL_ID_V1 = 'eg300m-q4@5090578';
-export const EMBEDDING_DIM = 768;
-
-/** Input to `tagKey = sha256(modelId|768|sts|norm)` (§5.2 (3)); hashing happens server-side. */
-export function tagKeyMaterial(norm: string, modelId: string = EMBEDDING_MODEL_ID): string {
-  return `${modelId}|${EMBEDDING_DIM}|sts|${norm}`;
 }
 
 const CONCEPT_ID_HEX = 20;

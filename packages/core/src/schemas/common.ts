@@ -3,7 +3,7 @@ import { GH5_PATTERN } from '../geo/geohash';
 import { BASE32_ID_PATTERN } from '../ids/base32';
 import { INTEREST_ID_LENGTH, POD_ID_LENGTH, UID_H_LENGTH } from '../ids/podId';
 import { isWeekId } from '../time/weekId';
-import { ART9_CATEGORIES, AVAILABILITY_ALL, GENDERS, LANGUAGES, LOCALES, RADII_KM } from '../types/domain';
+import { ART9_CATEGORIES, AVAILABILITY_ALL, GENDERS, LANGUAGES, LOCALES, PUBLIC_PLACE_TYPES, RADII_KM } from '../types/domain';
 import type { WeekId } from '../types/ids';
 
 export const uidSchema = z.string().regex(/^[A-Za-z0-9_-]{1,128}$/);
@@ -80,6 +80,39 @@ export const httpsUrlSchema = z.string().max(500).regex(HTTPS_URL);
 export function urlHost(url: string): string | null {
   return HTTPS_URL.exec(url)?.[1]?.toLowerCase() ?? null;
 }
+
+// ---------------------------------------------------------------- places (D8)
+
+/** Coordinates are stored rounded to 4 decimals (about 11 m): enough for a map pin, no more. */
+export const PLACE_COORD_DECIMALS = 4;
+export function roundPlaceCoord(x: number): number {
+  const f = 10 ** PLACE_COORD_DECIMALS;
+  return Math.round(x * f) / f;
+}
+const roundedCoord = (min: number, max: number) =>
+  z.number().min(min).max(max).refine((v) => Math.abs(v - roundPlaceCoord(v)) < 1e-9, { message: `round to ${PLACE_COORD_DECIMALS} decimals` });
+
+/** The Google Maps URL of a place: built, never typed, so it can only point at that place. */
+export function googleMapsPlaceUrl(placeId: string, name: string): string {
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name)}&query_place_id=${encodeURIComponent(placeId)}`;
+}
+
+/**
+ * A meetup place picked from Google Places (New) Autocomplete (D8): public place types only, no free text.
+ * `address` is the formatted short address. The server checks the shape and the type; it does not call Places.
+ */
+export const placeSchema = z
+  .strictObject({
+    placeId: z.string().regex(/^[A-Za-z0-9_-]{10,300}$/),
+    name: z.string().trim().min(1).max(120),
+    address: z.string().trim().min(1).max(200),
+    lat: roundedCoord(-90, 90),
+    lng: roundedCoord(-180, 180),
+    type: z.enum(PUBLIC_PLACE_TYPES),
+    mapUrl: z.string().max(600),
+  })
+  .refine((p) => p.mapUrl === googleMapsPlaceUrl(p.placeId, p.name), { message: 'mapUrl must be googleMapsPlaceUrl(placeId, name)', path: ['mapUrl'] });
+export type Place = z.infer<typeof placeSchema>;
 
 export const legalVersionSchema = z.string().regex(/^[a-z0-9.-]{1,64}$/);
 

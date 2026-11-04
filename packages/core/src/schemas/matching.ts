@@ -48,7 +48,7 @@ export const snapshotUserSchema = z.object({
   activePods: z.int().min(0),
   activeSensitivePods: z.int().min(0),
   sensitiveProposals: z.array(weekIdSchema),
-  sensitiveHold: z.object({ reason: z.enum(SENSITIVE_HOLD_REASONS), since: epochMsSchema }).nullable(),
+  sensitiveHold: z.object({ reason: z.enum(SENSITIVE_HOLD_REASONS), since: epochMsSchema, until: epochMsSchema }).nullable(),
   attendedVerified: z.int().min(0),
   founderInvited: z.boolean(),
   openReportCount: z.int().min(0),

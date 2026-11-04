@@ -28,3 +28,15 @@ export type Prefs = z.infer<typeof prefsSchema>;
 /** Partial preferences in a callable; the server re-validates the merged result with prefsSchema. */
 export const prefsPatchSchema = z.strictObject(prefsShape).partial().refine(ageRangeOk, ageRangeIssue);
 export type PrefsPatch = z.infer<typeof prefsPatchSchema>;
+
+export const ABOUT_ME_MAX = 140;
+
+/**
+ * "About me" (D4): NFC, whitespace collapsed (line breaks included) and trimmed, at most 140 code points.
+ * The empty string clears it. Moderation (checkAboutMe) runs on top of this.
+ */
+export const aboutMeSchema = z
+  .string()
+  .max(ABOUT_ME_MAX * 4)
+  .transform((v) => v.normalize('NFC').replace(/\s+/gu, ' ').trim())
+  .pipe(z.string().refine((v) => [...v].length <= ABOUT_ME_MAX, { message: `at most ${ABOUT_ME_MAX} characters` }));

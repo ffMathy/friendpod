@@ -65,8 +65,10 @@ export const MODERATION_REASONS = [
   'THIRD_PARTY_SENSITIVE',
   'INTEREST_LIMIT',
   'SENSITIVE_ADD_LIMIT',
-  'EMBED_BUDGET',
-  // DESIGN-DEVIATION: not in §5.2. Sensitive holdings are refused until withdrawal (withdrawSensitive,
+  // A tag that is sensitive for this holding while the user has not given the blanket Art. 9 consent (D3).
+  // Refusing it, rather than asking per tag, keeps the app usable without consent, so the consent stays free.
+  'ART9_CONSENT_REQUIRED',
+  // DESIGN-DEVIATION: not in §5.2. Sensitive holdings are refused until withdrawal (withdrawArt9Consent,
   // removeInterest) exists, because withdrawing must be as easy as consenting (Art. 7(3)). TODO(M1): remove.
   'SENSITIVE_UNAVAILABLE',
 ] as const;

@@ -3,6 +3,7 @@ import { checkChatText } from '../src/chat/moderation';
 import { APP_ERRORS } from '../src/errors';
 import { isBlocklisted, leetFold } from '../src/interests/blocklist';
 import { foldDigits } from '../src/interests/pii';
+import { checkAboutMe } from '../src/profile/aboutMe';
 
 const before = { beforeMeetup: true } as const;
 const after = { beforeMeetup: false } as const;
@@ -126,5 +127,15 @@ describe('checkChatText (meetup chat)', () => {
     expect(APP_ERRORS.PII_CPR).toBe('invalid-argument');
     expect(APP_ERRORS.BLOCKLIST).toBe('invalid-argument');
     expect(APP_ERRORS.CONTACT_INFO_BEFORE_MEETUP).toBeDefined();
+  });
+});
+
+describe('"about me" moderation (D4)', () => {
+  it('refuses contact details outright and blocklisted text; lets an ordinary sentence through', () => {
+    expect(checkAboutMe('Elsker kaffe, brætspil og lange gåture langs vandet.')).toEqual({ ok: true });
+    expect(checkAboutMe('Skriv på 12 34 56 78')).toEqual({ ok: false, code: 'CONTACT_INFO' });
+    expect(checkAboutMe('anna@example.dk')).toEqual({ ok: false, code: 'CONTACT_INFO' });
+    expect(checkAboutMe('add me on snap annak92')).toEqual({ ok: false, code: 'CONTACT_INFO' });
+    expect(checkAboutMe('looking for a sugar daddy')).toEqual({ ok: false, code: 'BLOCKLIST' });
   });
 });

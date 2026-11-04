@@ -28,7 +28,7 @@ function referenceCheck(input: MatchInput, result: MatchResult): void {
       input.dropAt - u.createdAt >= p.sensitive.minAccountAgeDays * DAY &&
       (u.attendedVerified >= p.sensitive.minVerifiedAttended || (p.sensitive.waiveActivityForFounderInvited && u.founderInvited)) &&
       u.openReportCount === 0 &&
-      u.sensitiveHold === null &&
+      (u.sensitiveHold === null || input.dropAt >= u.sensitiveHold.until) &&
       u.activeSensitivePods === 0 &&
       proposals < p.sensitive.maxProposalsPer12Weeks &&
       sensCount <= p.sensitive.maxHoldings

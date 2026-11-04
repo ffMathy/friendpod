@@ -1,21 +1,20 @@
 /**
- * Callable inputs and outputs (DESIGN.md §10.1, §10.2). Inputs are strict: unknown keys are rejected.
- * The registry at the end is the one place that says which codebase serves a callable and which
- * App Check / re-authentication rules apply.
+ * Callable inputs and outputs (DESIGN.md §10.1). Inputs are strict: unknown keys are rejected.
+ * The registry at the end is the one place that says which App Check / re-authentication rules apply.
+ * Every callable is in the default codebase: the embedder codebase is retired, because the app embeds tags (D1).
  */
 import { z } from 'zod';
 import {
   LAUNCH_AREA_STATUSES,
   PLATFORMS,
   POD_STATES,
-  QUICK_REPLIES,
   REPORT_CATEGORIES,
   REPORT_TARGET_TYPES,
   SET_PARTICIPATION_MODES,
 } from '../types/domain';
 import { MODERATION_REASONS } from '../reasons';
+import { EMBEDDING_DIM, EMBEDDING_MODEL_ID, VECTOR_NORM_TOLERANCE, vectorNorm } from '../interests/model';
 import {
-  art9CategorySchema,
   conceptIdSchema,
   consentPayloadSchema,
   docIdSchema,
@@ -23,17 +22,16 @@ import {
   firstNameSchema,
   genderSchema,
   gh5Schema,
-  httpsUrlSchema,
   interestIdSchema,
   legalVersionSchema,
   localeSchema,
+  placeSchema,
   podIdSchema,
   uidSchema,
-  urlHost,
   weekIdSchema,
   ymdDateSchema,
 } from './common';
-import { prefsPatchSchema } from './profile';
+import { aboutMeSchema, prefsPatchSchema } from './profile';
 
 /** `{}` inputs: RNFirebase sends null when a callable is invoked without data. */
 const emptyInput = z.preprocess((v) => v ?? {}, z.strictObject({}));
@@ -63,6 +61,8 @@ export const updateProfileInput = z
     prefs: prefsPatchSchema.optional(),
     gender: genderSchema.optional(),
     genderConsent: consentPayloadSchema.optional(),
+    /** "About me" (D4); '' clears it. The server also runs checkAboutMe. */
+    aboutMe: aboutMeSchema.optional(),
   })
   .refine((p) => Object.keys(p).length > 0, { message: 'nothing to update' })
   .refine((p) => p.gender === undefined || p.genderConsent !== undefined, {
@@ -85,8 +85,20 @@ export const updateInterestOutput = ok;
 export const confirmSuggestionInput = z.strictObject({ interestId: interestIdSchema, conceptId: conceptIdSchema });
 export const confirmSuggestionOutput = ok;
 
-export const withdrawSensitiveInput = z.preprocess((v) => v ?? {}, z.strictObject({ interestId: interestIdSchema.optional() }));
-export const withdrawSensitiveOutput = z.object({ removed: z.int().min(0) });
+/**
+ * Blanket Art. 9 consent (D3), given once on its own onboarding screen or later in Settings → Privacy. The server
+ * checks the proof against an `art9Blanket` text, writes a `grant` consent event and sets `users.legal.art9`.
+ */
+export const setArt9ConsentInput = z.strictObject({ consent: consentPayloadSchema });
+export const setArt9ConsentOutput = ok;
+
+/**
+ * Withdraws the blanket consent: every sensitive holding goes at once, with the effects of PRIVACY.md §3.5, then a
+ * `withdraw` event and `users.legal.art9` removed. It replaces withdrawSensitive; one sensitive interest is removed
+ * with removeInterest, which runs the same effects for that holding only.
+ */
+export const withdrawArt9ConsentInput = emptyInput;
+export const withdrawArt9ConsentOutput = z.object({ removed: z.int().min(0) });
 
 export const respondToPodInput = z
   .strictObject({ podId: podIdSchema, accept: z.boolean(), reason: z.enum(DECLINE_REASONS).optional() })
@@ -99,52 +111,51 @@ export const setPhotoSharingOutput = ok;
 export const leavePodInput = z.strictObject({ podId: podIdSchema, reason: z.enum(LEAVE_REASONS).optional() });
 export const leavePodOutput = ok;
 
+/** Map-link hosts that chat moderation does not read as contact details (people paste map links to meet). */
 export const MAP_URL_HOSTS = ['maps.app.goo.gl', 'www.google.com', 'maps.google.com', 'goo.gl', 'maps.apple.com', 'www.openstreetmap.org', 'osm.org'] as const;
-const mapUrlSchema = httpsUrlSchema.refine((u) => (MAP_URL_HOSTS as readonly string[]).includes(urlHost(u) ?? ''), {
-  message: 'URL',
-});
 
-export const OPTION_WARNINGS = ['HOME_ADDRESS'] as const;
+/** A time and a place from Google Places (D8). No free-text place, so no home-address warning either. */
 export const proposeOptionInput = z.strictObject({
   podId: podIdSchema,
   startsAt: epochMsSchema,
-  placeText: z.string().trim().min(1).max(120),
-  mapUrl: mapUrlSchema.optional(),
-  publicPlace: z.literal(true),
-  ackWarnings: z.boolean().optional(),
+  place: placeSchema,
 });
-export const proposeOptionOutput = z.union([
-  z.object({ optionId: docIdSchema }),
-  z.object({ warnings: z.array(z.enum(OPTION_WARNINGS)).min(1) }),
-]);
+export const proposeOptionOutput = z.object({ optionId: docIdSchema });
 
 export const voteOptionInput = z.strictObject({ podId: podIdSchema, optionId: docIdSchema, vote: z.enum(['yes', 'no']).nullable() });
 export const voteOptionOutput = z.object({ tally: z.object({ yes: z.int().min(0), no: z.int().min(0) }) });
 
+/** "Still coming?" and the attendance card's "Can't make it" (D5, D14); allowed while the pod is `scheduled`. */
 export const confirmAttendanceInput = z.strictObject({ podId: podIdSchema, coming: z.boolean() });
 export const confirmAttendanceOutput = ok;
 
 export const CHAT_MESSAGE_MAX = 500;
 export const CHAT_WARNINGS = ['CONTACT_INFO_BEFORE_MEETUP'] as const;
 export type ChatWarning = (typeof CHAT_WARNINGS)[number];
-export const sendMessageInput = z
-  .strictObject({
-    podId: podIdSchema,
-    text: z.string().trim().min(1).max(CHAT_MESSAGE_MAX).optional(),
-    quickReply: z.enum(QUICK_REPLIES).optional(),
-    ackContactWarning: z.boolean().optional(),
-  })
-  .refine((m) => (m.text === undefined) !== (m.quickReply === undefined), { message: 'exactly one of text / quickReply' });
+/** Text only (D14): "Can't make it" lives on the attendance card. */
+export const sendMessageInput = z.strictObject({
+  podId: podIdSchema,
+  text: z.string().trim().min(1).max(CHAT_MESSAGE_MAX),
+  ackContactWarning: z.boolean().optional(),
+});
 export const sendMessageOutput = z.union([
   z.object({ messageId: docIdSchema }),
   z.object({ warnings: z.array(z.enum(CHAT_WARNINGS)).min(1) }),
 ]);
 
 const maxFive = (r: Record<string, unknown>): boolean => Object.keys(r).length <= 5;
+/**
+ * "Who was there?" (D15): every other member is pre-ticked, and `notThere` lists those the user unticked
+ * (attendanceFromNotThere resolves the full map). `meetAgain` answers feed the pair signals (D9); a member left out
+ * means no answer.
+ */
 export const submitFeedbackInput = z.strictObject({
   podId: podIdSchema,
   met: z.boolean(),
-  attendance: z.record(uidSchema, z.enum(['came', 'noShow'])).refine(maxFive, { message: 'at most 5 members' }),
+  notThere: z
+    .array(uidSchema)
+    .max(5)
+    .refine((a) => new Set(a).size === a.length, { message: 'duplicate member' }),
   meetAgain: z.record(uidSchema, z.boolean()).refine(maxFive, { message: 'at most 5 members' }),
   rating: z.int().min(1).max(5).optional(),
   keep: z.boolean(),
@@ -193,30 +204,48 @@ export const exportDataOutput = z.object({ exportId: docIdSchema });
 export const deleteAccountInput = emptyInput;
 export const deleteAccountOutput = ok;
 
-// ---------------------------------------------------------------- embedder codebase (§10.2)
+// ---------------------------------------------------------------- interests (D1)
 
 export const ADD_INTERESTS_MAX_ITEMS = 10;
 /** Raw text bound before normalization (the normalized tag must still be 2–40 characters). */
 export const ADD_INTERESTS_TEXT_MAX = 80;
 
+/** A tag vector from the device: the model's dimension, finite, unit length within VECTOR_NORM_TOLERANCE. */
+export const tagVectorSchema = z
+  .array(z.number())
+  .length(EMBEDDING_DIM)
+  .refine((v) => Math.abs(vectorNorm(v) - 1) <= VECTOR_NORM_TOLERANCE, { message: 'vector must be L2-normalised' });
+
+/**
+ * One tag, embedded on the device (D1). The server trusts `vector` (an accepted manipulation risk) but repeats
+ * normalisation, moderation and the lexicon itself, and recomputes the margin from the vector when it can
+ * (reconcileDetectorMargin). `selfFlagPrivate` ("Keep this private") and `notSensitiveForMe` apply to this holding
+ * only and exclude each other. Sent for an existing holding, either flag changes that holding instead.
+ */
 export const addInterestsItem = z
   .strictObject({
     text: z.string().min(1).max(ADD_INTERESTS_TEXT_MAX),
-    selfFlag: z.boolean().optional(),
-    consent: consentPayloadSchema.optional(),
-    category: art9CategorySchema.optional(),
+    vector: tagVectorSchema,
+    detector: z.strictObject({ margin: z.number().min(-2).max(2), lexiconHit: z.boolean() }),
+    selfFlagPrivate: z.boolean().optional(),
+    notSensitiveForMe: z.boolean().optional(),
   })
-  .refine((i) => !i.selfFlag || i.consent !== undefined, { message: 'selfFlag needs consent', path: ['consent'] });
+  .refine((i) => !(i.selfFlagPrivate && i.notSensitiveForMe), { message: 'selfFlagPrivate and notSensitiveForMe exclude each other' });
 
-/** `items: []` is the warm-up call (§10.2). */
-export const addInterestsInput = z.strictObject({ items: z.array(addInterestsItem).max(ADD_INTERESTS_MAX_ITEMS) });
+/** `modelKey` must be the pinned model's: vectors of different models never mix (§5.1). */
+export const addInterestsInput = z.strictObject({
+  modelKey: z.literal(EMBEDDING_MODEL_ID),
+  items: z.array(addInterestsItem).min(1).max(ADD_INTERESTS_MAX_ITEMS),
+});
 
-export const ADD_INTEREST_STATUSES = ['added', 'madePrivate', 'needsConsent', 'rejected', 'duplicate', 'limit'] as const;
+export const ADD_INTEREST_STATUSES = ['added', 'madePrivate', 'madeOrdinary', 'rejected', 'duplicate', 'limit'] as const;
 export const addInterestsOutput = z.object({
   results: z.array(
     z.object({
       status: z.enum(ADD_INTEREST_STATUSES),
       interestId: interestIdSchema.optional(),
+      /** True when the holding is stored as sensitive: the app shows the lock icon and nothing else (D3). */
+      private: z.boolean().optional(),
       suggestion: z.object({ conceptId: conceptIdSchema, label: z.string().min(1).max(80) }).optional(),
       reasonCode: z.enum(MODERATION_REASONS).optional(),
       // DESIGN-DEVIATION: §10.2 lists no warning field, but §5.2 (2) warns on ordinary third-party tags.
@@ -230,7 +259,8 @@ export const addInterestsOutput = z.object({
 interface CallableSpec<I extends z.ZodType, O extends z.ZodType> {
   readonly input: I;
   readonly output: O;
-  readonly codebase: 'default' | 'embedder';
+  /** Always 'default' since D1; kept so deploy tooling can keep asserting it. */
+  readonly codebase: 'default';
   /** Requires the `onb` claim (all except completeOnboarding). */
   readonly requiresOnboarding: boolean;
   /** Limited-use App Check token, `consumeAppCheckToken: true`, reject `alreadyConsumed` (§9). */
@@ -247,7 +277,7 @@ function spec<I extends z.ZodType, O extends z.ZodType>(
   return {
     input,
     output,
-    codebase: opts.codebase ?? 'default',
+    codebase: 'default',
     requiresOnboarding: opts.requiresOnboarding ?? true,
     replayProtected: opts.replayProtected ?? false,
     requiresRecentLogin: opts.requiresRecentLogin ?? false,
@@ -261,7 +291,8 @@ export const CALLABLES = {
   removeInterest: spec(removeInterestInput, removeInterestOutput),
   updateInterest: spec(updateInterestInput, updateInterestOutput),
   confirmSuggestion: spec(confirmSuggestionInput, confirmSuggestionOutput),
-  withdrawSensitive: spec(withdrawSensitiveInput, withdrawSensitiveOutput),
+  setArt9Consent: spec(setArt9ConsentInput, setArt9ConsentOutput),
+  withdrawArt9Consent: spec(withdrawArt9ConsentInput, withdrawArt9ConsentOutput),
   respondToPod: spec(respondToPodInput, respondToPodOutput),
   setPhotoSharing: spec(setPhotoSharingInput, setPhotoSharingOutput),
   leavePod: spec(leavePodInput, leavePodOutput),
@@ -277,7 +308,7 @@ export const CALLABLES = {
   deletePhoto: spec(deletePhotoInput, deletePhotoOutput),
   exportData: spec(exportDataInput, exportDataOutput, { replayProtected: true, requiresRecentLogin: true }),
   deleteAccount: spec(deleteAccountInput, deleteAccountOutput, { replayProtected: true, requiresRecentLogin: true }),
-  addInterests: spec(addInterestsInput, addInterestsOutput, { codebase: 'embedder' }),
+  addInterests: spec(addInterestsInput, addInterestsOutput),
 } as const;
 
 export type CallableName = keyof typeof CALLABLES;

@@ -99,7 +99,7 @@ function s5Eligible(u: MatchUser, sensitiveCount: number, input: MatchInput): bo
     accountOldEnough &&
     activityOk &&
     u.openReportCount === 0 &&
-    u.sensitiveHold === null &&
+    (u.sensitiveHold === null || input.dropAt >= u.sensitiveHold.until) &&
     u.activeSensitivePods === 0 &&
     // "≤ 3 sensitive-themed proposals in the last 12 weeks": a new one must not exceed the cap.
     recentProposals < s.maxProposalsPer12Weeks &&

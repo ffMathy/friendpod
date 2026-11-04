@@ -28,7 +28,10 @@ export interface MatchUser {
   readonly secondary: readonly NonSensitiveConceptId[];
   /** uidH of blocked users and open-report counterparts, both directions (H4). */
   readonly blockedH: readonly UidH[];
-  /** uidH → exclusive `untilWeek` of the H5 window (co-member or co-proposed). */
+  /**
+   * uidH → exclusive `untilWeek` of the H5 window: co-member, co-proposed, the meet-again relaxation, or
+   * NEVER_WEEK_ID after a "no" (D9). Server-only, so a soft never-match is invisible to both.
+   */
   readonly recentH: Readonly<Record<UidH, WeekId>>;
   /** r(u) (§4.4); 0.8 for new users. */
   readonly reliability: number;
@@ -41,7 +44,8 @@ export interface MatchUser {
   readonly activeSensitivePods: number;
   /** Weeks with a sensitive-themed proposal (last 12 weeks, S5). */
   readonly sensitiveProposals: readonly WeekId[];
-  readonly sensitiveHold: { readonly reason: SensitiveHoldReason; readonly since: number } | null;
+  /** Automatic hold; it lapses at `until` (epoch ms) without anyone lifting it (D2). */
+  readonly sensitiveHold: { readonly reason: SensitiveHoldReason; readonly since: number; readonly until: number } | null;
   /** Attended meetups confirmed by ≥ 2 co-members (S5). */
   readonly attendedVerified: number;
   /** Founder-invited alpha tester (S5 activity waiver in the alpha profile). */

@@ -4,7 +4,8 @@ import { tagTokens } from './normalize';
 /**
  * High-precision Art. 9 lexicon, da/en (DESIGN.md §5.2 (0), (5) row 2). Runs on the device before
  * anything is sent and again on the server. A hit makes the tag sensitive without the detector; the
- * embedding detector (recall-tuned) covers the long tail, and a human review decision overrides both.
+ * embedding detector (recall-tuned) covers the long tail. Nothing overrides a hit: the known-ordinary list is
+ * checked after the lexicon, and only the user's own "This isn't sensitive for me" makes their holding ordinary.
  *
  * Matching runs on normalizeTag() output, split into tokens of letters, digits and + # &:
  * - token:     a whole token equals the term
@@ -137,7 +138,7 @@ export const ART9_LEXICON: readonly LexiconEntry[] = build();
 
 export interface LexiconResult {
   readonly hit: boolean;
-  /** Candidate categories in ART9_CATEGORIES order; the consent sheet still names all categories. */
+  /** Candidate categories in ART9_CATEGORIES order; never shown to anyone. */
   readonly categories: readonly Art9Category[];
   readonly terms: readonly string[];
 }

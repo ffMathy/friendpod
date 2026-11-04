@@ -15,6 +15,8 @@ export const APP_ERRORS = {
   CONTACT_INFO_BEFORE_MEETUP: 'failed-precondition',
   UNDERAGE: 'failed-precondition',
   GENDER_CONSENT: 'failed-precondition',
+  /** setArt9Consent with a proof that names no current blanket Art. 9 text. */
+  ART9_CONSENT: 'failed-precondition',
   STAR_LIMIT: 'failed-precondition',
   DEADLINE: 'failed-precondition',
   NOT_INVITED: 'failed-precondition',
@@ -31,7 +33,6 @@ export const APP_ERRORS = {
   NOT_FOUND: 'not-found',
   ALREADY_EXISTS: 'already-exists',
   RATE_LIMITED: 'resource-exhausted',
-  EMBED_BUDGET: 'unavailable',
   FEATURE_DISABLED: 'unavailable',
   INTERNAL: 'internal',
   /** A typed stub for later work; `details.design` names the DESIGN.md section. */

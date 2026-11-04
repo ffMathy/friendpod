@@ -5,6 +5,7 @@
 import { z } from 'zod';
 import {
   ACCOUNT_STATUSES,
+  ATTENDANCE_STATUSES,
   CARD_MEMBER_STATUSES,
   CONSENT_ACTIONS,
   CONSENT_SCOPES,
@@ -14,28 +15,24 @@ import {
   MATCHING_PROFILE_IDS,
   PARTICIPATION_MODES,
   PLATFORMS,
-  POD_MESSAGE_KINDS,
   POD_STATES,
-  QUICK_REPLIES,
   REPORT_CATEGORIES,
   REPORT_TARGET_TYPES,
-  REVIEW_KINDS,
   SENSITIVE_HOLD_REASONS,
   SENSITIVITY_SOURCES,
 } from '../types/domain';
 import {
-  art9CategorySchema,
   availabilitySchema,
   conceptIdSchema,
   docIdSchema,
   firstNameSchema,
   genderSchema,
   gh5Schema,
-  httpsUrlSchema,
   interestIdSchema,
   languagesSchema,
   legalVersionSchema,
   localeSchema,
+  placeSchema,
   podIdSchema,
   radiusKmSchema,
   sha256HexSchema,
@@ -45,7 +42,7 @@ import {
   weekIdSchema,
 } from './common';
 import { CHAT_MESSAGE_MAX } from './callables';
-import { prefsSchema } from './profile';
+import { aboutMeSchema, prefsSchema } from './profile';
 import { podReasonSchema, unmatchedReasonSchema } from './reasons';
 
 const wording = z.string().min(1).max(80);
@@ -74,7 +71,15 @@ export const userDocSchema = z.object({
   stats: z.object({ attended: z.int().min(0), noShows: z.int().min(0), lateCancels: z.int().min(0) }),
   status: z.enum(ACCOUNT_STATUSES),
   lastDrop: z.object({ weekId: weekIdSchema, outcome: z.enum(DROP_OUTCOMES), reason: unmatchedReasonSchema.optional() }).nullable(),
-  legal: z.object({ terms: legalVersionSchema, privacy: legalVersionSchema, genderConsentAt: timestampSchema.optional() }),
+  legal: z.object({
+    terms: legalVersionSchema,
+    privacy: legalVersionSchema,
+    genderConsentAt: timestampSchema.optional(),
+    /** The blanket Art. 9 consent (D3); absent when never given or withdrawn. */
+    art9: z.object({ textVersion: z.string().regex(/^[a-z0-9-]{3,64}$/), textSha256: sha256HexSchema, at: timestampSchema }).optional(),
+  }),
+  /** "About me" (D4): shown to confirmed co-members only, never used for matching; exported and erased with the account. */
+  aboutMe: aboutMeSchema.optional(),
   interestCount: z.int().min(0).max(20),
   createdAt: timestampSchema,
   lastActiveAt: timestampSchema,
@@ -88,6 +93,8 @@ export const interestDocSchema = z
     norm: z.string().min(2).max(40),
     conceptId: conceptIdSchema.nullable(),
     starred: z.boolean(),
+    /** The user chose "This isn't sensitive for me" for a sensitive tag (D2); rescans leave this holding alone. */
+    notSensitiveForMe: z.boolean().optional(),
     state: z.enum(['active', 'pendingConsent']),
     pendingUntil: timestampSchema.optional(),
     createdAt: timestampSchema,
@@ -95,13 +102,12 @@ export const interestDocSchema = z
   .refine((d) => d.state === 'pendingConsent' || d.conceptId !== null, { message: 'an active holding needs a conceptId' });
 export type InterestDoc = z.infer<typeof interestDocSchema>;
 
-/** `users/{uid}/sensitiveInterests/{interestId}`: sensitive holdings, always with a consent event. */
+/** `users/{uid}/sensitiveInterests/{interestId}`: sensitive holdings, each pointing at the blanket consent's grant event. */
 export const sensitiveInterestDocSchema = z.object({
   display: wording,
   norm: z.string().min(2).max(40),
   conceptId: conceptIdSchema,
   selfFlagged: z.boolean(),
-  categoryConfirmed: art9CategorySchema.optional(),
   source: z.enum(SENSITIVITY_SOURCES),
   consentEventId: docIdSchema,
   consentTextVersion: z.string().min(1),
@@ -181,42 +187,40 @@ export const podDocSchema = z
     podInterests: z.object({ da: z.array(wording).max(5), en: z.array(wording).max(5) }),
     planning: z.object({
       deadline: timestampSchema,
+      /** The one 24 h extension round is running ("No time works yet — add another option", D7). */
+      extended: z.boolean().optional(),
       winningOptionId: docIdSchema.optional(),
       meetupAt: timestampSchema.optional(),
-      placeText: z.string().max(120).optional(),
-      mapUrl: httpsUrlSchema.optional(),
+      place: placeSchema.optional(),
     }),
+    /** Per member while `scheduled` (D5); others see "<firstName> hasn't confirmed" for 'unconfirmed'. */
+    attendance: z.record(uidSchema, z.enum(ATTENDANCE_STATUSES)).optional(),
     confirmedAt: timestampSchema,
     archivedAt: timestampSchema.optional(),
   })
   .refine((p) => p.memberUids.every((uid) => uid in p.roster) && Object.keys(p.roster).length === p.memberUids.length, {
     message: 'roster must list exactly the current members',
+  })
+  .refine((p) => p.attendance === undefined || Object.keys(p.attendance).every((uid) => p.memberUids.includes(uid)), {
+    message: 'attendance only for current members',
   });
 export type PodDoc = z.infer<typeof podDocSchema>;
 
 export const optionDocSchema = z.object({
   authorUid: uidSchema,
   startsAt: timestampSchema,
-  placeText: z.string().min(1).max(120),
-  mapUrl: httpsUrlSchema.nullable(),
-  publicPlace: z.literal(true),
+  place: placeSchema,
   votes: z.record(uidSchema, z.enum(['yes', 'no'])),
   createdAt: timestampSchema,
 });
 
-/** A meetup-chat message's content: its text, or the key of a quick reply. */
-const podMessageContent = {
-  kind: z.enum(POD_MESSAGE_KINDS),
-  text: z.string().min(1).max(CHAT_MESSAGE_MAX).optional(),
-  quickReply: z.enum(QUICK_REPLIES).optional(),
-};
-const hasContentOfItsKind = (m: { kind: string; text?: string; quickReply?: string }): boolean =>
-  m.kind === 'text' ? m.text !== undefined && m.quickReply === undefined : m.quickReply !== undefined && m.text === undefined;
-
-/** `pods/{podId}/messages/{messageId}`: `expiresAt` is meetupAt + 72 h (TTL). */
-export const podMessageDocSchema = z
-  .object({ authorUid: uidSchema, ...podMessageContent, createdAt: timestampSchema, expiresAt: timestampSchema })
-  .refine(hasContentOfItsKind, { message: 'text messages carry text, quick replies a quickReply' });
+/** `pods/{podId}/messages/{messageId}`: text only (D14); `expiresAt` is meetupAt + 72 h (TTL). */
+export const podMessageDocSchema = z.object({
+  authorUid: uidSchema,
+  text: z.string().min(1).max(CHAT_MESSAGE_MAX),
+  createdAt: timestampSchema,
+  expiresAt: timestampSchema,
+});
 export type PodMessageDoc = z.infer<typeof podMessageDocSchema>;
 
 export const OPTED_IN_BUCKETS = ['<50', '50+', '100+', '150+', '200+', '500+', '1000+'] as const;
@@ -231,11 +235,12 @@ export const areaDocSchema = z.object({
   configVersion: z.int(),
 });
 
+/** `features.interests` is the kill switch for addInterests (it was `embedder` before D1). */
 export const configAppDocSchema = z.object({
   minAppVersion: z.string(),
   legalVersions: z.record(z.string(), legalVersionSchema),
   skipWeeks: z.array(weekIdSchema),
-  features: z.object({ embedder: z.boolean(), uploads: z.boolean() }).catchall(z.boolean()),
+  features: z.object({ interests: z.boolean(), uploads: z.boolean() }).catchall(z.boolean()),
 });
 
 // ---------------------------------------------------------------- §8.2 server-only
@@ -272,7 +277,7 @@ export const matchProfileDocSchema = z
     activePods: z.int().min(0),
     activeSensitivePods: z.int().min(0),
     sensitiveProposals: z.array(weekIdSchema),
-    sensitiveHold: z.object({ reason: z.enum(SENSITIVE_HOLD_REASONS), since: timestampSchema }).nullable(),
+    sensitiveHold: z.object({ reason: z.enum(SENSITIVE_HOLD_REASONS), since: timestampSchema, until: timestampSchema }).nullable(),
     weekClaim: weekIdSchema.nullable(),
     lastDrop: z.object({ weekId: weekIdSchema, outcome: z.enum(DROP_OUTCOMES), podId: podIdSchema.optional() }).nullable(),
     // DESIGN-DEVIATION: §8.2 lacks the inputs S5 and f(u) need: verified attendance, the alpha
@@ -302,25 +307,31 @@ export const matchProfileDocSchema = z
   });
 export type MatchProfileDoc = z.infer<typeof matchProfileDocSchema>;
 
-export const ASSIGN_METHODS = ['merge', 'new', 'newWithLink', 'newWithMergeProposal', 'seed', 'alias', 'review'] as const;
+/** Concepts change only through these: the thresholds, seeds and alias votes. No merge proposals, no review (D2). */
+export const ASSIGN_METHODS = ['merge', 'new', 'newWithLink', 'seed', 'alias'] as const;
 
+/**
+ * `tags/{tagKey}`. `vec` is the first client vector for this text (trusted, D1); `sens` is the tag-level decision.
+ * `privateAssign` caches the sensitive-partition concept for self-flagged holdings of an ordinary tag, and
+ * `ordinaryAssign` the ordinary-partition concept for "This isn't sensitive for me" holdings of a sensitive tag.
+ */
 export const tagDocSchema = z.object({
   norm: z.string().min(2).max(40),
   vec: vectorValue,
   modelId: z.string(),
   sens: z.object({
-    suspected: z.boolean(),
+    sensitive: z.boolean(),
     margin: z.number().nullable(),
     lexiconHit: z.boolean(),
-    categoryGuess: art9CategorySchema.nullable(),
+    knownOrdinary: z.boolean(),
+    /** LEXICON_RULES_VERSION, prototype list versions and KNOWN_ORDINARY_VERSION the decision used. */
     rulesVersion: z.string(),
-    reviewed: z.enum(['sensitive', 'not']).optional(),
-    reviewedAt: timestampSchema.optional(),
   }),
   moderation: z.object({ status: z.enum(['ok', 'shadowFlag']), rulesVersion: z.string() }),
   conceptId: conceptIdSchema.nullable(),
   assign: z.object({ cos: z.number(), method: z.enum(ASSIGN_METHODS) }),
   privateAssign: z.object({ conceptId: conceptIdSchema, refCount: z.int().min(0) }).optional(),
+  ordinaryAssign: z.object({ conceptId: conceptIdSchema, refCount: z.int().min(0) }).optional(),
   aliasVotes: z.record(conceptIdSchema, z.int().min(0)),
   refCount: z.int().min(0),
   langHints: z.object({ da: z.int().min(0), en: z.int().min(0) }),
@@ -336,7 +347,6 @@ export const conceptDocSchema = z
     sum: vectorValue,
     n: z.int().min(0),
     sensitive: z.boolean(),
-    category: art9CategorySchema.optional(),
     labels: z.object({ da: wording.optional(), en: wording.optional() }),
     holderCount: z.int().min(0),
     status: z.enum(['active', 'merged']),
@@ -357,19 +367,28 @@ export const conceptLinkDocSchema = z.object({
   votes: z.int().min(0),
 });
 
+/** Every timer the sweeper acts on (§4.1, D5, D7, D12), absolute instants computed in Europe/Copenhagen. */
+export const podStateTimersSchema = z.object({
+  acceptBy: timestampSchema,
+  backfillUntil: timestampSchema.optional(),
+  planDeadline: timestampSchema.optional(),
+  meetupAt: timestampSchema.optional(),
+  stillComing3d: timestampSchema.optional(),
+  stillComing24h: timestampSchema.optional(),
+  nudge6h: timestampSchema.optional(),
+  attendanceCheck: timestampSchema.optional(),
+  feedbackPush: timestampSchema.optional(),
+  feedbackReminder: timestampSchema.optional(),
+  feedbackCloses: timestampSchema.optional(),
+});
+
 export const PODSTATE_MEMBER_STATUSES = ['invited', 'accepted', 'declined', 'left', 'removed'] as const;
 
 export const podStateDocSchema = z.object({
   weekId: weekIdSchema,
   componentId: z.string(),
   state: z.enum(POD_STATES),
-  timers: z.object({
-    acceptBy: timestampSchema,
-    backfillUntil: timestampSchema.optional(),
-    planDeadline: timestampSchema.optional(),
-    meetupAt: timestampSchema.optional(),
-    feedbackCloses: timestampSchema.optional(),
-  }),
+  timers: podStateTimersSchema,
   memberList: z.array(uidSchema),
   members: z.record(
     uidSchema,
@@ -380,10 +399,17 @@ export const podStateDocSchema = z.object({
       viaBackfill: z.boolean(),
       themeInterestId: interestIdSchema.nullable(),
       reasons: z.array(podReasonSchema),
+      /** While `scheduled` (D5); mirrored to `pods.attendance`. */
+      attendance: z.enum(ATTENDANCE_STATUSES).optional(),
+      attendanceAt: timestampSchema.optional(),
     }),
   ),
   hasMet: z.boolean(),
   rescheduled: z.boolean(),
+  /** The current planning round has used its one 24 h extension (D7); reset when a new round starts. */
+  planningExtended: z.boolean(),
+  /** When the pod entered `scheduled`; the T−3 d ask needs the meetup ≥ 4 days after this (D5). */
+  planLockedAt: timestampSchema.optional(),
   score: z.number(),
   backfill: z.object({ used: z.boolean(), until: timestampSchema.optional() }),
   version: z.int().min(0),
@@ -396,8 +422,22 @@ export const podFeedbackDocSchema = z.object({
   meetAgain: z.record(uidSchema, z.boolean()),
   rating: z.int().min(1).max(5).optional(),
   keep: z.boolean(),
-  disputes: z.array(uidSchema).optional(),
 });
+
+/**
+ * `pairSignals/{pairKey}` (D9), server-only: the two members' meet-again answers about each other. Applied to both
+ * `matchProfiles.recentH` through meetAgainOutcome; deleted when either account is erased (found by `uidHs`).
+ */
+export const pairSignalDocSchema = z
+  .object({
+    uidHs: z.tuple([uidHSchema, uidHSchema]),
+    answers: z.record(uidHSchema, z.boolean()),
+    meetWeek: weekIdSchema,
+    updatedAt: timestampSchema,
+    expiresAt: timestampSchema.optional(),
+  })
+  .refine((d) => d.uidHs[0] < d.uidHs[1], { message: 'uidHs sorted and distinct' })
+  .refine((d) => Object.keys(d.answers).every((h) => d.uidHs.includes(h)), { message: 'answers only from the pair' });
 
 /** Aggregate counts in `drops`: any cell under 10 is stored as "<10" (§6.6). */
 export const suppressedCountSchema = z.union([z.int().min(10), z.literal(0), z.literal('<10')]);
@@ -419,8 +459,6 @@ export const consentEventDocSchema = z
     uid: uidSchema.optional(),
     uidH: uidHSchema.optional(),
     scope: z.enum(CONSENT_SCOPES),
-    interestId: interestIdSchema.optional(),
-    category: art9CategorySchema.optional(),
     action: z.enum(CONSENT_ACTIONS),
     textVersion: z.string(),
     textSha256: sha256HexSchema,
@@ -444,12 +482,12 @@ export const reportDocSchema = z
     podId: podIdSchema,
     target: z.object({ type: z.enum(REPORT_TARGET_TYPES), optionId: docIdSchema.optional(), messageId: docIdSchema.optional() }),
     /** A copy of the reported message (its author is `targetUid`), so the evidence outlives the message's TTL. */
-    message: z.object(podMessageContent).refine(hasContentOfItsKind, { message: 'text messages carry text, quick replies a quickReply' }).optional(),
+    message: z.strictObject({ text: z.string().min(1).max(CHAT_MESSAGE_MAX) }).optional(),
     category: z.enum(REPORT_CATEGORIES),
     text: z.string().max(500).optional(),
     status: z.enum(['open', 'resolved']),
+    /** Automated outcome code; nobody reviews reports (D2). */
     decision: z.string().optional(),
-    decidedBy: z.string().optional(),
     createdAt: timestampSchema,
     resolvedAt: timestampSchema.optional(),
     expiresAt: timestampSchema,
@@ -464,29 +502,15 @@ export const reportDocSchema = z
   })
   .refine((r) => r.target.optionId === undefined || r.target.type === 'option', { message: 'optionId only on option reports' });
 
+/** Automated sanctions only, and every one expires (D2): no permanent sanction without a human decision. */
 export const sanctionDocSchema = z.object({
-  type: z.enum(['pause', 'suspension', 'ban']),
-  until: timestampSchema.optional(),
+  type: z.enum(['pause', 'suspension']),
+  until: timestampSchema,
   reasonCode: z.string(),
   noticeId: docIdSchema,
 });
 
 export const banDocSchema = z.object({ reasonCode: z.string(), createdAt: timestampSchema, expiresAt: timestampSchema });
-
-const TAG_REVIEW_KINDS: readonly string[] = ['tagSensitivity', 'conceptMerge', 'abuseHold'];
-const UID_REVIEW_KINDS: readonly string[] = ['report', 'sensitiveAnomaly'];
-export const reviewQueueDocSchema = z
-  .object({
-    kind: z.enum(REVIEW_KINDS),
-    ref: z.string(),
-    text: z.string().max(40).optional(),
-    uid: uidSchema.optional(),
-    status: z.enum(['open', 'decided']),
-    decision: z.string().optional(),
-    expiresAt: timestampSchema.optional(),
-  })
-  .refine((q) => q.text === undefined || TAG_REVIEW_KINDS.includes(q.kind), { message: 'text only on tag kinds' })
-  .refine((q) => q.uid === undefined || UID_REVIEW_KINDS.includes(q.kind), { message: 'uid only on report / sensitiveAnomaly' });
 
 export const photoGrantDocSchema = z.object({ pods: z.array(podIdSchema).min(1), createdAt: timestampSchema });
 
