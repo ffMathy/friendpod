@@ -1,9 +1,9 @@
-import { EmbedderUnavailableError, type LoadOptions } from './types';
+import { EmbedderUnavailableError } from './types';
 
 /** One loaded runtime (session, tokenizer, prototypes) that a screen holds while focused. */
 export interface Lifecycle<L> {
   /** Loads once; concurrent calls share one load. Fails if `release()` came first and nobody asked again. */
-  load(opts: LoadOptions): Promise<void>;
+  load(): Promise<void>;
   /** Runs `fn` on the loaded runtime; `release()` waits for it before freeing anything. */
   use<T>(fn: (loaded: L) => Promise<T>): Promise<T>;
   /** Frees the runtime once no `use` is running. A load still in flight frees its own result when it lands. */
@@ -12,20 +12,20 @@ export interface Lifecycle<L> {
 
 /**
  * The embedder's load/release rules (D1): the model is hundreds of MB, so a screen that loses focus must not keep it,
- * not even when the download or session creation finishes after the screen has gone, and a release must not pull
+ * not even when the first-launch copy or session creation finishes after the screen has gone, and a release must not pull
  * the session out from under an embed that is still running.
  */
-export function createLifecycle<L>(create: (opts: LoadOptions) => Promise<L>, dispose: (loaded: L) => Promise<void>): Lifecycle<L> {
+export function createLifecycle<L>(create: () => Promise<L>, dispose: (loaded: L) => Promise<void>): Lifecycle<L> {
   let loaded: L | null = null;
   let loading: Promise<void> | null = null;
   let wanted = false;
   const running = new Set<Promise<unknown>>();
 
   return {
-    async load(opts) {
+    async load() {
       wanted = true;
       if (loaded) return;
-      loading ??= create(opts)
+      loading ??= create()
         .then(async (l) => {
           if (wanted) loaded = l;
           else await dispose(l);

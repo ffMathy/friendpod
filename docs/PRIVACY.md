@@ -35,8 +35,8 @@ Evidence tags are the same as in DESIGN.md:
 | Processor | Google (Firebase / Google Cloud) | Firestore, Functions, Storage, Cloud Tasks, Scheduler, Secret Manager, Logging, Auth, Hosting, FCM, App Check (§9) |
 | Processor | EU transactional email provider, to be chosen in M1 (D§2.4 Q17) [A] | Inactivity warnings and Art. 34 breach notices (§9) |
 | Processor | Google, for Google Maps Platform (Places API) **[LAWYER]** confirm the role | The meetup place picker: search text, session token and the device's IP address go from the app to Google (§9) |
-| Independent controllers | Apple (Sign in with Apple, App Attest); Google as identity provider and for Play Integrity | Their own account and attestation data [GDPR]. **[LAWYER]** |
-| No role | Expo (EAS Build only), Hugging Face (CI copies the pinned model files once per model version into our EU bucket; the app never contacts it), GitHub; the user's own calendar app ("Add to calendar" opens the phone's sheet, and only the user decides to save) | No end-user data: calibration sets in the repository are synthetic or founder-written (D§5.3). Expo push and EAS Update are not used [GDPR][FBX] |
+| Independent controllers | Apple (Sign in with Apple, App Attest, App Store); Google as identity provider, for Play Integrity and as Google Play | Their own account and attestation data [GDPR]. **[LAWYER]** |
+| No role | Expo (EAS Build only), Hugging Face (our builds and CI fetch the pinned model files from it; the app never contacts it), GitHub; the user's own calendar app ("Add to calendar" opens the phone's sheet, and only the user decides to save) | No end-user data: calibration sets in the repository are synthetic or founder-written (D§5.3). Expo push and EAS Update are not used [GDPR][FBX] |
 | Recipients | Invitees and fellow pod members | Invitees see the theme in their own wording before confirmation (they hold it too). After confirmation, members see first names, the optional "about me" sentence and photos; in sensitive-themed pods a photo only if its owner opts in (D§3.4, D§6.1 S6). While a meetup is scheduled, members see whether each other has confirmed ("<firstName> hasn't confirmed"). Around each scheduled meetup, the current confirmed members see each other's meetup-chat messages, until they are deleted about 3 days after the meetup (D§3.6) |
 
 ---
@@ -328,7 +328,7 @@ Many dating and community apps ask once for consent to sensitive profile data. T
 | Cloud Run request logs (IP address, user agent) | Not kept: excluded from the `_Default` sink (D§13) | — | Exclusion filter |
 | Admin Activity / System Event audit logs (admin principals, resource names; no end-user data) | Cloud Logging `_Required` (global; location cannot be changed) | 400 days (Google default) | Google |
 | Service emails | EU email provider (Q17) | Per the provider's DPA [A] | — |
-| On-device model files (no personal data) | The user's phone, app documents directory, excluded from iCloud backup | Until the app is deleted or the model changes | App |
+| On-device model files (no personal data) | The user's phone: inside the app (D§5.1); on Android also a copy in app storage (Android backup is off) | Until the app is deleted or updated with another model | App |
 | Device caches (images, Firestore offline cache) | The user's phone | Until the next app open after a revocation. Meetup-chat messages: never shown after their `expiresAt`; cached copies, including messages the server deleted at erasure or withdrawal while the device was not listening, stay on disk until the first app open after the latest cached `expiresAt` (`meetupAt` + 72 h), or until the pod leaves the active list if that is sooner. All cleared on sign-out and deletion | App |
 | Backups | Firestore PITR + daily backups | 7 days each [GDPR][FBX] | Native; the restore replays every `erasureLedger` entry first |
 
@@ -481,14 +481,14 @@ Art. 37(1)(c) requires a DPO only when sensitive processing is both a **core act
 | Firebase Hosting (email-link domain `/__/auth/links`, account-deletion and privacy pages) | Processor (Google) | **Global CDN** | Firebase Data Processing and Security Terms; receives IP addresses, user agents and the one-time sign-in code in the link |
 | Firebase Authentication (including magic-link emails) | Processor (Google) | **US data centers only** [FBX] | Firebase Data Processing and Security Terms: DPF (§10.6), else SCCs (§10.2) [FBX] |
 | FCM, App Check | Processor (Google) | Global [FBX] | As above |
-| On-device model files (`grouper-<env>-models`, europe-west1) | Processor (Google, Cloud Storage) | EU | Cloud Data Processing Addendum; the download request carries the device IP address and no user ID. If the model moves to Cloudflare R2 or store asset packs (D§2.4 Q20), this row and the transfer analysis change |
 | Google Maps Platform: Places API (New) Autocomplete and Place Details (D8) | Processor (Google) under the Google Maps Platform terms and data-processing terms **[LAWYER]** confirm the role; Google may claim to be a controller for Maps service data | Global (US) | DPF, else SCCs. Receives, directly from the app: the search text typed into the place picker, a session token, the device's IP address, the API key and app identifiers. No uid, theme or pod is sent. We keep only the chosen place (D§8.1). Cost and quota caps: COSTS.md §3.2 |
 | Transactional email provider (D§2.4 Q17) | Processor | EU [A] | DPA required before M1; used only for inactivity warnings and Art. 34 notices (email address, message). Until chosen, these go in-app and by push only, which cannot reach users who no longer open the app |
 | Mailbox for privacy@… | Processor (the mail host) | EU [A] | DPA; DSAR correspondence |
 | Sign in with Apple, App Attest, APNs | Independent controller [GDPR] **[LAWYER]** | US / global | Apple terms; disclosed |
 | Google Sign-In, Play Integrity | Independent controller [GDPR] **[LAWYER]** | Global | Google terms; disclosed |
+| App Store, Google Play (distribute the app, including the bundled on-device model) | Independent controller **[LAWYER]** | Global | Store terms. No processor is needed for model delivery: the model ships inside the app (D§5.1) and the app never downloads it, so no model request from the app reaches us or anyone else |
 | Expo (EAS Build) | None | — | Expo push and EAS Update not used [GDPR] |
-| Hugging Face | None. CI copies the pinned weights once per model version into our EU bucket; the app never contacts Hugging Face, so it never sees users' IP addresses | — | Apache-2.0 model licence (EmbeddingGemma 2); Gemma Terms only if the v1 fallback is used [CAL][SRV] |
+| Hugging Face | None. Our builds and CI fetch the pinned weights from it; the app never contacts Hugging Face, so it never sees users' IP addresses | — | Apache-2.0 model licence (EmbeddingGemma 2); Gemma Terms only if the v1 fallback is used [CAL][SRV] |
 
 **Transfers** [GDPR]:
 - **DPF.** In force. The General Court dismissed *Latombe* (T-553/23) on 3 Sep 2025, and the appeal C-703/25 P is pending. After *Trump v. Slaughter* (29 Jun 2026), the EDPB asked the Commission on 31 Jul 2026 to reassess the adequacy decision.
@@ -506,7 +506,7 @@ Art. 37(1)(c) requires a DPO only when sensitive processing is both a **core act
   - vectors and matching data server-only (D§9).
 - **Integrity:** App Check on callables, Firestore and Storage (1 h token TTL); replay protection (limited-use tokens, `alreadyConsumed` rejected) on reporting, export and deletion.
 - **Abuse limits:** per-uid limits on `addInterests` (half for new accounts); one pending upload per uid; 30 chat messages per user per pod per hour; kill switches on budget alerts; Places API key restricted to the apps with per-day quota caps (D§9).
-- **On-device model integrity:** every model file is checked against its pinned sha256 before it is loaded; the server accepts vectors only with the pinned `modelKey` (D§5.1).
+- **On-device model integrity:** every model file is checked against its pinned sha256 when the app is built (a mismatch fails the build), the signed app package protects it afterwards, and on Android the copy in app storage is checked again before it is loaded; the server accepts vectors only with the pinned `modelKey` (D§5.1).
 - **Photos:** per-pair grants removed at every pod exit; no bearer URLs; `max-age` 1 h; device caches cleared on revocation events, sign-out and deletion; only the current version stored; EXIF and GPS stripped.
 - **Identity:**
   - a least-privilege service account per codebase; no function runs as a default service account (deploy check);
@@ -544,7 +544,7 @@ The order covers storing and reading information on the device in apps. Digitali
 | App Check | Attestation tokens and APIs | No (security of the requested service) **[LAWYER]** |
 | FCM / Firebase Installations | Installation ID, push token, after the OS permission | No **[LAWYER]** |
 | `expo-secure-store` | Pending sign-in email | No |
-| On-device model files (about 210 MB, app documents directory) | Model and tokenizer, downloaded when the user adds interests | No: strictly necessary for the feature the user asked for **[LAWYER]** |
+| On-device model files (about 210 MB, inside the app; on Android also copied once into app storage at first launch) | Model and tokenizer, shipped with the app | No: strictly necessary for the feature the user asked for **[LAWYER]** |
 | Places session token | In memory during one place search | No |
 | "Add to calendar" | The OS add-event sheet; the user decides to save; we store nothing | No (user-initiated) |
 | Analytics, Crashlytics, ads | Not included | — |
@@ -654,7 +654,7 @@ Layered (in-app summary + full text), in Danish and English:
 3. Sensitive interests: the one blanket explicit consent and that saying no keeps the app usable, the check on the phone, who sees them (invitees and members), "This isn't sensitive for me", anti-infiltration measures and their limits, withdrawal.
 4. How matching works and "why this pod"; meet-again effects; sensitive-theme eligibility; every automated pause and its length; that no human reviews reports or decisions; pause.
 5. Who sees what: nothing public; first name, "about me" and photo only after confirmation (photo opt-in in sensitive-themed pods); meetup-chat messages only to current pod members, deleted about 3 days after the meetup; no distances.
-6. Where data lives (EU, including logs and the model files; Auth in the US, with the Google name and photo URL for Google users; FCM, App Check, Hosting and Places global) and the processor list.
+6. Where data lives (EU, including logs; Auth in the US, with the Google name and photo URL for Google users; FCM, App Check, Hosting and Places global) and the processor list.
 7. Retention, including the backup, Auth, drop-snapshot, device-cache and TTL windows, the under-18 marker, and the pseudonymised records kept after deletion.
 8. Rights, in-app buttons, one-month response.
 9. Safety, moderation and how to contest.

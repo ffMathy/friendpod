@@ -15,7 +15,6 @@ jest.mock('expo-constants', () => ({
       extra: {
         appEnv: 'development',
         emailLinkDomain: 'grouper-staging.firebaseapp.com',
-        modelBaseUrl: 'https://storage.googleapis.com/grouper-staging-models/models/eg2-q4-daa72c5/',
       },
     },
   },

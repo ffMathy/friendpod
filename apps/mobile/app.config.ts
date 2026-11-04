@@ -6,7 +6,7 @@
  *   GOOGLE_SERVICES_JSON     EAS file env var: google-services.json for this environment
  *   GOOGLE_WEB_CLIENT_ID     OAuth web client id (Firebase console, Auth > Google), needed for Google ID tokens
  *   EAS_PROJECT_ID           set once `eas init` has linked the project
- *   MODEL_BASE_URL           optional override of where the pinned on-device model files are served (D1)
+ *   EXPO_PUBLIC_EMBEDDER     `stub` lets a development prebuild go without the bundled model (withBundledModel)
  *
  * Development falls back to committed placeholders for the `demo-grouper` emulator project; staging and
  * production refuse to build without their real files.
@@ -28,18 +28,6 @@ interface EnvSettings {
 
 /** The native ONNX Runtime the detector thresholds were verified on (core EMBEDDING_MODEL.device.nativeOrt). */
 const ORT_NATIVE_VERSION = '1.30.0';
-/** Pinned model revision directory (core EMBEDDING_MODEL.device.dir); a test keeps both in step with core. */
-const MODEL_DIR = 'eg2-q4-daa72c5/';
-
-/**
- * The model files are public (Apache-2.0 weights, no user data) and served from the project's EU models bucket
- * (DESIGN.md §5.1, §8), so a download reveals nothing but the IP address to Google Cloud, which already processes it.
- */
-function modelBaseUrl(projectId: string): string {
-  const url = process.env.MODEL_BASE_URL ?? `https://storage.googleapis.com/${projectId}-models/models/${MODEL_DIR}`;
-  return url.endsWith('/') ? url : `${url}/`;
-}
-
 const ENVIRONMENTS: Record<AppEnv, EnvSettings> = {
   development: {
     name: 'Grouper Dev',
@@ -238,6 +226,9 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       './plugins/withFirestoreBackupExclusion.js',
       // On-device embedding (D1): pins the native ONNX Runtime under onnxruntime-react-native on both platforms.
       ['./plugins/withOrtPinned.js', { version: ORT_NATIVE_VERSION }],
+      // The pinned model ships inside the app (founder decision 2026-11-04): fetched and verified by
+      // `npm run fetch-model` (EAS: eas-build-pre-install), copied into the iOS bundle and Android assets at prebuild.
+      './plugins/withBundledModel.js',
       // DESIGN-DEVIATION: expo-screen-capture and expo-image-manipulator (SDK 58) ship no config plugin,
       // and of RNFirebase 27 only app, auth, app-check and messaging do; the rest autolink without one.
       // expo-calendar's plugin is left out on purpose: it only adds calendar permissions, and the system new-event
@@ -250,7 +241,6 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     extra: {
       appEnv: env,
       emailLinkDomain: linkDomain,
-      modelBaseUrl: modelBaseUrl(s.linkProjectId),
       ...(process.env.GOOGLE_WEB_CLIENT_ID ? { googleWebClientId: process.env.GOOGLE_WEB_CLIENT_ID } : {}),
       ...(easProjectId ? { eas: { projectId: easProjectId } } : {}),
     },

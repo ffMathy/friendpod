@@ -15,14 +15,12 @@ All amounts are **USD, list price, per month**, for europe-west1 where a region 
 | Google Cloud / Firebase (all lines in §3.1) | ~$0.5 | ~$3.5 | ~$23 | ~$55 |
 | Google Places (meetup place picker, D8) | $0 | ~$0–13 | ~$120–185 | ~$315–425 |
 | Store accounts, domain, EAS builds | ~$11 | ~$11–30 | ~$30 | ~$30 |
-| **Total, model download not on GCS** | **~$12** | **~$15–47** | **~$170–240** | **~$400–510** |
-| On-device model download from our EU bucket (GCS) | +~$5 | +~$54 | +~$270 | +~$540 |
-| **Total, model download from our EU bucket** | **~$17** | **~$70–100** | **~$440–510** | **~$940–1,050** |
+| **Total** | **~$12** | **~$15–47** | **~$170–240** | **~$400–510** |
 
 What this means:
 - **Below about 7,000 MAU almost everything is free** except the store accounts. The Places free caps (10,000 requests of each kind a month) cover the place picker up to about 7k MAU.
-- **Two lines dominate from 10k MAU:** the Places place picker and, if we serve it ourselves, the download of the 175 MB on-device model (D1). Firebase itself stays small.
-- **The model download is a choice, not a given** (DESIGN §2.4 Q20): serving it from our EU Google Cloud bucket keeps Google as the only processor but costs about $0.02 per install; Cloudflare R2 or store-hosted asset packs cost about nothing but add a processor or a second code path (§3.3).
+- **One line dominates from 10k MAU:** the Places place picker. Firebase itself stays small.
+- **The on-device model costs nothing to distribute:** it ships inside the app (DESIGN F32), so the app stores deliver it. The price is about 210 MB more app size, not money (§3.3).
 
 ## 2. What changed against DESIGN §12 (before round 2)
 
@@ -30,7 +28,7 @@ What this means:
 |---|---|---|
 | **Server embedder retired** (D1): no `embedder` codebase, no 1 GiB instances, no embedder images in Artifact Registry, no `minInstances`/Vertex levers, no global embed budget | −$3–6.50 embedding path, −about $0.10 Artifact Registry; the **$345/month abuse ceiling is gone** | Tags are embedded on the phone; the server only runs `findNearest` in a normal callable |
 | **Google Places added** (D8) | +$315–425 | Autocomplete (per request) + Place Details Essentials; free caps 10k/month each |
-| **On-device model distribution added** (D1) | +$0 to +$540 | 174.5 MB per new install (plus one re-download per model change); depends on where it is hosted (Q20) |
+| **On-device model added, bundled in the app** (D1, F32) | $0 | About 210 MB more app size; the stores deliver it with the app (§3.3) |
 | **EU Storage has no free tier** (corrected) | photos ~$24.5 instead of "first GB free" | Firebase's no-cost Storage quota applies only to us-central1, us-west1 and us-east1 buckets |
 | **Egress price confirmed** at $0.12/GB (0–10 TiB) | no change | Was marked "unconfirmed" in §12 |
 | **New per-MAU drivers**: attendance nudges, extension rounds, meet-again pair signals, `aboutMe`, Places sessions | +~$1 Firestore | §4 |
@@ -80,17 +78,12 @@ The app calls Places directly with a key restricted to the apps (DESIGN §9). A 
 
 ### 3.3 On-device model distribution (D1)
 
-Each install downloads `model_q4.onnx` (0.5 MB), `model_q4.onnx_data` (174.0 MB), `tokenizer.json` (32.2 MB, served gzip-encoded at about 5.5 MB) and the small config and `prototypes.bin` files: **about 180 MB of transfer** [ODV]. Every model change downloads it again for every active user.
+**Bundled in the app: $0.** `model_q4.onnx` (0.5 MB), `model_q4.onnx_data` (174.0 MB), `tokenizer.json` (32.2 MB) and the small config files ship inside the app (DESIGN §5.1, F32), fetched and sha256-checked at build time; nothing is hosted or downloaded at run time [ODV].
 
-| Hosting | Price | 1k | 10k | 50k | 100k | Privacy |
-|---|---|---|---|---|---|---|
-| **Our EU bucket** (GCS or Firebase Storage, europe-west1; default) | $0.12/GB egress, ~$0.021 per install [P] | ~$5 | ~$54 | ~$270 | ~$540 | Google only; already a processor |
-| Firebase Hosting CDN | $0.15/GB after 360 MB/day [P] | ~$6 | ~$65 | ~$330 | ~$670 | Google only |
-| Cloudflare R2 | storage only, "no charges for egress bandwidth" [P] | ~$0 | ~$0 | ~$0 | ~$0 | Adds Cloudflare as a processor (sees IP addresses); EU jurisdiction option to verify |
-| Play Asset Delivery (on-demand pack) + Apple Background Assets | $0 (store-hosted) | $0 | $0 | $0 | $0 | Stores are already independent controllers; two extra platform code paths; model update tied to app releases |
-| Hugging Face CDN | $0; anonymous limit 3,000 resolver calls per 5 min per IP [P] | $0 | $0 | $0 | $0 | **Not recommended**: a US company receiving every user's IP address, a new transfer to document |
-
-Basis: new installs at 25% of MAU a month while growing [A], 180 MB each. A model change for all users at 100k MAU costs about **$2,100 once** on GCS. The bucket cost of storing the files is under $0.01 a month.
+- **App size:** about 210 MB more.
+- **Apple:** above 200 MB the App Store asks before downloading the app on cellular, by default (accepted).
+- **Google Play:** the base module limit is 500 MB, so no asset pack is needed.
+- **Updates:** every app update that changes the model ships it again; other updates are delta-patched by the stores.
 
 ### 3.4 Outside Google Cloud
 
@@ -104,27 +97,27 @@ Basis: new installs at 25% of MAU a month while growing [A], 180 MB each. A mode
 | Firebase Auth email links | $0 on Blaze, 25,000/day [P] | $0 | ~0.3 sends per MAU a month [A] |
 | FCM | $0 [P] | $0 | ~6 pushes per MAU a month (drop, T−3 d, T−24 h, T−6 h, feedback and its reminder) [A] |
 | App Check: Play Integrity, App Attest | $0 [P] | $0 | Play Integrity standard tier 10,000 calls/day, which runs out at about 30–40k DAU with a 1 h token TTL; the free increase is requested at about 15k MAU (DESIGN §9) |
-| Hugging Face | $0 [P] | $0 | Build time only: CI copies the pinned files into the EU mirror once per model version; the app never contacts Hugging Face |
+| Hugging Face | $0 [P] | $0 | Build time only: the fetch-model script fetches the pinned files for each native build, and CI fills the EU mirror once per model version; the app never contacts Hugging Face |
 | GitHub Actions (private repo) | Linux $0.006/min; Free plan includes $12/month of compute (~2,000 Linux minutes) [P] | $0 | ~1,700 min/month expected (CI ~12 min × ~120 runs + nightly calibration ~10 min) [A]. The nightly calibration download from the GCS mirror costs about $0.65/month in egress |
 
 ## 4. Cost over time (months 0–24)
 
-**Assumed growth curve [A]:** months 0–3 closed alpha, up to 1k MAU; month 6: 5k; month 12: 20k; month 18: 50k; month 24: 100k (Aarhus, then Copenhagen, then Denmark). New installs are 25% of MAU a month. Places at 5 requests per session. EAS Starter from month 4. Interpolated geometrically between the points.
+**Assumed growth curve [A]:** months 0–3 closed alpha, up to 1k MAU; month 6: 5k; month 12: 20k; month 18: 50k; month 24: 100k (Aarhus, then Copenhagen, then Denmark). Places at 5 requests per session. EAS Starter from month 4. Interpolated geometrically between the points.
 
-| Month | MAU | Google Cloud (incl. staging) | Places | EAS | Run rate, model not on GCS | Model on GCS | Run rate, model on GCS | Cumulative since month 0, not on GCS / on GCS |
-|---|---|---|---|---|---|---|---|---|
-| 0 (build) | 0 | ~$1 | $0 | $0 | ~$1 | $0 | ~$1 | $140 / $140 |
-| 1 | 300 | ~$1 | $0 | $0 | ~$1 | ~$2 | ~$3 | $141 / $143 |
-| 3 | 1,000 | ~$1.5 | $0 | $0 | ~$2 | ~$5 | ~$7 | $144 / $154 |
-| 6 | 5,000 | ~$3 | $0 | $19 | ~$22 | ~$27 | ~$49 | $208 / $270 |
-| 9 | 10,000 | ~$4.5 | ~$6 | $19 | ~$29 | ~$54 | ~$83 | $282 / $475 |
-| 12 | 20,000 | ~$9 | ~$40 | $19 | ~$68 | ~$108 | ~$176 | $555 / $1,010 |
-| 15 | 33,000 | ~$16 | ~$84 | $19 | ~$118 | ~$178 | ~$297 | $854 / $1,766 |
-| 18 | 50,000 | ~$24 | ~$152 | $19 | ~$194 | ~$270 | ~$464 | $1,348 / $2,969 |
-| 21 | 72,000 | ~$38 | ~$253 | $19 | ~$310 | ~$389 | ~$698 | $2,153 / $4,812 |
-| 24 | 100,000 | ~$56 | ~$370 | $19 | ~$445 | ~$540 | ~$985 | $3,463 / $7,580 |
+| Month | MAU | Google Cloud (incl. staging) | Places | EAS | Run rate | Cumulative since month 0 |
+|---|---|---|---|---|---|---|
+| 0 (build) | 0 | ~$1 | $0 | $0 | ~$1 | $140 |
+| 1 | 300 | ~$1 | $0 | $0 | ~$1 | $141 |
+| 3 | 1,000 | ~$1.5 | $0 | $0 | ~$2 | $144 |
+| 6 | 5,000 | ~$3 | $0 | $19 | ~$22 | $208 |
+| 9 | 10,000 | ~$4.5 | ~$6 | $19 | ~$29 | $282 |
+| 12 | 20,000 | ~$9 | ~$40 | $19 | ~$68 | $555 |
+| 15 | 33,000 | ~$16 | ~$84 | $19 | ~$118 | $854 |
+| 18 | 50,000 | ~$24 | ~$152 | $19 | ~$194 | $1,348 |
+| 21 | 72,000 | ~$38 | ~$253 | $19 | ~$310 | $2,153 |
+| 24 | 100,000 | ~$56 | ~$370 | $19 | ~$445 | $3,463 |
 
-"Run rate" excludes the yearly fees; the cumulative column includes them (Apple $99 and the domain in months 0, 12 and 24, Google Play $25 in month 0). Over 24 months the place picker costs about $2,300 and the model download from our bucket about $4,100; everything on Google Cloud together about $400.
+"Run rate" excludes the yearly fees; the cumulative column includes them (Apple $99 and the domain in months 0, 12 and 24, Google Play $25 in month 0). Over 24 months the place picker costs about $2,300 and everything on Google Cloud together about $400; the on-device model adds nothing.
 
 ## 5. Assumptions to replace with alpha data
 
@@ -132,20 +125,18 @@ Basis: new installs at 25% of MAU a month while growing [A], 180 MB each. A mode
 |---|---|---|
 | A-C1 | 0.08 meetups per MAU a month, ~5 members each [§12] | Places, chat, pushes |
 | A-C2 | 3 options proposed per meetup, 4–6 debounced autocomplete requests each | Places (the largest line) |
-| A-C3 | New installs = 25% of MAU a month; a model change re-downloads for every active user | Model distribution |
-| A-C4 | ~300 Firestore reads and ~40 writes per MAU a month (§12 base + chat, attendance, votes, pair signals) | Firestore |
-| A-C5 | Photos: 200 KB stored, 2 MB egress per MAU a month [§12] | Storage |
-| A-C6 | Functions average ~200 ms at gcf_gen1 | Functions |
-| A-C7 | `.dk` registrar price ~$15/year | Fixed costs |
-| A-C8 | CI stays within GitHub's free compute | GitHub Actions |
+| A-C3 | ~300 Firestore reads and ~40 writes per MAU a month (§12 base + chat, attendance, votes, pair signals) | Firestore |
+| A-C4 | Photos: 200 KB stored, 2 MB egress per MAU a month [§12] | Storage |
+| A-C5 | Functions average ~200 ms at gcf_gen1 | Functions |
+| A-C6 | `.dk` registrar price ~$15/year | Fixed costs |
+| A-C7 | CI stays within GitHub's free compute | GitHub Actions |
 
 ## 6. Levers, in order of effect
 
-1. **Model hosting (Q20):** R2 or store asset packs take ~$540/month off at 100k MAU; serving from GCS is the simple, single-processor default.
-2. **Places:** keep sessions on Essentials (§3.2); debounce; start autocomplete at 3 characters; consider a short list of "places this pod used before" so later meetups need no search [A].
-3. **Photo egress:** thumbnails, device disk cache, JPEG quality 0.7 (DESIGN §12).
-4. **Firestore:** single aggregated docs for clients; the concept shortlist before 20k concepts.
-5. **No always-on resources:** no `minInstances`, no Vertex endpoints, no Identity Platform (+$275/month at 100k MAU).
+1. **Places:** keep sessions on Essentials (§3.2); debounce; start autocomplete at 3 characters; consider a short list of "places this pod used before" so later meetups need no search [A].
+2. **Photo egress:** thumbnails, device disk cache, JPEG quality 0.7 (DESIGN §12).
+3. **Firestore:** single aggregated docs for clients; the concept shortlist before 20k concepts.
+4. **No always-on resources:** no `minInstances`, no Vertex endpoints, no Identity Platform (+$275/month at 100k MAU).
 
 ## 7. Sources (fetched 2026-11-02 to 2026-11-04)
 
@@ -171,6 +162,6 @@ Basis: new installs at 25% of MAU a month while growing [A], 180 MB each. A mode
 | `.dk` domain | https://www.punktum.dk/en/articles/prices-and-fees |
 | Transactional email | https://www.brevo.com/pricing/, https://postmarkapp.com/pricing |
 | Hugging Face rate limits | https://huggingface.co/docs/hub/rate-limits |
-| Cloudflare R2 | https://developers.cloudflare.com/r2/pricing/ |
 | GitHub Actions | https://docs.github.com/en/billing/concepts/product-billing/github-actions |
-| On-device model sizes and transfer [ODV] | On-device EmbeddingGemma 2 research, 2026-11-04 (DESIGN §5.1) |
+| On-device model sizes [ODV] | On-device EmbeddingGemma 2 research, 2026-11-04 (DESIGN §5.1) |
+| App size limits (App Store cellular prompt above 200 MB, Play base module 500 MB) | Research for the bundling decision, 2026-11-04 (DESIGN F32) |

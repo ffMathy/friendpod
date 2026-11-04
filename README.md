@@ -81,10 +81,12 @@ npm run emulators         # firebase emulators:start --project demo-grouper
 
 ### Run the app in a development build
 
-React Native Firebase does not run in Expo Go. Build a development client once, then point it at the emulators:
+React Native Firebase does not run in Expo Go. Fetch the on-device model, build a development client once, then point
+it at the emulators:
 
 ```sh
 cd apps/mobile
+npm run fetch-model             # pinned model files (~210 MB), sha256-checked; again after every model change
 npx expo run:android            # or: npx expo run:ios, or eas build --profile development
 EXPO_PUBLIC_USE_EMULATORS=1 npm start
 ```
@@ -130,11 +132,13 @@ npm run bench:match -- --n 20000 --concepts 30000 --history 30 # matcher runtime
 
 ### The model
 
-Nothing in this repository downloads or runs the model on a server any more (D1). The app downloads the device files
-listed by `deviceModelFiles()` in `packages/core` from the EU models bucket and checks each sha256 before loading;
-see [apps/mobile/README.md](apps/mobile/README.md). Building `prototypes.bin` and the nightly calibration gate need an
-offline tool with the pinned model that does not exist yet (`.github/workflows/calibration.yml`). Model weights are
-never committed.
+Nothing in this repository runs the model on a server any more (D1), and the app never downloads it: the device
+files listed by `deviceModelFiles()` in `packages/core` ship inside the app (DESIGN.md §5.1, F32). The fetch-model
+script downloads them at the pinned revision and checks each sha256 before a native build; the build then bundles them
+in the iOS app and as uncompressed Android assets, which the app copies once into its storage on first launch. Run it
+before every native build (local or EAS); see [apps/mobile/README.md](apps/mobile/README.md). Building
+`prototypes.bin` and the nightly calibration gate need an offline tool with the pinned model that does not exist yet
+(`.github/workflows/calibration.yml`). Model weights are never committed.
 
 ## Firebase configuration
 

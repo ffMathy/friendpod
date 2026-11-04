@@ -146,12 +146,9 @@
     "openSensitiveConsent": "Sensitive interests: give consent",
     "model": {
       "preparing": "Getting interests ready on your phone…",
-      "downloading": "Downloading what your phone needs to understand interests: {{percent}}%",
-      "cellular": "To add interests, your phone needs a one-time download of about 180 MB. You are on mobile data.",
-      "useCellular": "Download over mobile data",
-      "offline": "You're offline. Connect to the internet to add interests.",
-      "download": "The download didn't finish. Check your connection and free space, then try again.",
-      "integrity": "The download was damaged, so we deleted it. Please try again.",
+      "notBundled": "This version of the app doesn't include what your phone needs to understand interests. Install the app from the App Store or Google Play.",
+      "storage": "Your phone needs about 260 MB of free space to get interests ready, once. Free up some space, then try again.",
+      "integrity": "Something went wrong getting interests ready, so we deleted it. Please try again. If it keeps happening, reinstall the app.",
       "runtime": "This phone can't run the interest check right now (it may need more free memory). Close other apps and try again.",
       "notPinned": "Adding interests isn't available in this version yet."
     }

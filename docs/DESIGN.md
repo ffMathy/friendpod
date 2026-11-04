@@ -5,7 +5,7 @@
 | Status | Draft for founder review (phase: design doc + scaffold) |
 | Date | 2026-11-04 |
 | Companions | [PRIVACY.md](./PRIVACY.md) (GDPR design), [COSTS.md](./COSTS.md) (cost overview) |
-| Revision | Founder review round 2 (2026-11-04), decisions D1–D16, folded in throughout (§2.1) |
+| Revision | Founder review round 2 (2026-11-04), decisions D1–D16, and the later decision to bundle the on-device model in the app (F32), folded in throughout (§2.1) |
 | Market | Denmark (Aarhus, Copenhagen), 18+, Danish + English |
 
 **Evidence tags.** Every number is tagged with its source:
@@ -31,7 +31,7 @@ Where reports conflict, the resolution is stated inline and summarized in §2.3.
 
 Grouper is "friendship dating" for groups. Users describe themselves with free-form **Interests** in their own words ("madlavning", "on paternity leave", "Fortnite"). Every Thursday evening a batch job (the **Drop**) forms new **Pods** of 4–6 nearby strangers who share an interest. Members accept or decline. Once at least 4 accept, the pod is confirmed, first names (and an optional one-line "about me") are revealed, photos are revealed (in sensitive-themed pods only for members who opt in, §6.1 S6), and the pod uses a **meetup planner** (propose 2–3 options, each a time and a public place picked from Google Places; vote). Around each scheduled meetup a short **meetup chat** opens for the confirmed members, from 24 h before until 24 h after; its messages are deleted about 3 days after the meetup. There is no open-ended chat. Sensitive interests (GDPR Art. 9, e.g. pregnancy, religion) are allowed under one **blanket explicit consent** given at onboarding, and are only ever revealed inside a pod formed around that interest.
 
-The stack is an Expo SDK 58 app on React Native Firebase, with Firestore, Cloud Functions 2nd gen and Cloud Storage in **europe-west1**. **EmbeddingGemma 2 runs on the phone** (ONNX Runtime, CPU): the app embeds every tag and runs the sensitivity detector before anything is sent, and the server stores the client's vector and assigns concepts in a normal callable (D1). There is no server-side model. Estimated cost: about $12/month at 1k MAU and $400–510 at 100k MAU, most of it Google Places and store fees, plus up to about $540 at 100k MAU if the on-device model is downloaded from our own EU bucket (§12, [COSTS.md](./COSTS.md)).
+The stack is an Expo SDK 58 app on React Native Firebase, with Firestore, Cloud Functions 2nd gen and Cloud Storage in **europe-west1**. **EmbeddingGemma 2 runs on the phone** (ONNX Runtime, CPU): the app embeds every tag and runs the sensitivity detector before anything is sent, and the server stores the client's vector and assigns concepts in a normal callable (D1). There is no server-side model. Estimated cost: about $12/month at 1k MAU and $400–510 at 100k MAU, most of it Google Places and store fees. The on-device model ships inside the app, so distributing it costs nothing (F32, §12, [COSTS.md](./COSTS.md)).
 
 | Term | Meaning |
 |---|---|
@@ -96,7 +96,13 @@ The stack is an Expo SDK 58 app on React Native Firebase, with Firestore, Cloud 
 | F28 | D13 | **Pod screen:** one primary "next step" card driven by state (vote → confirm attendance → chat during the window → give feedback), then calm Plan / Chat / Members sections; block and report in each member's sheet | One obvious thing to do at any time | §3.4, §11 |
 | F29 | D14 | **No quick replies** in the meetup chat; "Can't make it" lives on the attendance card (`confirmAttendance`) | A message never changes attendance; one place for attendance | §3.6, §10.1 |
 | F30 | D15 | **"Who was there?":** every member pre-ticked; the user unticks anyone missing | Faster, and no-shows still need a majority | §3.6 |
-| F31 | D16 | **Cost overview** in [COSTS.md](./COSTS.md): every third-party service at 1k–100k MAU and over 24 months | Places and model download change the cost picture | §12 |
+| F31 | D16 | **Cost overview** in [COSTS.md](./COSTS.md): every third-party service at 1k–100k MAU and over 24 months | Places changes the cost picture | §12 |
+
+**Founder decision after round 2 (2026-11-04).** It replaces the first-use download from our EU bucket and closes the open question of where the model is hosted.
+
+| # | Decision | Rationale | Sections |
+|---|---|---|---|
+| F32 | **The on-device model ships inside the app.** The pinned device files (`model_q4.onnx`, `model_q4.onnx_data`, `tokenizer.json`, the small config files and, once built, `prototypes.bin`; revision and sha256 from `packages/core`) are fetched and sha256-checked at build time and bundled: as resources in the iOS app bundle, and as uncompressed Android assets that the app copies once into app storage on first launch. The app never downloads the model | Interests work right after install: no download step, no Wi-Fi question, no progress screen, no hosting cost and no download request that shows a user's IP address. Accepted: the app grows by about 210 MB, so the App Store asks before a cellular download (its default above 200 MB), and every app update that changes the model ships it again | §5.1, §11, §12, COSTS.md §3.3, PRIVACY.md §9 |
 
 ### 2.2 Architect decisions beyond the brief (need founder sign-off)
 
@@ -137,7 +143,6 @@ The stack is an Expo SDK 58 app on React Native Firebase, with Firestore, Cloud 
 | A33 | Option places carry a Places `type` from `PUBLIC_PLACE_TYPES`; `proposeOption` checks it. Autocomplete accepts at most 5 `includedPrimaryTypes`, so the app filters predictions against the full list | The server cannot call Places itself, so the type is the public-place proof |
 | A34 | The never-match from a meet-again "no" is `recentH[uidH] = '9999-W52'` (`NEVER_WEEK_ID`) on both profiles; no new matcher field | H5 already excludes any pair with a future `recentH` week |
 | A35 | Place details stay on the **Essentials** SKU: the name comes from the autocomplete prediction and the map URL is built by `googleMapsPlaceUrl(placeId, name)` | `displayName` and `googleMapsUri` are Pro fields ($17 vs $5 per 1,000) [PX] |
-| A36 | The on-device model is downloaded on first use from our EU bucket in europe-west1, checked file by file against core's sha256 values, and kept out of iCloud backup (§5.1). Where it is hosted long-term is Q20 | No new processor; about $0.02 per install [PX] |
 | A37 | Rescan with the blanket consent moves a newly flagged holding to `sensitiveInterests` silently (lock icon, no prompt); without the consent the holding becomes `pendingConsent` (§5.2 (8)) | Same rule as adding the tag today |
 | A38 | Automatic sanction lengths: report pause 28 days, sensitive-theme hold 28 days (`SENSITIVE_HOLD_DAYS`), no-show suspension 8 weeks at 3 weight in 8 weeks; each one expires on its own (F17) | No human decides; every sanction needs an end [A] |
 
@@ -161,7 +166,6 @@ Measured results win over estimates.
 | Functions free tier: Firebase page 200k CPU-s / 400k GB-s; Cloud Run page 180k / 360k | The lower Cloud Run figures, re-checked on cloud.google.com/run/pricing: per billing account, with 100 ms rounding |
 | On-device runtime: ONNX Runtime RN (same graph as calibration) vs react-native-executorch, LiteRT-LM or WASM [ODV] | onnxruntime-react-native 1.24.3 with the native core pinned to ORT 1.30.0, CPU EP: the only option that runs the exact calibrated graph (cosine ≥ 0.9999993 to the calibration vectors on x86). LiteRT-LM is the fallback, at the price of a full re-calibration (§5.1) |
 | `tokenizer.json` size: brief 20 MB; measured 32.2 MB (5.5 MB gzipped) [ODV] | 32.2 MB, from the pinned file list in `packages/core` |
-| Model download source: our EU bucket (privacy) vs Hugging Face or R2 (cost) [ODV][PX] | EU bucket by default (no new processor); Hugging Face is ruled out (a US processor seeing every IP address); R2 or store asset packs stay open as Q20 |
 | Place name and map link: Places `displayName`/`googleMapsUri` (Pro SKU) vs the prediction text and a built URL (Essentials) [PX] | Essentials (A35) |
 
 ### 2.4 Open questions for the founder
@@ -187,7 +191,6 @@ Measured results win over estimates.
 | Q17 | Transactional email provider for inactivity warnings and Art. 34 notices (PRIVACY.md §9) | An EU provider with a DPA, chosen in M1 [A]. |
 | Q18 | ~~Run the sensitivity detector on the device?~~ **Answered by F16 (D1): the whole model runs on the device**, for embedding and detection. | — |
 | Q19 | **Thin-market levers for the alpha.** The simulation [SIM] says the planned 50–150 testers cannot fill pods: at n = 100 about half the testers get no confirmed pod in 12 weeks. Even n = 300 with 5 seed-theme cohorts reaches only 35% confirmation and a first pod after a median 4.3 weeks, because most proposals have only 4 invitees and need all 4 to accept. Which levers do we pull? (a) recruit ≥ 300 testers in Aarhus into ≤ 5 seed-theme cohorts; (b) invite 5–6 whenever the pool allows; (c) a wider default age range in the alpha; (d) let an alpha pod confirm at 3 accepts (changes F3). | (a) and (b), tested in `tools/sim` before M1; (c) and (d) only with founder sign-off. |
-| Q20 | **Where the on-device model is downloaded from.** Our EU bucket costs about $0.021 per install (~$540/month at 100k MAU, ~$2,100 per model change at that size) but adds no processor. Cloudflare R2 has free egress but adds a processor; Play Asset Delivery + Apple Background Assets are free but need two platform code paths (COSTS.md §3.3). | EU bucket until about 10k MAU; decide then with real install numbers. |
 | Q21 | Google Maps Platform terms allow caching place IDs indefinitely, but limit how long other Places content (name, address, lat/lng) may be stored. Options are deleted within 30 days of the meetup; `pods.planning.place` lives until the pod is archived. | Verify in M0; if needed, `dailyMaintenance` removes `pods.planning.place` 30 days after the meetup. |
 | Q22 | Minimum device for adding interests: the on-device model needs an estimated 350–500 MB of extra RAM [ODV]. Devices that cannot run it cannot add tags (§5.1 fallback). | About 4 GB of RAM; confirm in the M0 device spike. |
 | Q23 | Offer "This isn't sensitive for me" also to users **without** the blanket consent, when a tag is refused only because the detector (not the lexicon) flagged it? Core accepts it; the app offers it only on holdings already stored as sensitive. | No: without consent the app offers the Settings path or rewording; revisit with counsel (PRIVACY.md §17). |
@@ -198,7 +201,7 @@ Measured results win over estimates.
 
 ### 3.1 Onboarding (including consent steps)
 1. **Welcome**: the UI language follows the device (da/en, switchable). Copy: "Small groups. Real meetups. 18+."
-2. **Sign in**: Apple (iOS only, F25), Google or email magic link. After sign-in the app starts downloading the on-device model in the background (about 180 MB, Wi-Fi by default; on cellular it asks first, §5.1). Firebase Auth stores the provider UID and email. With Google, Firebase Auth also copies the Google display name and photo URL; `completeOnboarding` clears the top-level `displayName` and `photoURL` with Admin `updateUser({displayName: null, photoURL: null})`. The `google.com` entry in `providerData` may keep them, and they are refreshed at each Google sign-in [verify in M0]. That residual is disclosed (PRIVACY.md §9).
+2. **Sign in**: Apple (iOS only, F25), Google or email magic link. Firebase Auth stores the provider UID and email. With Google, Firebase Auth also copies the Google display name and photo URL; `completeOnboarding` clears the top-level `displayName` and `photoURL` with Admin `updateUser({displayName: null, photoURL: null})`. The `google.com` entry in `providerData` may keep them, and they are refreshed at each Google sign-in [verify in M0]. That residual is disclosed (PRIVACY.md §9).
 3. **Terms and privacy notice**: the user accepts the Terms (contract). The layered privacy notice is information, not consent. Versions are recorded.
 4. **Date of birth**, entered on the device.
 5. **First name**: visible only to confirmed pod members.
@@ -213,7 +216,7 @@ Measured results win over estimates.
    - **everything is checked on the phone first** (§5.2 (0)): normalisation, PII patterns, blocklist, the Art. 9 lexicon, the on-device embedding, the detector and the known-ordinary list. The onboarding tags are embedded in one batch;
    - **without the blanket consent**, a tag the phone treats as sensitive, or one the user marks "Keep this private", is refused on the device and never sent: "This interest may say something sensitive about you. We only save interests like this if you agree to sensitive interests (Settings → Privacy)." (`ART9_CONSENT_REQUIRED`), with a link to that setting. Every other tag is added;
    - **with the consent** there is no prompt: the tag is added, the protections apply silently (theme-only use, no chips, labels or explanations, separate storage), and the tag list shows a lock icon. On a locked tag the user can choose **"This isn't sensitive for me"** (§5.2 (5));
-   - if the model is not on the device yet, the step shows the download progress; if the device cannot run it (too little memory, download refused, a hash mismatch), adding tags is blocked with a clear message and "Try again" (§5.1);
+   - the model ships inside the app, so there is nothing to wait for (F32); if the device cannot run it (too little memory, or on Android a failed first-launch copy or hash mismatch), adding tags is blocked with a clear message and "Try again" (§5.1);
    - minimum 3 interests, nudged towards 5 [MAT].
 9. **Preferences**: age range (default own age ±7, min width 5 years [A]; the alpha profile uses ±10, §6.10), radius (default 10 km, shown as "about"), meetup languages, availability (weekday/Saturday/Sunday × day/evening). Turning on "same-gender pods" opens a gender picker with its own consent checkbox. The consent copy says that members of a same-gender pod will know that everyone in it shares their gender (PRIVACY.md §3.6).
 10. **Photo and "about me"** (both optional): "Only people in a confirmed pod with you can see it. In pods about a sensitive interest, you choose per pod whether to show it." "About me" is one sentence of up to 140 characters ("I'm new in Aarhus and like long walks"), shown only to confirmed co-members and never used for matching; contact details and blocklisted words are refused (F19).
@@ -444,14 +447,16 @@ Since F16 (D1) the model runs **only on the phone**. The server never loads it; 
 | Load | Session create 233 ms warm / 8.8 s cold page cache in the sandbox (estimate 1–4 s on a phone); tokenizer load 1.1 s in V8 (estimate 2–4 s on Hermes) | [ODV], est. |
 | Memory | Sandbox process peak 466 MB, tokenizer JS heap about 124 MB. Phone estimate: 350–500 MB extra peak. The app loads the model when the interests screen opens, batches the onboarding tags and releases model and tokenizer when the screen closes. Minimum device about 4 GB RAM (Q22) | [ODV], est. |
 
-**Delivery** (A36). Bundling would push the app past Apple's 200 MB cellular prompt and Play's mobile-data warning and ship the model again with every update [ODV]. Instead:
-- after sign-in the app downloads the device files from our **EU bucket in europe-west1** (`grouper-<env>-models`, served gzip-encoded where useful; about 180 MB of transfer), on Wi-Fi by default and only after asking on cellular;
-- into `Paths.document/models/eg2-q4-daa72c5/`, excluded from iCloud backup;
-- each file is checked with the native `file.digest('SHA-256')` against core's value; the files are kept and loaded only if every hash matches. `InferenceSession.create(path)` loads from the path, so `model_q4.onnx_data` is found next to `model_q4.onnx`;
-- the cost is about $0.021 per install from GCS; R2 or store asset packs would be free but add a processor or two platform code paths (Q20, [COSTS.md §3.3](./COSTS.md#33-on-device-model-distribution-d1)). Hugging Face is never contacted by the app.
+**Delivery** (F32). The model ships inside the app; nothing is downloaded at run time.
+- **Build time.** The fetch-model script downloads every file of `deviceModelFiles()` at the pinned revision (from Hugging Face; `prototypes.bin`, once built and pinned, from our models bucket), checks each against core's size and sha256 and fails the build on any mismatch. The files are gitignored, never committed; local and EAS builds run the script before the native build.
+- **iOS:** the files are resources in the app bundle, which the app signature protects. `InferenceSession.create(path)` loads `model_q4.onnx` by its bundle path, so `model_q4.onnx_data` is found next to it; nothing is copied.
+- **Android:** the files are stored **uncompressed** in the APK/AAB assets. An asset has no file path, and the runtime needs one (loading from a buffer would not find `model_q4.onnx_data`), so on first launch the app copies them once into `Paths.document/models/eg2-q4-daa72c5/`, checks each copy with the native `file.digest('SHA-256')` against core's value and loads from there. Android backup is off for the whole app (`allowBackup: false`). The copy doubles the model's disk use on Android (about 210 MB in the package plus 210 MB in app storage) [A: measure in the M0 spike].
+- **Size:** the app grows by about 210 MB. Above 200 MB the App Store asks before a cellular download by default (accepted by the founder); Google Play's 500 MB limit for the base module leaves room, so no asset pack is needed.
+- **Updates:** every app update that changes the model ships it again; other updates are delta-patched by the stores. A model change is therefore an app release, together with the `modelKey` switch (A32).
+- **Privacy and cost:** no processor and no download request, because the stores already distribute the app; Hugging Face is contacted only by build machines. Distribution costs nothing ([COSTS.md §3.3](./COSTS.md#33-on-device-model-distribution-d1)).
 
 **Fallbacks:**
-1. **Device cannot run the model** (too little memory, download refused, hash mismatch): adding tags is blocked with a clear message and "Try again". The device-side normalisation, PII, blocklist and lexicon checks still run, but nothing is sent without a vector. There is no server-side embedding path.
+1. **Device cannot run the model** (too little memory; on Android a failed first-launch copy or hash mismatch): adding tags is blocked with a clear message and "Try again". The device-side normalisation, PII, blocklist and lexicon checks still run, but nothing is sent without a vector. There is no server-side embedding path.
 2. **Runtime fails on target devices** (build, speed or memory in the M0 spike on 2 low-end Android phones, an older and a newer iPhone): an Expo module around LiteRT-LM with `litert-community/embeddinggemma-2-text-270m-litert-lm`. That is a different artifact (int4 QAT), so every threshold is re-calibrated and every client switches at once under a new `modelKey`, with every stored tag re-embedded.
 3. **Tokenizer memory too high on Hermes**: a native tokenizer (onnxruntime-extensions or an Expo module around HF `tokenizers-cpp`); CI then checks that token ids are identical to the calibration run.
 
@@ -803,7 +808,7 @@ flowchart LR
     SCH["Cloud Scheduler: 3 jobs"]
     CT["Cloud Tasks queues"]
     SM["Secret Manager"]
-    MOD[("GCS: on-device model files + prototypes.bin (pinned by sha256)")]
+    MOD[("GCS: model mirror for CI + prototypes.bin (pinned by sha256)")]
     GCS[("GCS: drop snapshots, concept snapshots")]
     LOG[("Cloud Logging buckets")]
   end
@@ -813,7 +818,6 @@ flowchart LR
   APP -->|"email link"| HOST
   APP -->|attestation| AC
   APP -->|"place search (session token, key restricted to the apps)"| PLACES
-  APP -->|"model download on first use, sha256-checked"| MOD
   APP --- ORT
   APP -->|"reads under rules"| FS
   APP -->|"callables, Auth + App Check; addInterests carries text + vector"| API
@@ -824,6 +828,7 @@ flowchart LR
   API --> FS
   API --> ST
   API --> GCS
+  API -->|"prototypes.bin"| MOD
   API --> FCM
   API --> MAIL
   FCM --> APP
@@ -840,11 +845,11 @@ flowchart LR
 | Main codebase defaults | `region: europe-west1`, `memory: 256MiB`, `cpu: 'gcf_gen1'`, `concurrency: 1`, `maxInstances: 10`, `minInstances: 0` | gcf_gen1 is the cost lever (§12) for rare callables; heavy tasks override to 1 vCPU / 1 GiB |
 | Hot callables | `respondToPod`, `voteOption`, `registerPushToken`, `confirmAttendance`: `cpu: 1`, `memory: 512MiB`, `concurrency: 40`, `maxInstances: 20` | Cloud Run allows concurrency > 1 only with ≥ 1 vCPU. One instance absorbs the Thursday 18:00 burst instead of 10 single-request instances. M0 measures gcf_gen1 cold starts; any callable whose P95 cold start exceeds 3 s moves to this profile [A] |
 | Interests | `addInterests` is a normal callable in the default codebase (256 MiB, gcf_gen1; 1 GiB once the in-memory concept shortlist exists, §5.2 (6)); `interestsBatch` is a task (rescan, maintenance). No model, no warm-up, no `minInstances` | The `embedder` codebase is retired (F16) |
-| On-device model | EmbeddingGemma 2 q4 via onnxruntime-react-native 1.24.3 (native ORT 1.30.0, CPU EP); tokenizer @huggingface/tokenizers 0.2.0; files from `grouper-<env>-models` (europe-west1), sha256-checked (§5.1) | The same graph as the calibration [ODV] |
+| On-device model | EmbeddingGemma 2 q4 via onnxruntime-react-native 1.24.3 (native ORT 1.30.0, CPU EP); tokenizer @huggingface/tokenizers 0.2.0; files bundled in the app at build time, sha256-checked (F32, §5.1) | The same graph as the calibration [ODV] |
 | Places | Google Places API (New): Autocomplete with session tokens and Place Details Essentials, called **from the app** with an API key restricted to the iOS bundle ID and the Android package + signing certificate, and to the Places API (New) only; per-day quota caps in the Cloud console (§9) | No server proxy, so no extra function and no place query in our logs; Google sees the query and the device IP (PRIVACY.md §9) [PX] |
 | Scheduler | 3 jobs: `dropOrchestrator`, `hourlySweeper`, `dailyMaintenance` | 3 free per billing account [FBX] |
 | Cloud Tasks | Queues `matchComponent`, `releaseDrop`, `backfillPod`, `buildExport`, `deleteExport`, `purgeUser`, `interestsBatch`, each with an explicit `retryConfig` and `rateLimits`. Long tasks are enqueued with `dispatchDeadlineSeconds: 1800` (the Cloud Tasks default is 10 minutes, the maximum 30) and deterministic task IDs (e.g. `${weekId}-${componentId}`) | 1M ops/month free [FBX] |
-| Storage | Bucket `grouper-prod.firebasestorage.app` in europe-west1 (photos, uploads, exports). Server-only buckets `grouper-<env>-drops` (lifecycle 2 days) and `grouper-<env>-snapshots` (14 days); `grouper-<env>-models` holds the pinned model files and `prototypes.bin`, readable by the app (public-read objects or a signed-in Storage rule, decided in M0 [A]) | EU buckets are billed from the first byte; model egress about $0.021 per install [FBX][PX] |
+| Storage | Bucket `grouper-prod.firebasestorage.app` in europe-west1 (photos, uploads, exports). Server-only buckets `grouper-<env>-drops` (lifecycle 2 days) and `grouper-<env>-snapshots` (14 days); `grouper-<env>-models` holds a mirror of the pinned model files for CI and `prototypes.bin` for `addInterests`; the app never reads it (F32) | EU buckets are billed from the first byte [FBX][PX] |
 | Hosting | Firebase Hosting: the default domain serves the email-link handler (`/__/auth/links`) and two static pages (account deletion for Google Play, privacy notice) | Global CDN; receives IP addresses and one-time codes (PRIVACY.md §9) |
 | Email | An EU transactional email provider with a DPA (Q17), for inactivity warnings and Art. 34 notices only | Firebase Auth emails cannot carry custom messages |
 | App Check | RNFirebase provider: Play Integrity, App Attest with DeviceCheck fallback, debug in dev | JS SDK providers are web-only [FBX] |
@@ -916,7 +921,7 @@ Conventions:
 - `exports/{uid}/{id}.json`: owner read; deleted by a `deleteExport` task at +24 h; lifecycle 1 day as a backstop.
 - `gs://grouper-<env>-drops/{weekId}/…` (server only): drop input and result snapshots; deleted after release; lifecycle 2 days.
 - `gs://grouper-<env>-snapshots/` (server only): concept snapshots (14 days).
-- `gs://grouper-<env>-models/models/eg2-q4-daa72c5/` (read by the app and by `addInterests` for `prototypes.bin`, written by CI): the pinned device files and `prototypes.bin`; no user data.
+- `gs://grouper-<env>-models/models/eg2-q4-daa72c5/` (server and CI only: read by `addInterests` for `prototypes.bin` and by CI, written by CI): a mirror of the pinned model files and `prototypes.bin`; no user data. The app never reads it; its model ships inside the app (F32).
 
 **Indexes (`firestore.indexes.json`):**
 - Two composite vector indexes on `concepts`: `sensitive` ASC + `status` ASC + `centroid`, and `sensitive` ASC + `status` ASC + `gen` ASC + `centroid`, both `{dimension: 768, flat: {}}` [SRV].
@@ -990,7 +995,7 @@ service cloud.firestore {
   - `roles/run.invoker` on the task functions it enqueues;
   - Firebase App Check Token Verifier (for `consumeAppCheckToken`);
   - secret accessor on its two secrets.
-- `sa-api@` also gets object read/write on the snapshots bucket. Only CI writes the model bucket; the app reads it (§7 Storage).
+- `sa-api@` also gets object read/write on the snapshots bucket. Only CI writes the model bucket; `addInterests` reads `prototypes.bin` from it, and the app has no access (§7 Storage).
 - Firestore IAM cannot be scoped to collections, so code review and tests guard that boundary.
 - Remove Editor from the default compute service account and, if it exists, the App Engine default service account. Keep the organization policy `iam.automaticIamGrantsForDefaultServiceAccounts` enforced. `deploy.yml` fails if any deployed Cloud Run service runs as a default service account.
 - The server **never returns vectors**, only statuses: stored embeddings of sensitive tags are Art. 9 data and can be partly inverted (PRIVACY.md §4.2). Clients cannot read `tags` or `concepts`.
@@ -1101,10 +1106,10 @@ There is no `auth.user().onDelete` trigger. That trigger exists only in 1st gen,
 | Data | TanStack Query v5 for callables; small hooks that bridge Firestore `onSnapshot` into the query cache; RNFirebase offline cache on, and cleared on sign-out and deletion with `terminate()` + `clearPersistence()` (§9 Photos) |
 | Forms | `react-hook-form` + zod resolvers using shared schemas |
 | Media and location | `expo-image` (authenticated headers; `cachePolicy: 'memory-disk'`, cache key `{owner}:{v}`, caches cleared on revocation events, §9), `expo-image-manipulator` 58.0.16 (1080 px + 256 px JPEG, quality 0.7 [FBX]), `expo-location` (coarse only: Android `ACCESS_COARSE_LOCATION`, iOS reduced accuracy [GDPR]); postcode → geohash-5 on the device from `dk-postcodes.json` |
-| On-device checks and embedding | `packages/core` normalization, PII patterns, blocklist, third-party patterns, Art. 9 lexicon, known-ordinary list and `decideSensitivity` run before `addInterests` (§5.2 (0)). Embedding: `onnxruntime-react-native` 1.24.3 (native ORT pinned to 1.30.0 by `plugins/withOrtPinned`, CPU EP, 2 threads), `@huggingface/tokenizers` 0.2.0, model files fetched with `expo-file-system` 58.0.13 (`File.downloadFileAsync`, native `file.digest('SHA-256')`) into `Paths.document/models/eg2-q4-daa72c5/`, excluded from iCloud backup (§5.1). Loaded when the interests screen opens, released when it closes. The dev build carries the golden test |
+| On-device checks and embedding | `packages/core` normalization, PII patterns, blocklist, third-party patterns, Art. 9 lexicon, known-ordinary list and `decideSensitivity` run before `addInterests` (§5.2 (0)). Embedding: `onnxruntime-react-native` 1.24.3 (native ORT pinned to 1.30.0 by `plugins/withOrtPinned`, CPU EP, 2 threads), `@huggingface/tokenizers` 0.2.0, model files bundled at build time (F32): loaded from the iOS app bundle; on Android copied once from the uncompressed assets with `expo-file-system` 58.0.13 into `Paths.document/models/eg2-q4-daa72c5/` and checked with the native `file.digest('SHA-256')` (§5.1). Loaded when the interests screen opens, released when it closes. The dev build carries the golden test |
 | Places | `src/features/places`: a typed `PlacePicker` over a `PlacesService` interface. The real service calls Places API (New) Autocomplete (`includedPrimaryTypes` ≤ 5 per request, so predictions are also filtered against `PUBLIC_PLACE_TYPES` on the device; debounced 300 ms from 3 characters; one session token per option) and then Place Details with an Essentials field mask (`shortFormattedAddress`, `location`, `types`); name from the prediction; `lat`/`lng` through `roundPlaceCoord`; `mapUrl` from `googleMapsPlaceUrl`. A stub service fails loudly until the key exists (F23, A35) |
 | Calendar | `expo-calendar` `createEventInCalendarAsync`: the system's add-event sheet, title "Pod meetup" (never the theme, which a synced calendar would carry to other services), location = place name and address, 2 h long. No calendar permission, nothing stored (F26) |
-| Builds | EAS free plan (15+15 builds/month) or `eas build --local` [FBX]; no EAS Update in MVP |
+| Builds | EAS free plan (15+15 builds/month) or `eas build --local` [FBX]; no EAS Update in MVP. The fetch-model script runs before every native build and puts the pinned, sha256-checked model files into it (§5.1) |
 | Privacy | `ios.privacyManifests` in `app.config.ts`; no analytics or ads SDKs |
 
 **Screens (expo-router):**
@@ -1115,7 +1120,7 @@ There is no `auth.user().onDelete` trigger. That trigger exists only in 1st gen,
 | `(onboarding)/*` | Onboarding steps (§3.1), including `sensitive-consent` (the blanket Art. 9 consent screen) before `add-interests` |
 | `(tabs)/index` | "This week": drop status, proposal card or no-pod reason, countdown |
 | `(tabs)/pods` | Active and past pods |
-| `(tabs)/interests` | Add/remove/star interests; "Keep this private"; lock icon on private holdings, with "This isn't sensitive for me" on locked ones; without the blanket consent, sensitive tags are refused with a link to Settings → Privacy; model download progress and the "can't run on this device" state; notices for rescan hits (`pendingConsent`) |
+| `(tabs)/interests` | Add/remove/star interests; "Keep this private"; lock icon on private holdings, with "This isn't sensitive for me" on locked ones; without the blanket consent, sensitive tags are refused with a link to Settings → Privacy; the "can't run on this device" state; notices for rescan hits (`pendingConsent`) |
 | `(tabs)/me` | Profile, preferences, participation, reliability record, and the setting that blocks matching, if any (§6.7) |
 | `pod/[podId]/index` | Proposal → the confirmed pod screen (F28): one primary next-step card from `podNextStep()` (vote / attendance card with "I'm coming" and "Can't make it" / chat / feedback), then Plan, Chat and Members sections; theme (own wording), pod interests, "about me", "<firstName> hasn't confirmed", the extension banner, safety tips; "Show my photo to this pod" in sensitive-themed pods (S6) |
 | `pod/[podId]/plan` | Options, votes, propose-option form with the place picker; the locked plan with map link and "Add to calendar" |
@@ -1138,30 +1143,28 @@ The full overview, with every third-party service, unit prices, sources and date
 | Google Places (place picker) | $0 | ~$0–13 | ~$120–185 | ~$315–425 |
 | Store accounts, domain, EAS | ~$11 | ~$11–30 | ~$30 | ~$30 |
 | **Total** | **~$12** | **~$15–47** | **~$170–240** | **~$400–510** |
-| On-device model download from our EU bucket (Q20) | +~$5 | +~$54 | +~$270 | +~$540 |
 
-**What changed in round 2** (COSTS.md §2): the server embedder and its $345/month abuse ceiling are gone (F16); Google Places is now the largest running cost (F23); serving the 175 MB model from our bucket costs about $0.021 per install; the EU Storage bucket has no free tier; egress at $0.12/GB is confirmed.
+**What changed in round 2** (COSTS.md §2): the server embedder and its $345/month abuse ceiling are gone (F16); Google Places is now the largest running cost (F23); the on-device model ships inside the app, so its distribution costs nothing (F32); the EU Storage bucket has no free tier; egress at $0.12/GB is confirmed.
 
 **Usage assumptions** (per MAU per month, [FBX] base plus round-2 drivers [A]): ~300 Firestore reads, ~40 writes and deletes, ~105 function invocations, 50 KB of data, 200 KB of photos stored, 2 MB of photo egress, 0.5 MB of Firestore egress, 0.24 Places sessions, ~6 pushes; matching per [MAT]: about 2 reads per opted-in user per drop plus 1 write (`lastDrop`, §6.2); concepts ≈ 0.73 × distinct tags (§5.3), with vector search billed at 1 read per 100 index entries scanned.
 
 **Cost levers:**
 1. CPU sizing: `cpu: 'gcf_gen1'` at 256 MiB for light callables. At 256 MB, 2nd-gen defaults cost 5.3× more per ms [FBX], and billing rounds each request up to 100 ms.
 2. No `minInstances` anywhere (a warm 1-vCPU function costs about $8/month [FBX]).
-3. Model hosting (Q20): R2 or store asset packs remove the download cost; GCS keeps one processor.
-4. Places: Essentials field mask only (A35), debounced autocomplete from 3 characters, per-day quota caps (§9).
-5. Thumbnails, the app's disk cache (keyed by owner and version, §9) and JPEG quality 0.7, because photo egress dominates Google Cloud at scale. The server `max-age` is 1 h for revocation; M0 measures whether that raises egress [A].
-6. kNN over concepts only, never `findNearest` over tags; the in-memory shortlist once concepts pass 20k.
-7. Clients read single aggregated docs (pod cards); at most one rules `get()` per evaluation.
-8. No Identity Platform (+$275 at 100k MAU [FBX]); no Vertex endpoints.
-9. Pause staging schedules. Free tiers are shared across projects on a billing account.
-10. Soft delete off on the user bucket; Artifact Registry cleanup policy [FBX].
+3. Places: Essentials field mask only (A35), debounced autocomplete from 3 characters, per-day quota caps (§9).
+4. Thumbnails, the app's disk cache (keyed by owner and version, §9) and JPEG quality 0.7, because photo egress dominates Google Cloud at scale. The server `max-age` is 1 h for revocation; M0 measures whether that raises egress [A].
+5. kNN over concepts only, never `findNearest` over tags; the in-memory shortlist once concepts pass 20k.
+6. Clients read single aggregated docs (pod cards); at most one rules `get()` per evaluation.
+7. No Identity Platform (+$275 at 100k MAU [FBX]); no Vertex endpoints.
+8. Pause staging schedules. Free tiers are shared across projects on a billing account.
+9. Soft delete off on the user bucket; Artifact Registry cleanup policy [FBX].
 
 **Budget alerts:**
 - Production budgets at €10, €25 and €50 [FBX] (raise them once Places traffic is known); staging at €5.
 - Alerts go to email and Pub/Sub.
 - Budgets do not stop spending [FBX]. An automatic billing kill switch is allowed on staging only. On production, the €25 alert triggers `onBudgetAlert`, which turns off `addInterests` and uploads through feature flags (§9). Places spending is capped by its own per-day quota.
 
-**What gets expensive first:** Google Places from about 7k MAU (when its free caps run out); the model download if it is served from GCS; then photo egress (about $24 at 100k MAU), Firestore reads if listeners become chatty, and Firestore egress.
+**What gets expensive first:** Google Places from about 7k MAU (when its free caps run out); then photo egress (about $24 at 100k MAU), Firestore reads if listeners become chatty, and Firestore egress.
 
 ---
 
@@ -1191,7 +1194,7 @@ The app picks its environment from `APP_ENV` in `app.config.ts`. Per-env `Google
   - pulls the pinned model from the GCS mirror via WIF and runs the labelled set on onnxruntime-node with the same tokenizer as the app, and checks the stored `prototypes.bin` against a rebuild;
   - fails if sensitive recall drops below 100%, merge precision at the configured threshold drops below 0.93, or false flags rise more than 5 points [A].
 - **`deploy.yml`:** `main` deploys rules, indexes (including TTL policies) and `functions:default` to staging. Production needs a manual approval. There is no `functions:embedder` any more. After each deploy a check fails the job if any Cloud Run service runs as a default service account (§9).
-- **Mobile:** `eas build` (or `--local`) on tags. Store submission is manual. The dev build runs the on-device **golden test** (§5.1) on EAS builds and Firebase Test Lab, and again whenever the model or ORT version changes.
+- **Mobile:** `eas build` (or `--local`) on tags, after the fetch-model script has put the pinned, sha256-checked model files into the build (§5.1). Store submission is manual. The dev build runs the on-device **golden test** (§5.1) on EAS builds and Firebase Test Lab, and again whenever the model or ORT version changes.
 
 **Testing:**
 
@@ -1275,10 +1278,10 @@ grouper/
 
 | Milestone | Scope | Exit criteria |
 |---|---|---|
-| **M0 Scaffold** (2–3 weeks) | Cloud Identity organization and EU logging defaults **before** the projects are created (§7); repo layout, emulators, rules + tests, CI, sign-in on iOS (Apple, Google, email link) and Android (Google, email link) dev builds (SPM check in week 1; email-link App Links / Universal Links, Team ID and SHA-256 registration per project), gcf_gen1 cold starts, **model gate Q1**, **on-device runtime spike** (ORT RN with pinned native 1.30.0 on 2 low-end Android phones, an older and a newer iPhone: golden test, Hermes tokenizer heap, cold/warm latency, peak RSS, 16 KB page alignment; Q22), EU model mirror + `prototypes.bin` + offline model tooling, Places key restrictions and quota caps, Maps caching terms (Q21), known-ordinary list measured on a fresh labelled set, labelled da/en set (synthetic), calibration harness, sim harness + n = 20k/50k benchmarks + thin-market runs, DPIA draft, lawyer engaged | Founder signs off on this doc; gate results recorded |
-| **M1 Private alpha, Aarhus** (6–8 weeks) | Onboarding with the blanket consent, on-device interests pipeline and model download, `withdrawArt9Consent` and `removeInterest` (then `ART9_HOLDINGS_ENABLED`), drop (dry-run, then live) on the alpha profile (§6.10), accept/decline/backfill, reveal with "about me", next-step pod screen, planner with the Places picker and the extension round, attendance asks and nudges, add to calendar, meetup chat (chat-open push, message reports, erasure and withdrawal steps), feedback push and "Who was there?", meet-again pair signals, block/report with automatic expiry, export, delete, admin CLI, Danish/English copy, privacy notice, transactional email provider (Q17), staging restore drill; ≥ 300 testers concentrated in Aarhus, in ≤ 5 seed-theme cohorts (Q19); the simulation with the scaffold's matcher predicts 35% confirmation and a first pod after a median 4.3 weeks at that size, against 30–37% and 9+ weeks at 100 testers [SIM] | Exit: confirmation rate within 10 points of the sim re-run on the real cohort; weeks-to-first-pod P50 ≤ 5; zero sensitive-data incidents; DPIA signed |
+| **M0 Scaffold** (2–3 weeks) | Cloud Identity organization and EU logging defaults **before** the projects are created (§7); repo layout, emulators, rules + tests, CI, sign-in on iOS (Apple, Google, email link) and Android (Google, email link) dev builds (SPM check in week 1; email-link App Links / Universal Links, Team ID and SHA-256 registration per project), gcf_gen1 cold starts, **model gate Q1**, **on-device runtime spike** (ORT RN with pinned native 1.30.0 on 2 low-end Android phones, an older and a newer iPhone: golden test, Hermes tokenizer heap, cold/warm latency, peak RSS, 16 KB page alignment, first-launch model copy on Android, app size in both stores; Q22), fetch-model script, EU model mirror for CI + `prototypes.bin` + offline model tooling, Places key restrictions and quota caps, Maps caching terms (Q21), known-ordinary list measured on a fresh labelled set, labelled da/en set (synthetic), calibration harness, sim harness + n = 20k/50k benchmarks + thin-market runs, DPIA draft, lawyer engaged | Founder signs off on this doc; gate results recorded |
+| **M1 Private alpha, Aarhus** (6–8 weeks) | Onboarding with the blanket consent, on-device interests pipeline with the bundled model, `withdrawArt9Consent` and `removeInterest` (then `ART9_HOLDINGS_ENABLED`), drop (dry-run, then live) on the alpha profile (§6.10), accept/decline/backfill, reveal with "about me", next-step pod screen, planner with the Places picker and the extension round, attendance asks and nudges, add to calendar, meetup chat (chat-open push, message reports, erasure and withdrawal steps), feedback push and "Who was there?", meet-again pair signals, block/report with automatic expiry, export, delete, admin CLI, Danish/English copy, privacy notice, transactional email provider (Q17), staging restore drill; ≥ 300 testers concentrated in Aarhus, in ≤ 5 seed-theme cohorts (Q19); the simulation with the scaffold's matcher predicts 35% confirmation and a first pod after a median 4.3 weeks at that size, against 30–37% and 9+ weeks at 100 testers [SIM] | Exit: confirmation rate within 10 points of the sim re-run on the real cohort; weeks-to-first-pod P50 ≤ 5; zero sensitive-data incidents; DPIA signed |
 | **M2 Closed beta** (Aarhus live, Copenhagen waitlist) | App Check enforced, store listings and privacy labels, reschedule flow, metrics dashboard from `drops`, Maestro E2E, Play Integrity device recall evaluated (S5–S7) | Launch-area gate (Q11) met in Aarhus |
-| **M3 Public launch, Denmark** | Copenhagen live, chips, alias votes, automated DSA statements of reasons verified, budget alerts, Places quota caps and kill switches verified, model hosting decided (Q20), minimal admin web UI; concept shortlist (§5.2 (6)) before 20k concepts | Continuation rate tracked weekly |
+| **M3 Public launch, Denmark** | Copenhagen live, chips, alias votes, automated DSA statements of reasons verified, budget alerts, Places quota caps and kill switches verified, minimal admin web UI; concept shortlist (§5.2 (6)) before 20k concepts | Continuation rate tracked weekly |
 | **M4 Iterate** | Weight tuning from `drops` aggregates and simulation (per-user outcome data only after a DPIA update and a 6(1)(f) balancing test, with sensitive themes excluded; PRIVACY.md P19), canonicalization experiment, friend invites, new cities (Odense) as new launch areas | DPO reassessment triggers (PRIVACY.md §8) |
 
 ---
@@ -1337,7 +1340,7 @@ Where the code departs from this document it carries a `DESIGN-DEVIATION` commen
 | Layout | `tests/rules` is a standalone npm project (own lockfile) like `functions/`; the log scrubber lives in `packages/core/src/server/logSafe.ts` and the codebase keeps a thin handler | §13, §14 |
 | Roster "about me" | `pods.roster[uid].aboutMe` (§8.1) is not in `podDocSchema` yet; `updateProfile` stores `users.aboutMe` and leaves the roster copy as a TODO for when `respondToPod` writes rosters | §8.1, §10.1 |
 | H5 Phase 3 relaxation | Still not built: `recentH` keeps only the until-week, not the co-member week. The meet-again relaxation (F24) does not need it, because it writes the shortened week directly | §6.3 |
-| Offline model tooling | `fetch-model`, `build-prototypes` and the calibration run lived in the retired embedder; they have no home yet, so `calibration.yml` is a skeleton that fails at its first step and `prototypes.bin` has no pinned hash in core yet | §5.1, §13 |
+| Offline model tooling | `build-prototypes` and the calibration run lived in the retired embedder; they have no home yet (the app's build-time fetch-model script only fetches and checks the pinned files, §5.1), so `calibration.yml` is a skeleton that fails at its first step and `prototypes.bin` has no pinned hash in core yet | §5.1, §13 |
 | Rules | One `match /users/{uid}/{doc=**}` block covers the profile and every subcollection (a recursive wildcard matches zero segments in rules v2) | §9 |
 | Matching task | Keep 1 GiB with `NODE_OPTIONS=--max-old-space-size=512`: at n = 20k the snapshot decode, not matching, sets the 627–812 MB peak; matching itself takes about 2 s [SIM] | §6.4, §10.3 |
 | i18n | i18next's CLDR plural keys instead of ICU message syntax | §11 |

@@ -8,5 +8,6 @@ expo-env.d.ts
 .metro-health-check*
 # JS bundle exports (npm run build)
 dist/
-# On-device model files (D1) are downloaded at runtime and checked against core's sha256; never committed
-models/
+# The on-device model (D1) is fetched at build time by `npm run fetch-model` and checked against core's sha256;
+# withBundledModel.js copies it into the native projects. Never committed.
+/assets/model/

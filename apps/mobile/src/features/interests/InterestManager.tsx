@@ -120,20 +120,11 @@ export function InterestManager({ uid, locale, mode }: Props) {
     <View style={{ gap: 16 }}>
       <Body muted>{notice.kind === 'interestNotice' ? notice.content.text : ''}</Body>
 
-      {embedder.state.status === 'loading' ? (
-        <Body muted>
-          {embedder.state.progress === null
-            ? t('interests.model.preparing')
-            : t('interests.model.downloading', { percent: Math.round(embedder.state.progress * 100) })}
-        </Body>
-      ) : null}
+      {embedder.state.status === 'loading' ? <Body muted>{t('interests.model.preparing')}</Body> : null}
       {unavailableReason ? (
         <Card>
           <ErrorText>{t(`interests.model.${unavailableReason}`)}</ErrorText>
-          {unavailableReason === 'cellular' ? (
-            <Button testID="model-use-cellular" label={t('interests.model.useCellular')} onPress={() => void embedder.retry(true)} />
-          ) : null}
-          <Button testID="model-retry" label={t('common.retry')} variant="secondary" onPress={() => void embedder.retry(false)} />
+          <Button testID="model-retry" label={t('common.retry')} variant="secondary" onPress={() => void embedder.retry()} />
         </Card>
       ) : null}
 

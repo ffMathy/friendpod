@@ -146,12 +146,9 @@
     "openSensitiveConsent": "Følsomme interesser: giv samtykke",
     "model": {
       "preparing": "Gør interesser klar på din telefon …",
-      "downloading": "Henter det, din telefon skal bruge for at forstå interesser: {{percent}} %",
-      "cellular": "For at tilføje interesser skal din telefon hente ca. 180 MB én gang. Du er på mobildata.",
-      "useCellular": "Hent over mobildata",
-      "offline": "Du er offline. Gå på internettet for at tilføje interesser.",
-      "download": "Overførslen blev ikke færdig. Tjek din forbindelse og den ledige plads, og prøv igen.",
-      "integrity": "Overførslen var beskadiget, så vi har slettet den. Prøv igen.",
+      "notBundled": "Denne version af appen indeholder ikke det, din telefon skal bruge for at forstå interesser. Installér appen fra App Store eller Google Play.",
+      "storage": "Din telefon skal have ca. 260 MB ledig plads én gang for at gøre interesser klar. Frigør noget plads, og prøv igen.",
+      "integrity": "Noget gik galt, da interesser blev gjort klar, så vi har slettet det. Prøv igen. Sker det igen, så geninstallér appen.",
       "runtime": "Telefonen kan ikke køre tjekket af interesser lige nu (den mangler måske ledig hukommelse). Luk andre apps, og prøv igen.",
       "notPinned": "Du kan ikke tilføje interesser i denne version endnu."
     }

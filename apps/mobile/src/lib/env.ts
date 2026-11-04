@@ -6,8 +6,6 @@ const extraSchema = z.object({
   appEnv: z.enum(['development', 'staging', 'production']),
   emailLinkDomain: z.string().min(1),
   googleWebClientId: z.string().min(1).optional(),
-  /** Where the pinned model files are served (our EU bucket); each file is `modelBaseUrl + path`. */
-  modelBaseUrl: z.url({ protocol: /^https$/ }).endsWith('/'),
 });
 
 export type AppEnv = z.infer<typeof extraSchema>['appEnv'];
@@ -26,8 +24,8 @@ export const appCheckDebugToken = process.env.EXPO_PUBLIC_APP_CHECK_DEBUG_TOKEN;
 export const placesApiKey = process.env.EXPO_PUBLIC_PLACES_KEY ?? '';
 
 /**
- * `stub` skips the ~180 MB model download with deterministic fake vectors (EXPO_PUBLIC_EMBEDDER=stub); tests always
- * use it. Stub vectors are not the model's, so they must never reach a real backend's concept space.
+ * `stub` replaces the bundled ~207 MB model with deterministic fake vectors (EXPO_PUBLIC_EMBEDDER=stub), so a
+ * development build can go without it; tests always use it. Stub vectors are not the model's, so they must never reach a real backend's concept space.
  */
 export const embedderMode: 'device' | 'stub' =
   process.env.EXPO_PUBLIC_EMBEDDER === 'stub' || process.env.NODE_ENV === 'test' ? 'stub' : 'device';

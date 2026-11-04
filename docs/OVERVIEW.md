@@ -8,7 +8,7 @@ Start here. This page summarises the design in about ten minutes of reading. Eve
 - [research/embedding-calibration](../research/embedding-calibration/README.md): the embedding experiment.
 - [research/thin-market-sim.md](../research/thin-market-sim.md): the pod simulation.
 
-Status, 2026-11-04: design for your review, updated with your review-round-2 decisions (D1–D16), plus a working scaffold (M0). Nothing has been deployed.
+Status, 2026-11-04: design for your review, updated with your review-round-2 decisions (D1–D16) and your later decision to bundle the model in the app, plus a working scaffold (M0). Nothing has been deployed.
 
 ## What we are building
 
@@ -62,11 +62,13 @@ The pod screen shows **one "next step" card** at a time (vote → confirm you're
 | D15 | "Who was there?" with everyone pre-ticked |
 | D16 | A cost overview: [COSTS.md](./COSTS.md) |
 
+**Later the same day** (DESIGN F32): **the on-device model ships inside the app** instead of downloading on first use. It is fetched and checked against its pinned hashes when the app is built; the app gets about 210 MB bigger.
+
 ## Decisions I made for you (please confirm or veto)
 
 The full list is DESIGN §2.2; these are the ones with the most product impact.
 
-1. **Model: EmbeddingGemma 2** (q4), not v1. It passed the gate we set (below) and is Apache-2.0 licensed. On the phone it runs on **ONNX Runtime** (the React Native package, with the native engine pinned to the exact version the thresholds were measured on); a sandbox test reproduced the calibration vectors to a cosine of 0.9999993. The model (~175 MB) downloads after sign-in from **our own EU bucket**, on Wi-Fi unless you allow cellular, and every file is checked against a pinned hash. Phones that can't run it can't add interests (target: about 4 GB of RAM).
+1. **Model: EmbeddingGemma 2** (q4), not v1. It passed the gate we set (below) and is Apache-2.0 licensed. On the phone it runs on **ONNX Runtime** (the React Native package, with the native engine pinned to the exact version the thresholds were measured on); a sandbox test reproduced the calibration vectors to a cosine of 0.9999993. The model (~175 MB, ~210 MB with its tokenizer) **ships inside the app**, as you decided: every file is checked against a pinned hash when the app is built, so there is no download, no hosting bill and no extra processor. On Android the app copies it once into its own storage at first launch, because the runtime needs a real file path. The price is app size: iPhones ask before downloading an app above 200 MB on cellular, and every app update that changes the model ships it again. Phones that can't run it can't add interests (target: about 4 GB of RAM).
 2. **Sensitive interests are protected in layers:**
    - detection on the phone: a word list, the known-ordinary hobby list, then the model; the server repeats the word list;
    - a sensitive interest is never merged with an ordinary one, and is only ever used as a pod's *theme*;
@@ -136,10 +138,9 @@ The full overview is [COSTS.md](./COSTS.md) (prices fetched 2026-11-02 to 2026-1
 | Google Places (place picker) | $0 | ~$0–13 | ~$120–185 | ~$315–425 |
 | Store accounts, domain, EAS | ~$11 | ~$11–30 | ~$30 | ~$30 |
 | **Total** | **~$12** | **~$15–47** | **~$170–240** | **~$400–510** |
-| Model download from our EU bucket | +~$5 | +~$54 | +~$270 | +~$540 |
 
-- **What changed:** the server embedder and its worst-case $345/month are gone. **Google Places is now the biggest line**, and serving the 175 MB model ourselves costs about 2 cents per install.
-- **Over 24 months** on the assumed growth curve (5k users at month 6, 20k at 12, 100k at 24): about $3,500 in total, or about $7,600 if the model is served from our bucket.
+- **What changed:** the server embedder and its worst-case $345/month are gone. **Google Places is now the biggest line.** The model ships inside the app, so it costs nothing to distribute.
+- **Over 24 months** on the assumed growth curve (5k users at month 6, 20k at 12, 100k at 24): about $3,500 in total.
 - **Fixed costs:** Apple Developer $99 a year, Google Play $25 once, a `.dk` domain, EAS Starter $19 a month from launch.
 
 ## Questions for you
@@ -149,7 +150,6 @@ The full list is DESIGN §2.4.
 | # | Question | My default |
 |---|---|---|
 | Q19 | Which thin-market levers for the alpha: ≥ 300 testers in seed cohorts, invite 5–6, wider ages, or confirm at 3? | ≥ 300 testers in cohorts + test "invite 5–6" in the simulator |
-| Q20 | Where should the phone download the model from: our EU bucket (~$540/month at 100k users, one processor), Cloudflare R2 (free, adds a processor) or the app stores' asset packs (free, more code)? | Our EU bucket until ~10k users, then decide |
 | Q23 | Should "This isn't sensitive for me" also be offered to people **without** the sensitive-interests consent, when only the model (not the word list) flagged a tag? | No, until the lawyer has looked at it |
 | Q22 | Minimum phone for adding interests | About 4 GB RAM, confirmed in the M0 device test |
 | Q21 | Google's terms limit how long we may keep place names and addresses | Check in M0; if needed, drop the place 30 days after the meetup |
@@ -182,7 +182,7 @@ research/            Embedding calibration and thin-market simulation
 
 1. You review this page, DESIGN §2.2 and §2.4, the consent copy in PRIVACY §3.3, and COSTS.md.
 2. Create the Firebase projects, in the order DESIGN §7 gives. Test sign-in on real iOS (Apple, Google, email link) and Android (Google, email link) dev builds.
-3. **Device spike:** run the on-device model on 2 low-end Android phones, an older and a newer iPhone (golden test, memory, speed); set up the EU model bucket and build `prototypes.bin`.
+3. **Device spike:** run the on-device model on 2 low-end Android phones, an older and a newer iPhone (golden test, memory, speed); check the app size and the first-launch model copy on Android; set up the EU model mirror for CI and build `prototypes.bin`.
 4. Restrict the Google Places key to the apps and set daily quota caps; check Google's caching terms.
 5. Engage the lawyer and draft the DPIA.
 6. M1: build the pod lifecycle, withdrawal, export and deletion, then a private alpha in Aarhus with ≥ 300 testers.

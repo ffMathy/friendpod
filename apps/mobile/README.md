@@ -16,8 +16,9 @@ Run `npm ci` at the repo root first (this is a root workspace; `@grouper/core` i
 | `npm test` | jest-expo + React Native Testing Library |
 | `npm run config` | Prints the resolved public config (`APP_ENV=staging` etc. to check other environments) |
 | `npm run build` | `expo export` of the Android and iOS JS bundles into `dist/` (no device needed) |
+| `npm run fetch-model` | Fetches the pinned on-device model into `assets/model/` and verifies it ([below](#on-device-embedding-d1)) |
 | `npm start` | Metro for a development build |
-| `npm run android` / `npm run ios` | Local native build (`expo run:*`; needs Android SDK / Xcode) |
+| `npm run android` / `npm run ios` | Local native build (`expo run:*`; needs Android SDK / Xcode); runs `fetch-model` first |
 
 Lint runs from the root (`npm run lint`).
 
@@ -38,8 +39,9 @@ permissions.
 | `EXPO_PUBLIC_USE_EMULATORS=1` | `eas.json` development profile, or your shell | Connects Auth, Firestore, Functions and Storage to the Emulator Suite; refused outside development |
 | `EXPO_PUBLIC_EMULATOR_HOST` | your shell | Emulator host for a physical device (default `localhost`; Android emulators are remapped to 10.0.2.2) |
 | `EXPO_PUBLIC_APP_CHECK_DEBUG_TOKEN` | your shell | Optional pre-registered App Check debug token (development only) |
-| `MODEL_BASE_URL` | EAS env var (optional) | Where the pinned on-device model files are served; default `https://storage.googleapis.com/<project>-models/models/eg2-q4-daa72c5/` (DESIGN.md §8) |
-| `EXPO_PUBLIC_EMBEDDER=stub` | your shell | Deterministic fake vectors instead of the ~180 MB model; refused outside development, always on in jest |
+| `MODEL_MIRROR_URL` | EAS env var or your shell (optional) | Build-time source for `npm run fetch-model` instead of Hugging Face, laid out like the model repo (for example the EU models bucket's `models/eg2-q4-daa72c5/`); required once a `mirror`-only file such as `prototypes.bin` is pinned |
+| `HF_TOKEN` | EAS secret or your shell (optional) | Sent to huggingface.co by `fetch-model` (the repo is public; only for rate limits) |
+| `EXPO_PUBLIC_EMBEDDER=stub` | your shell | Deterministic fake vectors instead of the bundled model; lets a development prebuild go without `assets/model/` and makes `fetch-model` a no-op; refused outside development, always on in jest |
 | `EXPO_PUBLIC_PLACES_KEY` | EAS env var | Google Places (New) API key, restricted to the app ids and the Places API |
 | `EXPO_PUBLIC_ANDROID_CERT_SHA1` | EAS env var | SHA-1 of the Android signing certificate, sent as `X-Android-Cert` so the app-restricted key works over REST |
 | `EXPO_PUBLIC_PLACES=stub` | your shell | A fixed list of Aarhus places instead of Google; refused outside development, always on in jest |
@@ -96,9 +98,28 @@ scored by the core detector against `prototypes.bin`; `addInterests` receives `{
   both platforms by `plugins/withOrtPinned.js`; `react-native.config.js` registers `OnnxruntimePackage` on Android.
   The package's own config plugin is not used (it assumes an unhoisted `node_modules`).
 - Tokenizer: `@huggingface/tokenizers` 0.2.0 in JS.
-- Files: downloaded on first use from `MODEL_BASE_URL` into `Documents/models/eg2-q4-daa72c5/` (excluded from iCloud
-  backup), Wi-Fi by default, mobile data only after asking. Each file must match the size and SHA-256 pinned in core
-  before it is used; a mismatch is deleted.
+- Files: **bundled inside the app** (founder decision 2026-11-04): `onnx/model_q4.onnx`, `onnx/model_q4.onnx_data`,
+  `tokenizer.json` and `tokenizer_config.json` (the `device` files pinned with size and SHA-256 in
+  `packages/core/src/interests/data/eg2-q4.model.json`, read by `EMBEDDING_MODEL`), about 207 MB. There is no runtime
+  download, no URL and no Wi-Fi/cellular prompt.
+  - **Build time:** `npm run fetch-model` (`scripts/fetch-model.mjs`, Node built-ins only) downloads them from Hugging
+    Face at the pinned revision, or from `MODEL_MIRROR_URL`, into `assets/model/eg2-q4-daa72c5/` (gitignored),
+    verifies every SHA-256, skips files already verified and removes anything else in `assets/model/`.
+  - **Prebuild:** `plugins/withBundledModel.js` verifies the folder again and copies exactly the pinned files to
+    `ios/<Project>/models/` (a folder reference in Copy Bundle Resources) and `android/app/src/main/assets/models/`
+    (with `.onnx`/`.onnx_data` in `androidResources.noCompress`). A missing or mismatching file fails the prebuild with
+    what to run, unless `EXPO_PUBLIC_EMBEDDER=stub` with `APP_ENV=development`. `expo config` never needs the files.
+  - **EAS:** `package.json` runs `fetch-model` in the `eas-build-pre-install` hook (before `npm install`; the uploaded
+    archive never contains the gitignored model), so every store build fetches, verifies and bundles it. Locally,
+    `npm run ios` / `npm run android` run it first (`preios`/`preandroid`); before a bare `npx expo prebuild`, run
+    `npm run fetch-model` yourself. CI never runs it: it only evaluates `expo config` and runs jest with the stub.
+  - **Runtime** (`src/features/interests/embedder/modelFiles.ts`): on iOS the session opens
+    `<App>.app/models/eg2-q4-daa72c5/onnx/model_q4.onnx` in place (code-signed, size check only). Android assets are
+    not file paths, so the first load copies the files to `<files>/models/eg2-q4-daa72c5/` (internal storage; the app
+    has `allowBackup: false`), checks free space first, verifies each copy's SHA-256 natively, writes a marker last,
+    then deletes older model folders; later launches trust the marker and file sizes. iOS deletes any
+    `Documents/models/` an older download-on-first-use build left behind (Android re-verifies and reuses it). The UI
+    shows only "preparing" meanwhile.
 - The model is loaded while an interests screen is focused and released when it loses focus.
 - If the device cannot run it, adding interests is blocked with a message and a retry; there is no server fallback.
 - `src/features/interests/embedder/stub.ts` is the deterministic stand-in for jest and `EXPO_PUBLIC_EMBEDDER=stub`.
@@ -117,8 +138,12 @@ See the M0 checklist in DESIGN.md §11/§15. In short:
 - on-device embedding: `prebuild --clean` then check that ORT 1.30.0 is what Gradle/CocoaPods resolve and that
   `OnnxruntimePackage` is registered; run the golden test (`DEVICE_GOLDEN_TOLERANCE`) on 2 low-end Android phones and
   an older and a newer iPhone, measuring Hermes tokenizer heap, cold/warm latency and peak RSS; confirm Hermes
-  `BigInt64Array`; check 16 KB page alignment (`zipalign -c -P 16`); the model files and `prototypes.bin` must be
-  hosted at `MODEL_BASE_URL` and `prototypes.bin` pinned in core before adding interests works at all;
+  `BigInt64Array`; check 16 KB page alignment (`zipalign -c -P 16`); `prototypes.bin` must be pinned in core (as a
+  `mirror` device file, fetched via `MODEL_MIRROR_URL` and bundled like the model) before adding interests works at all;
+- bundled model: on an EAS build, that the IPA contains `models/eg2-q4-daa72c5/` and that `Paths.bundle` resolves to it
+  (the bundle name has a space); that the AAB stores `model_q4.onnx_data` uncompressed (`unzip -v`) and the Play base
+  module stays under its limit; first-launch copy time and peak storage on a low-end Android phone; that
+  onnxruntime opens the graph from the bundle and the copied path with `model_q4.onnx_data` next to it;
 - Places: the app-restricted key over REST (`X-Ios-Bundle-Identifier`, `X-Android-Package` + `X-Android-Cert`);
 - add-to-calendar on iOS 16 (needs calendar permission there, which the app does not request) and on Android;
 - on devices: Sign in with Apple on iOS only, Google and email link on both (iOS SPM build of GoogleSignIn), Universal/App Links for

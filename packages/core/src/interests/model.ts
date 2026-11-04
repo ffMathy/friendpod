@@ -5,6 +5,7 @@
  * re-calibrating, a new `modelKey` for every client at once, and re-embedding every stored tag.
  */
 import { DEFAULT_ASSIGN_THRESHOLDS, V1_ASSIGN_THRESHOLDS, type AssignThresholds } from './assign';
+import eg2Json from './data/eg2-q4.model.json';
 
 /** `modelKey` sent with every vector and stored on every tag doc; the server refuses any other (§5.1). */
 export const EMBEDDING_MODEL_ID = 'eg2-q4@daa72c5';
@@ -21,12 +22,33 @@ export const PROMPTS = {
 /** Detector margin threshold for EmbeddingGemma 2 q4 / STS prompt / 768-d: 100% recall on the labelled set [CAL]. */
 export const DETECTOR_MARGIN_THRESHOLD = -0.03;
 
-/** A model file pinned by content. `device` files are downloaded by the app and checked with `sha256` before use. */
+/**
+ * Where a build fetches a pinned file: `hf` from the model's Hugging Face repo at the pinned revision (or the
+ * MODEL_MIRROR_URL mirror), `mirror` only from the mirror (files we build ourselves, such as prototypes.bin).
+ */
+export type ModelFileSource = 'hf' | 'mirror';
+
+/** A model file pinned by content. `device` files are bundled inside the app and checked with `sha256`. */
 export interface PinnedModelFile {
   readonly path: string;
   readonly sha256: string;
   readonly bytes: number;
   readonly device: boolean;
+  readonly source: ModelFileSource;
+}
+
+/**
+ * Reads pins from `data/*.model.json` (JSON so the app's build scripts share them without TypeScript) and refuses a
+ * malformed one at import, before anything is fetched or loaded against it.
+ */
+function parsePinnedFiles(name: string, files: readonly { path: string; sha256: string; bytes: number; device: boolean; source: string }[]): readonly PinnedModelFile[] {
+  return files.map((f) => {
+    if (!/^[0-9a-f]{64}$/.test(f.sha256)) throw new Error(`${name}: ${f.path} has no lower-case hex sha256`);
+    if (!Number.isSafeInteger(f.bytes) || f.bytes <= 0) throw new Error(`${name}: ${f.path} has no byte size`);
+    if (f.source !== 'hf' && f.source !== 'mirror') throw new Error(`${name}: ${f.path} has an unknown source ${f.source}`);
+    if (f.path.startsWith('/') || f.path.split('/').includes('..')) throw new Error(`${name}: ${f.path} is not a relative path`);
+    return { path: f.path, sha256: f.sha256, bytes: f.bytes, device: f.device, source: f.source };
+  });
 }
 
 /** The ONNX graph contract the app feeds (research: on-device EmbeddingGemma 2, 2026-11-04). */
@@ -51,7 +73,11 @@ export interface DeviceRuntime {
   readonly executionProviders: readonly ['cpu'];
   readonly graphOptimizationLevel: 'all';
   readonly intraOpNumThreads: number;
-  /** Directory under the app's document directory (excluded from iCloud backup). */
+  /**
+   * Where the bundled device files sit, relative to the app bundle (iOS resources, Android assets) and, on Android,
+   * to the document directory they are copied to on first launch (assets are not file paths). Also the object
+   * prefix in the EU models bucket. The build's source folder is `apps/mobile/assets/model/<last segment>/`.
+   */
   readonly dir: string;
 }
 
@@ -78,18 +104,11 @@ export interface EmbeddingModelConfig {
 
 export const EMBEDDING_MODEL: EmbeddingModelConfig = {
   modelKey: EMBEDDING_MODEL_ID,
-  hfRepo: 'onnx-community/embeddinggemma-2-ONNX',
-  revision: 'daa72c51243991dfcaf9f9137d2c573d8f7790c0',
+  hfRepo: eg2Json.hfRepo,
+  revision: eg2Json.revision,
   dtype: 'q4',
   textOnly: true,
-  files: [
-    { path: 'config.json', sha256: '8d011bfe08b5e345bbe0b81e5c6fd02c381920b345b986047bc2a33ce7b90d1d', bytes: 5031, device: false },
-    { path: 'config_sentence_transformers.json', sha256: '031e56a498d33c349ab489a21885bcfe25b4fcba841149dc99e1e90d4a7c28f5', bytes: 1565, device: false },
-    { path: 'tokenizer_config.json', sha256: '17bd5d6e9364ca49a534e1502076593317c298d4a663623091ed45388f004874', bytes: 1599, device: true },
-    { path: 'tokenizer.json', sha256: '4d777ef5bdc1aa36227abdfb77c3e49e7b9c892d16e1b6bda41c393504828be4', bytes: 32_170_510, device: true },
-    { path: 'onnx/model_q4.onnx', sha256: 'f9eeba97acddf139b8ee2ddf04bc30dceafa88de93fadf74d7644e0d61a477a9', bytes: 490_742, device: true },
-    { path: 'onnx/model_q4.onnx_data', sha256: 'c3975f2d1ab7a1878ae31a7d7a9b7804a827aff3800b60dfceafce21cac3df49', bytes: 174_028_800, device: true },
-  ],
+  files: parsePinnedFiles('data/eg2-q4.model.json', eg2Json.files),
   dim: EMBEDDING_DIM,
   tagPrompt: PROMPTS.sts,
   detectorPrompt: PROMPTS.sts,
@@ -110,7 +129,7 @@ export const EMBEDDING_MODEL: EmbeddingModelConfig = {
     executionProviders: ['cpu'],
     graphOptimizationLevel: 'all',
     intraOpNumThreads: 2,
-    dir: 'models/eg2-q4-daa72c5/',
+    dir: eg2Json.dir,
   },
 };
 
@@ -125,9 +144,9 @@ export const EMBEDDING_MODEL_V1: EmbeddingModelConfig = {
   dtype: 'q4',
   textOnly: false,
   files: [
-    { path: 'tokenizer.json', sha256: '4dda02faaf32bc91031dc8c88457ac272b00c1016cc679757d1c441b248b9c47', bytes: 20_323_312, device: true },
-    { path: 'onnx/model_q4.onnx', sha256: 'ad1dfee81a70f7944b9b9d1cc6e48075b832881cf33fab2f2b248be78f3f0043', bytes: 519_322, device: true },
-    { path: 'onnx/model_q4.onnx_data', sha256: '599962c3143b040de2dd05e5975be3e9091dd067cacc6a8f7186e3203bab9e02', bytes: 196_725_760, device: true },
+    { path: 'tokenizer.json', sha256: '4dda02faaf32bc91031dc8c88457ac272b00c1016cc679757d1c441b248b9c47', bytes: 20_323_312, device: true, source: 'hf' },
+    { path: 'onnx/model_q4.onnx', sha256: 'ad1dfee81a70f7944b9b9d1cc6e48075b832881cf33fab2f2b248be78f3f0043', bytes: 519_322, device: true, source: 'hf' },
+    { path: 'onnx/model_q4.onnx_data', sha256: '599962c3143b040de2dd05e5975be3e9091dd067cacc6a8f7186e3203bab9e02', bytes: 196_725_760, device: true, source: 'hf' },
   ],
   dim: EMBEDDING_DIM,
   tagPrompt: PROMPTS.sts,
@@ -176,7 +195,7 @@ export function renormalize(v: ArrayLike<number>): Float32Array {
   return out;
 }
 
-/** Device files only, in download order (small first, so a broken mirror fails fast). */
+/** Device files only (the ones bundled in the app), smallest first, so a broken or incomplete copy fails fast. */
 export function deviceModelFiles(model: EmbeddingModelConfig = EMBEDDING_MODEL): readonly PinnedModelFile[] {
   return model.files.filter((f) => f.device).sort((a, b) => a.bytes - b.bytes);
 }

@@ -29,7 +29,6 @@ describe('on-device runtime pins (D1)', () => {
     const config = readFileSync(join(root, 'app.config.ts'), 'utf8');
     const device = EMBEDDING_MODEL.device!;
     expect(config).toContain(`const ORT_NATIVE_VERSION = '${device.nativeOrt}';`);
-    expect(config).toContain(`const MODEL_DIR = '${device.dir.replace(/^models\//, '')}';`);
     const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')) as { dependencies: Record<string, string> };
     expect(pkg.dependencies['onnxruntime-react-native']).toBe(device.npm['onnxruntime-react-native']);
     expect(pkg.dependencies['@huggingface/tokenizers']).toBe(device.npm['@huggingface/tokenizers']);

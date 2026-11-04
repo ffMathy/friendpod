@@ -29,7 +29,7 @@ function setup() {
 describe('embedder lifecycle (D1: free the model when the screen loses focus)', () => {
   it('frees a session whose load finishes after the screen released it', async () => {
     const { lc, created, pending } = setup();
-    const load = lc.load({});
+    const load = lc.load();
     await lc.release();
     pending[0]!.resolve();
     await expect(load).rejects.toBeInstanceOf(EmbedderUnavailableError);
@@ -39,9 +39,9 @@ describe('embedder lifecycle (D1: free the model when the screen loses focus)', 
 
   it('keeps a load that was released and asked for again before it finished, without loading twice', async () => {
     const { lc, created, pending, create } = setup();
-    const first = lc.load({});
+    const first = lc.load();
     await lc.release();
-    const second = lc.load({});
+    const second = lc.load();
     pending[0]!.resolve();
     await Promise.all([first, second]);
     expect(create).toHaveBeenCalledTimes(1);
@@ -51,7 +51,7 @@ describe('embedder lifecycle (D1: free the model when the screen loses focus)', 
 
   it('waits for a running embed before it frees the session', async () => {
     const { lc, created, pending } = setup();
-    const load = lc.load({});
+    const load = lc.load();
     pending[0]!.resolve();
     await load;
     const gate = deferred<void>();

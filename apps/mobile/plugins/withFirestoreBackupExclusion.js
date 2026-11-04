@@ -5,8 +5,9 @@
  * sign-out, withdrawal and deletion. The Firebase iOS SDK keeps it under Library/Application Support/firestore;
  * expo-image's disk cache is under Library/Caches, which is never backed up.
  *
- * The on-device model (Documents/models, ~210 MB, D1) is excluded the same way: it is public data that can always be
- * downloaded again, so it has no business in the user's iCloud quota.
+ * Documents/models is excluded the same way. The on-device model (D1) now ships inside the app bundle
+ * (withBundledModel.js) and nothing is written there; the flag covers a copy an older build downloaded until the
+ * embedder deletes it at its next load, so it never counts against the user's iCloud quota.
  *
  * Runs at every launch, before JavaScript can open Firestore: the flag on the directory covers everything the SDK
  * later creates inside it, and setting it again repairs a directory that was replaced.
