@@ -1,0 +1,18 @@
+{
+  "name": "@grouper/admin",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Admin CLI skeleton (DESIGN.md \u00a79 Admin access, \u00a713 Backups). Commands are stubs until M1.",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "admin": "tsx src/cli.ts"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.2",
+    "tsx": "4.23.15",
+    "typescript": "6.0.3",
+    "vitest": "5.1.0"
+  }
+}

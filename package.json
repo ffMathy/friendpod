@@ -1,0 +1,42 @@
+{
+  "name": "grouper",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Pods: weekly drops that form small in-person friend groups (see docs/DESIGN.md).",
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "tools/*"
+  ],
+  "engines": {
+    "node": ">=24.12"
+  },
+  "scripts": {
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "eslint .",
+    "check": "npm run typecheck && npm run lint && npm test",
+    "sim": "npm -w tools/sim run sim --",
+    "sim:smoke": "npm -w tools/sim run sim:smoke",
+    "sim:thin-market": "npm -w tools/sim run thin-market",
+    "bench:match": "npm -w tools/sim run bench --",
+    "admin": "npm -w tools/admin run admin --",
+    "typecheck:functions": "npm --prefix functions run typecheck",
+    "test:functions": "npm --prefix functions test",
+    "build:functions": "npm --prefix functions run build",
+    "typecheck:embedder": "npm --prefix services/embedder run typecheck",
+    "test:embedder": "npm --prefix services/embedder test",
+    "build:embedder": "npm --prefix services/embedder run build",
+    "typecheck:rules": "npm --prefix tests/rules run typecheck",
+    "test:rules": "firebase emulators:exec --project demo-grouper --only auth,firestore,storage \"npm --prefix tests/rules test\""
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@types/node": "24.19.2",
+    "eslint": "10.14.0",
+    "globals": "17.14.0",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.72.1"
+  }
+}

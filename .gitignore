@@ -1,0 +1,46 @@
+# Dependencies and build output
+node_modules/
+dist/
+build/
+coverage/
+*.tsbuildinfo
+.eslintcache
+
+# Model weights and binary artefacts (fetched or built, never committed)
+services/embedder/model/
+*.bin
+*.onnx
+
+# Firebase
+.firebase/
+*-debug.log
+firebase-export-*/
+
+# Expo / React Native
+.expo/
+web-build/
+apps/mobile/ios/
+apps/mobile/android/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.pem
+GoogleService-Info.plist
+google-services.json
+
+# Local env files
+.env
+.env.*
+!.env.example
+*.local
+
+# Simulation scratch output
+tools/sim/out/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json

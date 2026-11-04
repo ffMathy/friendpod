@@ -1,0 +1,24 @@
+{
+  "name": "@grouper/sim",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Synthetic-city simulation harness for the matcher (DESIGN.md §6.9).",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "sim": "tsx src/cli.ts",
+    "sim:smoke": "tsx src/cli.ts --n 2000 --weeks 4 --profile launch --seed 1 --assert-smoke",
+    "thin-market": "tsx src/thinMarket.ts",
+    "bench": "tsx src/bench.ts"
+  },
+  "dependencies": {
+    "@grouper/core": "*"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.2",
+    "tsx": "4.23.15",
+    "typescript": "6.0.3",
+    "vitest": "5.1.0"
+  }
+}

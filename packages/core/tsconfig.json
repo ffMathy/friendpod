@@ -1,0 +1,10 @@
+{
+  "//": "Shared source that also runs in React Native: no Node or DOM globals. src/node.ts is checked by tsconfig.node.json.",
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2022"],
+    "types": []
+  },
+  "include": ["src/**/*.ts", "src/**/*.json"],
+  "exclude": ["src/node.ts"]
+}
