@@ -17,6 +17,7 @@
 | [FBX] | Firebase + Expo SDK 58 infrastructure research |
 | [GDPR] | GDPR / Danish data protection analysis |
 | [MAT] | Matching algorithm and product rules research |
+| [SIM] | Thin-market simulation and n = 20k benchmark of the scaffold's matcher, [`research/thin-market-sim.md`](../research/thin-market-sim.md) (synthetic behaviour) |
 | [A] | Architect's assumption, to be validated |
 
 Where reports conflict, the resolution is stated inline and summarized in §2.3. Measured numbers from [CAL] and [EXP] win over estimates; [CAL] supersedes [EXP] for every model-specific threshold.
@@ -140,6 +141,7 @@ Measured results win over estimates.
 | Q16 | Same-gender pods for non-binary users: "non-binary only" or also "women + non-binary" / "men + non-binary"? | "Same gender" only in MVP; the app tells non-binary users when the pool is too small (`GENDER_POOL`). |
 | Q17 | Transactional email provider for inactivity warnings and Art. 34 notices (PRIVACY.md §9) | An EU provider with a DPA, chosen in M1 [A]. |
 | Q18 | Run the sensitivity detector on the device so that possibly-Art. 9 text leaves the phone only after consent (§5.2 (5))? Costs about 175 MB of model download (v2 q4). | Lexicon on the device in M1; on-device model decided at the M0 gate with counsel. |
+| Q19 | **Thin-market levers for the alpha.** The simulation [SIM] says the planned 50–150 testers cannot fill pods: at n = 100 about half the testers get no confirmed pod in 12 weeks. Even n = 300 with 5 seed-theme cohorts reaches only 35% confirmation and a first pod after a median 4.3 weeks, because most proposals have only 4 invitees and need all 4 to accept. Which levers do we pull? (a) recruit ≥ 300 testers in Aarhus into ≤ 5 seed-theme cohorts; (b) invite 5–6 whenever the pool allows; (c) a wider default age range in the alpha; (d) let an alpha pod confirm at 3 accepts (changes F3). | (a) and (b), tested in `tools/sim` before M1; (c) and (d) only with founder sign-off. |
 
 ---
 
@@ -154,7 +156,7 @@ Measured results win over estimates.
 6. **Area**: postcode (default, no permission needed) or approximate location (coarse permission). The device converts either one to geohash-5 with the bundled postcode table (`packages/core/src/geo/dk-postcodes.json`) and discards the postcode and coordinates. The server receives only `gh5`.
    - The app then calls `completeOnboarding` with steps 3–6.
    - The server checks 18+, keeps only `birthYear` [GDPR], resolves the launch area from `gh5`, creates the profile with default preferences, and sets the claim `onb`.
-   - **Under 18:** the server deletes the Firebase Auth user at once (`auth.deleteUser`) and stores nothing about the person except a 30-day marker `underageMarkers/{HMAC(email)}`. A retry with the same email inside 30 days gets the same answer without a new date-of-birth check. The marker is disclosed in the privacy notice (PRIVACY.md §11).
+   - **Under 18:** the server deletes the Firebase Auth user at once (`auth.deleteUser`) and stores nothing about the person except 30-day markers in `underageMarkers`, keyed on `HMAC(email)` when the token has an email and on `HMAC(provider, provider uid)` for each federated identity (Apple sign-in usually carries no email). A retry with the same email or sign-in identity inside 30 days gets the same answer without a new date-of-birth check. The marker is disclosed in the privacy notice (PRIVACY.md §11).
 7. **Interests**:
    - free text, with a permanent notice about sensitive interests;
    - launch-area chips (non-sensitive concepts with ≥ 10 holders in the area) to help start;
@@ -801,7 +803,7 @@ Conventions:
 | `pushTokens/{uid}` | `tokens: [{token, platform, updatedAt}]` | stale > 60 days pruned [A]; deleted with the account |
 | `rateLimits/{uid}_{bucket}`, `rateLimits/global_{bucket}_{day}` | `count`, `windowStart`, `expiresAt` | 1 day (TTL) |
 | `erasureLedger/{id}` | `uidH`, `kind: 'account'\|'interest'\|'consentWithdrawal'\|'gender'\|'photo'\|'block'\|'unblock'`, `ref?` (`interestId`, the other party's `uidH`, or photo version), `at`, `expiresAt` | 35 days (TTL), longer than the 7-day PITR and backup windows [A] |
-| `underageMarkers/{HMAC(email)}` | `createdAt`, `expiresAt` | 30 days (TTL) |
+| `underageMarkers/{HMAC(email) or HMAC(provider, provider uid)}` | `createdAt`, `expiresAt` | 30 days (TTL) |
 
 **Storage paths:**
 - `uploads/{uid}/pending.jpg` and `pending_256.jpg`: fixed names, so at most one pending pair per uid. Owner create or overwrite only, ≤ 2 MB, `image/jpeg`. Deleted after processing; lifecycle 1 day as a backstop.
@@ -1170,7 +1172,7 @@ grouper/
 | Milestone | Scope | Exit criteria |
 |---|---|---|
 | **M0 Scaffold** (2–3 weeks) | Cloud Identity organization and EU logging defaults **before** the projects are created (§7); repo layout, emulators, rules + tests, CI, three sign-in methods on iOS/Android dev builds (SPM check in week 1; email-link App Links / Universal Links, Team ID and SHA-256 registration per project), embedder spike on real Cloud Run (cold start with lazy load, image size, Node 24, gcf_gen1 cold starts), **model gate Q1**, on-device detector spike (Q18), labelled da/en set (synthetic), calibration harness, sim harness + n = 20k/50k benchmarks + thin-market runs, seed review of about 1,000 tags, DPIA draft, lawyer engaged | Founder signs off on this doc; gate results recorded |
-| **M1 Private alpha, Aarhus** (6–8 weeks) | Onboarding with consents, interests pipeline, drop (dry-run, then live) on the alpha profile (§6.10), accept/decline/backfill, reveal, planner, feedback, block/report, export, delete, admin CLI, Danish/English copy, privacy notice, transactional email provider (Q17), staging restore drill | 50–150 testers in seed-theme cohorts [A]; ≥ 40% of proposed pods confirm (the sim predicts about 54% at 60% invite acceptance with 6-person proposals) and the rate is within 10 points of the sim; weeks-to-first-pod P50 ≤ 3; zero sensitive-data incidents; DPIA signed |
+| **M1 Private alpha, Aarhus** (6–8 weeks) | Onboarding with consents, interests pipeline, drop (dry-run, then live) on the alpha profile (§6.10), accept/decline/backfill, reveal, planner, feedback, block/report, export, delete, admin CLI, Danish/English copy, privacy notice, transactional email provider (Q17), staging restore drill ≥ 300 testers concentrated in Aarhus, in ≤ 5 seed-theme cohorts (Q19); the simulation with the scaffold's matcher predicts 35% confirmation and a first pod after a median 4.3 weeks at that size, against 30–37% and 9+ weeks at 100 testers [SIM]. Exit: confirmation rate within 10 points of the sim re-run on the real cohort; weeks-to-first-pod P50 ≤ 5; zero sensitive-data incidents; DPIA signed |
 | **M2 Closed beta** (Aarhus live, Copenhagen waitlist) | App Check enforced, store listings and privacy labels, reschedule flow, metrics dashboard from `drops`, Maestro E2E, Play Integrity device recall evaluated (S5–S7) | Launch-area gate (Q11) met in Aarhus |
 | **M3 Public launch, Denmark** | Copenhagen live, chips, alias votes, DSA processes, budget alerts and kill switches verified, minimal admin web UI; concept shortlist (§5.2 (6)) before 20k concepts | Continuation rate tracked weekly |
 | **M4 Iterate** | Weight tuning from `drops` aggregates and simulation (per-user outcome data only after a DPIA update and a 6(1)(f) balancing test, with sensitive themes excluded; PRIVACY.md P19), canonicalization experiment, friend invites, new cities (Odense) as new launch areas | DPO reassessment triggers (PRIVACY.md §8) |
@@ -1181,7 +1183,7 @@ grouper/
 
 | Risk | Impact | Mitigation |
 |---|---|---|
-| Fragmentation of free-form tags starves thin markets | Low match rate in Aarhus | Seed concepts, "did you mean", alias votes, popular chips, "open to anyone", tight launch area, alpha profile and seed-theme cohorts (§6.10), thin-market simulation gate |
+| Fragmentation of free-form tags and thin markets starve the alpha | Low match rate in Aarhus; the sim shows 69–97% of users unmatched for 12 weeks under the launch profile at n = 100–300 [SIM] | Seed concepts, "did you mean", alias votes, popular chips, "open to anyone", tight launch area, alpha profile and seed-theme cohorts (§6.10), thin-market simulation gate |
 | Fake accounts infiltrate sensitive-themed pods | Outing or targeting of holders | S5–S7 (eligibility, caps, photo opt-in, "not a genuine member" reports, anomaly review); disclosed residual risk (PRIVACY.md R15) |
 | Detector misses a sensitive tag (Russmedia duty) | Unconsented Art. 9 processing | Layered lexicon + recall-tuned margin + self-flag + rescan + reports; monitored by the CI gate |
 | Detector over-flags ordinary Danish words | Consent fatigue | Pre-launch seed review; weekly review queue; reviewed "not" decisions |
@@ -1196,6 +1198,38 @@ grouper/
 | Thresholds drift on real tags (±0.02–0.03) | Quality or privacy | Nightly calibration; quarterly relabelling of review-queue samples reviewed as not sensitive (§5.3) |
 | Founder bottleneck on reviews and reports | Delays | Queue SLAs; conservative defaults (treat as sensitive, pause on safety reports) |
 | Self-declared age bypass | Minors on the platform | Auth user deleted on an under-18 answer plus a 30-day retry marker; store age ratings, report category, swift removal |
+
+---
+
+## 17. Scaffold status and reconciliation (M0)
+
+The scaffold implements the structure of §14 and the security-critical paths; feature logic marked for M1 is stubbed. The root [README](../README.md#what-is-stubbed) lists every stub with its section here. Each stub keeps its final name, trigger, options and input validation, then fails loudly (`unimplemented`, `details.code: 'NOT_IMPLEMENTED'`), so nothing pretends to succeed.
+
+**Implemented and tested:** the security rules (130 emulator tests), `completeOnboarding`, `updateProfile`, `setParticipation`, the `matchComponent` task, `addInterests` (pipeline steps 1–7, consent gate, self-flag, detector, on a stub model in CI), the matcher (Phases 1–2 partly, Phase 3 "open to anyone"; property tests for every hard constraint, determinism and permutation invariance), the simulator, and the app's onboarding, consent and interest flows.
+
+**Safety gate.** `ART9_HOLDINGS_ENABLED = false` in `services/embedder/src/config.ts`: until `withdrawSensitive` and `removeInterest` exist, `addInterests` refuses sensitive holdings with `SENSITIVE_UNAVAILABLE` before asking for consent, because withdrawing must be as easy as consenting (Art. 7(3)). A test fails if the gate is on while either is a stub.
+
+Where the code departs from this document it carries a `DESIGN-DEVIATION` comment. The deviations, to fold into the sections above at the next revision:
+
+| Area | Deviation | Section |
+|---|---|---|
+| Normalization | Also strips invisible format characters (zero-width, bidi overrides, soft hyphens), so they cannot slip a sensitive word past the lexicon | §5.2 (1) |
+| Concept IDs | `c_` + hex(HMAC(`UID_HMAC_KEY`, 'concept' \| tagKey (\| 'p')))[0..20] instead of a prefix of the unkeyed tagKey; still deterministic for racing creators, and a private concept's ID no longer reveals the ordinary concept of the same text | §5.2 (7) |
+| Under-18 markers | Keyed on `HMAC(email)` and on `HMAC(provider, provider uid)`, because Apple sign-in usually has no email (already folded into §3.1, §8.2 and PRIVACY.md §5, §11) | §3.1 |
+| Consent payload | Carries `appVersion`, which PRIVACY.md §3.4 records on every consent event | §10, PRIVACY.md §3.4 |
+| `addInterests` | Results may carry `warning: 'THIRD_PARTY'` for ordinary third-party tags; new reason `SENSITIVE_UNAVAILABLE` for the safety gate | §10.2, §5.2 (2) |
+| Reason codes | New `NO_FIT_THIS_WEEK`, for users with enough compatible people who were not placed, so blocks and pair history are never revealed as a reason. Stored aggregates fold the sensitive-only reasons into it | §6.7, §6.8 |
+| Documents | `users.participation.optInWeekId` (manual weekly opt-in), `prefs.openToAnyone` (Q12), `sensitiveInterests.starred`, pod `theme` as `{kind: 'concept', …} \| {kind: 'openToAnyone'}`, and `matchProfiles` fields `attendedVerified`, `founderInvited`, `openReportCount`, `priority`, `openToAnyone` (inputs S5 and f(u) need) | §8 |
+| Missing callable | No callable yet moves a reviewed-not-sensitive holding to `interests` ("Treat as ordinary"); to add in M1 | §5.2 (5), §10 |
+| Danish copy | The non-binary addendum of the gender consent has no Danish text in the code yet (now drafted in PRIVACY.md §3.6); the app does not offer that case in Danish until it is added and hash-locked | PRIVACY.md §3.6 |
+| Postcodes | DAWA (`api.dataforsyningen.dk`) answers 410 Gone; `dk-postcodes.json` comes from GeoNames DK (CC BY 4.0, 1,154 postcodes, attribution in the file) | §3.1, §14 |
+| Launch areas | `areas.json` uses every geohash-5 cell within 20 km of each city centre (95 cells for Aarhus, 96 for Copenhagen) as an approximation; replace with municipality boundaries before go-live | §6.4 |
+| Layout | `tests/rules` is a standalone npm project (own lockfile) like `functions/` and `services/embedder/`; the log scrubber lives in `packages/core/src/server/logSafe.ts` and each codebase keeps a thin handler | §13, §14 |
+| Rules | One `match /users/{uid}/{doc=**}` block covers the profile and every subcollection (a recursive wildcard matches zero segments in rules v2) | §9 |
+| Matching task | Keep 1 GiB with `NODE_OPTIONS=--max-old-space-size=512`: at n = 20k the snapshot decode, not matching, sets the 627–812 MB peak; matching itself takes about 2 s [SIM] | §6.4, §10.3 |
+| i18n | i18next's CLDR plural keys instead of ICU message syntax | §11 |
+| Native modules | `expo-screen-capture` and `expo-image-manipulator` ship no config plugin in SDK 58, so they are not in `plugins` | §11 |
+| On-device code | `normalizeTag` uses Unicode property escapes and the schedule uses `Intl.DateTimeFormat` with `timeZone`; both must be verified on Hermes in M0 | §5.2 (0), §11 |
 
 ---
 

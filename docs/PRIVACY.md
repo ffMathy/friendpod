@@ -42,7 +42,7 @@ Evidence tags are the same as in DESIGN.md:
 | # | Purpose | Data | Art. 6 / Art. 9 |
 |---|---|---|---|
 | P1 | Account and sign-in | Provider UID, email (may be an Apple relay address); for Google sign-in, the Google display name and photo URL that Firebase Auth copies (cleared from the top-level fields, possibly kept in the provider record, §9); Google's IP logs; Hosting request data for the email link | 6(1)(b) |
-| P2 | 18+ eligibility, age-range matching | DOB (transient, on the device and in the request); `birthYear` stored; after an under-18 answer, a 30-day `HMAC(email)` marker | 6(1)(b); marker 6(1)(f) (child protection) |
+| P2 | 18+ eligibility, age-range matching | DOB (transient, on the device and in the request); `birthYear` stored; after an under-18 answer, 30-day markers keyed on `HMAC(email)` and on `HMAC(provider, provider uid)` (e.g. Apple's `sub`, because Apple sign-in usually carries no email) | 6(1)(b); marker 6(1)(f) (child protection) |
 | P3 | Local matching | Postcode or coarse location, converted on the device to a geohash-5 cell (the server never receives the postcode); radius; launch area | 6(1)(b) |
 | P4 | Ordinary interests | Tag text, normalized form, embedding, concept link | 6(1)(b) |
 | P5 | **Sensitive interests** (detected or self-flagged) and pods themed on them | Tag text, embedding, concept link, consent record | 6(1)(a) + **9(2)(a)** |
@@ -166,7 +166,7 @@ Gender has its own consent (§3.6).
 - **Copy:**
   - **EN:** "To give you same-gender pods we need to know your gender. We use it only to form same-gender pods, never show it on any profile or use it for statistics, and delete it when you turn the setting off. Note: if you are placed in a same-gender pod, its members will know that everyone in it shares your gender and chose same-gender pods." ☐ "I consent to Grouper using my gender to form same-gender pods."
   - **DA:** "For at kunne give dig pods med samme køn skal vi kende dit køn. Vi bruger det kun til at danne pods med samme køn, viser det aldrig på nogen profil, bruger det ikke til statistik og sletter det, når du slår indstillingen fra. Bemærk: Hvis du kommer i en pod med samme køn, ved medlemmerne, at alle i poden har samme køn som dig og har valgt pods med samme køn." ☐ "Jeg giver samtykke til, at Grouper bruger mit køn til at danne pods med samme køn."
-- **Options:** woman, man, non-binary. For non-binary users the sheet adds: "Same-gender pods for non-binary people may be rare in your area, and their members will know that everyone in the pod is non-binary." Wider options (e.g. "women and non-binary") are open question D§2.4 Q16.
+- **Options:** woman, man, non-binary. For non-binary users the sheet adds: "Same-gender pods for non-binary people may be rare in your area, and their members will know that everyone in the pod is non-binary." **DA:** »Pods med samme køn for ikke-binære personer kan være sjældne i dit område, og medlemmerne vil vide, at alle i poden er ikke-binære.« **[LAWYER]** native-speaker check. Wider options (e.g. "women and non-binary") are open question D§2.4 Q16.
 - **No second purpose:** gender is not used in fairness metrics or any aggregate (D§6.6). Fairness is monitored for the same-gender option as a group.
 - **Record:** a `consentEvents` entry with `scope: 'gender'`.
 - **Withdrawal:** turning the option off deletes gender everywhere and writes an `erasureLedger` entry (`gender`).
@@ -251,7 +251,7 @@ Until counsel decides, R5 is rated **medium** residual risk, not low (§7.3).
 |---|---|---|---|
 | Auth record (uid, provider ID, email; for Google sign-in, the Google display name and photo URL in the `google.com` provider record, refreshed at each sign-in [verify in M0]) | Firebase Auth (US) | Until deletion. Google purges live and backup copies within 180 days; IP logs are kept a few weeks [FBX]. The top-level `displayName`/`photoURL` are cleared at onboarding | `auth.deleteUser` |
 | Abandoned sign-ups (Auth user, no profile) | Firebase Auth | 7 days | `dailyMaintenance` reconciliation |
-| Under-18 marker (`HMAC(email)`) | `underageMarkers` | 30 days | TTL |
+| Under-18 markers (`HMAC(email)` if present, plus `HMAC(provider, provider uid)` per federated identity) | `underageMarkers` | 30 days | TTL |
 | Date of birth | Not stored | — | — |
 | Postcode, coordinates | Not sent: converted on the device | — | — |
 | Profile, preferences | `users`, `matchProfiles` | Until deletion. Inactive 12 months → warning (in-app, push, email), deleted 30 days later [GDPR] | `purgeUser`, `dailyMaintenance` |
@@ -471,7 +471,7 @@ Art. 37(1)(c) requires a DPO only when sensitive processing is both a **core act
 - **18+ only,** because of in-person meetups with strangers [GDPR].
 - **Consent age.** The Danish digital consent age is 15 (databeskyttelsesloven § 6(2), since 1 Jan 2024). It is irrelevant here, because minors' consent is never relied on [GDPR].
 - **Age check.** Self-declared date of birth, checked on the server. Only `birthYear` is stored. CPR numbers are never collected.
-- **Under-18 answer.** The server deletes the Firebase Auth user created at sign-in (email, provider UID and, for Google, name and photo URL) at once, and keeps only a 30-day `underageMarkers/{HMAC(email)}` entry, so that an immediate retry with the same email and an older date of birth gets the same answer (6(1)(f), child protection; disclosed in the notice). Someone using a different email is not stopped; the report category and store ratings remain the other controls.
+- **Under-18 answer.** The server deletes the Firebase Auth user created at sign-in (email, provider UID and, for Google, name and photo URL) at once, and keeps only 30-day `underageMarkers` entries keyed on `HMAC(email)` (when the token has an email) and on `HMAC(provider, provider uid)` for each federated identity (Apple sign-in usually has no email), so that an immediate retry with the same email and an older date of birth gets the same answer (6(1)(f), child protection; disclosed in the notice). Someone using a different email is not stopped; the report category and store ratings remain the other controls.
 - **Store ratings.** The highest available age rating (18+ where offered).
 - **Underage reports.** "Suspected under 18" pauses the account until it is resolved. Confirmed minors are deleted, with a 24-month hashed ban.
 
