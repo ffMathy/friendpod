@@ -11,7 +11,7 @@ import { currentLocale } from '@/i18n';
 import { errorMessageKey } from '@/lib/errors';
 import { formatDateTime } from '@/lib/format';
 
-/** Meetup planner (§3.5): 2–3 options, yes/no votes; no free-form chat (F6). */
+/** Meetup planner (§3.5): 2–3 options, yes/no votes. The only way to talk until the meetup chat opens (F6, §3.6). */
 export default function Plan() {
   const { t } = useTranslation();
   const { podId } = useLocalSearchParams<{ podId: string }>();

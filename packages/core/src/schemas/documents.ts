@@ -14,8 +14,11 @@ import {
   MATCHING_PROFILE_IDS,
   PARTICIPATION_MODES,
   PLATFORMS,
+  POD_MESSAGE_KINDS,
   POD_STATES,
+  QUICK_REPLIES,
   REPORT_CATEGORIES,
+  REPORT_TARGET_TYPES,
   REVIEW_KINDS,
   SENSITIVE_HOLD_REASONS,
   SENSITIVITY_SOURCES,
@@ -41,6 +44,7 @@ import {
   uidSchema,
   weekIdSchema,
 } from './common';
+import { CHAT_MESSAGE_MAX } from './callables';
 import { prefsSchema } from './profile';
 import { podReasonSchema, unmatchedReasonSchema } from './reasons';
 
@@ -199,6 +203,21 @@ export const optionDocSchema = z.object({
   votes: z.record(uidSchema, z.enum(['yes', 'no'])),
   createdAt: timestampSchema,
 });
+
+/** A meetup-chat message's content: its text, or the key of a quick reply. */
+const podMessageContent = {
+  kind: z.enum(POD_MESSAGE_KINDS),
+  text: z.string().min(1).max(CHAT_MESSAGE_MAX).optional(),
+  quickReply: z.enum(QUICK_REPLIES).optional(),
+};
+const hasContentOfItsKind = (m: { kind: string; text?: string; quickReply?: string }): boolean =>
+  m.kind === 'text' ? m.text !== undefined && m.quickReply === undefined : m.quickReply !== undefined && m.text === undefined;
+
+/** `pods/{podId}/messages/{messageId}`: `expiresAt` is meetupAt + 72 h (TTL). */
+export const podMessageDocSchema = z
+  .object({ authorUid: uidSchema, ...podMessageContent, createdAt: timestampSchema, expiresAt: timestampSchema })
+  .refine(hasContentOfItsKind, { message: 'text messages carry text, quick replies a quickReply' });
+export type PodMessageDoc = z.infer<typeof podMessageDocSchema>;
 
 export const OPTED_IN_BUCKETS = ['<50', '50+', '100+', '150+', '200+', '500+', '1000+'] as const;
 
@@ -423,7 +442,9 @@ export const reportDocSchema = z
     targetUid: uidSchema.optional(),
     targetH: uidHSchema.optional(),
     podId: podIdSchema,
-    target: z.object({ type: z.enum(['user', 'option', 'interest']), optionId: docIdSchema.optional() }),
+    target: z.object({ type: z.enum(REPORT_TARGET_TYPES), optionId: docIdSchema.optional(), messageId: docIdSchema.optional() }),
+    /** A copy of the reported message (its author is `targetUid`), so the evidence outlives the message's TTL. */
+    message: z.object(podMessageContent).refine(hasContentOfItsKind, { message: 'text messages carry text, quick replies a quickReply' }).optional(),
     category: z.enum(REPORT_CATEGORIES),
     text: z.string().max(500).optional(),
     status: z.enum(['open', 'resolved']),
@@ -434,7 +455,14 @@ export const reportDocSchema = z
     expiresAt: timestampSchema,
   })
   .refine((r) => (r.reporterUid === undefined) !== (r.reporterH === undefined), { message: 'exactly one of reporterUid / reporterH' })
-  .refine((r) => (r.targetUid === undefined) !== (r.targetH === undefined), { message: 'exactly one of targetUid / targetH' });
+  .refine((r) => (r.targetUid === undefined) !== (r.targetH === undefined), { message: 'exactly one of targetUid / targetH' })
+  .refine((r) => r.target.type !== 'message' || (r.target.messageId !== undefined && r.message !== undefined), {
+    message: 'message reports need messageId and the message copy',
+  })
+  .refine((r) => (r.message === undefined && r.target.messageId === undefined) || r.target.type === 'message', {
+    message: 'messageId and the message copy only on message reports',
+  })
+  .refine((r) => r.target.optionId === undefined || r.target.type === 'option', { message: 'optionId only on option reports' });
 
 export const sanctionDocSchema = z.object({
   type: z.enum(['pause', 'suspension', 'ban']),

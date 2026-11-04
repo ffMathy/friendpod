@@ -32,6 +32,7 @@ const TTL_GROUPS = [
   'pods', // users/{uid}/pods cards; top-level pods never carry expiresAt
   'notices',
   'exports',
+  'messages', // pods/{podId}/messages (meetup chat): meetupAt + 72 h
   'consentEvents',
   'reports',
   'bans',

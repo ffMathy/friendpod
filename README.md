@@ -3,12 +3,13 @@
 Grouper ("Pods") is friendship dating for groups in Denmark. People describe themselves with free-form interests in
 their own words ("madlavning", "on paternity leave", "Fortnite"); every Thursday a weekly **drop** forms local pods of
 4–6 strangers who share one of them, embedded with a self-hosted EmbeddingGemma model so different wordings meet.
-Once at least 4 accept, first names and photos are revealed and the pod plans one in-person meetup by voting (no
-chat). Sensitive interests (GDPR Art. 9) are allowed only with explicit consent and are only ever revealed inside a
-pod formed around them. Everything runs on Firebase in `europe-west1`. The product and technical design is
-[docs/DESIGN.md](docs/DESIGN.md); the GDPR design is [docs/PRIVACY.md](docs/PRIVACY.md). This repository is the M0
-scaffold (DESIGN.md §15): structure, configuration, schemas, security-critical logic and tests, with later feature
-logic as typed stubs ([What is stubbed](#what-is-stubbed)).
+Once at least 4 accept, first names and photos are revealed and the pod plans one in-person meetup by voting; a
+short meetup chat opens 24 hours before it and closes 24 hours after. Sensitive interests (GDPR Art. 9) are allowed
+only with explicit consent and are only ever revealed inside a pod formed around them. Everything runs on Firebase in
+`europe-west1`. The product and technical design is [docs/DESIGN.md](docs/DESIGN.md); the GDPR design is
+[docs/PRIVACY.md](docs/PRIVACY.md). This repository is the M0 scaffold (DESIGN.md §15): structure, configuration,
+schemas, security-critical logic and tests, with later feature logic as typed stubs
+([What is stubbed](#what-is-stubbed)).
 
 ## Repository map
 
@@ -161,9 +162,11 @@ Stubs keep their final name, trigger, options and input validation, then fail lo
 `not implemented (see DESIGN.md §…)`. Nothing pretends to succeed (a silent `purgeUser` would look like a completed
 erasure).
 
-**Implemented end to end:** `completeOnboarding`, `updateProfile`, `setParticipation`, the `matchComponent` task
-body, `onBudgetAlert`, `addInterests` (pipeline steps 1–7, consent gate, self-flag, detector), the security rules,
-the matcher and the app's onboarding, consent and interest flows.
+**Implemented end to end:** `completeOnboarding`, `updateProfile`, `setParticipation`, `sendMessage` (the meetup
+chat: membership, window, moderation with the contact-info warning, rate limit, throttled generic pushes), the
+`matchComponent` task body, `onBudgetAlert`, `addInterests` (pipeline steps 1–7, consent gate, self-flag, detector),
+the security rules, the matcher and the app's onboarding, consent, interest and meetup-chat flows. No pod reaches
+`scheduled` until the pod lifecycle stubs below exist, so the chat works end to end only in M1.
 
 **Sensitive interests are switched off** until withdrawal exists: `ART9_HOLDINGS_ENABLED` in
 `services/embedder/src/config.ts` is `false`, so `addInterests` answers every sensitive holding with
@@ -180,12 +183,12 @@ are stubs. The emulator tests cover the sensitive path with the gate open.
 | `leavePod` | same | §3.8 |
 | `proposeOption`, `voteOption` | same | §3.5 |
 | `confirmAttendance`, `submitFeedback` | same | §3.6 |
-| `blockUser`, `unblockUser`, `report` | same | §3.7 |
+| `blockUser`, `unblockUser`, `report` (including message reports, whose input is already validated) | same | §3.7 |
 | `deletePhoto` | same | §9 |
 | `exportData` | same | §3.9 |
 | `deleteAccount` | same | §3.10 |
 | `dropOrchestrator`, `dailyMaintenance` | `functions/src/scheduled/index.ts` | §10.3 |
-| `hourlySweeper` | same | §4.6 |
+| `hourlySweeper` (including the "Your pod chat is open" push) | same | §4.6 |
 | `releaseDrop`, `backfillPod`, `purgeUser` | `functions/src/tasks/index.ts` | §10.3 |
 | `buildExport`, `deleteExport` | same | §3.9 |
 | `onPhotoUploaded` processing (the pending-upload filter is implemented) | `functions/src/triggers/index.ts` | §9 |

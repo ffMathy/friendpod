@@ -74,6 +74,37 @@ export function meetupTimers(meetupAt: number): MeetupTimers {
   };
 }
 
+export const CHAT_OPENS_BEFORE_MS = 24 * HOUR_MS;
+export const CHAT_CLOSES_AFTER_MS = 24 * HOUR_MS;
+export const CHAT_DELETE_AFTER_MS = 72 * HOUR_MS;
+
+export interface ChatWindow {
+  readonly opensAt: Date;
+  readonly closesAt: Date;
+  /** Every message's `expiresAt`; the TTL policy deletes it up to about a day later. */
+  readonly deleteAt: Date;
+}
+
+/**
+ * The meetup chat around `meetupAt`: opens at T−24 h together with "Still coming?" and closes at T+24 h.
+ * Like the other meetup timers these are absolute offsets, so across a DST change the wall-clock gap is 23 or 25 h.
+ */
+export function chatWindow(meetupAt: Date): ChatWindow {
+  const t = meetupAt.getTime();
+  return {
+    opensAt: new Date(t - CHAT_OPENS_BEFORE_MS),
+    closesAt: new Date(t + CHAT_CLOSES_AFTER_MS),
+    deleteAt: new Date(t + CHAT_DELETE_AFTER_MS),
+  };
+}
+
+/** `opensAt <= now < closesAt`. An invalid date is never open. */
+export function isChatOpen(meetupAt: Date, now: Date): boolean {
+  const { opensAt, closesAt } = chatWindow(meetupAt);
+  const n = now.getTime();
+  return opensAt.getTime() <= n && n < closesAt.getTime();
+}
+
 /** Feedback closes 7 days after `happened` (§4.6). */
 export function feedbackClosesAt(happenedAt: number): number {
   return happenedAt + 7 * DAY_MS;

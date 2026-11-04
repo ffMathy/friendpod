@@ -77,6 +77,7 @@
     { "collectionGroup": "notices", "fieldPath": "expiresAt", "ttl": true, "indexes": [] },
     { "collectionGroup": "exports", "fieldPath": "expiresAt", "ttl": true, "indexes": [] },
     { "collectionGroup": "consentEvents", "fieldPath": "expiresAt", "ttl": true, "indexes": [] },
+    { "collectionGroup": "messages", "fieldPath": "expiresAt", "ttl": true, "indexes": [] },
     { "collectionGroup": "reports", "fieldPath": "expiresAt", "ttl": true, "indexes": [] },
     { "collectionGroup": "bans", "fieldPath": "expiresAt", "ttl": true, "indexes": [] },
     { "collectionGroup": "reviewQueue", "fieldPath": "expiresAt", "ttl": true, "indexes": [] },

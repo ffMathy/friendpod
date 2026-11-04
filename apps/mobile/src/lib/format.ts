@@ -13,3 +13,13 @@ export function formatDateTime(ms: number, locale: Locale): string {
     timeZone: DROP_TIME_ZONE,
   }).format(new Date(ms));
 }
+
+/** A chat message's time: weekday and clock time, enough within a window of about two days. */
+export function formatMessageTime(ms: number, locale: Locale): string {
+  return new Intl.DateTimeFormat(LOCALE_TAG[locale], {
+    weekday: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: DROP_TIME_ZONE,
+  }).format(new Date(ms));
+}

@@ -4,23 +4,26 @@
  */
 export type PiiKind = 'email' | 'url' | 'phone' | 'handle' | 'cpr';
 
+const PLATFORMS = String.raw`snap(?:chat)?|insta(?:gram)?|ig|tiktok|discord|telegram|whatsapp|signal|kik|twitter|facebook|fb|messenger|threads|bluesky`;
+
 const EMAIL = /[\p{L}\p{N}._%+-]+\s*(?:@|\(at\)|\[at\])\s*[\p{L}\p{N}-]+(?:\s*(?:\.|\(dot\)|\[dot\])\s*[\p{L}\p{N}-]+)*\s*(?:\.|\(dot\)|\[dot\])\s*\p{L}{2,}/u;
 const URL_SCHEME = /\b(?:https?:\/\/|www\.)\S+/u;
 const BARE_DOMAIN =
   /\b[\p{L}\p{N}][\p{L}\p{N}-]*\.(?:dk|com|net|org|io|me|app|eu|de|se|no|nu|co|uk|info|biz|xyz|link|ly|gg|tv|online|site|shop|club|page|dev)\b/u;
 const AT_HANDLE = /(?:^|[^\p{L}\p{N}_.])@[\p{L}\p{N}_.]{2,}/u;
-const NAMED_HANDLE =
-  /\b(?:snap(?:chat)?|insta(?:gram)?|ig|tiktok|discord|telegram|whatsapp|signal|kik|twitter|facebook|fb|messenger|threads|bluesky)\s*[:=]\s*\S{2,}/u;
-const CPR = /(?:^|\D)(\d{2})(\d{2})(\d{2})[-\s]?\d{4}(?!\d)/u;
+const NAMED_HANDLE = new RegExp(String.raw`\b(?:${PLATFORMS})\s*[:=]\s*\S{2,}`, 'u');
+// Every candidate is checked: an earlier 10-digit run with an impossible date (+4520304050) must not hide a CPR.
+const CPR = /(?<!\d)(\d{2})(\d{2})(\d{2})[-\s]?\d{4}(?!\d)/gu;
 const PHONE_CANDIDATE = /(?:\+|00)?\d(?:[\s().-]*\d){7,14}/gu;
 const YEAR_RANGE = /^(?:19|20)\d{2}\s*[-–]\s*(?:19|20)\d{2}$/u;
 
 function looksLikeCpr(text: string): boolean {
-  const m = CPR.exec(text);
-  if (!m) return false;
-  const day = Number(m[1]);
-  const month = Number(m[2]);
-  return day >= 1 && day <= 31 && month >= 1 && month <= 12;
+  for (const m of text.matchAll(CPR)) {
+    const day = Number(m[1]);
+    const month = Number(m[2]);
+    if (day >= 1 && day <= 31 && month >= 1 && month <= 12) return true;
+  }
+  return false;
 }
 
 function looksLikePhone(text: string): boolean {
@@ -48,4 +51,50 @@ export function findPii(text: string): PiiKind[] {
 
 export function containsPii(text: string): boolean {
   return findPii(text).length > 0;
+}
+
+const NON_ASCII_DIGIT = /(?![0-9])\p{Nd}/gu;
+const DECIMAL_DIGIT = /^\p{Nd}$/u;
+
+/**
+ * Replaces every decimal digit of another script (Arabic-Indic ٠١٢, Persian ۰۱۲, Devanagari, Thai, ...) with its
+ * ASCII digit. `\d` and NFKC leave them alone, so a phone or CPR number typed on such a keyboard would pass every
+ * pattern. Unicode encodes each script's digits as a contiguous 0–9 run, so a digit's value is its distance from
+ * the start of its run, modulo 10 (some runs hold several sets).
+ */
+export function foldDigits(text: string): string {
+  return text.replace(NON_ASCII_DIGIT, (digit) => {
+    const cp = digit.codePointAt(0)!;
+    let zero = cp;
+    while (zero > 0 && DECIMAL_DIGIT.test(String.fromCodePoint(zero - 1))) zero -= 1;
+    return String((cp - zero) % 10);
+  });
+}
+
+// JS `\b` treats å and ø as non-word characters, so word edges are lookarounds on letters and digits.
+const START = String.raw`(?<![\p{L}\p{N}])`;
+const END = String.raw`(?![\p{L}\p{N}])`;
+const HANDLE_TOKEN_SEP = String.raw`\s*(?:[:=-]|${START}(?:is|er|på|hedder)${END})?\s*@?`;
+/** "snap annak92", "insta er anna.k92": a platform name, then a token shaped like a handle. */
+const PLATFORM_THEN_TOKEN = new RegExp(String.raw`${START}(?:${PLATFORMS})${END}${HANDLE_TOKEN_SEP}([\p{L}\p{N}_.]+)`, 'gu');
+/** "add me on snap anna", "skriv på insta anna": an explicit invitation to a platform, with any following name. */
+const INVITE_TO_PLATFORM = new RegExp(
+  String.raw`${START}(?:add|follow|find|text|message|dm|tilføj|følg|skriv)(?:\s+(?:til\s+)?(?:me|mig))?\s+(?:on|at|via|på)\s+(?:${PLATFORMS})${END}${HANDLE_TOKEN_SEP}[\p{L}\p{N}_.]{2,}`,
+  'u',
+);
+
+/**
+ * A handle given in running text, without the ':' or '=' that `findPii` needs ("add me on snap annak92").
+ * Meetup chat only: in a tag, "discord gaming" or "snap 2026" must stay allowed, and the plain token rules here
+ * would refuse too many of them.
+ */
+export function mentionsHandle(text: string): boolean {
+  const t = text.normalize('NFKC').toLowerCase();
+  if (INVITE_TO_PLATFORM.test(t)) return true;
+  for (const m of t.matchAll(PLATFORM_THEN_TOKEN)) {
+    const token = m[1]!.replace(/\.+$/u, '');
+    // Plain words ("signal er dårlig", "et kik på kortet") are not handles; digits, '_' or an inner '.' are typical.
+    if (token.length >= 3 && /\p{L}/u.test(token) && /[\d_.]/u.test(token)) return true;
+  }
+  return false;
 }

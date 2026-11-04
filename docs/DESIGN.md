@@ -26,9 +26,9 @@ Where reports conflict, the resolution is stated inline and summarized in §2.3.
 
 ## 1. Summary and glossary
 
-Grouper is "friendship dating" for groups. Users describe themselves with free-form **Interests** in their own words ("madlavning", "on paternity leave", "Fortnite"). Every Thursday evening a batch job (the **Drop**) forms new **Pods** of 4–6 nearby strangers who share an interest. Members accept or decline. Once at least 4 accept, the pod is confirmed, first names are revealed, photos are revealed (in sensitive-themed pods only for members who opt in, §6.1 S6), and the pod uses a **meetup planner** (propose 2–3 options, vote). There is no free-form chat. Sensitive interests (GDPR Art. 9, e.g. pregnancy, religion) are allowed with explicit consent and are only ever revealed inside a pod formed around that interest.
+Grouper is "friendship dating" for groups. Users describe themselves with free-form **Interests** in their own words ("madlavning", "on paternity leave", "Fortnite"). Every Thursday evening a batch job (the **Drop**) forms new **Pods** of 4–6 nearby strangers who share an interest. Members accept or decline. Once at least 4 accept, the pod is confirmed, first names are revealed, photos are revealed (in sensitive-themed pods only for members who opt in, §6.1 S6), and the pod uses a **meetup planner** (propose 2–3 options, vote). Around each scheduled meetup a short **meetup chat** opens for the confirmed members, from 24 h before until 24 h after; its messages are deleted about 3 days after the meetup. There is no open-ended chat. Sensitive interests (GDPR Art. 9, e.g. pregnancy, religion) are allowed with explicit consent and are only ever revealed inside a pod formed around that interest.
 
-The stack is an Expo SDK 58 app on React Native Firebase, with Firestore, Cloud Functions 2nd gen and Cloud Storage in **europe-west1**. A self-hosted **EmbeddingGemma** model runs on CPU in a scale-to-zero Cloud Function. Estimated infrastructure cost: about $1/month at 1k MAU, $3–5 at 10k, $49–63 at 100k (§12).
+The stack is an Expo SDK 58 app on React Native Firebase, with Firestore, Cloud Functions 2nd gen and Cloud Storage in **europe-west1**. A self-hosted **EmbeddingGemma** model runs on CPU in a scale-to-zero Cloud Function. Estimated infrastructure cost: about $1/month at 1k MAU, $3–5 at 10k, $50–65 at 100k (§12).
 
 | Term | Meaning |
 |---|---|
@@ -43,6 +43,7 @@ The stack is an Expo SDK 58 app on React Native Firebase, with Firestore, Cloud 
 | **Launch area** | A static, versioned list of geohash-5 cells with a stable ID (`aarhus`, `copenhagen`) and status waitlist, beta or live (§6.4). Only users whose home cell lies in a live area are matched. Chips and waitlist counters are per launch area. |
 | **Matching component** | Computed per drop only: opted-in cells inside live areas, linked when ≤ 25 km apart. It only partitions the compute into tasks and is never stored on users. |
 | **Option** | A proposed meetup time and place that members vote on. |
+| **Meetup chat** | A pod's short chat around one scheduled meetup: open from 24 h before until 24 h after `meetupAt`, for current confirmed members only; text of up to 500 characters or a one-tap quick reply; every message is deleted at `meetupAt` + 72 h (TTL). |
 
 ---
 
@@ -57,7 +58,7 @@ The stack is an Expo SDK 58 app on React Native Firebase, with Firestore, Cloud 
 | F3 | The app forms new pods of 4–6 strangers; users accept/decline | No empty-room problem; every member opts in. |
 | F4 | In-person, local only, radius around approximate location | Friendships need repeated in-person time (about 50 h to casual friend [MAT]). |
 | F5 | Weekly drops, Thursday evening, Europe/Copenhagen | Better global matches, anticipation, cheap batch compute. |
-| F6 | Meetup planner only, no chat; public-place safety tips | Smaller harassment and moderation surface. |
+| F6 | Meetup planner plus a short meetup chat for confirmed members, open from 24 h before until 24 h after each scheduled meetup, messages deleted about 3 days after it (A28); public-place safety tips. The founder changed this on 2026-11-04 after the storyboard review; the interview decision was "meetup planner only, no chat" | On the day, members need to say "running late" or "I'm by the door" without swapping phone numbers. The time box keeps the harassment and moderation surface small: no chat while strangers are still planning, nothing that lives on after the meetup. |
 | F7 | Sensitive (Art. 9) interests allowed with separate explicit consent; never public; revealed only inside a pod formed around that interest; automatic detection plus self-flagging | Headline use cases (pregnancy, faith, recovery) are Art. 9; free text needs automatic detection. |
 | F8 | Pod preferences: age range + optional same-gender pod (gender collected only for that) | Comfort and safety with minimal data. |
 | F9 | Optional single profile photo, visible only to fellow members after confirmation | Recognition at the meetup without appearance-based matching. |
@@ -99,6 +100,7 @@ The stack is an Expo SDK 58 app on React Native Firebase, with Firestore, Cloud 
 | A25 | Sensitive-theme safeguards against infiltration: eligibility gate, per-account sensitive caps, photo opt-in, "not a genuine member" report (§6.1 S5–S7) | Sign-up is free and unverified (PRIVACY.md R15) |
 | A26 | An alpha configuration profile for thin markets (§6.10) | 50–150 testers cannot fill pods under the launch defaults |
 | A27 | Erasure ledger for every erasure-relevant event, replayed after any restore | A 7-day restore must not bring back withdrawn Art. 9 data |
+| A28 | Meetup chat parameters (approved by the founder on 2026-11-04 with F6): window T−24 h to T+24 h around the scheduled `meetupAt` (opens with "Still coming?"); current members (`memberUids`) only; text 1–500 characters or one of 4 quick replies; written only by `sendMessage`; `expiresAt` = `meetupAt` + 72 h (TTL); before `meetupAt`, contact details need a second tap; 30 messages per user per pod per hour; generic push at most once per member per pod per 10 minutes | Enough for day-of coordination without becoming a social network; strangers are nudged to meet before swapping numbers; nothing outlives the meetup by more than a few days [A] |
 
 ### 2.3 Conflicts between research reports and how they were resolved
 
@@ -213,9 +215,10 @@ Measured results win over estimates.
   - If every current member says yes to one option, it locks early.
   - At the planning deadline, the option with the most yes votes (at least 3) wins; ties go to the earlier time.
   - With no winner, a pod that has never met dissolves and its members get priority next week; a pod in the Keep loop is archived (§4.6).
+- **No chat while planning.** Before a meetup is scheduled, the planner is the only way to talk. The meetup chat opens 24 h before the scheduled time (§3.6).
 
 ### 3.6 Meetup and feedback
-- **T−24 h**: "Still coming?" plus the safety tips. Members who do not answer count as coming.
+- **T−24 h**: "Still coming?" plus the safety tips. Members who do not answer count as coming. The **meetup chat** opens at the same moment, with one push, "Your pod chat is open".
 - **Attendance check** (at T−6 h, or as soon as a cancellation leaves fewer than 3 coming): if fewer than 3 are still coming, the pod gets one 48-hour reschedule round (back to `planning`). If that round produces no winner, or attendance falls below 3 again, the meetup is cancelled and the pod is archived (or dissolved if it never met). With 3 or more coming, the meetup goes ahead.
 - **T−2 h**: reminder.
 - **T+2 h** (open for 7 days), "Did you meet?":
@@ -225,18 +228,28 @@ Measured results win over estimates.
   - **Keep pod** / **Not for me**.
 - When feedback closes: if at least 3 chose Keep, the pod goes back to `planning` with those members only and a new 72-hour deadline. The others leave the pod (roster, `memberUids` and photo grants are updated). Otherwise it is archived.
 
+**Meetup chat** (`pod/[podId]/chat`, T−24 h to T+24 h; parameters A28):
+- **Who.** Current confirmed members only (`memberUids`). Someone who leaves, or is removed by a block (§3.7), loses the chat at once.
+- **What.** Text of 1–500 characters, or a one-tap quick reply: "On my way", "Running a bit late", "I'm here", "Can't make it". "Can't make it" first calls `confirmAttendance({podId, coming: false})`, which is the same as answering "Still coming?" with no (late-cancel rules, §4.4), and then posts the quick reply. The server keeps the two separate: a message never changes attendance. If the cancellation leaves fewer than 3 coming, the pod goes back to `planning` (or the meetup is cancelled, §4.6), the chat closes, and the quick reply is not posted; the others get the reschedule or cancellation notice instead.
+- **Before you have met.** Until `meetupAt`, a message with a phone number, an email address, an @handle or a link (map links from the `proposeOption` allowlist excepted) is not sent. The app shows "You haven't met yet. It's fine to wait until after." with "Send anyway" and "Edit". "Send anyway" resends with `ackContactWarning: true`. After `meetupAt` there is no warning.
+- **Always refused**, with a statement of reasons rendered from the code and nothing stored: CPR-like numbers (`PII_CPR`) and blocklisted text (`BLOCKLIST`).
+- **Report.** Every message has "Report" (long press). The report keeps a copy of the message and names its author as the target, so it outlives the message.
+- **Notifications.** "New message in your pod", never the text, theme or a name; at most one per member per pod every 10 minutes.
+- **Closing.** At T+24 h the chat becomes read-only. Messages are deleted at T+72 h by TTL, so the copy says "deleted about 3 days after the meetup". A return to `planning` (reschedule or re-plan) closes the chat at once; the next scheduled meetup, after a reschedule or in the Keep loop, opens a new window around its own time.
+
 ### 3.7 Block and report
-Both are available from a member's sheet in a confirmed pod (current or past, while the pod record exists).
+Both are available from a member's sheet in a confirmed pod (current or past, while the pod record exists). Report is also available on every chat message.
 - **Block**:
   - immediate and two-way;
   - photo grants revoked in both directions;
   - the two are never matched again.
-  - **Inside an active pod** (proposed, planning or scheduled), Firestore rules cannot hide one member's fields from another, so the two cannot stay in the same pod. By default the **blocked** member is removed. The others, including the blocked person, see only the generic "The pod changed" / "A member left". The blocker can choose to leave instead. If the removal takes the pod below its minimum, the normal rules apply (§4.6).
+  - **Inside an active pod** (proposed, planning or scheduled, or `happened` while its meetup chat is still open), Firestore rules cannot hide one member's fields or messages from another, so the two cannot stay in the same pod. By default the **blocked** member is removed. The others, including the blocked person, see only the generic "The pod changed" / "A member left". The blocker can choose to leave instead. If the removal takes the pod below its minimum, the normal rules apply (§4.6).
   - If the meetup was already scheduled, the blocked person knows the plan. The blocker is offered "Re-plan the meetup", which reopens planning with a 48-hour deadline and deletes the old options.
   - `blockUser` accepts only a uid that shares or shared a pod with the caller (checked against `podState`). The stored `firstName` is the name the caller saw in that pod's roster; it is empty if the pod was never confirmed.
 - **Report**:
   - categories: harassment, safety, no-show, content, suspected under 18, and, in sensitive-themed pods, "not a genuine member" (S7);
   - optional text (max 500 characters), with a warning not to include sensitive details;
+  - a reported chat message is copied into the report (its text or quick reply; its author is the report's target), because the message itself is deleted at T+72 h;
   - the reporter is never revealed;
   - safety reports show "call 112 in an emergency".
 - **Automated pauses** (temporary, each with an immediate statement of reasons and human review on request; listed on "How matching works"): two independent reports within 30 days, or one safety report, pause the reported user from drops until a human reviews [MAT]. The other automated pauses are the no-show pause (§4.4), the suspected-under-18 pause, and the sensitive-theme hold after a "not a genuine member" report (S7). Permanent sanctions are decided only by humans.
@@ -269,6 +282,9 @@ Settings → Privacy → "Download my data" asks the user to re-authenticate, th
 | min(backfill start + 24 h, Sun 18:00) | Backfill deadline (once per pod) | `hourlySweeper` |
 | Planning entry + 72 h (48 h for a reschedule or re-plan round) | Planning deadline | `hourlySweeper` |
 | Meetup T−24 h / T−6 h / T−2 h / T+2 h | "Still coming?", attendance check, reminder, feedback | `hourlySweeper` |
+| Meetup T−24 h | Meetup chat opens; one generic push "Your pod chat is open" | `sendMessage` checks the window itself (`isChatOpen`); push from `hourlySweeper` |
+| Meetup T+24 h | Meetup chat closes (read-only while messages exist) | `sendMessage` window check |
+| Meetup T+72 h | Chat messages expire (`expiresAt`); TTL deletes them, usually within another 24 h, so copy says "about 3 days after the meetup" | Firestore TTL |
 | Feedback + 7 days | Feedback closes; Keep-loop decision | `hourlySweeper` |
 
 Timers are absolute timestamps in `podState.timers`, computed in Europe/Copenhagen. The hourly sweeper runs at :05, so a deadline is processed up to 65 minutes after it passes; copy says "around 18:00". The full state machine is §4.6.
@@ -298,6 +314,9 @@ Timers are absolute timestamps in `podState.timers`, computed in Europe/Copenhag
 | First name | 1–30 characters | [A] |
 | Options | 2–3 per pod (the planner asks for 2–3; max 3; brief; a single option can still win, §3.5), ≤ 2 per member ([MAT] allowed 6 per pod), within 14 days, 08–22, place ≤ 120 characters | brief, [MAT] |
 | Report text | ≤ 500 characters | [A] |
+| Chat message | 1–500 characters after trimming, or one quick reply | A28 |
+| Chat messages sent | 30 per user per pod per hour | A28 |
+| Chat pushes | ≤ 1 per member per pod per 10 minutes | A28 |
 | Radius | 5 / 10 / 15 / 25 km (default 10) | A12 |
 | Age range | min 18; width ≥ 5 years | [A] |
 | Data export | 1 per 24 h | [A] |
@@ -321,13 +340,15 @@ Every transition runs in a transaction on `podState/{podId}` with a `version` co
 | State | Entry and entry action | Timer | Exits | Owner | Card / notice |
 |---|---|---|---|---|---|
 | `proposed` | `releaseDrop` (after revalidation) or a `backfillPod` invite. Creates `podState` and one card per invitee | `acceptBy` = release + 48 h (Sat 18:00). Backfill invitees: min(backfill start + 24 h, Sun 18:00). Decision time = the later of the two | 4th accept → `planning`. A decline that leaves accepted + pending < 4 starts backfill if unused. At `acceptBy` with exactly 3 accepted and backfill unused → backfill. At decision time with < 4 accepted → `dissolved` | `respondToPod`, `backfillPod`, `hourlySweeper` | "3 of 5 accepted"; dissolve notice "This pod didn't come together" |
-| `planning` | (a) Confirmation: creates `pods/{podId}` with roster, photo grants (S6 opt-in for sensitive themes), push. (b) Keep loop. (c) Reschedule round. (d) Re-plan after a block. (b)–(d) delete the old options | `planDeadline` = entry + 72 h; 48 h for (c) and (d) | Unanimous yes from every current member → `scheduled`. At `planDeadline`: the option with the most yes votes (≥ 3; ties → earlier time; a single option may win) → `scheduled`. No winner → `dissolved` if the pod has never met, else `archived`. Members < 3 at any time → same rule | `voteOption`, `hourlySweeper`, `leavePod`, `blockUser` | Planner; "Pick a time by {deadline}" |
-| `scheduled` | Winning option copied to `pods.planning` (`meetupAt`, place, map URL) | T−24 h "Still coming?"; T−6 h attendance check; T−2 h reminder; T+2 h → `happened` | Fewer than 3 coming (no answer counts as coming), at T−6 h or on a cancellation: first time → `planning` (c); second time → `dissolved` / `archived` as above. T+2 h → `happened` | `hourlySweeper`, `confirmAttendance` | Plan card; reminders |
-| `happened` | Feedback prompt | `feedbackCloses` = entry + 7 days | At close: ≥ 3 Keep → `planning` (b) with the Keep members only (others leave: roster, `memberUids`, grants). Otherwise → `archived` | `hourlySweeper`, `submitFeedback` | "Did you meet?" |
+| `planning` | (a) Confirmation: creates `pods/{podId}` with roster, photo grants (S6 opt-in for sensitive themes), push. (b) Keep loop. (c) Reschedule round. (d) Re-plan after a block. (b)–(d) delete the old options and clear `pods.planning.meetupAt`, which closes any open meetup chat | `planDeadline` = entry + 72 h; 48 h for (c) and (d) | Unanimous yes from every current member → `scheduled`. At `planDeadline`: the option with the most yes votes (≥ 3; ties → earlier time; a single option may win) → `scheduled`. No winner → `dissolved` if the pod has never met, else `archived`. Members < 3 at any time → same rule | `voteOption`, `hourlySweeper`, `leavePod`, `blockUser` | Planner; "Pick a time by {deadline}" |
+| `scheduled` | Winning option copied to `pods.planning` (`meetupAt`, place, map URL) | T−24 h "Still coming?" and meetup chat opens; T−6 h attendance check; T−2 h reminder; T+2 h → `happened` | Fewer than 3 coming (no answer counts as coming), at T−6 h or on a cancellation: first time → `planning` (c); second time → `dissolved` / `archived` as above. T+2 h → `happened` | `hourlySweeper`, `confirmAttendance` | Plan card; reminders |
+| `happened` | Feedback prompt | `feedbackCloses` = entry + 7 days; the meetup chat stays open until T+24 h | At close: ≥ 3 Keep → `planning` (b) with the Keep members only (others leave: roster, `memberUids`, grants). Otherwise → `archived` | `hourlySweeper`, `submitFeedback` | "Did you meet?" |
 | `archived` | `archivedAt`; options deleted; every photo grant entry for this pod removed; cards set to `archived` (read-only history) | Delete at `archivedAt` + 90 days | Deletion (recursive; cards and grants entries too) | `hourlySweeper`, `dailyMaintenance` | Past pod |
 | `dissolved` | Photo grant entries removed; members who accepted get priority (+1 in f(u)) | Delete after 30 days | Deletion | `hourlySweeper`, `dailyMaintenance` | Notice; card TTL drop + 14 days |
 
 "Has met" means the pod has passed through `happened` at least once.
+
+**Meetup chat window.** The window belongs to the scheduled `meetupAt`, not to a state: `chatWindow(meetupAt)` gives `opensAt` = T−24 h, `closesAt` = T+24 h and `deleteAt` = T+72 h, and `isChatOpen(meetupAt, now)` is `opensAt ≤ now < closesAt` (`packages/core/src/time`). It therefore covers the last day of `scheduled` and the first 22 h of `happened`. `sendMessage` reads the pod's current state and `planning.meetupAt` and refuses with `CHAT_CLOSED` unless the pod is `scheduled` or `happened` and the window is open, so a return to `planning` or a cancellation (archive or dissolve) closes the chat at once. A later meetup (reschedule round or Keep loop) opens a new window around its own `meetupAt`. Existing messages keep their own `expiresAt` and stay readable to current members until TTL deletes them; pod deletion removes any left over (recursive).
 
 ---
 
@@ -379,8 +400,8 @@ client text
 Never strip diacritics ("får" ≠ "far") [SRV]. Lowercasing is safe: cased vs lowercase cosine averages 0.977 [EXP]. The typed wording (`display`) is kept for the user's own view and for the theme label on the user's own pod card.
 
 **(2) Moderation**, before any model call:
-- **Blocklists.** Da/en (slurs, sexual solicitation, drugs, violence, spam, minors), checked on a leetspeak-folded copy.
-- **PII.** Patterns for phone, email, URL, @handle and CPR-like numbers. Rejected.
+- **Blocklists.** Da/en (slurs, sexual solicitation, drugs, violence, spam, minors), checked on a leetspeak-folded copy. One list in `packages/core/src/interests/blocklist.ts` serves tags and the meetup chat.
+- **PII.** Patterns for phone, email, URL, @handle and CPR-like numbers (every 10-digit run is checked, not only the first). Rejected. The meetup chat reuses these patterns and the blocklist through `checkChatText`, with these differences (§3.6): digits of other scripts (Arabic-Indic, Persian, ...) are folded to ASCII first; contact details only warn, and only before the meetup; times and dates ("18.30-21.00", "14.11.2026") are not phone numbers; a handle also counts without a colon ("add me on snap annak92"); and words that are ordinary in a sentence ("escort", "knald") refuse chat text only inside a blocked phrase.
 - **Third parties.** Possessive kinship patterns ("min datters…", "my son's…", "min mands…"). If the tag is also sensitive or suspected at step (5), it is **refused** with reason code `THIRD_PARTY_SENSITIVE` and a rewording hint about the user's own situation ("forælder til et barn med autisme" / "parent of an autistic child"). The user's own consent cannot cover a family member's Art. 9 data (PRIVACY.md §4.3). Counsel must confirm that the reworded form is acceptable. An ordinary third-party tag ("min datters fodbold") gets the warning "only add interests about yourself" and is stored as ordinary. Refusals count in the moderation counters.
 - **Statements of reasons.** Every rejection carries a reason code. For rejections at input time, the client renders the DSA Art. 17 statement of reasons from the code, and nothing is persisted. Persisted notices (`users/{uid}/notices`, for later decisions such as a removed option or a pause) hold a reason code and non-textual params only, never tag or option text.
 - **Abuse similarity.** Comparison against abuse prototypes (reject ≥ 0.80, hold 0.65–0.80 [MAT]) is uncalibrated, so it runs in shadow mode with aggregate counters only. Nothing is held in MVP. If holds are enabled later, they apply only after step (5), so a held tag has already passed the consent gate.
@@ -528,7 +549,7 @@ Sensitive-interest rules [MAT]:
 - **S1.** A sensitive theme needs every member to hold it with explicit consent, plus ≥ 12 eligible consenting holders whose cells lie within 25 km of the pod's centroid cell (Q6). Density is measured locally around the pod, never per launch area or component, so holders 100 km away do not count.
 - **S2.** Sensitive **holdings** (tag-sensitive or self-flagged) are used **only** as themes. They never feed secondary scoring, tie-breaks, specificity, explanations, chips or statistics. Types enforce this on the holding (`MatchUser.secondary` is built only from `OrdinaryHolding`, §5.2 (5)).
 - **S3.** Defensive filter: drop any sensitive holding without a valid consent reference.
-- **S4.** No theme or name in any notification.
+- **S4.** No theme, name or message text in any notification. Chat pushes say only "New message in your pod" or "Your pod chat is open".
 - **S5. Eligibility for sensitive themes** (anti-infiltration, PRIVACY.md R15). A user can be placed in a sensitive-themed pod only if all of these hold:
   - the account is ≥ 14 days old (Q15);
   - the user has ≥ 1 attended meetup in any pod, confirmed by ≥ 2 co-members' attendance (alpha: waived for founder-invited testers);
@@ -780,6 +801,7 @@ Conventions:
 | `users/{uid}/exports/{exportId}` | `status`, `path?`, `expiresAt` | owner | 1 day (TTL) |
 | `pods/{podId}` (shared; only after confirmation) | `state`, `weekId`, `areaLabel`, `theme: {conceptId, sensitive}` (**no label**: each member renders their own `themeLabel`), `memberUids: string[]` (current confirmed members only), `roster: {[uid]: {firstName, photoV: int\|null}}` (`photoV` is null in sensitive-themed pods until that member opts in, S6), `podInterests: {da: string[], en: string[]}` (≤ 5; concepts held through ordinary holdings by ≥ 2 members), `planning: {deadline, winningOptionId?, meetupAt?, placeText?, mapUrl?}`, `confirmedAt`, `archivedAt?` | uid in `memberUids` | deleted 90 days after archive by `dailyMaintenance` (recursive) |
 | `pods/{podId}/options/{optionId}` | `authorUid`, `startsAt`, `placeText`, `mapUrl\|null`, `publicPlace: true`, `votes: {[uid]: 'yes'\|'no'}`, `createdAt` | pod members (rules `get` on parent) | deleted at archive, at a re-plan, or 30 days after the meetup |
+| `pods/{podId}/messages/{messageId}` (meetup chat) | `authorUid`, `kind: 'text'\|'quickReply'`, `text?` (trimmed, 1–500 characters; `kind: 'text'` only), `quickReply?: 'onMyWay'\|'runningLate'\|'imHere'\|'cantMakeIt'` (`kind: 'quickReply'` only; only the key is stored, and each device renders it in its own language), `createdAt`, `expiresAt` (= `meetupAt` + 72 h). Written only by `sendMessage` | pod members (rules `get` on parent) | `expiresAt` (TTL), about 3 days after the meetup; the author's messages are deleted at erasure, and at sensitive withdrawal in pods on that theme; leftovers go with the pod (recursive) |
 | `areas/{areaId}` (launch areas) | `label`, `status: 'waitlist'\|'beta'\|'live'`, `optedInBucket: '<50'\|'50+'\|'100+'\|…`, `goal`, `chips: [{conceptId, da, en}]` (≤ 30, non-sensitive, ≥ 10 ordinary holders in the area), `configVersion` | onboarded users | chips and bucket overwritten weekly; the rest from `areas.json` |
 | `config/app` | `minAppVersion`, `legalVersions`, `skipWeeks`, `features` (including the kill switches `embedder` and `uploads`, §9) | anyone | — |
 
@@ -796,7 +818,7 @@ Conventions:
 | `drops/{weekId}` and `/components/{componentId}` | stage status, `inputHash`, result path, timings, aggregate funnel and reason histograms per launch area (counts only; any cell under 10 stored as `"<10"`) | 24 months [A] |
 | `consentEvents/{id}` | `uid` (→ `uidH` after deletion), `scope: 'art9'\|'gender'`, `interestId?` and `category?` (both removed on withdrawal), `action: 'grant'\|'withdraw'\|'superseded'`, `textVersion`, `textSha256`, `locale`, `appVersion`, `method: 'checkbox+button'`, `createdAt`, `redactedAt?`, `expiresAt?` | Append-only except for minimisation on withdrawal and deletion, which sets `redactedAt`. `expiresAt` = withdrawal/deletion + 3 years (TTL) [GDPR] |
 | `blocks/{a}_{b}` | `blocker`, `blocked`, `podId`, `createdAt` | until unblock or account deletion |
-| `reports/{id}` | `reporterUid` (→ `reporterH` when the reporter is erased), `targetUid` (→ `targetH` when the target is erased), `podId`, `category`, `text?`, `status`, `decision?`, `decidedBy?`, `createdAt`, `resolvedAt?`, `expiresAt` | `expiresAt` = creation + 12 months (backstop for unresolved reports), moved to resolution + 12 months on resolution (TTL) |
+| `reports/{id}` | `reporterUid` (→ `reporterH` when the reporter is erased), `targetUid` (→ `targetH` when the target is erased; for an option or message, its author), `podId`, `target: {type: 'user'\|'option'\|'interest'\|'message', optionId?, messageId?}`, `message?: {kind, text?, quickReply?}` (message reports only: a copy of the reported chat message, so it outlives the message's TTL; its author is `targetUid`), `category`, `text?`, `status`, `decision?`, `decidedBy?`, `createdAt`, `resolvedAt?`, `expiresAt` | `expiresAt` = creation + 12 months (backstop for unresolved reports), moved to resolution + 12 months on resolution (TTL) |
 | `sanctions/{uid}`, `bans/{HMAC(email)}` | `type`, `until?`, `reasonCode`, `noticeId` / `expiresAt` | sanction: deleted with the account; ban hash 24 months (TTL) |
 | `reviewQueue/{id}` | `kind: 'tagSensitivity'\|'conceptMerge'\|'abuseHold'\|'report'\|'sensitiveAnomaly'`, `ref`, `text?` (normalized; tag kinds only, no uid), `uid?` (`report` and `sensitiveAnomaly` only), `status`, `decision?`, `expiresAt?` | decision + 30 days (TTL) [A] |
 | `photoGrants/{owner}_{viewer}` | `pods: string[]`, `createdAt` | a podId is removed at leave, block, Keep-loop exclusion, dissolve, archive, pod deletion, sensitive withdrawal and photo deletion; the doc is deleted when `pods` is empty |
@@ -818,7 +840,7 @@ Conventions:
 - `matchProfiles`: composite `themeIds` (array-contains) + `lastDrop.weekId` + `lastDrop.outcome` for the backfill pool; single-field on `recentMinUntil`. `blockedH` (array) and the `recentH` map keys keep their automatic indexes, because erasure queries them.
 - `podState.memberList` (array-contains) for erasure and withdrawal.
 - `fieldOverrides` to disable automatic indexing on `tags.vec`, `concepts.medoid`, `concepts.sum`, `concepts.c128`, `podState.members` and `pods.roster`. Check that the vector index is unaffected [SRV].
-- **TTL policies** are `fieldOverrides` entries `{collectionGroup, fieldPath: 'expiresAt', ttl: true, indexes: []}` in the same file, deployed by `firebase deploy --only firestore:indexes` (https://firebase.google.com/docs/reference/firestore/indexes). There is no separate TTL script.
+- **TTL policies** are `fieldOverrides` entries `{collectionGroup, fieldPath: 'expiresAt', ttl: true, indexes: []}` in the same file, deployed by `firebase deploy --only firestore:indexes` (https://firebase.google.com/docs/reference/firestore/indexes). There is no separate TTL script. Every collection with `expiresAt` in §8.1–8.2 has one, including `messages` (the meetup chat), whose messages must be gone about 3 days after the meetup.
 
 ---
 
@@ -840,6 +862,10 @@ service cloud.firestore {
         allow read: if onboarded() &&
           request.auth.uid in get(/databases/$(db)/documents/pods/$(podId)).data.memberUids;
       }
+      match /messages/{messageId} {
+        allow read: if onboarded() &&
+          request.auth.uid in get(/databases/$(db)/documents/pods/$(podId)).data.memberUids;
+      }
     }
     match /areas/{areaId}     { allow read: if onboarded(); }
     match /config/app        { allow read: if true; }
@@ -847,7 +873,7 @@ service cloud.firestore {
 }
 ```
 
-`memberUids` is filled only at confirmation. Before that, invitees read only their own pod card, so pending members cannot see each other's IDs. Rules cannot hide fields from one member, so anyone who must not see a pod's roster, options or votes (a blocked member, a member who withdrew from the theme) is removed from `memberUids` (§3.7, PRIVACY.md §3.5).
+`memberUids` is filled only at confirmation. Before that, invitees read only their own pod card, so pending members cannot see each other's IDs. Rules cannot hide fields from one member, so anyone who must not see a pod's roster, options, votes or chat messages (a blocked member, a member who withdrew from the theme) is removed from `memberUids` (§3.7, PRIVACY.md §3.5). The chat window is enforced by `sendMessage`, not by rules: members can read existing messages until TTL deletes them.
 
 **Storage rules:**
 - `uploads/{uid}/{file}`: create or overwrite only if `request.auth.uid == uid`, the file name is exactly `pending.jpg` or `pending_256.jpg`, `request.resource.size < 2 * 1024 * 1024`, and `contentType == 'image/jpeg'`. The fixed names cap stored uploads at one pending pair per uid.
@@ -860,7 +886,7 @@ service cloud.firestore {
 - Server-written photos carry no download tokens. `cacheControl: private, max-age=3600` (was 7 days), so an HTTP-level cache cannot outlive a revocation by more than an hour.
 - `onPhotoUploaded` checks the per-uid daily limit (over the limit it deletes the upload unprocessed), parses the JPEG, drops APP1–APP15 and COM segments (EXIF and GPS), checks the dimensions, writes `photos/{uid}/{v+1}*.jpg`, bumps `users.photo.v` and every roster `photoV` where the photo is shared, deletes all earlier versions, and deletes the upload.
 - **Grant lifecycle.** A pod's ID is added to `photoGrants/{owner}_{viewer}` at confirmation (for sensitive-themed pods only after the owner opts in, S6). It is removed in both directions at leave, block, Keep-loop exclusion, dissolve, archive, pod deletion, sensitive withdrawal for that theme, and photo deletion. A grant doc with an empty `pods` list is deleted. Each removal path has a functions test.
-- **Device caches.** expo-image uses `cachePolicy: 'memory-disk'` with the cache key `{owner}:{v}`. The app clears the expo-image memory and disk caches (`Image.clearMemoryCache()`, `Image.clearDiskCache()`) on sign-out, on account deletion, and at the first app open after one of its pods leaves the active list (left, dissolved, archived, or a block). On sign-out and deletion it also calls Firestore `terminate()` then `clearPersistence()`, so cached `sensitiveInterests` and pod docs leave the device. Residual window, stated in the notice: a revoked photo or a withdrawn interest can stay in a device cache until that device next opens the app.
+- **Device caches.** expo-image uses `cachePolicy: 'memory-disk'` with the cache key `{owner}:{v}`. The app clears the expo-image memory and disk caches (`Image.clearMemoryCache()`, `Image.clearDiskCache()`) on sign-out, on account deletion, and at the first app open after one of its pods leaves the active list (left, dissolved, archived, or a block). On sign-out and deletion it also calls Firestore `terminate()` then `clearPersistence()`, so cached `sensitiveInterests` and pod docs leave the device. Residual window, stated in the notice: a revoked photo or a withdrawn interest can stay in a device cache until that device next opens the app. Meetup-chat messages are never displayed after their `expiresAt`, and the app records the latest `expiresAt` it has cached per pod (SecureStore) and clears the Firestore cache at the first open after it, because a Keep-loop pod stays on the active list for weeks.
 
 **App Check:**
 - `enforceAppCheck: true` on every callable, and enforcement on Firestore and Storage before public launch.
@@ -891,7 +917,7 @@ service cloud.firestore {
 - Data Access audit logs are on for Firestore and Storage for human principals; function service accounts are exempted.
 
 **Rate limits and abuse ceilings:**
-- A token bucket per uid in `rateLimits` on every callable that writes or wakes the embedder, `addInterests` warm-ups included (§4.3), with in-memory pre-checks per instance. Accounts younger than 24 h get half the embedder allowance, because new email-link accounts are free to create.
+- A token bucket per uid in `rateLimits` on every callable that writes or wakes the embedder, `addInterests` warm-ups included (§4.3), with in-memory pre-checks per instance. `sendMessage` keeps its bucket per uid and pod (30 per hour), and its 10-minute push throttle per member and pod. Accounts younger than 24 h get half the embedder allowance, because new email-link accounts are free to create.
 - The embedder also keeps an in-memory per-IP bucket per instance (never stored or logged; generous, because of carrier-grade NAT).
 - **Global daily embed budget.** `rateLimits/global_embedMiss_{day}` counts cache misses (default 20k/day [A]). Above it, `addInterests` returns `unavailable/EMBED_BUDGET` for new texts (cached texts still work) and alerts.
 - **Kill switches.** A budget alert on Pub/Sub triggers a small function that sets `config/app.features.embedder` and `.uploads` to `false`. The embedder and `onPhotoUploaded` check these flags before any work. This is not a billing cut-off, but it stops the two expensive paths.
@@ -918,19 +944,20 @@ All callables:
 | `removeInterest` | `{interestId}` | `{ok}` | Ordinary: deletes the holding; `refCount`−1 (and GC); updates concept `sum`; updates `matchProfiles`; recomputes `podInterests` of the user's active pods; erasure-ledger entry. Sensitive: runs the full withdrawal of `withdrawSensitive` for that holding | `not-found` |
 | `updateInterest` | `{interestId, starred}` | `{ok}` | Max 3 starred. Making an existing interest private ("Keep this private") goes through `addInterests` with `selfFlag` and consent (§10.2), never through this callable | `failed-precondition/STAR_LIMIT` |
 | `confirmSuggestion` | `{interestId, conceptId}` | `{ok}` | Re-points an ordinary holding; alias vote | `failed-precondition` |
-| `withdrawSensitive` | `{interestId?}` (none = all) | `{removed}` | The full withdrawal for one or all sensitive holdings (PRIVACY.md §3.5): holding and tag GC; pod cards; membership of every pod on that theme, archived ones included (`memberUids`, roster, `podState.members`/`memberList`, options and votes, feedback entries about the user); photo grants for those pods; open invitations; this week's unreleased pods and the backfill pool; `matchProfiles.themes`/`themeIds`; consent-event redaction; erasure ledger | — |
+| `withdrawSensitive` | `{interestId?}` (none = all) | `{removed}` | The full withdrawal for one or all sensitive holdings (PRIVACY.md §3.5): holding and tag GC; pod cards; membership of every pod on that theme, archived ones included (`memberUids` and roster first, so `sendMessage` refuses; then options and votes, the user's chat messages, feedback entries about the user; `podState.members`/`memberList` last, so a retry still finds the pods); photo grants for those pods; open invitations; this week's unreleased pods and the backfill pool; `matchProfiles.themes`/`themeIds`; consent-event redaction; erasure ledger | — |
 | `respondToPod` | `{podId, accept: bool, reason?}` | `{state, acceptedCount}` | Transaction on `podState` (§4.6), updates all cards. At 4 accepts: confirm (`pods` doc without a theme label, roster, photo grants except where S6 needs an opt-in, push). On a decline: enqueues `backfillPod` if the rule applies. Updates the decline counters | `not-found`, `failed-precondition/DEADLINE\|NOT_INVITED` |
 | `setPhotoSharing` | `{podId, share: bool}` | `{ok}` | S6, sensitive-themed pods: adds or removes this pod in the caller's outgoing grants and sets the roster `photoV` | `failed-precondition/STATE` |
 | `leavePod` | `{podId, reason?}` | `{ok}` | Removes the caller from `memberUids`/roster; removes the pod from photo grants in both directions; deletes the caller's open options and votes; dissolves or archives below 3 (§4.6); generic notice | `not-found` |
 | `proposeOption` | `{podId, startsAt, placeText, mapUrl?, publicPlace: true, ackWarnings?}` | `{optionId}` or `{warnings}` | Validates the window, limits and the map-URL allowlist (expands `maps.app.goo.gl` server-side, at most 3 hops, allowlisted final host); home-address heuristics | `failed-precondition/LIMIT\|WINDOW\|STATE`, `invalid-argument/URL\|CONTACT_INFO` |
 | `voteOption` | `{podId, optionId, vote: 'yes'\|'no'\|null}` | `{tally}` | Transaction; locks early when every current member says yes | `failed-precondition/STATE` |
-| `confirmAttendance` | `{podId, coming: bool}` | `{ok}` | Late-cancel accounting (`noShowEvents`); a cancellation that leaves fewer than 3 coming runs the attendance check (§4.6) | `failed-precondition` |
+| `confirmAttendance` | `{podId, coming: bool}` | `{ok}` | Late-cancel accounting (`noShowEvents`); a cancellation that leaves fewer than 3 coming runs the attendance check (§4.6). The chat's "Can't make it" calls this first (§3.6) | `failed-precondition` |
+| `sendMessage` | `{podId, text?, quickReply?: 'onMyWay'\|'runningLate'\|'imHere'\|'cantMakeIt', ackContactWarning?}`, exactly one of `text` (trimmed, 1–500 characters) and `quickReply` | `{messageId}` or `{warnings: ['CONTACT_INFO_BEFORE_MEETUP']}` | The caller must be in `memberUids`, and the pod `scheduled` or `happened` with the window around `planning.meetupAt` open (`isChatOpen`, §4.6). Moderation with `checkChatText` (the core blocklist and PII patterns, as for tags): CPR-like numbers and blocklisted text are refused; before `meetupAt`, a phone number, email, @handle or URL (map hosts allowlisted as for `proposeOption`) stores nothing and returns the warning unless `ackContactWarning` is set. 30 messages per user per pod per hour. Writes `pods/{podId}/messages/{id}` with `expiresAt` = `meetupAt` + 72 h. Generic push "New message in your pod" to the other members, at most one per member per pod per 10 minutes. A quick reply never changes attendance. The text is never logged | `permission-denied/NOT_MEMBER`, `failed-precondition/CHAT_CLOSED`, `failed-precondition/STATE` (account `deleting` or `suspended`), `invalid-argument/BLOCKLIST\|PII_CPR`, `resource-exhausted/RATE_LIMITED` |
 | `submitFeedback` | `{podId, met, attendance, meetAgain, rating?, keep}` | `{ok}` | Reliability counters, Keep-pod loop, disputes go to review | `failed-precondition/WINDOW` |
-| `blockUser` / `unblockUser` | `{podId, uid, leave?}` / `{uid}` | `{ok}` | The target must share or have shared `podId` with the caller (`podState.memberList`). Writes `blocks`, `blockedH` on both profiles and the owner list (`firstName` only if the caller saw it in that roster); removes grants in both directions; in an active pod removes the blocked member (or the caller, if `leave`) and offers a re-plan (§3.7); erasure-ledger entry. `unblockUser` also writes a ledger entry | `not-found`, `permission-denied/NOT_CO_MEMBER` |
-| `report` | `{target: {type: 'user'\|'option'\|'interest', podId, uid?, optionId?}, category, text?}` (`notGenuine` only in sensitive-themed pods) | `{reportId}` | `reports` (`expiresAt` +12 months); adds the pair to both profiles' `blockedH` while open (H4); automated pause and sensitive-theme hold rules (§3.7, S7); acknowledgement notice. Replay-protected App Check (§9) | `resource-exhausted`, `failed-precondition/APP_CHECK_REPLAY` |
+| `blockUser` / `unblockUser` | `{podId, uid, leave?}` / `{uid}` | `{ok}` | The target must share or have shared `podId` with the caller (`podState.memberList`). Writes `blocks`, `blockedH` on both profiles and the owner list (`firstName` only if the caller saw it in that roster); removes grants in both directions; in an active pod, or one whose meetup chat is open, removes the blocked member (or the caller, if `leave`) and offers a re-plan (§3.7); erasure-ledger entry. `unblockUser` also writes a ledger entry | `not-found`, `permission-denied/NOT_CO_MEMBER` |
+| `report` | `{target: {type: 'user'\|'option'\|'interest'\|'message', podId, uid?, optionId?, messageId?}, category, text?}` (`uid` for user and interest targets; option and message targets name their author on the server; `notGenuine` only in sensitive-themed pods) | `{reportId}` | `reports` (`expiresAt` +12 months); for a message target, the caller must be a member of the pod, the author becomes `targetUid`, and the message's kind and text or quick reply are copied into the report so they survive the TTL; adds the pair to both profiles' `blockedH` while open (H4); automated pause and sensitive-theme hold rules (§3.7, S7); acknowledgement notice. Replay-protected App Check (§9) | `resource-exhausted`, `failed-precondition/APP_CHECK_REPLAY` |
 | `registerPushToken` | `{token, platform}` | `{ok}` | Upserts `pushTokens` | — |
 | `deletePhoto` | `{}` | `{ok}` | Deletes every `photos/{uid}/*` version and any pending upload; clears `users.photo` and every roster `photoV`; deletes the caller's outgoing grants; erasure-ledger entry (`photo`) | — |
-| `exportData` | `{}` | `{exportId}` | Requires `auth_time` within 5 minutes; replay-protected App Check; enqueues `buildExport`; 1 per 24 h | `resource-exhausted`, `failed-precondition/RECENT_LOGIN\|APP_CHECK_REPLAY` |
+| `exportData` | `{}` | `{exportId}` | Requires `auth_time` within 5 minutes; replay-protected App Check; enqueues `buildExport` (contents PRIVACY.md §6, including the user's own chat messages that still exist); 1 per 24 h | `resource-exhausted`, `failed-precondition/RECENT_LOGIN\|APP_CHECK_REPLAY` |
 | `deleteAccount` | `{}` | `{ok}` | Requires `auth_time` within 5 minutes; replay-protected App Check; `status: deleting`; enqueues `purgeUser`; `auth.deleteUser(uid)`. Apple token revocation happens on the device first (§3.10) | `failed-precondition/RECENT_LOGIN\|APP_CHECK_REPLAY` |
 
 ### 10.2 Codebase `embedder`
@@ -950,11 +977,11 @@ There is no separate warm-up function: in 2nd gen each function is its own Cloud
 | `matchComponent` | task, 1 vCPU / 1 GiB, 1,800 s, retry 1, dispatch deadline 1,800 s | Reads the input snapshot; runs `matchComponent()`; writes the result object and flips the `computed` pointer (§6.5); stats to `drops`. Writes nothing on assertion failure |
 | `releaseDrop` | task, Thu 18:00, 1 vCPU / 1 GiB, 1,800 s, dispatch deadline 1,800 s | Per component and pod, **revalidates every member against current state**: the account exists with `status: 'active'`; not paused or skipping this week; no new block or report between members (H4); the theme is still held with a valid `consentRef`; S5 eligibility. Failing members are removed. A pod left below 4 is not proposed, and its remaining members join the backfill pool. Then one batch per pod: `create()` `podState` and the cards, and update each member's `matchProfiles` (`weekClaim`, `lastDrop`, pruned `recentH`) with a `lastUpdateTime` precondition taken from the revalidation read. Every change that revalidation checks (deletion, pause or skip, block, report, consent withdrawal) also writes `matchProfiles/{uid}`, so a concurrent change fails the batch, and the pod is revalidated again. `users/{uid}.lastDrop` is written with `update()`, never `set()`, so a deleted user's subtree is never recreated. Writes `lastDrop` for unmatched users. Sends push in batches of 500, staggered over 15 minutes. Deletes the snapshot objects when done |
 | `backfillPod` | task | Queries the pool (`themeIds` array-contains the theme, `lastDrop.weekId == W`, `lastDrop.outcome == 'unmatched'`), filters with H1–H6, S1–S7 and the pod's availability, claims each candidate in a transaction on `matchProfiles/{uid}` (`weekClaim != W`, `activePods < 2`, the sensitive caps), and writes the invitations (§4.2) |
-| `hourlySweeper` | `onSchedule('5 * * * *')` | Processes due `podState.timers` (§4.6): accept deadline (confirm, backfill or dissolve), backfill deadline, planning deadline, attendance check, reminders T−24/T−6/T−2/T+2, feedback close and Keep loop, archive; Monday 10:00 nudge. Every transition drops members whose account is deleting, suspended or paused. Idempotent through `podState.version` |
+| `hourlySweeper` | `onSchedule('5 * * * *')` | Processes due `podState.timers` (§4.6): accept deadline (confirm, backfill or dissolve), backfill deadline, planning deadline, attendance check, reminders T−24/T−6/T−2/T+2 (T−24 h also sends the one "Your pod chat is open" push), feedback close and Keep loop, archive; Monday 10:00 nudge. Every transition drops members whose account is deleting, suspended or paused. Idempotent through `podState.version` |
 | `dailyMaintenance` | `onSchedule('17 3 * * *')` | Deletes archived pods after 90 days and dissolved pods after 30 (`recursiveDelete`, plus their cards and grant entries); deletes `pendingConsent` holdings after 14 days; prunes expired `recentH` entries (via `recentMinUntil`); inactive-account warnings (in-app, push, email) and deletions. **Auth reconciliation**: pages through Admin `listUsers()` and diffs it against `users` and `erasureLedger`. An Auth user with no `users` doc after 7 days (an abandoned sign-up) is deleted; a `users` doc with no Auth user is enqueued for `purgeUser`. On Wednesdays enqueues `embedderBatch(maintenance)` |
-| `buildExport` | task | Assembles the JSON (PRIVACY.md §6) into `exports/`; writes a notice; enqueues `deleteExport` for +24 h |
+| `buildExport` | task | Assembles the JSON (PRIVACY.md §6, including the user's chat messages that TTL has not yet deleted, found through `podState.memberList`, and the copies of their messages kept in reports about them) into `exports/`; writes a notice; enqueues `deleteExport` for +24 h |
 | `deleteExport` | task | Deletes the export object and its doc |
-| `purgeUser` | task, retries 5 | PRIVACY.md §6 erasure steps; writes `erasureLedger` |
+| `purgeUser` | task, retries 5 | PRIVACY.md §6 erasure steps, including the user's chat messages in every pod in `podState.memberList` (the user leaves `memberList` last, so a retry still finds every pod); writes `erasureLedger` |
 | `onPhotoUploaded` | `onObjectFinalized` (`uploads/`) | Checks the `uploads` kill switch and the per-uid daily limit; strips EXIF, validates, writes the next version to `photos/`, bumps `users.photo.v` and the shared roster `photoV`, deletes earlier versions and the upload |
 | `onBudgetAlert` | Pub/Sub (billing budget topic) | Sets the kill-switch flags (§9) |
 
@@ -993,10 +1020,11 @@ There is no `auth.user().onDelete` trigger. That trigger exists only in 1st gen,
 | `(tabs)/me` | Profile, preferences, participation, reliability record, and the setting that blocks matching, if any (§6.7) |
 | `pod/[podId]/index` | Proposal → confirmed roster, theme (own wording), pod interests, safety tips; "Show my photo to this pod" in sensitive-themed pods (S6) |
 | `pod/[podId]/plan` | Options, votes, propose-option form |
+| `pod/[podId]/chat` | Meetup chat (§3.6): messages, text field, quick replies ("Can't make it" calls `confirmAttendance` first), the "You haven't met yet" warning, Report on each message; read-only outside the window while messages exist |
 | `pod/[podId]/feedback` | Attendance, meet-again, rating, Keep pod |
 | `pod/[podId]/member/[uid]` | Member sheet: block, report |
 | `sheets/consent` | Art. 9 explicit consent sheet (modal) |
-| `sheets/why-this-pod`, `sheets/report` | Explanations; reporting |
+| `sheets/why-this-pod`, `sheets/report` | Explanations; reporting (a member, an option or a chat message) |
 | `settings/*` | Privacy (consents, export, pause, delete), blocked users, notifications |
 | `info/how-matching-works`, `info/safety`, `info/sensitive-interests`, `info/legal/[doc]` | Transparency pages (Art. 13/22). "How matching works" lists the inputs and every automated pause (§3.7, §4.4) |
 
@@ -1011,6 +1039,7 @@ There is no `auth.user().onDelete` trigger. That trigger exists only in 1st gen,
 - Matching per [MAT]: about 2 reads per opted-in user per drop, plus 1 write (`lastDrop`, §6.2).
 - Concept assignment: concepts ≈ 0.73 × distinct tags (§5.3); 20k–90k new distinct tags per month at 100k MAU; Firestore vector search bills 1 read per 100 index entries scanned (https://firebase.google.com/docs/firestore/pricing).
 - Firestore egress to clients: about 0.5 MB per MAU per month; the first 10 GiB per month are free, then about $0.12/GB.
+- Meetup chat: about 8k meetups a month at 100k MAU, each with about 30 messages (a `sendMessage` call, the message write, a rate-limit write and a TTL delete each) and a few hundred listener reads, because each message is read once by each listening member [A].
 
 **Prices, europe-west1:**
 - Firestore: $0.033 per 100k reads, $0.099 per 100k writes.
@@ -1026,11 +1055,12 @@ There is no `auth.user().onDelete` trigger. That trigger exists only in 1st gen,
 | Concept vector search (§5.2 (6)) | $0 | ~$0.15 | ~$1 with the in-memory shortlist (~$11–55 without it; grows with misses × concepts) | [A] |
 | Firestore egress to clients | $0 | $0 (< 10 GiB) | ~$5–10 (40–80 GB) | [A] |
 | Matching job (reads + writes + compute + GCS snapshots) | $0 | $0 | ~$0.75 | [MAT], [A] |
+| Meetup chat (message writes, TTL deletes, listener reads, `sendMessage` at gcf_gen1; pushes are free) | $0 | ~$0.10 | ~$1–2 | [A] |
 | Storage: photos + egress | ~$0.25 | ~$2.50 | ~$24 | [FBX] |
 | Artifact Registry (two embedder images, about 0.6 GB) + model mirror + snapshot buckets | ~$0.30–0.70 | same | same | [SRV], [A] |
 | Scheduler (prod 3 free; staging +$0.30 on the same billing account) | $0–0.30 | $0–0.30 | $0–0.30 | [FBX] |
 | Auth (no Identity Platform), FCM, App Check, Cloud Tasks, Hosting, Logging (< 50 GiB; Cloud Run request logs excluded, §13), transactional email (free tier [A]) | $0 | $0 | $0 | [FBX], [A] |
-| **Total** | **~$0.5–1** | **~$3–5** | **~$49–63** | |
+| **Total** | **~$0.5–1** | **~$3–5** | **~$50–65** | |
 
 **Abuse ceiling.** These are expected costs. The worst case under abuse is bounded by `maxInstances`, not by budgets: about $345/month for the embedder alone (§9). The kill switches and the instance-seconds alert exist for that case.
 
@@ -1091,17 +1121,17 @@ The app picks its environment from `APP_ENV` in `app.config.ts`. Per-env `Google
 
 | Layer | What | Tool |
 |---|---|---|
-| core | normalization (diacritics, C++, emoji), geohash/haversine, zod schemas, scoring, constraints | vitest |
+| core | normalization (diacritics, C++, emoji), geohash/haversine, zod schemas (including `sendMessageInput`: exactly one of text and quick reply, trimmed length), scoring, constraints, `chatWindow`/`isChatOpen` boundaries, `checkChatText` (CPR and blocklist always refused, contact details warned only before the meetup, map links allowed) | vitest |
 | matching | invariants H1–H6, S1–S7, determinism across retries (same input snapshot → same result, independent of CPU speed), sizes; golden snapshots; n = 20k and 50k benchmarks with realistic doc sizes and peak RSS | fast-check, `tools/sim` |
-| rules | owner-only reads, pod-member reads, no client writes, photo grants, exports, fixed upload names | rules-unit-testing 6 (peer `firebase` 13.2.0) + emulator |
-| functions | each callable's happy path and errors; idempotent sweeper, drop and release retries; **release revalidation** (a user deleted, paused, blocked or withdrawn between 16:00 and 18:00 gets no card and no subtree); **self-flag isolation** (§5.2 (5)); **no sensitive label in any shared doc**; **withdrawal completeness** (after `withdrawSensitive`, no doc references the uid together with that `interestId` or concept); **grant removal** on each path in §9; `deletePhoto` and photo replacement leave no earlier version; **block in an active pod** removes the blocked member; App Check replay rejection; **purge completeness**: no doc or object contains the uid or its `uidH`, except the documented pseudonymised records (`consentEvents`, `erasureLedger`, retained `reports`; PRIVACY.md §6 step 8) | emulator, Admin SDK |
+| rules | owner-only reads, pod-member reads (options and chat messages through the parent's `memberUids`; a removed member loses both), no client writes (messages included), photo grants, exports, fixed upload names; a TTL policy on `expiresAt` for every expiring collection group, `messages` included | rules-unit-testing 6 (peer `firebase` 13.2.0) + emulator |
+| functions | each callable's happy path and errors; idempotent sweeper, drop and release retries; **release revalidation** (a user deleted, paused, blocked or withdrawn between 16:00 and 18:00 gets no card and no subtree); **self-flag isolation** (§5.2 (5)); **no sensitive label in any shared doc**; **withdrawal completeness** (after `withdrawSensitive`, no doc references the uid together with that `interestId` or concept, chat messages in pods on that theme included); **grant removal** on each path in §9; `deletePhoto` and photo replacement leave no earlier version; **block in an active pod** removes the blocked member; **meetup chat**: `sendMessage` refuses outside the window (before T−24 h, from T+24 h, after a return to `planning`) and for non-members, warns about contact details before `meetupAt` and stores nothing until `ackContactWarning`, accepts them after `meetupAt`, refuses CPR-like numbers and blocklisted text, enforces 30 per hour per pod, sets `expiresAt` = `meetupAt` + 72 h on every message, and sends pushes without text at most every 10 minutes; App Check replay rejection; **purge completeness**: no doc or object contains the uid or its `uidH`, except the documented pseudonymised records (`consentEvents`, `erasureLedger`, retained `reports`; PRIVACY.md §6 step 8) | emulator, Admin SDK |
 | embedder | consent gate writes nothing, caches nothing and logs nothing; vectors never returned; cache keys include `modelId`; warm-up respects the rate limit | stub + nightly real model |
-| logs | captures every log entry in the emulator suite, error paths included (zod failures, thrown errors), and asserts that no tag text, request body, token or IP address appears | vitest + emulator |
+| logs | captures every log entry in the emulator suite, error paths included (zod failures, thrown errors), and asserts that no tag text, message text, request body, token or IP address appears | vitest + emulator |
 | restore | staging drill: restore a PITR copy, replay `erasureLedger`, assert that the replayed erasures hold | runbook, before M1 exit and then quarterly |
 | client | components and flows | jest + RN Testing Library; Maestro E2E from M2 |
 
 **Observability:**
-- **Logs are pseudonymised, not anonymous.** They are structured JSON carrying `uidH` (an HMAC whose key we hold), never tag text, request bodies, tokens or IP addresses. The embedder logs uid-free counters, latency, cache hit rate and cold starts.
+- **Logs are pseudonymised, not anonymous.** They are structured JSON carrying `uidH` (an HMAC whose key we hold), never tag text, message text, request bodies, tokens or IP addresses. The embedder logs uid-free counters, latency, cache hit rate and cold starts.
 - **Log-scrubbing middleware** (`functions/src/lib/handler.ts`, shared by both codebases) wraps every handler. It catches every error and logs only the app error code, the zod issue **paths and codes** (never `message` or `received`, which can echo input) and a stack trace with no request data. It then throws an `HttpsError` carrying the code only. No handler logs `request.data`.
 - **Cloud Run request logs.** 2nd-gen functions run on Cloud Run, which writes a request log for every call automatically, with `httpRequest.remoteIp` and `userAgent` (https://docs.cloud.google.com/run/docs/logging). An exclusion filter on the `_Default` sink drops them: `logName:"run.googleapis.com%2Frequests"`. Latency and status come from the middleware's own uid-free entry per call. If the exclusion is ever removed, IP logging must be disclosed (6(1)(f), 30 days).
 - **Location:** log buckets in europe-west1 (§7 Cloud regions).
@@ -1147,7 +1177,7 @@ grouper/
 │   ├── calibration/{testset.ts,run.ts,labelled/}  # synthetic / founder-written only, never user tags
 │   └── src/{index.ts,model.ts,pipeline.ts,detect.ts,assign.ts}  test/
 ├── packages/core/
-│   └── src/{schemas/,types/,interests/{normalize,lexicon,sensitivity,assign}.ts,
+│   └── src/{schemas/,types/,interests/{normalize,pii,blocklist,lexicon,sensitivity,assign}.ts,chat/{limits,moderation}.ts,
 │            geo/{geohash,haversine,dk-postcodes.json,areas.json},
 │            matching/{matchComponent,components,score,constraints,grow,localSearch,profiles}.ts,
 │            time/{weekId,schedule}.ts,ids/podId.ts,legal/{consent-texts.ts,hashes.ts},reasons.ts}
@@ -1172,7 +1202,7 @@ grouper/
 | Milestone | Scope | Exit criteria |
 |---|---|---|
 | **M0 Scaffold** (2–3 weeks) | Cloud Identity organization and EU logging defaults **before** the projects are created (§7); repo layout, emulators, rules + tests, CI, three sign-in methods on iOS/Android dev builds (SPM check in week 1; email-link App Links / Universal Links, Team ID and SHA-256 registration per project), embedder spike on real Cloud Run (cold start with lazy load, image size, Node 24, gcf_gen1 cold starts), **model gate Q1**, on-device detector spike (Q18), labelled da/en set (synthetic), calibration harness, sim harness + n = 20k/50k benchmarks + thin-market runs, seed review of about 1,000 tags, DPIA draft, lawyer engaged | Founder signs off on this doc; gate results recorded |
-| **M1 Private alpha, Aarhus** (6–8 weeks) | Onboarding with consents, interests pipeline, drop (dry-run, then live) on the alpha profile (§6.10), accept/decline/backfill, reveal, planner, feedback, block/report, export, delete, admin CLI, Danish/English copy, privacy notice, transactional email provider (Q17), staging restore drill ≥ 300 testers concentrated in Aarhus, in ≤ 5 seed-theme cohorts (Q19); the simulation with the scaffold's matcher predicts 35% confirmation and a first pod after a median 4.3 weeks at that size, against 30–37% and 9+ weeks at 100 testers [SIM]. Exit: confirmation rate within 10 points of the sim re-run on the real cohort; weeks-to-first-pod P50 ≤ 5; zero sensitive-data incidents; DPIA signed |
+| **M1 Private alpha, Aarhus** (6–8 weeks) | Onboarding with consents, interests pipeline, drop (dry-run, then live) on the alpha profile (§6.10), accept/decline/backfill, reveal, planner, meetup chat (chat-open push, message reports, erasure and withdrawal steps), feedback, block/report, export, delete, admin CLI, Danish/English copy, privacy notice, transactional email provider (Q17), staging restore drill ≥ 300 testers concentrated in Aarhus, in ≤ 5 seed-theme cohorts (Q19); the simulation with the scaffold's matcher predicts 35% confirmation and a first pod after a median 4.3 weeks at that size, against 30–37% and 9+ weeks at 100 testers [SIM]. Exit: confirmation rate within 10 points of the sim re-run on the real cohort; weeks-to-first-pod P50 ≤ 5; zero sensitive-data incidents; DPIA signed |
 | **M2 Closed beta** (Aarhus live, Copenhagen waitlist) | App Check enforced, store listings and privacy labels, reschedule flow, metrics dashboard from `drops`, Maestro E2E, Play Integrity device recall evaluated (S5–S7) | Launch-area gate (Q11) met in Aarhus |
 | **M3 Public launch, Denmark** | Copenhagen live, chips, alias votes, DSA processes, budget alerts and kill switches verified, minimal admin web UI; concept shortlist (§5.2 (6)) before 20k concepts | Continuation rate tracked weekly |
 | **M4 Iterate** | Weight tuning from `drops` aggregates and simulation (per-user outcome data only after a DPIA update and a 6(1)(f) balancing test, with sensitive themes excluded; PRIVACY.md P19), canonicalization experiment, friend invites, new cities (Odense) as new launch areas | DPO reassessment triggers (PRIVACY.md §8) |
@@ -1190,6 +1220,7 @@ grouper/
 | Wrong non-sensitive merges (look-alikes; centroid drift) | Odd pods | 0.93 threshold (never < 0.925) + medoid guard; drift alerts; feedback; review proposals |
 | Inference of sensitive traits from pods | Art. 9 exposure | S1/S2 (holding-level), local density minimum, no sensitive labels or aggregates, card details withheld before confirmation, generic push |
 | Physical harm at meetups | Safety, reputation | 18+, public-place rules, safety tips, report/block, pauses, police referral (DSA Art. 18) |
+| Harassment or early exchange of contact details in the meetup chat | Abusive messages; pressure to move to private channels before people have met; numbers collected from strangers | Chat only from T−24 h to T+24 h and only for current members; server-side blocklist and PII checks (CPR-like numbers always refused); contact details before `meetupAt` only after the "You haven't met yet" warning; Report on every message, with a copy kept in the report; block removes the member; 30 messages per user per pod per hour; generic, throttled pushes; deletion at T+72 h (PRIVACY.md R17) |
 | EmbeddingGemma 2 is about 4 weeks old | Rework if a regression or licence change appears | Pinned revision; mirrored weights in our EU bucket; v1 calibrated as fallback [CAL]; nightly calibration gate |
 | Embedder deploy or cold start is worse than estimated | Slow saves | Warm-up through `addInterests({items: []})` on the same service; Cloud Run fallback; v2 q4 tokenizer + model load is about 1.4 s on CPU [CAL] |
 | Embedder or upload cost abuse | Bill shock, denial of service | Lazy model load after auth; per-uid, per-IP and global limits; 1 h App Check TTL; kill switches; instance-seconds alert; ceiling about $345/month (§9) |
@@ -1205,7 +1236,9 @@ grouper/
 
 The scaffold implements the structure of §14 and the security-critical paths; feature logic marked for M1 is stubbed. The root [README](../README.md#what-is-stubbed) lists every stub with its section here. Each stub keeps its final name, trigger, options and input validation, then fails loudly (`unimplemented`, `details.code: 'NOT_IMPLEMENTED'`), so nothing pretends to succeed.
 
-**Implemented and tested:** the security rules (130 emulator tests), `completeOnboarding`, `updateProfile`, `setParticipation`, the `matchComponent` task, `addInterests` (pipeline steps 1–7, consent gate, self-flag, detector, on a stub model in CI), the matcher (Phases 1–2 partly, Phase 3 "open to anyone"; property tests for every hard constraint, determinism and permutation invariance), the simulator, and the app's onboarding, consent and interest flows.
+**Implemented and tested:** the security rules (141 emulator tests), `completeOnboarding`, `updateProfile`, `setParticipation`, `sendMessage` (the meetup chat: membership, window, moderation with the contact-info warning, rate limit, `expiresAt`; emulator tests), the `matchComponent` task, `addInterests` (pipeline steps 1–7, consent gate, self-flag, detector, on a stub model in CI), the matcher (Phases 1–2 partly, Phase 3 "open to anyone"; property tests for every hard constraint, determinism and permutation invariance), the simulator, and the app's onboarding, consent and interest flows.
+
+**Meetup chat around the stubs.** The parts of the chat that live in other functions stay stubbed with them: the "Your pod chat is open" push (`hourlySweeper`), message reports (`report`), and the message steps of `purgeUser` and `withdrawSensitive`, whose stub comments list them. No pod reaches `scheduled` until `respondToPod`, `proposeOption` and `voteOption` exist, and "Can't make it" calls the `confirmAttendance` stub first, so the chat works end to end only in M1.
 
 **Safety gate.** `ART9_HOLDINGS_ENABLED = false` in `services/embedder/src/config.ts`: until `withdrawSensitive` and `removeInterest` exist, `addInterests` refuses sensitive holdings with `SENSITIVE_UNAVAILABLE` before asking for consent, because withdrawing must be as easy as consenting (Art. 7(3)). A test fails if the gate is on while either is a stub.
 

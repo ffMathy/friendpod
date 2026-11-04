@@ -6,7 +6,18 @@
 import type { Locale } from '@grouper/core';
 import type { Message, Messaging } from 'firebase-admin/messaging';
 
-export const PUSH_KINDS = ['dropReady', 'podConfirmed', 'podChanged', 'stillComing', 'meetupReminder', 'feedback', 'weeklyNudge', 'notice'] as const;
+export const PUSH_KINDS = [
+  'dropReady',
+  'podConfirmed',
+  'podChanged',
+  'stillComing',
+  'meetupReminder',
+  'chatOpen',
+  'chatMessage',
+  'feedback',
+  'weeklyNudge',
+  'notice',
+] as const;
 export type PushKind = (typeof PUSH_KINDS)[number];
 
 interface PushCopy {
@@ -35,6 +46,14 @@ const COPY: Readonly<Record<PushKind, Readonly<Record<Locale, PushCopy>>>> = {
   meetupReminder: {
     en: { title: 'Grouper', body: 'Your meetup is soon' },
     da: { title: 'Grouper', body: 'Jeres møde er snart' },
+  },
+  chatOpen: {
+    en: { title: 'Grouper', body: 'Your pod chat is open' },
+    da: { title: 'Grouper', body: 'Din podchat er åben' },
+  },
+  chatMessage: {
+    en: { title: 'Grouper', body: 'New message in your pod' },
+    da: { title: 'Grouper', body: 'Ny besked i din pod' },
   },
   feedback: {
     en: { title: 'Grouper', body: 'Did you meet?' },
@@ -74,8 +93,16 @@ export const PUSH_BATCH = 500;
 
 const STALE_TOKEN_ERRORS = new Set(['messaging/registration-token-not-registered', 'messaging/invalid-registration-token']);
 
+export interface PushResult {
+  readonly sent: number;
+  readonly staleTokens: string[];
+}
+
+/** What callables use to push (injected, so tests need no FCM). */
+export type PushSender = (kind: PushKind, recipients: readonly PushRecipient[]) => Promise<PushResult>;
+
 /** Sends in batches of 500 and returns the tokens FCM reported as gone, for pruning from `pushTokens`. */
-export async function sendGenericPush(messaging: Messaging, kind: PushKind, recipients: readonly PushRecipient[]): Promise<{ sent: number; staleTokens: string[] }> {
+export async function sendGenericPush(messaging: Messaging, kind: PushKind, recipients: readonly PushRecipient[]): Promise<PushResult> {
   const messages = genericMessages(kind, recipients);
   let sent = 0;
   const staleTokens: string[] = [];

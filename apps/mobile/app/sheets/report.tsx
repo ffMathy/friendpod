@@ -9,13 +9,19 @@ import { useUid } from '@/features/session/SessionProvider';
 import { errorMessageKey } from '@/lib/errors';
 
 /**
- * Report (§3.7): the reporter is never revealed; "not a genuine member" only in sensitive-themed pods
- * (S7); safety reports point to 112. Replay-protected App Check (§9) via the callable registry.
+ * Report (§3.7) of a member, an option or a chat message: the reporter is never revealed; "not a genuine member"
+ * only in sensitive-themed pods (S7); safety reports point to 112. Replay-protected App Check (§9) via the
+ * callable registry. A message report names no uid: the server takes the author from the message and keeps a copy.
  */
 export default function Report() {
   const { t } = useTranslation();
   const router = useRouter();
-  const { podId, uid: targetUid, optionId } = useLocalSearchParams<{ podId: string; uid?: string; optionId?: string }>();
+  const { podId, uid: targetUid, optionId, messageId } = useLocalSearchParams<{
+    podId: string;
+    uid?: string;
+    optionId?: string;
+    messageId?: string;
+  }>();
   const card = usePodCard(useUid(), podId);
   const report = useCallable('report');
   const [category, setCategory] = useState<ReportCategory | null>(null);
@@ -24,15 +30,18 @@ export default function Report() {
 
   const send = () => {
     if (!category) return;
-    const target = optionId
-      ? { type: 'option' as const, podId, optionId, ...(targetUid ? { uid: targetUid } : {}) }
-      : { type: 'user' as const, podId, uid: targetUid ?? '' };
+    const target = messageId
+      ? { type: 'message' as const, podId, messageId }
+      : optionId
+        ? { type: 'option' as const, podId, optionId, ...(targetUid ? { uid: targetUid } : {}) }
+        : { type: 'user' as const, podId, uid: targetUid ?? '' };
     report.mutate({ target, category, ...(text.trim() ? { text: text.trim() } : {}) }, { onSuccess: () => router.back() });
   };
 
   return (
     <Screen>
       <Body>{t('report.intro')}</Body>
+      {messageId ? <Body muted>{t('report.messageCopy')}</Body> : null}
       <ChipRow>
         {categories.map((c) => (
           <Toggle key={c} label={t(`report.categories.${c}`)} value={category === c} onChange={() => setCategory(c)} />

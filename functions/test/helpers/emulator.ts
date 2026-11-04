@@ -11,6 +11,7 @@ import { getFirestore } from 'firebase-admin/firestore';
 import { afterAll, describe } from 'vitest';
 import { runCallable, type CallContext } from '../../src/lib/handler';
 import { log } from '../../src/lib/log';
+import type { PushKind, PushRecipient } from '../../src/lib/push';
 import type { AppDeps } from '../../src/lib/runtime';
 import { testUidHmac } from './keys';
 import { PROJECT_ID, request, type RequestOptions } from './requests';
@@ -21,23 +22,36 @@ if (!HAS_EMULATORS && process.env.CI) {
 }
 export const describeEmulator = HAS_EMULATORS ? describe : describe.skip;
 
-export interface TestDeps extends AppDeps {
-  readonly clock: { now: number };
+export interface SentPush {
+  readonly kind: PushKind;
+  readonly recipients: readonly PushRecipient[];
 }
 
-/** One Admin app per test file, against the emulators; a settable clock instead of Date.now(). */
+export interface TestDeps extends AppDeps {
+  readonly clock: { now: number };
+  /** Every push the code under test sent; there is no FCM emulator. */
+  readonly pushes: SentPush[];
+}
+
+/** One Admin app per test file, against the emulators; a settable clock instead of Date.now(), pushes recorded. */
 export function emulatorDeps(startMs: number): TestDeps {
   let app: App | undefined;
   const clock = { now: startMs };
+  const pushes: SentPush[] = [];
   const lazyApp = (): App => (app ??= initializeApp({ projectId: PROJECT_ID }, `test-${randomBytes(6).toString('hex')}`));
   afterAll(async () => {
     if (app) await deleteApp(app);
   });
   return {
     clock,
+    pushes,
     now: () => clock.now,
     uidHmac: () => testUidHmac,
     log,
+    push: async (kind, recipients) => {
+      pushes.push({ kind, recipients });
+      return { sent: recipients.reduce((n, r) => n + r.tokens.length, 0), staleTokens: [] };
+    },
     get db() {
       return getFirestore(lazyApp());
     },

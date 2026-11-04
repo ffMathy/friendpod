@@ -1,7 +1,7 @@
 /**
- * firestore.rules (DESIGN.md §9): owner-only reads under users/{uid}, pods and options for confirmed members
- * with the `onb` claim, areas for onboarded users, config/app for anyone, everything else server-only, and no
- * client writes anywhere.
+ * firestore.rules (DESIGN.md §9): owner-only reads under users/{uid}, pods, options and meetup-chat messages for
+ * confirmed members with the `onb` claim, areas for onboarded users, config/app for anyone, everything else
+ * server-only, and no client writes anywhere.
  */
 import { assertFails, assertSucceeds, type RulesTestContext, type RulesTestEnvironment } from '@firebase/rules-unit-testing';
 import { afterAll, beforeAll, describe, it } from 'vitest';
@@ -31,7 +31,14 @@ const POD_DOCS: Record<string, Data> = {
   'pods/p1': { state: 'confirmed', weekId: WEEK, memberUids: [ALICE, BOB], roster: { [ALICE]: { firstName: 'Ada', photoV: 1 } } },
   'pods/p1/options/o1': { authorUid: BOB, placeText: 'Library café', publicPlace: true, votes: { [BOB]: 'yes' } },
   'pods/p2': { state: 'confirmed', weekId: WEEK, memberUids: [BOB, CAROL] },
+  'pods/p1/messages/m1': { authorUid: BOB, kind: 'text', text: 'Running 5 minutes late', createdAt: AT, expiresAt: AT },
+  'pods/p1/messages/m2': { authorUid: ALICE, kind: 'quickReply', quickReply: 'imHere', createdAt: AT, expiresAt: AT },
   'pods/p2/options/o2': { authorUid: CAROL, placeText: 'Park', publicPlace: true, votes: {} },
+  'pods/p2/messages/m3': { authorUid: CAROL, kind: 'text', text: 'At the gate', createdAt: AT, expiresAt: AT },
+  // Mutated by the removal test only.
+  'pods/p3': { state: 'scheduled', weekId: WEEK, memberUids: [ALICE, CAROL] },
+  'pods/p3/options/o3': { authorUid: CAROL, placeText: 'Harbour', publicPlace: true, votes: {} },
+  'pods/p3/messages/m4': { authorUid: CAROL, kind: 'quickReply', quickReply: 'onMyWay', createdAt: AT, expiresAt: AT },
 };
 
 const PUBLICISH_DOCS: Record<string, Data> = {
@@ -189,6 +196,53 @@ describe('pods/{podId}/options are readable by pod members with the onb claim', 
 
   it('denies collection-group queries on options', async () => {
     await assertFails(aliceOnb.firestore().collectionGroup('options').get());
+  });
+});
+
+describe('pods/{podId}/messages (meetup chat) are readable by pod members with the onb claim', () => {
+  it('allows members to get and list, whoever wrote the message', async () => {
+    await assertSucceeds(get(aliceOnb, 'pods/p1/messages/m1'));
+    await assertSucceeds(get(bobOnb, 'pods/p1/messages/m2'));
+    await assertSucceeds(list(aliceOnb, 'pods/p1/messages'));
+    await assertSucceeds(aliceOnb.firestore().collection('pods/p1/messages').orderBy('createdAt').get());
+  });
+
+  it('denies non-members, members without onb and unauthenticated clients', async () => {
+    await assertFails(get(malloryOnb, 'pods/p1/messages/m1'));
+    await assertFails(list(malloryOnb, 'pods/p1/messages'));
+    await assertFails(get(aliceOnb, 'pods/p2/messages/m3'));
+    await assertFails(list(aliceOnb, 'pods/p2/messages'));
+    await assertFails(get(alice, 'pods/p1/messages/m1'));
+    await assertFails(list(alice, 'pods/p1/messages'));
+    await assertFails(get(user(env, ALICE, { onb: 'true' }), 'pods/p1/messages/m1'));
+    await assertFails(get(anon, 'pods/p1/messages/m1'));
+    await assertFails(list(anon, 'pods/p1/messages'));
+  });
+
+  it('denies messages of a pod that does not exist', async () => {
+    await assertFails(list(aliceOnb, 'pods/missing/messages'));
+    await assertFails(get(aliceOnb, 'pods/missing/messages/m1'));
+  });
+
+  it('denies collection-group queries on messages', async () => {
+    await assertFails(aliceOnb.firestore().collectionGroup('messages').get());
+    await assertFails(aliceOnb.firestore().collectionGroup('messages').where('authorUid', '==', ALICE).get());
+  });
+});
+
+describe('a member removed from memberUids (block, leave, withdrawal) loses options and messages at once', () => {
+  it('denies the removed member and keeps the others', async () => {
+    await assertSucceeds(get(aliceOnb, 'pods/p3/messages/m4'));
+    await assertSucceeds(get(aliceOnb, 'pods/p3/options/o3'));
+    await env.withSecurityRulesDisabled(async (admin) => {
+      await admin.firestore().doc('pods/p3').update({ memberUids: [CAROL] });
+    });
+    const carolOnb = onboarded(env, CAROL);
+    for (const path of ['pods/p3', 'pods/p3/messages/m4', 'pods/p3/options/o3']) {
+      await assertFails(get(aliceOnb, path));
+      await assertSucceeds(get(carolOnb, path));
+    }
+    await assertFails(list(aliceOnb, 'pods/p3/messages'));
   });
 });
 

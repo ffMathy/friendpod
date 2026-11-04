@@ -4,7 +4,15 @@
  * App Check / re-authentication rules apply.
  */
 import { z } from 'zod';
-import { LAUNCH_AREA_STATUSES, PLATFORMS, POD_STATES, REPORT_CATEGORIES, SET_PARTICIPATION_MODES } from '../types/domain';
+import {
+  LAUNCH_AREA_STATUSES,
+  PLATFORMS,
+  POD_STATES,
+  QUICK_REPLIES,
+  REPORT_CATEGORIES,
+  REPORT_TARGET_TYPES,
+  SET_PARTICIPATION_MODES,
+} from '../types/domain';
 import { MODERATION_REASONS } from '../reasons';
 import {
   art9CategorySchema,
@@ -116,6 +124,22 @@ export const voteOptionOutput = z.object({ tally: z.object({ yes: z.int().min(0)
 export const confirmAttendanceInput = z.strictObject({ podId: podIdSchema, coming: z.boolean() });
 export const confirmAttendanceOutput = ok;
 
+export const CHAT_MESSAGE_MAX = 500;
+export const CHAT_WARNINGS = ['CONTACT_INFO_BEFORE_MEETUP'] as const;
+export type ChatWarning = (typeof CHAT_WARNINGS)[number];
+export const sendMessageInput = z
+  .strictObject({
+    podId: podIdSchema,
+    text: z.string().trim().min(1).max(CHAT_MESSAGE_MAX).optional(),
+    quickReply: z.enum(QUICK_REPLIES).optional(),
+    ackContactWarning: z.boolean().optional(),
+  })
+  .refine((m) => (m.text === undefined) !== (m.quickReply === undefined), { message: 'exactly one of text / quickReply' });
+export const sendMessageOutput = z.union([
+  z.object({ messageId: docIdSchema }),
+  z.object({ warnings: z.array(z.enum(CHAT_WARNINGS)).min(1) }),
+]);
+
 const maxFive = (r: Record<string, unknown>): boolean => Object.keys(r).length <= 5;
 export const submitFeedbackInput = z.strictObject({
   podId: podIdSchema,
@@ -136,16 +160,27 @@ export const REPORT_TEXT_MAX = 500;
 export const reportInput = z
   .strictObject({
     target: z.strictObject({
-      type: z.enum(['user', 'option', 'interest']),
+      type: z.enum(REPORT_TARGET_TYPES),
       podId: podIdSchema,
       uid: uidSchema.optional(),
       optionId: docIdSchema.optional(),
+      messageId: docIdSchema.optional(),
     }),
     category: z.enum(REPORT_CATEGORIES),
     text: z.string().trim().max(REPORT_TEXT_MAX).optional(),
   })
   .refine((r) => r.target.type !== 'option' || r.target.optionId !== undefined, { message: 'optionId required', path: ['target', 'optionId'] })
-  .refine((r) => r.target.type === 'option' || r.target.uid !== undefined, { message: 'uid required', path: ['target', 'uid'] });
+  .refine((r) => r.target.type !== 'message' || r.target.messageId !== undefined, { message: 'messageId required', path: ['target', 'messageId'] })
+  .refine((r) => r.target.optionId === undefined || r.target.type === 'option', { message: 'optionId only on option reports', path: ['target', 'optionId'] })
+  .refine((r) => r.target.messageId === undefined || r.target.type === 'message', {
+    message: 'messageId only on message reports',
+    path: ['target', 'messageId'],
+  })
+  // Option and message reports name their author server-side, from the reported document.
+  .refine((r) => r.target.type === 'option' || r.target.type === 'message' || r.target.uid !== undefined, {
+    message: 'uid required',
+    path: ['target', 'uid'],
+  });
 export const reportOutput = z.object({ reportId: docIdSchema });
 
 export const registerPushTokenInput = z.strictObject({ token: z.string().min(1).max(4096), platform: z.enum(PLATFORMS) });
@@ -233,6 +268,7 @@ export const CALLABLES = {
   proposeOption: spec(proposeOptionInput, proposeOptionOutput),
   voteOption: spec(voteOptionInput, voteOptionOutput),
   confirmAttendance: spec(confirmAttendanceInput, confirmAttendanceOutput),
+  sendMessage: spec(sendMessageInput, sendMessageOutput),
   submitFeedback: spec(submitFeedbackInput, submitFeedbackOutput),
   blockUser: spec(blockUserInput, blockUserOutput),
   unblockUser: spec(unblockUserInput, unblockUserOutput),

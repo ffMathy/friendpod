@@ -16,6 +16,7 @@ export {
   removeInterest,
   report,
   respondToPod,
+  sendMessage,
   setParticipation,
   setPhotoSharing,
   submitFeedback,

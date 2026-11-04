@@ -97,7 +97,7 @@
     },
     "notifications": {
       "title": "Notifikationer",
-      "body": "Vi giver besked, når dit ugentlige drop er her, og når din pod er bekræftet. Notifikationer nævner aldrig en interesse eller en person.",
+      "body": "Vi giver besked, når dit ugentlige drop er her, når din pod er bekræftet, og når der er en ny besked i jeres mødechat. Notifikationer nævner aldrig en interesse, en person eller hvad nogen har skrevet.",
       "enable": "Slå notifikationer til"
     },
     "pledge": {
@@ -296,7 +296,11 @@
     "giveFeedback": "Mødtes I?",
     "leave": "Forlad pod",
     "leaveTitle": "Forlad denne pod?",
-    "leaveBody": "De andre ser kun, at et medlem er gået."
+    "leaveBody": "De andre ser kun, at et medlem er gået.",
+    "chat": "Mødechat",
+    "chatOpens": "Åbner {{when}}",
+    "chatOpenNow": "Åben nu",
+    "chatClosed": "Lukket"
   },
   "plan": {
     "title": "Planlægger",
@@ -328,6 +332,42 @@
       "PUBLIC_PLACE": "Bekræft, at det er et offentligt sted."
     }
   },
+  "chat": {
+    "title": "Mødechat",
+    "openUntil": "Åben indtil {{when}}",
+    "opens": "Åbner {{when}}",
+    "closed": "Lukket",
+    "membersOnly": "Kun nuværende medlemmer kan se podens chat.",
+    "empty": "Ingen beskeder endnu. Sig hej, eller fortæl de andre, når du er på vej.",
+    "notOpenYet": "Du kan skrive her fra 24 timer før mødet til 24 timer efter.",
+    "closedEnded": "Chatten lukkede 24 timer efter mødet. Beskederne slettes cirka 3 dage efter mødet.",
+    "closedOff": "Chatten er lukket, fordi mødet ikke længere er aftalt. Beskederne slettes cirka 3 dage efter det oprindelige mødetidspunkt.",
+    "notScheduled": "Chatten åbner 24 timer før jeres møde, når I har valgt et tidspunkt.",
+    "you": "Dig",
+    "messageLabel": "{{name}}, {{time}}: {{text}}",
+    "quickReplyLine": "{{name}}: {{reply}}",
+    "quickRepliesLabel": "Hurtige svar",
+    "quickReplies": {
+      "onMyWay": "Jeg er på vej",
+      "runningLate": "Jeg er lidt forsinket",
+      "imHere": "Jeg er her",
+      "cantMakeIt": "Jeg kan ikke komme"
+    },
+    "cantMakeItTitle": "Kan du ikke komme?",
+    "cantMakeItBody": "Vi fortæller din pod, at du ikke kommer. Et afbud så tæt på mødet tæller som et sent afbud.",
+    "cantMakeItConfirm": "Jeg kan ikke komme",
+    "cancelledChatClosed": "Dit afbud er gemt. Der kommer nu for få, så chatten er lukket.",
+    "inputLabel": "Besked",
+    "placeholder": "Skriv en besked",
+    "counter": "{{length}}/{{max}}",
+    "counterLabel": "{{length}} af {{max}} tegn",
+    "send": "Send",
+    "contactWarning": "I har ikke mødt hinanden endnu. Det er helt fint at vente til bagefter.",
+    "contactWarningDetail": "Din besked indeholder kontaktoplysninger, fx et telefonnummer, en e-mail, et brugernavn eller et link.",
+    "sendAnyway": "Send alligevel",
+    "edit": "Rediger",
+    "report": "Anmeld besked"
+  },
   "feedback": {
     "title": "Feedback",
     "didYouMeet": "Mødtes I?",
@@ -355,6 +395,7 @@
   "report": {
     "title": "Anmeld",
     "intro": "Anmeldelser er fortrolige. Vi fortæller aldrig nogen, hvem der har anmeldt dem.",
+    "messageCopy": "Vi gemmer en kopi af beskeden sammen med din anmeldelse, så vi kan se på den, når chatten er slettet.",
     "categories": {
       "harassment": "Chikane",
       "safety": "Sikkerhed",
@@ -436,7 +477,7 @@
     },
     "notifications": {
       "title": "Notifikationer",
-      "body": "Push-beskeder siger kun, at dit drop er her, eller at en pod har ændret sig; aldrig en interesse eller et navn.",
+      "body": "Push-beskeder siger kun, at dit drop er her, at en pod har ændret sig, eller at der er en ny besked i din pod; aldrig en interesse, et navn eller selve beskeden.",
       "turnOn": "Slå notifikationer til",
       "turnOff": "Slå notifikationer fra",
       "failed": "Det virkede ikke. Du kan ændre notifikationer i telefonens indstillinger."
@@ -506,6 +547,9 @@
     "VALIDATION": "Noget af det, du har indtastet, er ikke gyldigt.",
     "URL": "Det link er ikke tilladt.",
     "CONTACT_INFO": "Kontaktoplysninger er ikke tilladt her.",
+    "BLOCKLIST": "Teksten indeholder ord, der ikke er tilladt på Grouper, så den blev ikke gemt.",
+    "PII_CPR": "Det ligner et CPR-nummer, så det blev ikke gemt. Del aldrig CPR-numre på Grouper.",
+    "CONTACT_INFO_BEFORE_MEETUP": "I har ikke mødt hinanden endnu. Det er helt fint at vente til bagefter.",
     "UNDERAGE": "Grouper er kun for personer på 18 år og derover.",
     "GENDER_CONSENT": "Pods med samme køn kræver dit samtykke.",
     "STAR_LIMIT": "Du kan stjernemarkere op til 3 interesser.",
@@ -514,9 +558,11 @@
     "STATE": "Det er ikke muligt på dette trin i poden.",
     "LIMIT": "Du har nået grænsen for dette.",
     "WINDOW": "Det tidspunkt er ikke muligt.",
+    "CHAT_CLOSED": "Chatten er lukket.",
     "RECENT_LOGIN": "Log ind igen for at bekræfte, at det er dig.",
     "APP_CHECK_REPLAY": "Prøv igen.",
     "NOT_ONBOARDED": "Gør først din tilmelding færdig.",
+    "NOT_MEMBER": "Kun nuværende medlemmer af poden kan gøre det.",
     "NOT_CO_MEMBER": "Det kan du kun gøre for personer fra dine pods.",
     "NOT_FOUND": "Det findes ikke længere.",
     "ALREADY_EXISTS": "Det findes allerede.",

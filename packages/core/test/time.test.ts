@@ -1,8 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import {
+  CHAT_CLOSES_AFTER_MS,
+  CHAT_DELETE_AFTER_MS,
+  CHAT_OPENS_BEFORE_MS,
   backfillDeadline,
+  chatWindow,
   dropSchedule,
   feedbackClosesAt,
+  isChatOpen,
   meetupTimers,
   nextDropWeek,
   participationEffectiveWeek,
@@ -137,5 +142,58 @@ describe('drop schedule (§4.1)', () => {
     expect(participationEffectiveWeek('skipNext', thuAfterCutoff)).toBe('2026-W46');
     expect(participationEffectiveWeek('skipNext', thuAfterRelease)).toBe('2026-W47');
     expect(nextDropWeek(thuAfterRelease)).toBe('2026-W47');
+  });
+});
+
+describe('meetup chat window', () => {
+  const meetupAt = new Date('2026-11-14T13:00:00Z');
+  const plus = (d: Date, ms: number): Date => new Date(d.getTime() + ms);
+
+  it('opens with "Still coming?" at T−24 h, closes at T+24 h and expires messages at T+72 h', () => {
+    const w = chatWindow(meetupAt);
+    expect(w.opensAt.getTime()).toBe(meetupTimers(meetupAt.getTime()).stillComingAt);
+    expect(w.opensAt.toISOString()).toBe('2026-11-13T13:00:00.000Z');
+    expect(w.closesAt.toISOString()).toBe('2026-11-15T13:00:00.000Z');
+    expect(w.deleteAt.toISOString()).toBe('2026-11-17T13:00:00.000Z');
+    expect([CHAT_OPENS_BEFORE_MS, CHAT_CLOSES_AFTER_MS, CHAT_DELETE_AFTER_MS]).toEqual([86_400_000, 86_400_000, 3 * 86_400_000]);
+  });
+
+  it('is open from opensAt inclusive to closesAt exclusive', () => {
+    const { opensAt, closesAt } = chatWindow(meetupAt);
+    expect(isChatOpen(meetupAt, plus(opensAt, -1))).toBe(false);
+    expect(isChatOpen(meetupAt, opensAt)).toBe(true);
+    expect(isChatOpen(meetupAt, meetupAt)).toBe(true);
+    expect(isChatOpen(meetupAt, plus(closesAt, -1))).toBe(true);
+    expect(isChatOpen(meetupAt, closesAt)).toBe(false);
+    expect(isChatOpen(meetupAt, plus(closesAt, 3_600_000))).toBe(false);
+  });
+
+  it('keeps 24 elapsed hours across the spring-forward weekend (Sunday 29 March 2026)', () => {
+    const sunday = new Date(fromLocal({ year: 2026, month: 3, day: 29, hour: 12, minute: 0 }));
+    const w = chatWindow(sunday);
+    expect(sunday.toISOString()).toBe('2026-03-29T10:00:00.000Z');
+    expect(w.opensAt.toISOString()).toBe('2026-03-28T10:00:00.000Z');
+    // Saturday 11:00 local: the wall clock moves 25 hours while 24 elapse.
+    expect(toLocal(w.opensAt.getTime())).toMatchObject({ day: 28, hour: 11, minute: 0 });
+    expect(toLocal(w.closesAt.getTime())).toMatchObject({ day: 30, hour: 12, minute: 0 });
+    expect(isChatOpen(sunday, w.opensAt)).toBe(true);
+    expect(isChatOpen(sunday, new Date(fromLocal({ year: 2026, month: 3, day: 28, hour: 10, minute: 59 })))).toBe(false);
+  });
+
+  it('keeps 24 elapsed hours across the fall-back weekend (Sunday 25 October 2026)', () => {
+    const sunday = new Date(fromLocal({ year: 2026, month: 10, day: 25, hour: 12, minute: 0 }));
+    const w = chatWindow(sunday);
+    expect(sunday.toISOString()).toBe('2026-10-25T11:00:00.000Z');
+    // Saturday 13:00 local: the wall clock moves 23 hours while 24 elapse.
+    expect(toLocal(w.opensAt.getTime())).toMatchObject({ day: 24, hour: 13, minute: 0 });
+    expect(toLocal(w.closesAt.getTime())).toMatchObject({ day: 26, hour: 12, minute: 0 });
+    expect(w.deleteAt.getTime() - sunday.getTime()).toBe(72 * 3_600_000);
+    expect(isChatOpen(sunday, new Date(fromLocal({ year: 2026, month: 10, day: 24, hour: 12, minute: 30 })))).toBe(false);
+    expect(isChatOpen(sunday, new Date(fromLocal({ year: 2026, month: 10, day: 26, hour: 11, minute: 59 })))).toBe(true);
+  });
+
+  it('is never open for an invalid date', () => {
+    expect(isChatOpen(new Date(Number.NaN), meetupAt)).toBe(false);
+    expect(isChatOpen(meetupAt, new Date(Number.NaN))).toBe(false);
   });
 });

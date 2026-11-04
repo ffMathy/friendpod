@@ -9,6 +9,10 @@ export const APP_ERRORS = {
   VALIDATION: 'invalid-argument',
   URL: 'invalid-argument',
   CONTACT_INFO: 'invalid-argument',
+  BLOCKLIST: 'invalid-argument',
+  PII_CPR: 'invalid-argument',
+  // sendMessage returns this in `warnings` rather than throwing it; it is listed so the client has one message table.
+  CONTACT_INFO_BEFORE_MEETUP: 'failed-precondition',
   UNDERAGE: 'failed-precondition',
   GENDER_CONSENT: 'failed-precondition',
   STAR_LIMIT: 'failed-precondition',
@@ -17,9 +21,12 @@ export const APP_ERRORS = {
   STATE: 'failed-precondition',
   LIMIT: 'failed-precondition',
   WINDOW: 'failed-precondition',
+  CHAT_CLOSED: 'failed-precondition',
   RECENT_LOGIN: 'failed-precondition',
   APP_CHECK_REPLAY: 'failed-precondition',
   NOT_ONBOARDED: 'failed-precondition',
+  /** The caller is not a current confirmed member of the pod (not in `pods/{podId}.memberUids`). */
+  NOT_MEMBER: 'permission-denied',
   NOT_CO_MEMBER: 'permission-denied',
   NOT_FOUND: 'not-found',
   ALREADY_EXISTS: 'already-exists',

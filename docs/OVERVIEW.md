@@ -11,7 +11,7 @@ Status, 2026-11-04: design for your review, plus a working scaffold (M0). Nothin
 
 ## What we are building
 
-**Pods: friendship matching for small groups.** You describe yourself with free-form **interests** in your own words: "madlavning", "far på barsel", "Fortnite". Every Thursday evening a **drop** forms new **pods** of 4–6 strangers who live near each other and share an interest. Members accept, pick a time and place by vote, and meet in person. There is no chat, no public profile and no swiping.
+**Pods: friendship matching for small groups.** You describe yourself with free-form **interests** in your own words: "madlavning", "far på barsel", "Fortnite". Every Thursday evening a **drop** forms new **pods** of 4–6 strangers who live near each other and share an interest. Members accept, pick a time and place by vote, and meet in person. Around each meetup the pod gets a short chat, open for a day before and a day after. There is no open-ended chat, no public profile and no swiping.
 
 ## How a week works
 
@@ -19,7 +19,7 @@ Status, 2026-11-04: design for your review, plus a working scaffold (M0). Nothin
 2. **Proposal card.** It shows the theme in *your* wording, the area, the pod size and an age span. Names and photos stay hidden.
 3. **Accept or decline** within 48 hours. When 4 people accept, the pod is **confirmed**: members now see first names and photos (photos only if their owner opts in, in sensitive pods). If too few accept, backfill invites someone who wasn't matched that week.
 4. **Planning.** Members propose 2–3 options (a time and a public place) and vote within 72 hours.
-5. **Meetup.** The app sends a reminder and safety tips. Afterwards it asks "Did you meet?" and whether you'd meet each person again. If at least 3 members choose **Keep pod**, the pod plans its next meetup.
+5. **Meetup.** 24 hours before, the app asks "Still coming?", shows the safety tips and opens the pod's **meetup chat**: short messages and one-tap replies such as "Running a bit late" or "Can't make it", until 24 hours after the meetup. Before you have met, it warns you about sharing a phone number or handle ("You haven't met yet. It's fine to wait until after."). Messages are deleted about 3 days after the meetup. Afterwards the app asks "Did you meet?" and whether you'd meet each person again. If at least 3 members choose **Keep pod**, the pod plans its next meetup.
 6. **Always available:** block, report, leave a pod, pause matching, download your data, delete your account.
 
 ## Your decisions (interview)
@@ -30,7 +30,7 @@ Status, 2026-11-04: design for your review, plus a working scaffold (M0). Nothin
 | Meeting | In person only, within a radius of an approximate location |
 | Interests | Free-form; matched by meaning with EmbeddingGemma vectors, so "madlavning" ≈ "cooking" |
 | Sensitive interests | Pregnancy, faith, LGBTQ+, health and so on are allowed with explicit consent. They are never public and are shown only inside a pod formed around that interest |
-| Talking | A meetup planner (propose and vote); no free-form chat |
+| Talking | A meetup planner (propose and vote), plus a short meetup chat from 24 hours before until 24 hours after each meetup. You changed this on 2026-11-04 after the storyboard review; it was "planner only, no chat" |
 | Preferences | Age range, optional same-gender pods, optional photo shown only after confirmation |
 | Sign-in | Apple, Google, email magic link (no SMS) |
 | Market | Denmark first (Aarhus, then Copenhagen), Danish and English, 18+, free |
@@ -56,6 +56,12 @@ The full list is DESIGN §2.2; these are the ones with the most product impact.
    - the default age range is wider;
    - pair-history windows are shorter.
 9. **Safety switch in code:** sensitive interests are refused until "remove and withdraw" is built. Withdrawing consent must be as easy as giving it.
+10. **Meetup chat guard rails** (you approved these with the chat on 2026-11-04; DESIGN A28):
+    - only current members, only around a scheduled meetup; a reschedule closes the chat;
+    - messages up to 500 characters, at most 30 per person per pod per hour;
+    - phone numbers, emails, handles and links before you have met need a second tap; CPR-like numbers and blocklisted words are always refused;
+    - every message can be reported, and the report keeps a copy;
+    - pushes say only "New message in your pod", at most every 10 minutes.
 
 ## What the experiments showed
 
@@ -90,7 +96,7 @@ The detector is tuned to miss nothing, so it over-flags. It wrongly flags ordina
 - **What the design commits to:** explicit consent per sensitive interest, recorded with the exact text version; withdrawal in one tap; data kept in the EU (europe-west1) wherever Firebase allows; minimal data (birth year, a coarse cell, first name); retention limits enforced by the database (TTL); an erasure ledger, so a backup restore cannot bring deleted data back; and logs without IP addresses or interest text.
 - **What only you can do before the alpha:**
   - **A DPIA is mandatory** (5 of Datatilsynet's 8 criteria apply). PRIVACY §7 has the outline and the risk register.
-  - **Hire a Danish data-protection lawyer.** PRIVACY §17 lists 22 questions, the largest being whether the server may check a typed tag for sensitivity *before* consent.
+  - **Hire a Danish data-protection lawyer.** PRIVACY §17 lists 17 review items, the largest being whether the server may check a typed tag for sensitivity *before* consent. The newest is the meetup chat in sensitive-themed pods, whose messages will often be Art. 9 data; the consent sheet now names the chat.
   - **Name a privacy lead.** A formal DPO is probably not required yet (PRIVACY §8).
   - **Create a Cloud Identity organisation *before* the Firebase projects,** so logs can be pinned to the EU (DESIGN §7).
 - **Residual risks you are accepting:**
@@ -101,10 +107,10 @@ The detector is tuned to miss nothing, so it over-flags. It wrongly flags ordina
 
 | Monthly active users | 1,000 | 10,000 | 100,000 |
 |---|---|---|---|
-| Infrastructure, USD per month | ~$0.5–1 | ~$3–5 | ~$49–63 |
+| Infrastructure, USD per month | ~$0.5–1 | ~$3–5 | ~$50–65 |
 
 - **Fixed costs:** Apple Developer $99 a year, Google Play $25 once, a domain.
-- **What grows first:** photo downloads.
+- **What grows first:** photo downloads. The meetup chat adds about $1–2 a month at 100,000 users.
 - **Abuse protection:** spending under abuse is capped by instance limits, kill switches and budget alerts (worst case for the embedder is about $345 a month).
 
 ## Questions for you
@@ -134,8 +140,8 @@ tools/sim, tools/admin  Simulator, admin CLI (stub)
 research/            Embedding calibration and thin-market simulation
 ```
 
-- **Working now:** onboarding, profile and participation, adding interests with the consent gate, the matcher, the security rules, and the app's main flows. CI runs about 550 tests, most against the Firebase emulators.
-- **Stubbed:** the pod lifecycle after the drop (accept, plan, vote, feedback), block and report, export and deletion, and admin tools. Each stub fails loudly and points to its design section (README, "What is stubbed").
+- **Working now:** onboarding, profile and participation, adding interests with the consent gate, the matcher, sending meetup-chat messages (server side), the security rules, and the app's main flows. CI runs about 650 tests, about 200 of them against the Firebase emulators.
+- **Stubbed:** the pod lifecycle after the drop (accept, plan, vote, attendance, feedback, the "chat is open" push), block and report, export and deletion, and admin tools. Each stub fails loudly and points to its design section (README, "What is stubbed").
 
 ## Next steps (rest of M0 → M1)
 

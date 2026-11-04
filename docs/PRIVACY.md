@@ -33,7 +33,7 @@ Evidence tags are the same as in DESIGN.md:
 | Processor | EU transactional email provider, to be chosen in M1 (D§2.4 Q17) [A] | Inactivity warnings and Art. 34 breach notices (§9) |
 | Independent controllers | Apple (Sign in with Apple, App Attest); Google as identity provider and for Play Integrity | Their own account and attestation data [GDPR]. **[LAWYER]** |
 | No role | Expo (EAS Build only), Hugging Face (build-time model download), GitHub | No end-user data: calibration sets in the repository are synthetic or founder-written (D§5.3). Expo push and EAS Update are not used [GDPR][FBX] |
-| Recipients | Invitees and fellow pod members | Invitees see the theme in their own wording before confirmation (they hold it too). After confirmation, members see first names and photos; in sensitive-themed pods a photo only if its owner opts in (D§3.4, D§6.1 S6) |
+| Recipients | Invitees and fellow pod members | Invitees see the theme in their own wording before confirmation (they hold it too). After confirmation, members see first names and photos; in sensitive-themed pods a photo only if its owner opts in (D§3.4, D§6.1 S6). Around each scheduled meetup, the current confirmed members see each other's meetup-chat messages, until they are deleted about 3 days after the meetup (D§3.6) |
 
 ---
 
@@ -53,7 +53,7 @@ Evidence tags are the same as in DESIGN.md:
 | P10 | Meetup planner and feedback | Options, votes, place text, attendance, private meet-again, rating | 6(1)(b) |
 | P11 | No-show policy | Attendance counters | 6(1)(b) per the Terms; **[LAWYER]** 6(1)(f) as an alternative |
 | P12 | Blocks | User-ID pairs | 6(1)(b) |
-| P13 | Reports, moderation, sanctions, statements of reasons; anti-infiltration review of sensitive-themed pods (R15) | Report, decision, ban hash; sensitive-theme holds and anomaly reviews | 6(1)(f); 6(1)(c) (DSA Arts. 16–17); 9(2)(a) for the anomaly review of sensitive holdings (named in the consent) |
+| P13 | Reports, moderation, sanctions, statements of reasons; anti-infiltration review of sensitive-themed pods (R15) | Report, decision, ban hash, the copy of a reported chat message; sensitive-theme holds and anomaly reviews | 6(1)(f); 6(1)(c) (DSA Arts. 16–17); 9(2)(a) for the anomaly review of sensitive holdings (named in the consent) |
 | P14 | Human review of flagged tag wording, without uid | Normalized text | 9(2)(a) (named in the consent) for sensitive tags; otherwise 6(1)(f) |
 | P15 | Transactional push | FCM token, installation ID | 6(1)(b). No marketing pushes are planned |
 | P16 | Security and abuse prevention | App Check tokens, rate-limit counters, an in-memory per-IP bucket (never stored or logged), pseudonymised logs (`uidH`, no IP addresses: Cloud Run request logs are excluded, §5) | 6(1)(f) (Recital 49) |
@@ -61,6 +61,7 @@ Evidence tags are the same as in DESIGN.md:
 | P18 | Service metrics | Aggregate counters per drop and launch area; any cell under 10 suppressed; no gender | 6(1)(f) |
 | P19 | Product improvement: weight tuning and classifier recalibration | `drops` aggregates, simulations, review-queue samples of tags reviewed as **not** sensitive (no uid, 12 months). Sensitive wording is never reused; per-user outcome data only after a DPIA update | 6(1)(f), with a documented balancing test before M4 |
 | P20 | Service emails | Email address, message | 6(1)(b) (inactivity warning before deletion); 6(1)(c) (Art. 34 notices) |
+| P21 | Meetup chat (D§3.6): short messages between current pod members from 24 h before until 24 h after each meetup, with moderation and generic pushes | Message text or quick reply, author, time; in sensitive-themed pods often Art. 9 data (the theme, health details) | 6(1)(b); in sensitive-themed pods also **9(2)(a)**, under the per-interest consent, which names the chat (§3.3). Art. 9 details in ordinary pods' chat or about other members: **[LAWYER]** (§17) |
 
 A contract is not an Art. 9 exception (EDPB 05/2020 §99) [GDPR]. Every sensitive step therefore rests on explicit consent, except the pre-consent check (P6), whose position is open (§3.8).
 
@@ -97,6 +98,7 @@ Gender has its own consent (§3.6).
 > - save "{tag}" privately on your account. It is never shown on any profile.
 > - use it in automated matching to propose pods of 4–6 people near you who added the same interest and also consented;
 > - show it as the pod's theme only to the people invited to those pods, who all added it too. Some of them may decline. Once a pod is confirmed, its members see your first name. They see your photo only if you choose to show it in that pod;
+> - let members of a confirmed pod write to each other in a short meetup chat, open from 24 hours before until 24 hours after each meetup. Messages are deleted 3 days after the meetup;
 > - let a Grouper team member see the wording of the interest, without your name, to check how it is classified;
 > - check accounts for signs that someone is not genuine, for example an account that adds many unrelated sensitive interests.
 >
@@ -118,6 +120,7 @@ Gender has its own consent (§3.6).
 > - gemme »{tag}« privat på din konto. Den vises aldrig på nogen profil.
 > - bruge den til automatisk matchning, så vi kan foreslå pods med 4–6 personer i nærheden, som har tilføjet samme interesse og også har givet samtykke;
 > - kun vise den som podens tema for de personer, der bliver inviteret til de pods, og som alle selv har tilføjet den. Nogle af dem siger måske nej. Når poden er bekræftet, ser medlemmerne dit fornavn. Dit billede ser de kun, hvis du selv vælger at vise det i den pod;
+> - lade medlemmerne af en bekræftet pod skrive sammen i en kort mødechat, der er åben fra 24 timer før til 24 timer efter hvert møde. Beskederne slettes 3 dage efter mødet;
 > - lade en medarbejder hos Grouper se ordlyden af interessen, uden dit navn, for at kontrollere, hvordan den er klassificeret;
 > - holde øje med tegn på, at en konto ikke er ægte, fx en konto, der tilføjer mange forskellige følsomme interesser.
 >
@@ -129,11 +132,14 @@ Gender has its own consent (§3.6).
 >
 > [Tilføj interesse] (inaktiv indtil afkrydset) [Tilføj ikke] · Læs mere om følsomme interesser
 
+The meetup-chat bullet was added to both texts on 2026-11-04. Nothing had shipped, so they keep their version IDs and only their hash locks changed (§3.4).
+
 **[LAWYER]** to review:
 - the wording, including the residual-risk paragraph (R15);
 - whether per-tag consent is specific enough, or per-category scope would be better;
 - listing all categories when the category is uncertain;
-- whether the anomaly review (fourth bullet) belongs in this consent or rests on 6(1)(f) alone;
+- whether the anomaly review (last bullet) belongs in this consent or rests on 6(1)(f) alone;
+- whether the meetup-chat bullet is enough to cover messages that reveal the theme, and its "deleted 3 days after the meetup", given that TTL can take up to another 24 h (§5);
 - the Danish copy, with a native speaker.
 
 ### 3.4 Recording consent
@@ -154,7 +160,7 @@ Gender has its own consent (§3.6).
   1. Delete the holding.
   2. Decrement the tag's count (`refCount`, or `privateAssign.refCount` for a self-flagged holding). At 0, delete the tag text and vector and subtract the vector from its concept.
   3. **Pod cards:** delete every `users/{uid}/pods/*` card themed on that concept, in every state (invited, declined, active, archived).
-  4. **Pods:** for every pod themed on that concept, archived ones included: remove the user from `memberUids`, `roster`, `podState.members` and `podState.memberList`; delete the user's options and votes, their own feedback, and other members' attendance and meet-again entries about them; remove the pod from photo grants in both directions. Active pods follow the normal below-minimum rules (D§4.6). Others see only "A member left".
+  4. **Pods:** for every pod themed on that concept, archived ones included, in this order: (a) find the pods through `podState.memberList`; (b) remove the user from `memberUids` and `roster`, after which `sendMessage` refuses them, so no message can arrive after the next step; (c) delete the user's options and votes, their chat messages, their own feedback, and other members' attendance and meet-again entries about them, and remove the pod from photo grants in both directions; (d) last, remove the user from `podState.members` and `podState.memberList`, so that a retry after a failure still finds every pod (D§8.2). Active pods follow the normal below-minimum rules (D§4.6). Others see only "A member left".
   5. **Open invitations** on that theme are cancelled; the user is removed from this week's unreleased pods (release revalidation checks `consentRef`, D§10.3) and from the backfill pool for that theme.
   6. **Matching data:** remove the concept from `matchProfiles.themes` and `themeIds`.
   7. **Records:** append a `withdraw` event; strip `interestId` and `category` from earlier events for that tag (setting `redactedAt`); set `expiresAt` to +3 years. Write an `erasureLedger` entry (`consentWithdrawal`, `uidH`, `interestId`) so that a backup restore cannot bring the holding back (§5).
@@ -212,6 +218,8 @@ Until counsel decides, R5 is rated **medium** residual risk, not low (§7.3).
 | Concept link in `matchProfiles` | Yes (pseudonymous) | Server-only |
 | Drop input and result snapshots; concept snapshot | Yes (pseudonymous concept links and vectors) | Server-only EU buckets; drop snapshots deleted after release (≤ 2 days), concept snapshots 14 days |
 | Membership of a sensitive-themed pod | Yes | Visible only to invitees and co-members, who all hold the same consented interest; age span and shared interests are withheld from cards before confirmation |
+| Meetup-chat messages in a sensitive-themed pod | Yes (they will often reveal the theme or health details) | Readable only by current members (rules `get` on the pod); written only by the server; never in pushes or logs; deleted at meetup + 72 h (TTL); the writer's messages are deleted at withdrawal and erasure; a reported message is copied into the report (§5) |
+| Meetup-chat messages in an ordinary pod | Possibly (a member may mention a health detail, for example) | Handled the same way; no consent covers volunteered Art. 9 details here **[LAWYER]** (§17) |
 | Erasure-ledger `consentWithdrawal` entry; `consentEvents` with `scope: 'art9'` | Possibly (shows that a person once held some sensitive interest) | `uidH` and HMAC'd `interestId` only; no wording, concept or category; 35 days and 3 years respectively |
 | Review-queue wording | Possibly | No uid; access logged; deleted 30 days after the decision |
 | Ordinary tags that together imply a sensitive trait | Possibly (inference) | Sensitive holdings never feed secondary scoring; a theme is always one concept every member holds |
@@ -229,7 +237,8 @@ Until counsel decides, R5 is rated **medium** residual risk, not low (§7.3).
 - **Infiltration controls (S5–S7, R15).** Eligibility gate (account age, an attended meetup, no open reports), at most 1 active sensitive-themed pod and 3 sensitive proposals per 12 weeks, at most 3 sensitive adds per week, photo opt-in per pod, a "not a genuine member" report that holds the reported account, and anomaly review. The residual risk is stated in the consent text (§3.3).
 - **Aggregates.** None for sensitive concepts. Ordinary chips appear only with ≥ 10 holders in the launch area, drop aggregates suppress cells under 10, and waitlist counts are bucketed [GDPR].
 - **Third-party data** ("my son's diagnosis"). A tag that matches a third-party pattern **and** is sensitive or suspected is refused (`THIRD_PARTY_SENSITIVE`), with a hint to reword it about the user's own situation ("parent of an autistic child"). The user's own consent cannot be a 9(2)(a) basis for someone else's health data, and Russmedia expects a poster-is-subject check. An ordinary third-party tag gets a warning only. **[LAWYER]** Confirm the default, and whether a reworded tag ("parent of …"), which still indirectly concerns the child, may rest on the user's consent.
-- **Copying.** Android screen capture can be blocked on sensitive-themed pod screens (`expo-screen-capture`) [A]. The Terms forbid sharing members' information.
+- **Copying.** Android screen capture can be blocked on sensitive-themed pod screens, the meetup chat included (`expo-screen-capture`) [A]. The Terms forbid sharing members' information.
+- **Meetup chat.** Open only from 24 h before until 24 h after a scheduled meetup, for current members only, and deleted 3 days after the meetup (D§3.6). Messages pass the same blocklists and PII patterns as tags: CPR-like numbers are always refused, and before the meetup a phone number, email, handle or link needs a second tap after "You haven't met yet". Pushes never carry the text.
 - **Rescans.** Lexicon and prototype updates trigger a rescan. On a new suspected hit the tag **immediately** leaves its ordinary concept (vector subtracted; label, counts and chips recomputed; removed from `podInterests` and `secondary`). The holdings become `pendingConsent`: excluded from all processing except storage, shown to the holder at the next app open, and deleted after 14 days without consent. **[LAWYER]** The 14-day hold stores possibly-Art. 9 data without a 9(2) basis; approve it or shorten it.
 - **Self-flagging.** Users can self-flag upward ("Keep this private", with consent) but cannot downgrade a system flag; only a human review can. **[LAWYER]** Does a user's "not sensitive" have legal effect?
 - **Review downgrades.** A reviewer's "not sensitive" applies to **future adds only**. Existing holdings stay sensitive under their original consent unless the holder actively chooses "Treat as ordinary"; no answer means they stay sensitive. Data given under an Art. 9 consent therefore never starts feeding shared features without the holder's opt-in.
@@ -240,7 +249,7 @@ Until counsel decides, R5 is rated **medium** residual risk, not low (§7.3).
   - the consent text names automated matching (Art. 22(2)(c) and (4));
   - **automated temporary pauses** (two reports in 30 days or one safety report, the no-show pause, the suspected-under-18 pause, the sensitive-theme hold after a "not a genuine member" report; D§3.7, D§4.4) each come with an immediate statement of reasons and human review on request;
   - **permanent sanctions** (suspensions, bans) are decided only by humans;
-  - automated tag rejections carry a statement of reasons and a way to contest.
+  - automated tag and chat-message rejections carry a statement of reasons and a way to contest.
 - **Transparency (Arts. 13(1)(c), 13(2)(f)).** "Why this pod" (D§6.7) and a "How matching works" page covering: inputs used and not used (photos, inferred traits, gender only for same-gender pods), the eligibility rules for sensitive themes, every automated pause, how to ask for human review, and pause at any time.
 
 ---
@@ -265,6 +274,7 @@ Until counsel decides, R5 is rated **medium** residual risk, not low (§7.3).
 | Dissolved pods | `podState`, `pods` | 30 days [MAT] | `dailyMaintenance` |
 | Confirmed pods | `pods`, `podState` | Until archived by the state machine (D§4.6); deleted 90 days after archive [MAT] | `dailyMaintenance` (recursive) |
 | Meetup options and votes | `pods/{id}/options` | Archive, re-plan, or meetup + 30 days, whichever is first | `dailyMaintenance` |
+| Meetup-chat messages | `pods/{id}/messages` | `meetupAt` + 72 h; TTL deletes usually within a further 24 h, so the notice says "about 3 days after the meetup". The writer's messages go at once at erasure, and at withdrawal in pods on that theme | TTL (`expiresAt`), `purgeUser`, `withdrawSensitive` |
 | Feedback | `podFeedback` | With the pod; only counters remain. Entries about an erased user are deleted at erasure | — |
 | Drop input and result snapshots | GCS `grouper-<env>-drops` (EU) | Deleted after release; lifecycle 2 days | `releaseDrop`, lifecycle |
 | Concept snapshots (int8 vectors) | GCS `grouper-<env>-snapshots` (EU) | 14 days | Lifecycle |
@@ -272,7 +282,7 @@ Until counsel decides, R5 is rated **medium** residual risk, not low (§7.3).
 | Pair history (HMAC) | `matchProfiles.recentH` | 26 weeks [MAT] | Pruned at the weekly `lastDrop` write; profiles not written in a drop are pruned daily (`recentMinUntil`); erasure removes the erased user's `uidH` from every profile |
 | No-show events | `matchProfiles.noShowEvents` | Last 8, at most 26 weeks | Pruned when written |
 | Blocks | `blocks`, `users/{uid}/blocks` | While both accounts exist | Cascade |
-| Reports | `reports` | Resolution + 12 months [GDPR]; unresolved reports at most 12 months from creation. Erased parties are replaced by `reporterH` / `targetH` | TTL |
+| Reports, including the copy of a reported chat message (text or quick reply; its author is the report's target) | `reports` | Resolution + 12 months [GDPR]; unresolved reports at most 12 months from creation. The message copy stays with its report after the message itself is deleted. Erased parties are replaced by `reporterH` / `targetH` | TTL |
 | Sanctions | `sanctions/{uid}` | While the account exists | `purgeUser` |
 | Ban record (`HMAC(email)`) | `bans` | 24 months [GDPR] | TTL |
 | Consent events | `consentEvents` | While active, then 3 years, pseudonymised, without tag reference or category [GDPR] **[LAWYER]** | TTL |
@@ -288,7 +298,7 @@ Until counsel decides, R5 is rated **medium** residual risk, not low (§7.3).
 | Cloud Run request logs (IP address, user agent) | Not kept: excluded from the `_Default` sink (D§13) | — | Exclusion filter |
 | Admin Activity / System Event audit logs (admin principals, resource names; no end-user data) | Cloud Logging `_Required` (global; location cannot be changed) | 400 days (Google default) | Google |
 | Service emails | EU email provider (Q17) | Per the provider's DPA [A] | — |
-| Device caches (images, Firestore offline cache) | The user's phone | Until the next app open after a revocation; cleared on sign-out and deletion | App |
+| Device caches (images, Firestore offline cache) | The user's phone | Until the next app open after a revocation. Meetup-chat messages: never shown after their `expiresAt`; cached copies, including messages the server deleted at erasure or withdrawal while the device was not listening, stay on disk until the first app open after the latest cached `expiresAt` (`meetupAt` + 72 h), or until the pod leaves the active list if that is sooner. All cleared on sign-out and deletion | App |
 | Backups | Firestore PITR + daily backups | 7 days each [GDPR][FBX] | Native; the restore replays every `erasureLedger` entry first |
 
 **TTL mechanics** [FBX]:
@@ -322,28 +332,31 @@ Responses within one month, extendable by two (Art. 12(3)) [GDPR]. Requests from
 - all interests, including sensitive and pending ones, with how each was classified (lexicon hit, detector result and margin, category guess, review decision, self-flag), and the consent log;
 - pods: IDs, dates, state, the theme in the user's own wording, the user's own status, the reason codes shown to them, and the number of members. **Co-members' names are not included.** They are other people's data, and in a sensitive-themed pod a name linked to the theme is that person's Art. 9 data (Arts. 15(4), 20(4)). The user sees them in the app while the pod exists;
 - options and votes the user wrote, and feedback the user gave;
+- meetup-chat messages the user wrote that still exist (text or quick reply, pod ID, time). Other members' messages are not included;
 - **derived matching data:** the reliability score and the counters and dated no-show events behind it, `declinesInRow`, `ignoredInRow`, `waitingSinceWeek`, active pod counts, sensitive-theme eligibility and any hold, weekly drop outcomes with unmatched reason codes, and the number of pair-history entries (not who they are);
 - blocks the user made (with the first name they saw) and reports the user filed;
-- **reports about the user:** category, date, status and decision, with the reporter's identity and the report text withheld (Art. 15(4); databeskyttelsesloven § 22 for text that could identify the reporter **[LAWYER]**); sanctions and automated pauses with their statements of reasons;
+- **reports about the user:** category, date, status and decision, and for a reported meetup-chat message the copy Grouper keeps of it (kind, text or quick reply, date), which is the user's own message and outlives its TTL; the reporter's identity and the report text are withheld (Art. 15(4); databeskyttelsesloven § 22 for text that could identify the reporter **[LAWYER]**); sanctions and automated pauses with their statements of reasons;
 - notices.
 
-It never contains who reported the user, other members' private feedback (their meet-again votes and ratings), or other users' interests or names. **[LAWYER]** Confirm that withholding individual meet-again votes and the report text is justified, and document the restriction.
+It never contains who reported the user, other members' private feedback (their meet-again votes and ratings), or other users' interests, names or messages. **[LAWYER]** Confirm that withholding individual meet-again votes and the report text is justified, and document the restriction.
 
 **Erasure sequence** (`deleteAccount`, then `purgeUser`; idempotent and retried) [GDPR][FBX]:
 1. **Start.** Require recent re-authentication and a replay-protected App Check token. On iOS, the device first revokes the Sign in with Apple token with a fresh `authorizationCode` (RNFirebase `revokeToken`; Apple 5.1.1(v)). Set `status: deleting`: the user is excluded from matching, release revalidation drops them from unreleased pods, and release writes use `update()` with preconditions, so nothing recreates their subtree (D§10.3). Enqueue the purge. Call `auth.deleteUser`.
 2. **Interests.** Sensitive holdings go through the full withdrawal (§3.5). Ordinary holdings decrement their counts, and tags and concepts are garbage-collected.
-3. **Pods.**
-   - The user leaves every pod. Active pods follow the below-minimum rules (D§4.6). The user is removed from `podState.members` and `memberList` of every pod, archived ones included.
+3. **Pods**, in this order, because `podState.memberList` is how a retry finds the user's pods (D§8.2):
+   - Every pod the user was ever in, archived ones included, is found through `podState.memberList`.
+   - The user leaves every pod (`memberUids`, roster). Active pods follow the below-minimum rules (D§4.6).
    - Unscheduled options the user wrote are deleted; scheduled ones are reattributed to "former member".
-   - The user's votes and feedback are deleted, together with other members' `attendance` **and `meetAgain`** entries about the user.
+   - The user's votes, feedback and meetup-chat messages are deleted, together with other members' `attendance` **and `meetAgain`** entries about the user. (`status: deleting` already stops `sendMessage`.)
+   - Last, the user is removed from `podState.members` and `memberList` of every pod. A purge that fails before this step finds every pod again on retry.
    - Pending invitations are cancelled, and the user leaves the backfill pool.
 4. **Other links.** Deleted: photo grants (both directions), blocks, `blockedH` entries in other profiles, **the user's `uidH` in other profiles' `recentH`** (found by querying that map key), and push tokens.
-5. **Reports and sanctions.** In reports the user filed, `reporterUid` becomes `reporterH`. Reports against the user keep `targetH` instead of `targetUid`, until resolution + 12 months, and unresolved reports for at most 12 months from creation, for safety **[LAWYER]**. `sanctions/{uid}` is deleted; a ban survives only as `bans/{HMAC(email)}` (24 months).
+5. **Reports and sanctions.** In reports the user filed, `reporterUid` becomes `reporterH`. Reports against the user, including reports of their chat messages with the copied text, keep `targetH` instead of `targetUid`, until resolution + 12 months, and unresolved reports for at most 12 months from creation, for safety **[LAWYER]**. `sanctions/{uid}` is deleted; a ban survives only as `bans/{HMAC(email)}` (24 months).
 6. **Bulk delete.** `recursiveDelete(users/{uid})`; `matchProfiles/{uid}`; Storage `photos/`, `uploads/` and `exports/` for the uid.
 7. **Records.** Consent events: `uid` → `uidH`, `interestId` and `category` stripped, `expiresAt` +3 years. An `erasureLedger` entry (`account`, 35 days) is written, which any backup restore replays first.
 8. **Verify.** A test asserts that afterwards no document or object contains the uid **or its `uidH`**, except three documented pseudonymised records: `consentEvents` (`uidH`, 3 years), `erasureLedger` (`uidH`, 35 days) and retained `reports` (`reporterH`/`targetH`). Because we hold the HMAC key, these are pseudonymous personal data, not erased data. They are kept for accountability (6(1)(c)) and safety (6(1)(f)) and are listed in the privacy notice.
 
-Residual windows disclosed in the notice: up to 7 days of Firestore backups and PITR (the ledger is replayed on any restore), up to 2 days for a drop snapshot taken before the deletion, up to 180 days for Google's Auth backups [FBX], and other members' device caches until they next open the app.
+Residual windows disclosed in the notice: up to 7 days of Firestore backups and PITR (the ledger is replayed on any restore), up to 2 days for a drop snapshot taken before the deletion, up to 180 days for Google's Auth backups [FBX], and other members' device caches until they next open the app. For the user's meetup-chat messages the device-cache window is longer: a member who has not opened that pod's chat since the deletion keeps a cached copy until their first app open after the meetup's deletion time (`meetupAt` + 72 h, so at most about 3 days after the meetup), and could see it there only offline and only before that time (§5).
 
 ---
 
@@ -367,7 +380,7 @@ It must be signed before M1, and reviewed with each feature that touches persona
 2. **Necessity and proportionality:** the lawful bases (§2) and the minimisation choices:
    - birth year only;
    - a geohash-5 cell only, converted on the device;
-   - no public profiles and no chat;
+   - no public profiles, and chat only around a scheduled meetup (24 h before to 24 h after), for current members, deleted 3 days after it;
    - first names only;
    - gender only on opt-in, and never in metrics;
    - pseudonymised logs without IP addresses, in EU buckets;
@@ -384,7 +397,7 @@ It must be signed before M1, and reviewed with each feature that touches persona
 | # | Risk | L | S | Key measures | Residual |
 |---|---|---|---|---|---|
 | R1 | Breach or insider exposure of sensitive interests | L | H | Owner-only paths; server-only vectors; pseudonymised logs without tag text or IP addresses; EU log buckets; least-privilege service accounts (no default service accounts); 2 admins with hardware keys; audit logs | M |
-| R2 | A genuine pod member discloses another member's sensitive interest | M | H | Consent names invitees and members; all share the interest; first names only; photos opt-in in sensitive pods; Terms; Android screen-capture block | M (accepted via consent) |
+| R2 | A genuine pod member discloses another member's sensitive interest, or what they wrote in the meetup chat | M | H | Consent names invitees and members, and the meetup chat; all share the interest; first names only; photos opt-in in sensitive pods; chat only around a meetup and deleted 3 days after it; Terms; Android screen-capture block (the chat included) | M (accepted via consent) |
 | R3 | Inference from themes, aggregates, embeddings, labels | M | H | S1–S4 enforced per holding; no sensitive labels or aggregates; card details withheld before confirmation; k ≥ 10 for chips and drop aggregates; local density ≥ 12 | L |
 | R4 | Detector misses a sensitive tag | M | H | Lexicon (also on the device) + recall-tuned detector + self-flag + rescans (immediate removal from ordinary concepts) + reports; CI recall gate | M |
 | R5 | Pre-consent transient classification without an identified Art. 9(2) exception (§3.8) | H | M | Device-side lexicon; server memory only, EU, no persistence, no cache, no logs, user-initiated, notice; on-device detector under evaluation | **M, open until counsel decides [LAWYER]** |
@@ -399,6 +412,7 @@ It must be signed before M1, and reviewed with each feature that touches persona
 | R14 | Function creep (e.g. ads on sensitive data) | L | H | Purpose-limited consent; no ad/analytics SDKs; P19 limited to non-sensitive data; DPIA gate | L |
 | R15 | **Deliberate infiltration of sensitive-themed pods** (fake or multiple accounts claim a sensitive interest to learn who holds it locally, for outing or targeting) | M | H | Eligibility gate: account ≥ 14 days, ≥ 1 attended meetup, no open reports (D§6.1 S5); ≤ 1 active sensitive pod, ≤ 3 sensitive proposals per 12 weeks, ≤ 3 sensitive adds per week; photos opt-in per pod (S6); no age span or shared interests before confirmation; "not a genuine member" report with an immediate hold (S7); anomaly review for accounts with many unrelated sensitive interests; sign-up velocity alerts per area; 1 h App Check TTL and per-uid limits. Per-device limits are not available from App Check (Play Integrity device recall evaluated in M2). Residual risk stated in the consent text | M **[LAWYER]**; prior consultation (Art. 36) if counsel rates it high |
 | R16 | Revoked data lingers on devices (photos, cached pod docs, sensitive interests) | M | L | `max-age` 1 h; image and Firestore caches cleared at the next app open after a revocation and on sign-out or deletion; disclosed window | L |
+| R17 | **Harassment or early exchange of contact details in the meetup chat** (abusive or sexual messages; pressure to move to private channels before people have met; a stranger collecting numbers; in sensitive-themed pods, a contact detail tied to the theme) | M | M | Chat only from 24 h before until 24 h after a scheduled meetup, current members only; server-side blocklist and PII checks, CPR-like numbers always refused; before the meetup, a phone number, email, handle or link is held back until the writer confirms past "You haven't met yet. It's fine to wait until after."; Report on every message, with a copy kept in the report beyond the TTL; block removes the member from the pod and the chat; 30 messages per user per pod per hour; pushes without text, at most one per member and pod per 10 minutes; deletion at meetup + 72 h (D§3.6) | L |
 
 ---
 
@@ -452,7 +466,7 @@ Art. 37(1)(c) requires a DPO only when sensitive processing is both a **core act
   - owner-only paths for sensitive data;
   - vectors and matching data server-only (D§9).
 - **Integrity:** App Check on callables, Firestore and Storage (1 h token TTL); replay protection (limited-use tokens, `alreadyConsumed` rejected) on reporting, export and deletion.
-- **Abuse limits:** per-uid, per-IP (in memory) and global embedder limits; one pending upload per uid; kill switches on budget alerts (D§9).
+- **Abuse limits:** per-uid, per-IP (in memory) and global embedder limits; one pending upload per uid; 30 chat messages per user per pod per hour; kill switches on budget alerts (D§9).
 - **Photos:** per-pair grants removed at every pod exit; no bearer URLs; `max-age` 1 h; device caches cleared on revocation events, sign-out and deletion; only the current version stored; EXIF and GPS stripped.
 - **Identity:**
   - a least-privilege service account per codebase; no function runs as a default service account (deploy check);
@@ -460,7 +474,7 @@ Art. 37(1)(c) requires a DPO only when sensitive processing is both a **core act
   - two admins with hardware keys or passkeys;
   - audit logs for human access;
   - the admin CLI records a reason for each run.
-- **Data:** Google's default encryption in transit and at rest; HMAC pseudonyms with keys in Secret Manager. Logs are **pseudonymised** (`uidH`), never anonymous; they carry no tag text, request bodies, tokens or IP addresses. Cloud Run request logs are excluded from storage, and a scrubbing middleware keeps validation messages and input values out of error logs (D§13).
+- **Data:** Google's default encryption in transit and at rest; HMAC pseudonyms with keys in Secret Manager. Logs are **pseudonymised** (`uidH`), never anonymous; they carry no tag text, message text, request bodies, tokens or IP addresses. Cloud Run request logs are excluded from storage, and a scrubbing middleware keeps validation messages and input values out of error logs (D§13).
 - **Resilience:** PITR plus daily backups (7 days); restore runbook that replays every erasure-ledger entry; staging restore drill.
 - **Assurance:** rules tests in CI; erasure-, withdrawal- and self-flag-completeness tests; a log-scrubbing test; the detector calibration gate.
 - **Organisation:** confidentiality agreements, a yearly access review, and the incident runbook (§14).
@@ -499,7 +513,7 @@ The order covers storing and reading information on the device in apps. Digitali
   - Contact Info (email);
   - **Sensitive Info** (pregnancy, sexual orientation, religion, political opinion, union membership, ethnicity, disability) [GDPR];
   - **Health & Fitness → Health**, because Apple's Health type covers "any other user provided health or medical data" (https://developer.apple.com/app-store/app-privacy-details/) and health interests (diagnoses, recovery, IVF) are core to the product. This matches the Play declaration (§12.3);
-  - User Content (photos, meetup text);
+  - User Content: Photos; Other User Content (meetup options); Emails or Text Messages for the meetup chat [A, verify that Apple expects this type for in-app chat];
   - Identifiers (User ID, Device ID);
   - Coarse Location;
   - Other Data (birth year, gender, first name).
@@ -518,7 +532,8 @@ The order covers storing and reading information on the device in apps. Digitali
 - **Health and fitness:** health info.
 - **Location:** approximate.
 - **Photos:** photos.
-- **App activity:** other user-generated content.
+- **Messages:** other in-app messages (the meetup chat).
+- **App activity:** other user-generated content (meetup options).
 - **Device or other IDs:** yes.
 - **Practices:** encrypted in transit, deletion available, nothing shared or sold.
 - **Deletion outside the app:** Play also expects a web link for account deletion, so a static page on Firebase Hosting (`delete-account.html`, D§14) explains the in-app path and the email route [A, verify].
@@ -526,15 +541,15 @@ The order covers storing and reading information on the device in apps. Digitali
 ---
 
 ## 13. DSA notes
-- **Classification.** Pods are closed groups of 4–6 pre-determined people with no public profiles, so Grouper is most likely a **hosting service**, not an online platform [GDPR]. Adding public features (open events or groups) requires re-assessment.
+- **Classification.** Pods are closed groups of 4–6 pre-determined people with no public profiles, so Grouper is most likely a **hosting service**, not an online platform [GDPR]. Meetup-chat messages are hosted content shared only within such a closed group, so they do not change this [A]. Adding public features (open events or groups) requires re-assessment.
 - **Applicable duties:**
 
   | Article | Duty |
   |---|---|
   | Arts. 11–12 | Points of contact |
   | Art. 14 | Terms that describe restrictions and automated moderation |
-  | Art. 16 | Notice-and-action: the in-app Report flow plus a web form, for tags, meetup text and photos |
-  | Art. 17 | A statement of reasons for every rejected tag, removed option, pause, suspension or ban: the facts, whether it was automated, the ground, and how to contest. For tags rejected at input time, the device renders it from the reason code and nothing is stored (the tag text is never persisted). Persisted notices hold a reason code and non-textual params only. No tags are held in MVP (D§5.2 (2)) |
+  | Art. 16 | Notice-and-action: the in-app Report flow plus a web form, for tags, meetup text, chat messages and photos. A reported chat message is copied into the report, so the notice can still be handled after the message's TTL |
+  | Art. 17 | A statement of reasons for every rejected tag or chat message, removed option or message, pause, suspension or ban: the facts, whether it was automated, the ground, and how to contest. For tags and chat messages rejected at input time, the device renders it from the reason code and nothing is stored (the text is never persisted). The contact-info warning before a meetup is not a restriction: the writer can still send. Persisted notices hold a reason code and non-textual params only. No tags are held in MVP (D§5.2 (2)) |
   | Art. 18 | Notifying the police of threats to life or safety |
 
 - **Exemption.** As a micro or small enterprise, Grouper is exempt from Art. 15 reports [GDPR].
@@ -573,6 +588,7 @@ The Art. 30(5) exemption for organisations under 250 employees does not apply, b
 | 11 | Consent and request records, erasure ledger | P17 | Users, former users | Consent events (pseudonymised after deletion), ledger entries | 6(1)(c) | — | — |
 | 12 | Product improvement | P18, P19 | Users | Aggregates; samples of non-sensitive tag wording without uid | 6(1)(f) | — | — |
 | 13 | Service emails | P20 | Users | Email address, message | 6(1)(b), 6(1)(c) | EU email provider | — |
+| 14 | Meetup chat | P21 | Users | Messages (**yes** in sensitive-themed pods) | 6(1)(b); 9(2)(a) | Current pod members | — |
 
 ---
 
@@ -582,7 +598,7 @@ Layered (in-app summary + full text), in Danish and English:
 2. What we collect, why, the legal basis and for how long (§2, §5).
 3. Sensitive interests: explicit consent, who sees them (invitees and members), wording review, anti-infiltration measures and their limits, withdrawal.
 4. How matching works and "why this pod"; sensitive-theme eligibility; every automated pause; human review; pause.
-5. Who sees what: nothing public; first name and photo only after confirmation (photo opt-in in sensitive-themed pods); no distances.
+5. Who sees what: nothing public; first name and photo only after confirmation (photo opt-in in sensitive-themed pods); meetup-chat messages only to current pod members, deleted about 3 days after the meetup; no distances.
 6. Where data lives (EU, including logs; Auth in the US, with the Google name and photo URL for Google users; FCM, App Check and Hosting global) and the processor list.
 7. Retention, including the backup, Auth, drop-snapshot, device-cache and TTL windows, the under-18 marker, and the pseudonymised records kept after deletion.
 8. Rights, in-app buttons, one-month response.
@@ -610,3 +626,4 @@ Layered (in-app summary + full text), in Danish and English:
 14. DSA classification as a hosting service (§13).
 15. Breach templates and the privacy notice text (§14, §16).
 16. Gemma Terms for backend-only use of EmbeddingGemma v1, only if the v1 fallback is ever used (D§2.4 Q1; v2 is Apache-2.0) [SRV].
+17. The meetup chat in sensitive-themed pods: whether the per-interest consent and its chat bullet (§3.3) cover messages that reveal the theme or health details; Art. 9 details that members volunteer in ordinary pods' chat or write about another member, for which no 9(2) basis is identified beyond the writer's own consent in a sensitive-themed pod; keeping a reported message's copy for the report's retention; "3 days" in the consent bullet versus TTL lag (P21, §4.2, §5, R17).

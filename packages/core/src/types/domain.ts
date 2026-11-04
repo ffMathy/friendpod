@@ -43,6 +43,14 @@ export type SensitivitySource = (typeof SENSITIVITY_SOURCES)[number];
 
 export const REPORT_CATEGORIES = ['harassment', 'safety', 'noShow', 'content', 'underage', 'notGenuine'] as const;
 export type ReportCategory = (typeof REPORT_CATEGORIES)[number];
+export const REPORT_TARGET_TYPES = ['user', 'option', 'interest', 'message'] as const;
+export type ReportTargetType = (typeof REPORT_TARGET_TYPES)[number];
+
+/** One-tap meetup-chat messages; only the key is stored, each device renders it in its own language. */
+export const QUICK_REPLIES = ['onMyWay', 'runningLate', 'imHere', 'cantMakeIt'] as const;
+export type QuickReply = (typeof QUICK_REPLIES)[number];
+export const POD_MESSAGE_KINDS = ['text', 'quickReply'] as const;
+export type PodMessageKind = (typeof POD_MESSAGE_KINDS)[number];
 
 export const PLATFORMS = ['ios', 'android'] as const;
 export type Platform = (typeof PLATFORMS)[number];

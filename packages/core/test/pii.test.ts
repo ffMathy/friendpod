@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { containsPii, findPii } from '../src/interests/pii';
+import { containsPii, findPii, mentionsHandle } from '../src/interests/pii';
 
 describe('PII patterns (§5.2 (2))', () => {
   it.each([
@@ -44,4 +44,26 @@ describe('PII patterns (§5.2 (2))', () => {
     expect(findPii('3112991234')).toEqual(['cpr']);
     expect(findPii('9999991234')).toEqual(['phone']);
   });
+
+  it('checks every 10-digit run for a CPR number, not only the first', () => {
+    expect(findPii('+4520304050 010190-1234')).toContain('cpr');
+    expect(findPii('booking 1234567890, cpr 0101901234')).toContain('cpr');
+    expect(findPii('+4520304050 og 9999991234')).toEqual(['phone']);
+  });
+});
+
+describe('handles in running text (meetup chat only)', () => {
+  it.each(['add me on snap annak92', 'skriv på insta anna.k92', 'Snapchat er anna_k', 'tilføj mig på discord annak', 'add me on ig: @anna'])(
+    '%j names a handle',
+    (text) => {
+      expect(mentionsHandle(text)).toBe(true);
+    },
+  );
+
+  it.each(['discord gaming', 'snap 2026', 'signal er dårlig her', 'et kik på kortet', 'jeg er på discord hele dagen', 'fb 18.30'])(
+    '%j does not',
+    (text) => {
+      expect(mentionsHandle(text)).toBe(false);
+    },
+  );
 });

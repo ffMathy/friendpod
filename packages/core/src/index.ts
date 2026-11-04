@@ -5,6 +5,7 @@
 export * from './types';
 export * from './schemas';
 export * from './interests';
+export * from './chat';
 export * from './geo';
 export * from './time';
 export * from './ids';

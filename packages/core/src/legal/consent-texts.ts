@@ -1,7 +1,7 @@
 /**
  * Versioned legal copy, verbatim from PRIVACY.md §3.2, §3.3, §3.5 and §3.6 (drafts awaiting [LAWYER]).
  * `{tag}` stays unfilled in the template; its SHA-256 (hashes.ts) identifies the text, not the tag.
- * Any wording change needs a new version id: a test compares this file with PRIVACY.md and locks the hashes.
+ * Once shipped, any wording change needs a new version id: a test compares this file with PRIVACY.md and locks the hashes.
  */
 import type { ConsentScope, Locale } from '../types/domain';
 
@@ -58,6 +58,7 @@ export const LEGAL_TEXTS = [
         "save \"{tag}\" privately on your account. It is never shown on any profile.",
         "use it in automated matching to propose pods of 4–6 people near you who added the same interest and also consented;",
         "show it as the pod's theme only to the people invited to those pods, who all added it too. Some of them may decline. Once a pod is confirmed, its members see your first name. They see your photo only if you choose to show it in that pod;",
+        "let members of a confirmed pod write to each other in a short meetup chat, open from 24 hours before until 24 hours after each meetup. Messages are deleted 3 days after the meetup;",
         "let a Grouper team member see the wording of the interest, without your name, to check how it is classified;",
         "check accounts for signs that someone is not genuine, for example an account that adds many unrelated sensitive interests.",
       ],
@@ -82,6 +83,7 @@ export const LEGAL_TEXTS = [
         "gemme »{tag}« privat på din konto. Den vises aldrig på nogen profil.",
         "bruge den til automatisk matchning, så vi kan foreslå pods med 4–6 personer i nærheden, som har tilføjet samme interesse og også har givet samtykke;",
         "kun vise den som podens tema for de personer, der bliver inviteret til de pods, og som alle selv har tilføjet den. Nogle af dem siger måske nej. Når poden er bekræftet, ser medlemmerne dit fornavn. Dit billede ser de kun, hvis du selv vælger at vise det i den pod;",
+        "lade medlemmerne af en bekræftet pod skrive sammen i en kort mødechat, der er åben fra 24 timer før til 24 timer efter hvert møde. Beskederne slettes 3 dage efter mødet;",
         "lade en medarbejder hos Grouper se ordlyden af interessen, uden dit navn, for at kontrollere, hvordan den er klassificeret;",
         "holde øje med tegn på, at en konto ikke er ægte, fx en konto, der tilføjer mange forskellige følsomme interesser.",
       ],

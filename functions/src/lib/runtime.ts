@@ -5,15 +5,18 @@
 import { getApp, getApps, initializeApp } from 'firebase-admin/app';
 import { getAuth, type Auth } from 'firebase-admin/auth';
 import { getFirestore, type Firestore } from 'firebase-admin/firestore';
+import { getMessaging } from 'firebase-admin/messaging';
 import { getStorage } from 'firebase-admin/storage';
 import type { HandlerDeps } from './handler';
 import { log } from './log';
+import { sendGenericPush, type PushSender } from './push';
 import { UID_HMAC_KEY, hmacFromSecret } from './secrets';
 import { gcsObjectStore, type ObjectStore } from './storage';
 
 export interface AppDeps extends HandlerDeps {
   readonly db: Firestore;
   readonly auth: Auth;
+  readonly push: PushSender;
 }
 
 export const handlerDeps: HandlerDeps = {
@@ -29,7 +32,12 @@ function app() {
 let cached: AppDeps | undefined;
 
 export function appDeps(): AppDeps {
-  cached ??= { ...handlerDeps, db: getFirestore(app()), auth: getAuth(app()) };
+  cached ??= {
+    ...handlerDeps,
+    db: getFirestore(app()),
+    auth: getAuth(app()),
+    push: (kind, recipients) => sendGenericPush(getMessaging(app()), kind, recipients),
+  };
   return cached;
 }
 

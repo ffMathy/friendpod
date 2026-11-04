@@ -1,5 +1,5 @@
 import { endDeviceSession, syncDeviceSession } from '@/features/account/deviceSession';
-import { forgetPods } from '@/features/account/useDeviceCacheHygiene';
+import { forgetActivePods, forgetPods, rememberCachedMessages, syncDeviceCaches } from '@/features/account/useDeviceCacheHygiene';
 import { queryClient } from '@/data/queryClient';
 import { isOnboardingComplete, setOnboardingComplete } from '@/features/session/onboardingFlag';
 
@@ -62,15 +62,47 @@ describe('device data when a session ends (§9, PRIVACY.md §5)', () => {
 });
 
 describe('a pod leaving the active list (PRIVACY.md §3.5 step 8)', () => {
-  it('clears the photos, the Firestore cache and the in-memory copies of that pod only', async () => {
+  it('clears the photos, the Firestore cache and the in-memory copies of that pod only, chat messages included', async () => {
     queryClient.setQueryData(['doc', 'pods/podGone'], { roster: ['Ada'] });
     queryClient.setQueryData(['collection', 'pods/podGone/options'], []);
+    queryClient.setQueryData(['collection', 'pods/podGone/messages'], [{ id: 'm1' }]);
     queryClient.setQueryData(['doc', 'pods/podKept'], { roster: ['Bo'] });
     await forgetPods(['podGone']);
     expect(mockClearImageCaches).toHaveBeenCalledTimes(1);
     expect(mockClearFirestoreCache).toHaveBeenCalledTimes(1);
     expect(queryClient.getQueryData(['doc', 'pods/podGone'])).toBeUndefined();
     expect(queryClient.getQueryData(['collection', 'pods/podGone/options'])).toBeUndefined();
+    expect(queryClient.getQueryData(['collection', 'pods/podGone/messages'])).toBeUndefined();
     expect(queryClient.getQueryData(['doc', 'pods/podKept'])).toEqual({ roster: ['Bo'] });
+  });
+});
+
+describe('cached meetup-chat messages after they expire (PRIVACY.md §5 "Device caches")', () => {
+  it('clears the Firestore cache once, at the first run after the latest cached expiresAt of a still-active pod', async () => {
+    await syncDeviceCaches('uidA', ['podA', 'podB'], 0);
+    await Promise.all([
+      rememberCachedMessages('uidA', 'podA', 1000),
+      rememberCachedMessages('uidA', 'podA', 500),
+      rememberCachedMessages('uidA', 'podB', 3000),
+    ]);
+    expect(JSON.parse(mockStore.get('chatCaches.uidA') ?? '{}')).toEqual({ podA: 1000, podB: 3000 });
+
+    await syncDeviceCaches('uidA', ['podA', 'podB'], 999);
+    expect(mockClearFirestoreCache).not.toHaveBeenCalled();
+
+    await syncDeviceCaches('uidA', ['podA', 'podB'], 1000);
+    expect(mockClearFirestoreCache).toHaveBeenCalledTimes(1);
+    expect(mockClearImageCaches).not.toHaveBeenCalled();
+    // The clear removed podB's messages too; it is recorded again when the chat is read again.
+    expect(mockStore.has('chatCaches.uidA')).toBe(false);
+
+    await syncDeviceCaches('uidA', ['podA', 'podB'], 5000);
+    expect(mockClearFirestoreCache).toHaveBeenCalledTimes(1);
+  });
+
+  it('forgets the records with the pod list at sign-out', async () => {
+    await rememberCachedMessages('uidA', 'podA', 1000);
+    await forgetActivePods('uidA');
+    expect(mockStore.has('chatCaches.uidA')).toBe(false);
   });
 });

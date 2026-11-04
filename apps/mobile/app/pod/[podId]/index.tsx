@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { Body, Button, Card, ErrorText, Heading, LinkRow, Loading, Screen, Toggle } from '@/components/ui';
 import { usePod, usePodCard } from '@/data/docs';
 import { useCallable } from '@/data/useCallable';
+import { useChatMessages } from '@/features/chat/useChatMessages';
+import { useChatStatus } from '@/features/chat/window';
 import { AuthenticatedPhoto } from '@/features/photos/AuthenticatedPhoto';
 import { isConfirmedMember } from '@/features/pods/membership';
 import { ProposalCard } from '@/features/pods/ProposalCard';
@@ -15,7 +17,8 @@ import { formatDateTime } from '@/lib/format';
 
 /**
  * A pod (§3.4, §11): the proposal until confirmation, then first names, photos through grants (opt-in
- * per member in sensitive-themed pods, S6), the theme in the viewer's own wording, pod interests and the plan.
+ * per member in sensitive-themed pods, S6), the theme in the viewer's own wording, pod interests, the plan and the
+ * meetup chat (§3.6).
  */
 export default function PodScreen() {
   const { t } = useTranslation();
@@ -25,6 +28,10 @@ export default function PodScreen() {
   const card = usePodCard(uid, podId);
   const member = isConfirmedMember(card.data);
   const pod = usePod(podId, member);
+  const chat = useChatStatus(pod.data);
+  // Outside the window the chat row stays only while messages exist; inside it there is no need to read them here.
+  const chatClosed = chat?.kind === 'ended' || chat?.kind === 'off';
+  const messages = useChatMessages(uid, podId, member && chatClosed);
   const leave = useCallable('leavePod');
   const sharePhoto = useCallable('setPhotoSharing');
   const locale = currentLocale();
@@ -39,6 +46,14 @@ export default function PodScreen() {
   }
   const c = card.data;
   const theme = c.themeLabel ?? t('pods.openToAnyone');
+  const chatDetail =
+    chat?.kind === 'upcoming'
+      ? t('pod.chatOpens', { when: formatDateTime(chat.opensAt.getTime(), locale) })
+      : chat?.kind === 'open'
+        ? t('pod.chatOpenNow')
+        : chatClosed && (messages.data?.length ?? 0) > 0
+          ? t('pod.chatClosed')
+          : null;
 
   const confirmLeave = () =>
     Alert.alert(t('pod.leaveTitle'), t('pod.leaveBody'), [
@@ -93,6 +108,13 @@ export default function PodScreen() {
               ) : (
                 <Body>{t('pod.planBy', { when: formatDateTime(pod.data.planning.deadline.toMillis(), locale) })}</Body>
               )}
+              {chatDetail ? (
+                <LinkRow
+                  label={t('pod.chat')}
+                  detail={chatDetail}
+                  onPress={() => router.push({ pathname: '/pod/[podId]/chat', params: { podId } })}
+                />
+              ) : null}
             </>
           ) : null}
 

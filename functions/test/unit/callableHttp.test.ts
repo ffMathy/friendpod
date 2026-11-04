@@ -86,6 +86,25 @@ describe('callables over HTTP', () => {
     expect(errorOf(res)).toEqual({ status: 'UNIMPLEMENTED', message: 'not implemented (see DESIGN.md §3.7)', details: { code: 'NOT_IMPLEMENTED', design: '§3.7' } });
   });
 
+  it('logs no meetup-chat text when a message fails validation', async () => {
+    const text = 'ring 20 30 40 50, jeg er gravid og sidder ved vinduet';
+    forbidInLogs(text, '20 30 40 50', 'gravid', 'HttpUser0005');
+    const res = await call(fns.sendMessage as unknown as HttpFn, { podId: 'c'.repeat(20), text, quickReply: 'imHere' }, { uid: 'HttpUser0005' });
+    expect(res.statusCode).toBe(400);
+    expect(errorOf(res)).toEqual({ status: 'INVALID_ARGUMENT', message: 'VALIDATION', details: { code: 'VALIDATION' } });
+    expect(capturedLogs().some((l) => l.includes('callable.invalidInput') && l.includes('sendMessage'))).toBe(true);
+  });
+
+  it('accepts a report of a chat message by its id, and requires the id', async () => {
+    forbidInLogs('HttpUser0006');
+    const target = { type: 'message', podId: 'd'.repeat(20), messageId: 'msg0001' };
+    const ok = await call(fns.report as unknown as HttpFn, { target, category: 'harassment' }, { uid: 'HttpUser0006' });
+    expect(ok.statusCode).toBe(501);
+    const { messageId: _omitted, ...withoutId } = target;
+    const missing = await call(fns.report as unknown as HttpFn, { target: withoutId, category: 'harassment' }, { uid: 'HttpUser0006' });
+    expect(errorOf(missing).details).toEqual({ code: 'VALIDATION' });
+  });
+
   it('refuses callers without the onb claim', async () => {
     const res = await call(fns.setParticipation as unknown as HttpFn, { mode: 'pause' }, { uid: 'HttpUser0004', onb: false });
     expect(res.statusCode).toBe(400);

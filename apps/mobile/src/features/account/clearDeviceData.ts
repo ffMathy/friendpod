@@ -6,7 +6,7 @@ import { db } from '@/firebase';
 
 /**
  * Removes what the device caches about the account (§9 Photos, PRIVACY.md §5 "Device caches"):
- * Firestore's offline cache (sensitive interests, pod docs), expo-image memory and disk caches,
+ * Firestore's offline cache (sensitive interests, pod docs, chat messages), expo-image memory and disk caches,
  * and the in-memory query cache.
  */
 export async function clearDeviceData(): Promise<void> {

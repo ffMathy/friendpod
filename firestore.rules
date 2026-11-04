@@ -23,6 +23,13 @@ service cloud.firestore {
         allow read: if onboarded() &&
           request.auth.uid in get(/databases/$(db)/documents/pods/$(podId)).data.memberUids;
       }
+
+      // Meetup chat (§3.6): written only by sendMessage. The window is enforced there, not here, so current
+      // members can read existing messages until TTL deletes them.
+      match /messages/{messageId} {
+        allow read: if onboarded() &&
+          request.auth.uid in get(/databases/$(db)/documents/pods/$(podId)).data.memberUids;
+      }
     }
 
     match /areas/{areaId} {

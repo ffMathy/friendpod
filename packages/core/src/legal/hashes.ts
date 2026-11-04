@@ -6,8 +6,8 @@ import { getLegalText, LEGAL_TEXTS, type LegalTextId } from './consent-texts';
  * no hashing; test/legal.test.ts recomputes every value and locks it.
  */
 export const LEGAL_TEXT_SHA256 = {
-  'art9-tag-en-v1': 'c61666e57897b3e51186c67c4fd2d9a1b0984f4cc1621ed4b28090db85585c5c',
-  'art9-tag-da-v1': '0e4f91d75744d38f8a0bfac0c339e5662518c4ca48c46823cd302d671fe1a0cb',
+  'art9-tag-en-v1': 'd5458e681a1a5afc4f8be9d5576a415b095ea0a5653e5bfb2dd611f6c1b7b843',
+  'art9-tag-da-v1': 'b6453d61cfcd340bc5ac824798c5e5876ea54267b67625aa882dd1fd1419eb5c',
   'gender-en-v1': '1dee9a6f14751e78b3421d9709df1407cd0454e12386429bd29fcb7d1e077004',
   'gender-nonbinary-en-v1': '5749af3c6bd3faff814fddd802af9d84031fe343474fbe33776296d17e59a44c',
   'gender-da-v1': 'e10d655e35efbb81bb67d79b4122d92f0cc8b69d42f8881e4b39868576f19974',

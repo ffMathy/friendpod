@@ -88,6 +88,10 @@ export const backfillPod = onTaskDispatched(TASK_OPTIONS.backfillPod, (req) =>
   }),
 );
 
+// The export lists the user's own meetup-chat messages that still exist (text or quick reply, pod id, time),
+// found through podState.memberList and pods/{podId}/messages where authorUid == uid; never other members' (§3.9).
+// Reports about the user include the copy of their reported message (kind, text or quick reply, date), without the
+// reporter or the report text (PRIVACY.md §6).
 export const buildExport = onTaskDispatched(TASK_OPTIONS.buildExport, (req) =>
   runTask('buildExport', buildExportTask, req.data, handlerDeps, async () => {
     throw notImplemented('§3.9');
@@ -100,6 +104,11 @@ export const deleteExport = onTaskDispatched(TASK_OPTIONS.deleteExport, (req) =>
   }),
 );
 
+// The erasure steps include the user's meetup-chat messages (authorUid == uid) in every pod in podState.memberList
+// (PRIVACY.md §6 step 3) and their rateLimits buckets, whose ids start with `{uid}_` (the per-pod chat and chat-push
+// buckets included). Step 3 order: find the pods through memberList, leave memberUids, delete the messages, and
+// leave podState.members and memberList last, so that a retry still finds every pod. Reports keep their copy of a
+// reported message, with targetH instead of targetUid (step 5).
 export const purgeUser = onTaskDispatched(TASK_OPTIONS.purgeUser, (req) =>
   runTask('purgeUser', purgeUserTask, req.data, handlerDeps, async () => {
     throw notImplemented('§10.3');

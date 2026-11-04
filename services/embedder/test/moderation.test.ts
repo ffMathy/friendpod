@@ -1,6 +1,6 @@
-import { normalizeTag } from '@grouper/core';
+import { leetFold, normalizeTag } from '@grouper/core';
 import { describe, expect, it } from 'vitest';
-import { leetFold, moderateTag } from '../src/moderation';
+import { moderateTag } from '../src/moderation';
 
 function moderate(text: string): ReturnType<typeof moderateTag> {
   const n = normalizeTag(text);
@@ -20,6 +20,9 @@ describe('moderateTag', () => {
     expect(moderate('3sc0rt')).toEqual({ ok: false, reason: 'BLOCKLIST' });
     expect(moderate('Sugar Daddy')).toEqual({ ok: false, reason: 'BLOCKLIST' });
     expect(moderate('køb hash')).toEqual({ ok: false, reason: 'BLOCKLIST' });
+    // Words the meetup chat lets through in a sentence still refuse a tag.
+    expect(moderate('escort')).toEqual({ ok: false, reason: 'BLOCKLIST' });
+    expect(moderate('knald')).toEqual({ ok: false, reason: 'BLOCKLIST' });
   });
 
   it('lets recovery and support interests through', () => {

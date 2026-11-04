@@ -28,11 +28,13 @@ Cloud Build only installs the uploaded `functions/` folder, so it must never reb
 - `src/lib/firestore.ts`: typed paths and validating converters for every §8 document.
 - `src/lib/options.ts`: the §7 defaults (europe-west1, gcf_gen1, 256 MiB, `sa-api@`) and the hot-callable profile.
 - `src/lib/push.ts`: FCM with generic payloads only (S4).
+- `src/lib/rateLimits.ts`: fixed-window counters in `rateLimits/{uid}_{bucket}` (§9), charged inside the
+  caller's transaction.
 
 ## Implemented and stubbed
 
-Implemented: `completeOnboarding`, `updateProfile`, `setParticipation`, the `matchComponent` task body,
-`onBudgetAlert` and the upload-path filter in `onPhotoUploaded`. Every other function has its final name,
+Implemented: `completeOnboarding`, `updateProfile`, `setParticipation`, `sendMessage`, the `matchComponent` task
+body, `onBudgetAlert` and the upload-path filter in `onPhotoUploaded`. Every other function has its final name,
 trigger and options, validates its input, and fails with `unimplemented` /
 `details: {code: 'NOT_IMPLEMENTED', design: '§…'}`.
 

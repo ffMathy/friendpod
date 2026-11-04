@@ -20,7 +20,8 @@ the repo root and run one file at a time, because they share the `demo-grouper` 
 
 - `firestore.test.ts`: owner-only reads of `users/{uid}` and every subcollection (interests, sensitiveInterests,
   pod cards, blocks, notices, exports), no collection-group reads; pods readable only by `memberUids` **and**
-  `onb == true`, including queries; options only through the parent pod's `memberUids`; areas need `onb`;
+  `onb == true`, including queries; options and meetup-chat messages only through the parent pod's `memberUids`,
+  lost at once when a member is removed; areas need `onb`;
   only `config/app` is public; every server-only collection of §8.2 is unreadable by any client (including
   docs whose id is the caller's uid); no client write of any kind anywhere (set, merge, update, delete, batch,
   transaction), tried as the most privileged client there is.
@@ -29,7 +30,8 @@ the repo root and run one file at a time, because they share the `demo-grouper` 
   `photoGrants/{owner}_{viewer}` (seeded with rules disabled), directional, revoked as soon as the grant doc
   is gone; exports owner-only; everything else denied.
 - `indexes.test.ts`: the two vector indexes, the backfill composite, the collection-group indexes, the
-  exempted large fields, and an unindexed `expiresAt` TTL policy for exactly the TTL'd collection groups.
+  exempted large fields, and an unindexed `expiresAt` TTL policy for exactly the TTL'd collection groups
+  (`messages`, the meetup chat, included).
 
 ## Notes
 

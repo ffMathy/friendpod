@@ -97,7 +97,7 @@
     },
     "notifications": {
       "title": "Notifications",
-      "body": "We tell you when your weekly drop is here and when your pod is confirmed. Notifications never mention an interest or a person.",
+      "body": "We tell you when your weekly drop is here, when your pod is confirmed and when there's a new message in your pod's meetup chat. Notifications never mention an interest, a person or what anyone wrote.",
       "enable": "Turn on notifications"
     },
     "pledge": {
@@ -296,7 +296,11 @@
     "giveFeedback": "Did you meet?",
     "leave": "Leave pod",
     "leaveTitle": "Leave this pod?",
-    "leaveBody": "The others will only see that a member left."
+    "leaveBody": "The others will only see that a member left.",
+    "chat": "Meetup chat",
+    "chatOpens": "Opens {{when}}",
+    "chatOpenNow": "Open now",
+    "chatClosed": "Closed"
   },
   "plan": {
     "title": "Planner",
@@ -328,6 +332,42 @@
       "PUBLIC_PLACE": "Confirm that it is a public place."
     }
   },
+  "chat": {
+    "title": "Meetup chat",
+    "openUntil": "Open until {{when}}",
+    "opens": "Opens {{when}}",
+    "closed": "Closed",
+    "membersOnly": "Only current members of this pod can see its chat.",
+    "empty": "No messages yet. Say hi, or let the others know when you're on your way.",
+    "notOpenYet": "You can write here from 24 hours before the meetup until 24 hours after it.",
+    "closedEnded": "This chat closed 24 hours after the meetup. Messages are deleted about 3 days after it.",
+    "closedOff": "This chat closed because the meetup is no longer scheduled. Messages are deleted about 3 days after the original meetup time.",
+    "notScheduled": "The chat opens 24 hours before your meetup, once you have picked a time.",
+    "you": "You",
+    "messageLabel": "{{name}}, {{time}}: {{text}}",
+    "quickReplyLine": "{{name}}: {{reply}}",
+    "quickRepliesLabel": "Quick replies",
+    "quickReplies": {
+      "onMyWay": "On my way",
+      "runningLate": "Running a bit late",
+      "imHere": "I'm here",
+      "cantMakeIt": "Can't make it"
+    },
+    "cantMakeItTitle": "Can't make it?",
+    "cantMakeItBody": "We'll tell your pod you're not coming. Cancelling this close to the meetup counts as a late cancellation.",
+    "cantMakeItConfirm": "I can't make it",
+    "cancelledChatClosed": "Your cancellation is saved. Too few people are coming now, so this chat has closed.",
+    "inputLabel": "Message",
+    "placeholder": "Write a message",
+    "counter": "{{length}}/{{max}}",
+    "counterLabel": "{{length}} of {{max}} characters",
+    "send": "Send",
+    "contactWarning": "You haven't met yet. It's fine to wait until after.",
+    "contactWarningDetail": "Your message contains contact details, such as a phone number, an email, a handle or a link.",
+    "sendAnyway": "Send anyway",
+    "edit": "Edit",
+    "report": "Report message"
+  },
   "feedback": {
     "title": "Feedback",
     "didYouMeet": "Did you meet?",
@@ -355,6 +395,7 @@
   "report": {
     "title": "Report",
     "intro": "Reports are confidential. We never tell anyone who reported them.",
+    "messageCopy": "We keep a copy of this message with your report, so we can review it after the chat is deleted.",
     "categories": {
       "harassment": "Harassment",
       "safety": "Safety",
@@ -436,7 +477,7 @@
     },
     "notifications": {
       "title": "Notifications",
-      "body": "Pushes say only that your drop is here or that a pod changed; never an interest or a name.",
+      "body": "Pushes say only that your drop is here, that a pod changed or that there's a new message in your pod; never an interest, a name or the message.",
       "turnOn": "Turn on notifications",
       "turnOff": "Turn off notifications",
       "failed": "That did not work. You can change notifications in your phone's settings."
@@ -506,6 +547,9 @@
     "VALIDATION": "Something in your input isn't valid.",
     "URL": "That link isn't allowed.",
     "CONTACT_INFO": "Contact details aren't allowed here.",
+    "BLOCKLIST": "This contains words that aren't allowed on Grouper, so it wasn't saved.",
+    "PII_CPR": "This looks like a CPR number, so it wasn't saved. Never share CPR numbers on Grouper.",
+    "CONTACT_INFO_BEFORE_MEETUP": "You haven't met yet. It's fine to wait until after.",
     "UNDERAGE": "Grouper is only for people aged 18 and over.",
     "GENDER_CONSENT": "Same-gender pods need your consent.",
     "STAR_LIMIT": "You can star up to 3 interests.",
@@ -514,9 +558,11 @@
     "STATE": "This isn't possible at this stage of the pod.",
     "LIMIT": "You've reached the limit for this.",
     "WINDOW": "That time isn't possible.",
+    "CHAT_CLOSED": "This chat is closed.",
     "RECENT_LOGIN": "Please sign in again to confirm it's you.",
     "APP_CHECK_REPLAY": "Please try again.",
     "NOT_ONBOARDED": "Finish getting started first.",
+    "NOT_MEMBER": "Only current members of this pod can do this.",
     "NOT_CO_MEMBER": "You can only do this for people from your pods.",
     "NOT_FOUND": "This no longer exists.",
     "ALREADY_EXISTS": "This already exists.",

@@ -64,13 +64,13 @@ app/                 expo-router routes, exactly the §11 screens table
   auth/complete      email-link completion (+native-intent.tsx rewrites /__/auth/links here)
   (onboarding)/      §3.1 steps 3–11
   (tabs)/            this week, pods, interests, me
-  pod/[podId]/       pod, plan, feedback, member/[uid]
+  pod/[podId]/       pod, plan, chat (meetup chat, §3.6), feedback, member/[uid]
   sheets/            consent (Art. 9), why-this-pod, report
   settings/, info/   privacy, blocked, notifications, preferences; transparency pages
 src/
   firebase/          RNFirebase init, App Check, emulators, typed callables (core zod schemas)
   data/              TanStack Query client, callable mutations, onSnapshot bridges, typed doc hooks
-  features/          auth, session, onboarding, interests, consent, profile, pods, photos, notifications, account
+  features/          auth, session, onboarding, interests, consent, profile, pods, chat, photos, notifications, account
   components/        small UI kit
   i18n/              da.json, en.json (+ native/ for iOS permission prompts)
 test/                jest tests

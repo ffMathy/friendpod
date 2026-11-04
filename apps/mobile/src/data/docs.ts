@@ -6,6 +6,7 @@ import {
   optionDocSchema,
   podCardDocSchema,
   podDocSchema,
+  podMessageDocSchema,
   sensitiveInterestDocSchema,
   userBlockDocSchema,
   userDocSchema,
@@ -31,6 +32,14 @@ export const usePod = (podId: string, isMember: boolean) => useLiveDoc(isMember 
 
 export const usePodOptions = (podId: string, isMember: boolean) =>
   useLiveCollection(isMember ? `pods/${podId}/options` : null, optionDocSchema, [orderBy('startsAt', 'asc')]);
+
+/**
+ * Meetup-chat messages (§3.6). Members can read them until TTL deletes them, also outside the window, which only
+ * `sendMessage` enforces. Screens use `useChatMessages`, which hides expired ones and has the device cache cleared
+ * after they expire; like the other pod paths, they also leave the cache with the pod (forgetPods) and at sign-out.
+ */
+export const usePodMessages = (podId: string, isMember: boolean) =>
+  useLiveCollection(isMember ? `pods/${podId}/messages` : null, podMessageDocSchema, [orderBy('createdAt', 'asc')]);
 
 export const useBlocks = (uid: string) => useLiveCollection(`users/${uid}/blocks`, userBlockDocSchema);
 

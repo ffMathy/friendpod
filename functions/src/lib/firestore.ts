@@ -24,6 +24,7 @@ import {
   podCardDocSchema,
   podDocSchema,
   podFeedbackDocSchema,
+  podMessageDocSchema,
   podStateDocSchema,
   pushTokensDocSchema,
   rateLimitDocSchema,
@@ -76,6 +77,7 @@ export const PATHS = {
   export: (uid: string, exportId: string) => `users/${seg(uid)}/exports/${seg(exportId)}`,
   pod: (podId: string) => `pods/${seg(podId)}`,
   option: (podId: string, optionId: string) => `pods/${seg(podId)}/options/${seg(optionId)}`,
+  podMessage: (podId: string, messageId: string) => `pods/${seg(podId)}/messages/${seg(messageId)}`,
   area: (areaId: string) => `areas/${seg(areaId)}`,
   configApp: () => 'config/app',
   matchProfile: (uid: string) => `matchProfiles/${seg(uid)}`,
@@ -113,6 +115,7 @@ const CONVERTERS = {
   export: converter(exportDocSchema),
   pod: converter(podDocSchema),
   option: converter(optionDocSchema),
+  podMessage: converter(podMessageDocSchema),
   area: converter(areaDocSchema),
   configApp: converter(configAppDocSchema),
   matchProfile: converter(matchProfileDocSchema),
@@ -161,6 +164,11 @@ export function docs(db: Firestore): DocRefs {
 
 export function consentEvents(db: Firestore): CollectionReference<Converted<'consentEvent'>, DocumentData> {
   return db.collection(COLLECTIONS.consentEvents).withConverter(CONVERTERS.consentEvent);
+}
+
+/** `pods/{podId}/messages` (meetup chat), for auto ids. */
+export function podMessages(db: Firestore, podId: string): CollectionReference<Converted<'podMessage'>, DocumentData> {
+  return db.collection(`${PATHS.pod(podId)}/messages`).withConverter(CONVERTERS.podMessage);
 }
 
 export function erasureLedger(db: Firestore): CollectionReference<Converted<'erasureLedger'>, DocumentData> {

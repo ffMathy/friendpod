@@ -47,6 +47,8 @@ export const dropOrchestrator = onSchedule(SCHEDULE_OPTIONS.dropOrchestrator, ()
   }),
 );
 
+// TODO(M1, §4.6): at T−24 h, together with "Still coming?", send the one generic `chatOpen` push ("Your pod chat
+// is open") to the current members; the chat itself opens by time alone (sendMessage checks isChatOpen).
 export const hourlySweeper = onSchedule(SCHEDULE_OPTIONS.hourlySweeper, () =>
   runBackground('schedule', 'hourlySweeper', handlerDeps, async () => {
     throw notImplemented('§4.6');
