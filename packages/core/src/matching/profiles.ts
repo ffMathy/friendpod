@@ -40,6 +40,9 @@ const SHARED = {
   maxActivePods: 2,
   minInterests: 3,
   openToAnyone: { enabled: true, minWeeksWaiting: 2, q: 0.3 },
+  // First-timers first (founder decision 2026-11-05): highest seed priority and +0.5 in f(u) [A], in both profiles.
+  // 0.5 is half the dissolved-pod priority (+1): a first-timer outranks a 2-week waiter, not a user whose pod fell apart.
+  firstTimer: { seedFirst: true, boost: 0.5 },
 } as const;
 
 const SENSITIVE = {

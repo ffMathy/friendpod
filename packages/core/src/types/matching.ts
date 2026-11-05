@@ -38,6 +38,11 @@ export interface MatchUser {
   readonly waitingSinceWeek: WeekId;
   /** Accepted a pod that dissolved through no fault of theirs: +1 in f(u) (§4.6). */
   readonly priority: boolean;
+  /**
+   * Never had a confirmed pod (`matchProfiles.milestones.firstConfirmedAt` absent): first-timers seed first and get
+   * `params.firstTimer.boost` in f(u) (§6.2, founder decision 2026-11-05).
+   */
+  readonly firstTimer: boolean;
   /** "Open to meet anyone" fallback theme (Q12). */
   readonly openToAnyone: boolean;
   readonly activePods: number;
@@ -107,6 +112,12 @@ export interface MatchParams {
     readonly maxHoldings: number;
   };
   readonly openToAnyone: { readonly enabled: boolean; readonly minWeeksWaiting: number; readonly q: number };
+  /**
+   * First-timers first (§6.2): users who never had a confirmed pod. `seedFirst` puts them ahead of everyone in the
+   * Phase 1 seed order and the leftover order; `boost` is added to f(u), so it also counts in V(P,t) and in
+   * swapInLeftover. `{seedFirst: false, boost: 0}` switches it off.
+   */
+  readonly firstTimer: { readonly seedFirst: boolean; readonly boost: number };
 }
 
 export interface MatchInput {

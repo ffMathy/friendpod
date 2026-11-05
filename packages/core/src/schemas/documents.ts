@@ -44,6 +44,7 @@ import {
 import { CHAT_MESSAGE_MAX } from './callables';
 import { aboutMeSchema, prefsSchema } from './profile';
 import { podReasonSchema, unmatchedReasonSchema } from './reasons';
+import { FUNNEL_NO_AREA, type FunnelStage, type MilestoneField } from '../metrics/funnel';
 
 const wording = z.string().min(1).max(80);
 const vectorValue = z.unknown().refine((v) => v !== undefined && v !== null, { message: 'required' });
@@ -225,17 +226,23 @@ export const podMessageDocSchema = z.object({
 });
 export type PodMessageDoc = z.infer<typeof podMessageDocSchema>;
 
-export const OPTED_IN_BUCKETS = ['<50', '50+', '100+', '150+', '200+', '500+', '1000+'] as const;
-
+/**
+ * `areas/{areaId}`, readable by onboarded users. `waitlistCount` is exact: the number of onboarded accounts whose home
+ * cell is in the area, kept by the server in the same transaction as onboarding, an area change and erasure (founder
+ * decision 2026-11-05: an exact city total is fine; the app shows "<10" below 10, `waitlistDisplay`). It replaces the
+ * earlier bucketed `optedInBucket`. `goal.waitlist` is the counter's goal ("N of 250"); `goal.optedIn` and the rest
+ * stay the Q11 go-live criteria.
+ */
 export const areaDocSchema = z.object({
   label: z.object({ da: z.string(), en: z.string() }),
   status: z.enum(LAUNCH_AREA_STATUSES),
   profile: z.enum(MATCHING_PROFILE_IDS),
-  optedInBucket: z.enum(OPTED_IN_BUCKETS),
-  goal: z.object({ optedIn: z.int(), predictedMatchRate: z.number(), consecutiveWeeks: z.int() }),
+  waitlistCount: z.int().min(0),
+  goal: z.object({ waitlist: z.int().positive(), optedIn: z.int(), predictedMatchRate: z.number(), consecutiveWeeks: z.int() }),
   chips: z.array(z.object({ conceptId: conceptIdSchema, da: wording, en: wording })).max(30),
   configVersion: z.int(),
 });
+export type AreaDoc = z.infer<typeof areaDocSchema>;
 
 /** `features.interests` is the kill switch for addInterests (it was `embedder` before D1). */
 export const configAppDocSchema = z.object({
@@ -251,6 +258,19 @@ export const matchThemeSchema = z.union([
   z.object({ c: conceptIdSchema, starred: z.boolean(), sens: z.literal(false) }),
   z.object({ c: conceptIdSchema, starred: z.boolean(), sens: z.literal(true), consentRef: docIdSchema }),
 ]);
+
+/** Per-user funnel milestones on `matchProfiles` (§6.8), one per FUNNEL_STAGES entry (FUNNEL_MILESTONE_FIELD). */
+export const milestonesSchema = z.strictObject({
+  signupAt: timestampSchema.optional(),
+  onboardedAt: timestampSchema.optional(),
+  waitlistedAt: timestampSchema.optional(),
+  firstDropEligibleAt: timestampSchema.optional(),
+  firstProposalAt: timestampSchema.optional(),
+  firstConfirmedAt: timestampSchema.optional(),
+  firstMeetupHappenedAt: timestampSchema.optional(),
+  secondMeetupAt: timestampSchema.optional(),
+} satisfies Record<MilestoneField, unknown>);
+export type Milestones = z.infer<typeof milestonesSchema>;
 
 export const matchProfileDocSchema = z
   .object({
@@ -297,6 +317,12 @@ export const matchProfileDocSchema = z
       optInWeekId: weekIdSchema.nullable(),
       pausedUntil: timestampSchema.nullable(),
     }),
+    /**
+     * Funnel milestones (§6.8): when each stage first happened for this user, so the uid-free `funnel` counters count
+     * every user once per stage. Server-only like the rest of this doc and erased with it. A missing
+     * `firstConfirmedAt` also makes the user a first-timer in matching (§6.2).
+     */
+    milestones: milestonesSchema.default({}),
     createdAt: timestampSchema,
     updatedAt: timestampSchema,
   })
@@ -446,6 +472,30 @@ export const suppressedCountSchema = z.union([z.int().min(10), z.literal(0), z.l
 export function suppressSmallCount(n: number): number | '<10' {
   return n > 0 && n < 10 ? '<10' : n;
 }
+
+/**
+ * `funnel/{areaId}_{weekId}` (§6.8), server-only: uid-free counters, one per stage, of users who reached that stage
+ * for the first time in that ISO week (Europe/Copenhagen) in that launch area (`none` for users outside every area).
+ * Exact counts are stored; readers (the admin CLI) suppress any cell under 10 (`suppressFunnelCounts`).
+ * `expiresAt` = the week's start + 24 months (TTL, PRIVACY.md §5).
+ */
+const funnelCount = z.int().min(0).default(0);
+export const funnelDocSchema = z.object({
+  areaId: z.union([z.string().regex(/^[a-z][a-z0-9-]{1,31}$/), z.literal(FUNNEL_NO_AREA)]),
+  weekId: weekIdSchema,
+  counts: z.object({
+    signup: funnelCount,
+    onboarded: funnelCount,
+    waitlisted: funnelCount,
+    firstDropEligible: funnelCount,
+    firstProposal: funnelCount,
+    firstConfirmed: funnelCount,
+    firstMeetupHappened: funnelCount,
+    secondMeetup: funnelCount,
+  } satisfies Record<FunnelStage, unknown>),
+  expiresAt: timestampSchema,
+});
+export type FunnelDoc = z.infer<typeof funnelDocSchema>;
 
 export const dropComponentDocSchema = z.object({
   status: z.enum(['snapshotted', 'computed', 'released', 'failed']),

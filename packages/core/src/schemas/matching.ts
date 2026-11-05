@@ -44,6 +44,8 @@ export const snapshotUserSchema = z.object({
   reliability: z.number().min(0).max(1),
   waitingSinceWeek: weekIdSchema,
   priority: z.boolean(),
+  /** Never had a confirmed pod (§6.2); absent in an older snapshot means no first-timer priority. */
+  firstTimer: z.boolean().default(false),
   openToAnyone: z.boolean(),
   activePods: z.int().min(0),
   activeSensitivePods: z.int().min(0),

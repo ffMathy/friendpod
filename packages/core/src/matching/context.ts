@@ -8,6 +8,17 @@ import type { WeekId } from '../types/ids';
 import { xxhash32 } from '../util/xxhash32';
 import { specificity, themeStrength, waitingPriority } from './score';
 
+/**
+ * Seed and leftover order (§6.3): first-timers first when `firstTimer.seedFirst` (§6.2), then higher f(u). Negative
+ * when `a` goes first; callers break ties on the hashed tie and the index, so the order stays total and deterministic.
+ */
+export function seedPriorityCompare(ctx: Pick<MatchContext, 'params' | 'users'>, a: number, b: number): number {
+  const ua = ctx.users[a]!;
+  const ub = ctx.users[b]!;
+  if (ctx.params.firstTimer.seedFirst && ua.firstTimer !== ub.firstTimer) return ua.firstTimer ? -1 : 1;
+  return ub.f - ua.f;
+}
+
 /** Theme reference inside the matcher: a concept index, or OPEN_THEME for "open to anyone" (Q12). */
 export const OPEN_THEME = -1;
 
@@ -45,6 +56,8 @@ export interface DerivedUser {
   readonly tie: number;
   readonly weeksWaiting: number;
   readonly f: number;
+  /** Never had a confirmed pod (§6.2 first-timers first). */
+  readonly firstTimer: boolean;
   readonly r: number;
   readonly openToAnyone: boolean;
   readonly s5Eligible: boolean;
@@ -222,7 +235,8 @@ export function deriveContext(input: MatchInput): MatchContext {
       recent: new Set(Object.entries(u.recentH).filter(([, until]) => input.weekId < until).map(([h]) => h)),
       tie: xxhash32(`${input.seed}:${u.uid}`),
       weeksWaiting,
-      f: waitingPriority(weeksWaiting, u.priority),
+      f: waitingPriority(weeksWaiting, u.priority, u.firstTimer ? p.firstTimer.boost : 0),
+      firstTimer: u.firstTimer,
       r: u.reliability,
       openToAnyone: u.openToAnyone,
       s5Eligible: eligibleS5,

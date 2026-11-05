@@ -10,6 +10,9 @@ const launchAreaSchema = z.object({
   status: z.enum(LAUNCH_AREA_STATUSES),
   profile: z.enum(MATCHING_PROFILE_IDS),
   goal: z.object({
+    /** In-app waitlist goal: the counter reads "N of {waitlist}" (§3.1 step 12) [A]. */
+    waitlist: z.int().positive(),
+    /** Q11 go-live criteria. */
     optedIn: z.int().positive(),
     predictedMatchRate: z.number().min(0).max(1),
     consecutiveWeeks: z.int().positive(),

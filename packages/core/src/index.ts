@@ -14,6 +14,7 @@ export * from './reasons';
 export * from './errors';
 export * from './matching';
 export * from './pods';
+export * from './metrics';
 export * from './profile';
 export { xxhash32 } from './util/xxhash32';
 export { base64Decode, base64Encode } from './util/base64';

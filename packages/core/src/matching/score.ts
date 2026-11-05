@@ -12,9 +12,12 @@ export function specificity(holders: number, n: number): number {
   return Math.min(1, Math.max(0.3, 1 - Math.log(holders) / Math.log(n)));
 }
 
-/** f(u) = min(weeksWaiting, 4)/4, +1 after a pod that dissolved through no fault of theirs (§6.2). */
-export function waitingPriority(weeksWaiting: number, priority: boolean): number {
-  return Math.min(Math.max(weeksWaiting, 0), 4) / 4 + (priority ? 1 : 0);
+/**
+ * f(u) = min(weeksWaiting, 4)/4, +1 after a pod that dissolved through no fault of theirs, + the first-timer boost if
+ * the user never had a confirmed pod (§6.2).
+ */
+export function waitingPriority(weeksWaiting: number, priority: boolean, firstTimerBoost = 0): number {
+  return Math.min(Math.max(weeksWaiting, 0), 4) / 4 + (priority ? 1 : 0) + Math.max(0, firstTimerBoost);
 }
 
 /** s(u,t): 1.0 starred, 0.8 held (§6.2). Confirmed soft links (0.8·cos) are Phase 3. */

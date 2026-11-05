@@ -7,6 +7,9 @@
  * RADIUS_KM of the city centre. §6.4 asks for cells drawn from municipality boundaries plus a margin;
  * replace these lists before any area goes live. The circles include some sea cells, which is harmless
  * (nobody's home cell is there). Statuses start as 'waitlist'; go-live is an admin CLI change.
+ *
+ * Founder decision 2026-11-05: five launch cities (Aarhus, Copenhagen, Aalborg, Odense, Vejle), every one on the
+ * alpha profile and on the waitlist, each with an in-app waitlist goal of WAITLIST_GOAL sign-ups [A].
  */
 import { writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
@@ -16,10 +19,15 @@ import { haversineKm } from '../src/geo/haversine';
 
 const OUT = resolve(dirname(fileURLToPath(import.meta.url)), '../src/geo/areas.json');
 const RADIUS_KM = 20;
+/** [A] The in-app waitlist counter's goal ("N of 250"), per city; go-live itself still follows Q11 (`goal.optedIn`). */
+const WAITLIST_GOAL = 250;
 
 const AREAS = [
   { id: 'aarhus', label: { da: 'Aarhus', en: 'Aarhus' }, center: { lat: 56.1535, lon: 10.2034 }, profile: 'alpha' },
-  { id: 'copenhagen', label: { da: 'København', en: 'Copenhagen' }, center: { lat: 55.6759, lon: 12.5691 }, profile: 'launch' },
+  { id: 'copenhagen', label: { da: 'København', en: 'Copenhagen' }, center: { lat: 55.6759, lon: 12.5691 }, profile: 'alpha' },
+  { id: 'aalborg', label: { da: 'Aalborg', en: 'Aalborg' }, center: { lat: 57.0488, lon: 9.9217 }, profile: 'alpha' },
+  { id: 'odense', label: { da: 'Odense', en: 'Odense' }, center: { lat: 55.3959, lon: 10.3883 }, profile: 'alpha' },
+  { id: 'vejle', label: { da: 'Vejle', en: 'Vejle' }, center: { lat: 55.7093, lon: 9.5357 }, profile: 'alpha' },
 ] as const;
 
 function cellsWithin(center: { lat: number; lon: number }, radiusKm: number): string[] {
@@ -40,14 +48,14 @@ function cellsWithin(center: { lat: number; lon: number }, radiusKm: number): st
 
 async function main(): Promise<void> {
   const doc = {
-    version: 1,
+    version: 2,
     note: `[A] Approximation: geohash-5 cells whose centroid is within ${RADIUS_KM} km of the city centre (packages/core/scripts/gen-areas.ts). DESIGN.md §6.4 asks for municipality boundaries plus a margin before go-live.`,
     areas: AREAS.map((a) => ({
       id: a.id,
       label: a.label,
       status: 'waitlist',
       profile: a.profile,
-      goal: { optedIn: 200, predictedMatchRate: 0.5, consecutiveWeeks: 2 },
+      goal: { waitlist: WAITLIST_GOAL, optedIn: 200, predictedMatchRate: 0.5, consecutiveWeeks: 2 },
       approximation: { method: 'centroid-within-radius', center: a.center, radiusKm: RADIUS_KM },
       cells: cellsWithin(a.center, RADIUS_KM),
     })),

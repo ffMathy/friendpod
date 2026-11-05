@@ -1,7 +1,7 @@
 import type { NonSensitiveConceptId } from '../types/ids';
 import type { MatchedPod, MatchInput, MatchResult, PodTheme, ReasonSeed } from '../types/matching';
 import type { UnmatchedReason } from '../reasons';
-import { deriveContext, OPEN_THEME, type MatchContext } from './context';
+import { deriveContext, OPEN_THEME, seedPriorityCompare, type MatchContext } from './context';
 import { assertAllConstraints, holdsTheme } from './constraints';
 import { collectCandidates, grow, holdersWithinRadius, topCandidates, viablePod } from './grow';
 import { commitPod, createSearchState, insertLeftover, localSearch, swapInLeftover, type SearchState } from './localSearch';
@@ -39,9 +39,7 @@ function bestPodFor(ctx: MatchContext, state: SearchState, seed: number, themes:
 function seedAndGrow(ctx: MatchContext, state: SearchState, seeds: readonly number[], themesFor: (u: number) => readonly number[]): number {
   const feasible = new Map(seeds.map((u) => [u, feasibleThemeCount(ctx, u)]));
   const order = [...seeds].sort((a, b) => {
-    const ua = ctx.users[a]!;
-    const ub = ctx.users[b]!;
-    return ub.f - ua.f || feasible.get(a)! - feasible.get(b)! || ua.tie - ub.tie || a - b;
+    return seedPriorityCompare(ctx, a, b) || feasible.get(a)! - feasible.get(b)! || ctx.users[a]!.tie - ctx.users[b]!.tie || a - b;
   });
   let created = 0;
   for (const u of order) {
@@ -99,9 +97,9 @@ export function matchComponent(input: MatchInput): MatchResult {
   const leftovers = (): number[] =>
     eligible
       .filter((u) => state.podOf[u] === -1)
-      .sort((a, b) => ctx.users[b]!.f - ctx.users[a]!.f || ctx.users[a]!.tie - ctx.users[b]!.tie || a - b);
+      .sort((a, b) => seedPriorityCompare(ctx, a, b) || ctx.users[a]!.tie - ctx.users[b]!.tie || a - b);
 
-  // Phase 1: seed-and-grow, longest-waiting and hardest-to-place first.
+  // Phase 1: seed-and-grow; first-timers first (§6.2), then longest-waiting and hardest-to-place.
   const phase1Pods = seedAndGrow(ctx, state, eligible, (u) => topThemes(ctx, u));
   // Phase 2: local search over leftovers.
   localSearch(ctx, state, [insertLeftover, swapInLeftover], leftovers);

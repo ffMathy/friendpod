@@ -1,5 +1,5 @@
 export { matchComponent } from './matchComponent';
-export { deriveContext, OPEN_THEME, type DerivedUser, type MatchContext } from './context';
+export { deriveContext, OPEN_THEME, seedPriorityCompare, type DerivedUser, type MatchContext } from './context';
 export {
   assertAllConstraints,
   compat,

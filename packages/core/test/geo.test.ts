@@ -1,6 +1,10 @@
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
 import { getLaunchArea, LAUNCH_AREAS, resolveAreaId } from '../src/geo/areas';
+import { areaDocFromConfig, cityLinkPath, isWaitlisted, waitlistDisplay, waitlistProgress } from '../src/geo/waitlist';
+import { FUNNEL_NO_AREA } from '../src/metrics/funnel';
+import { areaDocSchema } from '../src/schemas/documents';
 import { encodeGeohash, geohashBounds, geohashCentroid, isGh5 } from '../src/geo/geohash';
 import { cellDistanceKm, haversineKm } from '../src/geo/haversine';
 import { lookupPostcode, postcodeToGh5 } from '../src/geo/postcode';
@@ -75,23 +79,69 @@ describe('postcodes and launch areas', () => {
     expect(postcodeToGh5('abcd')).toBeNull();
   });
 
-  it('resolves Aarhus and Copenhagen postcodes to their launch areas', () => {
+  it('resolves the five launch cities\' postcodes to their launch areas', () => {
     for (const pc of ['8000', '8200', '8210', '8220', '8230', '8240', '8260', '8270']) expect(resolveAreaId(postcodeToGh5(pc)!)).toBe('aarhus');
     for (const pc of ['1050', '2100', '2200', '2300', '2400', '2500', '1900']) expect(resolveAreaId(postcodeToGh5(pc)!)).toBe('copenhagen');
-    for (const pc of ['5000', '9000', '6700']) expect(resolveAreaId(postcodeToGh5(pc)!)).toBeNull();
+    for (const pc of ['9000', '9200', '9400']) expect(resolveAreaId(postcodeToGh5(pc)!)).toBe('aalborg');
+    for (const pc of ['5000', '5200', '5230']) expect(resolveAreaId(postcodeToGh5(pc)!)).toBe('odense');
+    for (const pc of ['7100', '7120']) expect(resolveAreaId(postcodeToGh5(pc)!)).toBe('vejle');
+    // Esbjerg, Herning, Rønne: not launch areas.
+    for (const pc of ['6700', '7400', '3700']) expect(resolveAreaId(postcodeToGh5(pc)!)).toBeNull();
   });
 
-  it('ships both areas on the waitlist, with disjoint cells and a documented approximation', () => {
-    expect(LAUNCH_AREAS.map((a) => a.id)).toEqual(['aarhus', 'copenhagen']);
+  it('ships five cities on the waitlist and the alpha profile, with disjoint cells, a 250 goal and a documented approximation', () => {
+    expect(LAUNCH_AREAS.map((a) => a.id)).toEqual(['aarhus', 'copenhagen', 'aalborg', 'odense', 'vejle']);
+    expect(LAUNCH_AREAS.map((a) => a.label)).toEqual([
+      { da: 'Aarhus', en: 'Aarhus' },
+      { da: 'København', en: 'Copenhagen' },
+      { da: 'Aalborg', en: 'Aalborg' },
+      { da: 'Odense', en: 'Odense' },
+      { da: 'Vejle', en: 'Vejle' },
+    ]);
+    const seen = new Set<string>();
     for (const a of LAUNCH_AREAS) {
       expect(a.status).toBe('waitlist');
+      expect(a.profile).toBe('alpha');
+      expect(a.goal.waitlist).toBe(250);
       expect(a.approximation?.radiusKm).toBe(20);
       expect(a.cells.length).toBeGreaterThan(80);
       for (const cell of a.cells) {
+        expect(seen.has(cell)).toBe(false);
+        seen.add(cell);
         expect(haversineKm(a.approximation!.center, geohashCentroid(cell))).toBeLessThanOrEqual(20);
       }
+      expect(a.id).not.toBe(FUNNEL_NO_AREA);
     }
-    expect(getLaunchArea('aarhus')?.profile).toBe('alpha');
-    expect(getLaunchArea('odense')).toBeNull();
+    expect(getLaunchArea('esbjerg')).toBeNull();
   });
+});
+
+describe('in-app waitlist (§3.1 step 12)', () => {
+  it('shows "<10" below 10 and the exact city total from 10', () => {
+    expect([0, 1, 9, 10, 11, 250, 1234].map(waitlistDisplay)).toEqual(['<10', '<10', '<10', 10, 11, 250, 1234]);
+  });
+
+  it('clamps progress to 0..1 and treats waitlist and beta as not live', () => {
+    expect(waitlistProgress(0, 250)).toBe(0);
+    expect(waitlistProgress(125, 250)).toBe(0.5);
+    expect(waitlistProgress(400, 250)).toBe(1);
+    expect(['waitlist', 'beta', 'live', null].map((s) => isWaitlisted(s as never))).toEqual([true, true, false, false]);
+  });
+
+  it('builds the city link from the area id only, and the area doc from areas.json', () => {
+    expect(cityLinkPath('aalborg')).toBe('/c/aalborg');
+    expect(() => cityLinkPath('../x')).toThrow();
+    const doc = areaDocFromConfig(getLaunchArea('vejle')!, 3);
+    expect(areaDocSchema.parse(doc)).toEqual(doc);
+    expect(doc).toMatchObject({ label: { da: 'Vejle', en: 'Vejle' }, status: 'waitlist', profile: 'alpha', waitlistCount: 3, goal: { waitlist: 250 }, chips: [] });
+    expect(areaDocFromConfig(getLaunchArea('vejle')!, -2, 'live')).toMatchObject({ waitlistCount: 0, status: 'live' });
+  });
+
+  it('lists every launch area on the hosted city page (hosting/public/c/city.js)', () => {
+    const page = readFileSync(new URL('../../../hosting/public/c/city.js', import.meta.url), 'utf8');
+    for (const a of LAUNCH_AREAS) {
+      expect(page).toContain(`${a.id}: { da: '${a.label.da}', en: '${a.label.en}' }`);
+    }
+  });
+});
 });
