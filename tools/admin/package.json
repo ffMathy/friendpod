@@ -1,0 +1,23 @@
+{
+  "name": "@grouper/admin",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Admin CLI (DESIGN.md §9 Admin access, §13 Backups): launch areas, funnel, sanctions, reports and the restore runbook, with ADC.",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:emulator": "firebase --config firebase.test.json emulators:exec --only firestore --project demo-grouper \"vitest run\"",
+    "admin": "tsx src/cli.ts"
+  },
+  "dependencies": {
+    "@grouper/core": "*",
+    "firebase-admin": "14.5.0"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.2",
+    "tsx": "4.23.15",
+    "typescript": "6.0.3",
+    "vitest": "5.1.0"
+  }
+}

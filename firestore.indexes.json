@@ -1,0 +1,98 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "reports",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "concepts",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "sensitive", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "centroid", "vectorConfig": { "dimension": 768, "flat": {} } }
+      ]
+    },
+    {
+      "collectionGroup": "concepts",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "sensitive", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "gen", "order": "ASCENDING" },
+        { "fieldPath": "centroid", "vectorConfig": { "dimension": 768, "flat": {} } }
+      ]
+    },
+    {
+      "collectionGroup": "matchProfiles",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "themeIds", "arrayConfig": "CONTAINS" },
+        { "fieldPath": "lastDrop.weekId", "order": "ASCENDING" },
+        { "fieldPath": "lastDrop.outcome", "order": "ASCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": [
+    {
+      "collectionGroup": "interests",
+      "fieldPath": "conceptId",
+      "indexes": [
+        { "order": "ASCENDING", "queryScope": "COLLECTION" },
+        { "order": "ASCENDING", "queryScope": "COLLECTION_GROUP" }
+      ]
+    },
+    {
+      "collectionGroup": "interests",
+      "fieldPath": "pendingUntil",
+      "indexes": [
+        { "order": "ASCENDING", "queryScope": "COLLECTION_GROUP" }
+      ]
+    },
+    {
+      "collectionGroup": "sensitiveInterests",
+      "fieldPath": "conceptId",
+      "indexes": [
+        { "order": "ASCENDING", "queryScope": "COLLECTION" },
+        { "order": "ASCENDING", "queryScope": "COLLECTION_GROUP" }
+      ]
+    },
+    {
+      "collectionGroup": "matchProfiles",
+      "fieldPath": "recentMinUntil",
+      "indexes": [
+        { "order": "ASCENDING", "queryScope": "COLLECTION" }
+      ]
+    },
+    {
+      "collectionGroup": "podState",
+      "fieldPath": "memberList",
+      "indexes": [
+        { "arrayConfig": "CONTAINS", "queryScope": "COLLECTION" }
+      ]
+    },
+    { "collectionGroup": "tags", "fieldPath": "vec", "indexes": [] },
+    { "collectionGroup": "concepts", "fieldPath": "medoid", "indexes": [] },
+    { "collectionGroup": "concepts", "fieldPath": "sum", "indexes": [] },
+    { "collectionGroup": "concepts", "fieldPath": "c128", "indexes": [] },
+    { "collectionGroup": "podState", "fieldPath": "members", "indexes": [] },
+    { "collectionGroup": "pods", "fieldPath": "roster", "indexes": [] },
+    { "collectionGroup": "pods", "fieldPath": "expiresAt", "ttl": true, "indexes": [] },
+    { "collectionGroup": "notices", "fieldPath": "expiresAt", "ttl": true, "indexes": [] },
+    { "collectionGroup": "exports", "fieldPath": "expiresAt", "ttl": true, "indexes": [] },
+    { "collectionGroup": "consentEvents", "fieldPath": "expiresAt", "ttl": true, "indexes": [] },
+    { "collectionGroup": "messages", "fieldPath": "expiresAt", "ttl": true, "indexes": [] },
+    { "collectionGroup": "reports", "fieldPath": "expiresAt", "ttl": true, "indexes": [] },
+    { "collectionGroup": "bans", "fieldPath": "expiresAt", "ttl": true, "indexes": [] },
+    { "collectionGroup": "pairSignals", "fieldPath": "expiresAt", "ttl": true, "indexes": [] },
+    { "collectionGroup": "rateLimits", "fieldPath": "expiresAt", "ttl": true, "indexes": [] },
+    { "collectionGroup": "erasureLedger", "fieldPath": "expiresAt", "ttl": true, "indexes": [] },
+    { "collectionGroup": "underageMarkers", "fieldPath": "expiresAt", "ttl": true, "indexes": [] },
+    { "collectionGroup": "funnel", "fieldPath": "expiresAt", "ttl": true, "indexes": [] },
+    { "collectionGroup": "adminRuns", "fieldPath": "expiresAt", "ttl": true, "indexes": [] }
+  ]
+}

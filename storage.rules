@@ -1,0 +1,30 @@
+rules_version = '2';
+
+// DESIGN.md §9. Deny by default. Photos and exports are written by functions (Admin SDK); the only client write
+// is the pending upload pair, which onPhotoUploaded processes and deletes.
+service firebase.storage {
+  match /b/{bucket}/o {
+    function signedIn()     { return request.auth != null; }
+    function isOwner(uid)   { return signedIn() && request.auth.uid == uid; }
+
+    // Fixed names cap stored uploads at one pending pair per uid. Create or overwrite only: no read, no delete.
+    match /uploads/{uid}/{file} {
+      allow create, update: if isOwner(uid)
+        && file in ['pending.jpg', 'pending_256.jpg']
+        && request.resource.size < 2 * 1024 * 1024
+        && request.resource.contentType == 'image/jpeg';
+    }
+
+    // A grant doc exists while the two users share at least one pod that allows the photo (§9 grant
+    // lifecycle). One billed Firestore read per check; only the (default) database is reachable from here.
+    match /photos/{owner}/{file} {
+      allow get: if isOwner(owner)
+        || (signedIn()
+            && firestore.exists(/databases/(default)/documents/photoGrants/$(owner + '_' + request.auth.uid)));
+    }
+
+    match /exports/{uid}/{file} {
+      allow get: if isOwner(uid);
+    }
+  }
+}

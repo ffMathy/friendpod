@@ -1,0 +1,11 @@
+{
+  "//": "Repo strictness (tsconfig.base.json) first, then Expo's JSX, module and lib settings on top. App code sees no Node or Jest globals; tests use tsconfig.test.json.",
+  "extends": ["../../tsconfig.base.json", "expo/tsconfig.base"],
+  "compilerOptions": {
+    "types": [],
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["app/**/*.ts", "app/**/*.tsx", "src/**/*.ts", "src/**/*.tsx", "app.config.ts", ".expo/types/**/*.ts", "expo-env.d.ts"]
+}

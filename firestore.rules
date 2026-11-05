@@ -1,0 +1,48 @@
+rules_version = '2';
+
+// DESIGN.md §9. Deny by default; clients never write. Every write goes through a callable (Admin SDK), which
+// bypasses these rules. Anything not matched below (matchProfiles, tags, concepts, podState, consentEvents,
+// reports, pairSignals, photoGrants, rateLimits, funnel, …) is server-only. `funnel/{areaId}_{weekId}` (the uid-free
+// day-1 funnel counters, §6.8) is read only by the admin CLI, which suppresses cells under 10.
+service cloud.firestore {
+  match /databases/{db}/documents {
+    function signedIn()  { return request.auth != null; }
+    function onboarded() { return signedIn() && request.auth.token.onb == true; }
+
+    // DESIGN-DEVIATION: §9 also lists `match /users/{uid}` separately. In rules_version 2 a recursive wildcard
+    // matches zero or more segments, so this one block covers the profile doc and every subcollection
+    // (interests, sensitiveInterests, pods, blocks, notices, exports); tests/rules asserts both. "About me" (D4) is on
+    // the users doc, so here only its owner reads it; co-members read the copy in the pod roster below.
+    match /users/{uid}/{doc=**} {
+      allow read: if signedIn() && request.auth.uid == uid;
+    }
+
+    // memberUids is filled only at confirmation, so invitees cannot see each other before that (§9). The roster,
+    // with first names, photo versions and "about me", is therefore shown to confirmed members only.
+    match /pods/{podId} {
+      allow read: if onboarded() && request.auth.uid in resource.data.memberUids;
+
+      match /options/{optionId} {
+        allow read: if onboarded() &&
+          request.auth.uid in get(/databases/$(db)/documents/pods/$(podId)).data.memberUids;
+      }
+
+      // Meetup chat (§3.6): written only by sendMessage. The window is enforced there, not here, so current
+      // members can read existing messages until TTL deletes them.
+      match /messages/{messageId} {
+        allow read: if onboarded() &&
+          request.auth.uid in get(/databases/$(db)/documents/pods/$(podId)).data.memberUids;
+      }
+    }
+
+    // Launch areas, including the exact waitlistCount and goal the waitlist screen shows (§3.1 step 12).
+    match /areas/{areaId} {
+      allow read: if onboarded();
+    }
+
+    // Read before sign-in: minimum app version, legal versions, kill switches.
+    match /config/app {
+      allow read: if true;
+    }
+  }
+}

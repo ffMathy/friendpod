@@ -1,0 +1,8 @@
+{
+  "//": "Standalone project (own package-lock.json); shares only the compiler settings of the repo base config.",
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["node"]
+  },
+  "include": ["test/**/*.ts", "vitest.config.ts"]
+}

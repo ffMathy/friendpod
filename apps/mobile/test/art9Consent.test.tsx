@@ -1,0 +1,99 @@
+import { LEGAL_TEXT_SHA256, setArt9ConsentInput } from '@grouper/core';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { Art9BlanketConsent } from '@/features/consent/Art9BlanketConsent';
+import { appVersion } from '@/lib/appVersion';
+import SensitiveConsentStep from '../app/(onboarding)/sensitive-consent';
+
+const mockRouter = { push: jest.fn(), replace: jest.fn(), back: jest.fn() };
+jest.mock('expo-router', () => ({ useRouter: () => mockRouter }));
+
+const mockCall = jest.fn();
+jest.mock('@/firebase/callables', () => ({
+  callFunction: (...args: unknown[]) => mockCall(...args),
+  toAppError: (e: unknown) => e,
+}));
+
+const handlers = () => ({ onAgree: jest.fn(), onNotNow: jest.fn(), onReadMore: jest.fn() });
+
+beforeEach(() => {
+  mockCall.mockReset();
+  Object.values(mockRouter).forEach((f) => f.mockClear());
+});
+
+describe('blanket Art. 9 consent (D3, PRIVACY.md §3.3)', () => {
+  it('shows the versioned copy, including the meetup chat and the user downgrade', async () => {
+    await render(<Art9BlanketConsent locale="en" {...handlers()} />);
+    expect(screen.getByText('Sensitive interests')).toBeOnTheScreen();
+    expect(screen.getByText(/short meetup chat, open from 24 hours before/)).toBeOnTheScreen();
+    expect(screen.getByText(/choose "This isn't sensitive for me" on it/)).toBeOnTheScreen();
+    expect(screen.getByRole('checkbox', { name: /^I explicitly consent to Grouper processing interests/ })).toBeOnTheScreen();
+  });
+
+  it('starts unticked, with "I agree" disabled until the box is ticked', async () => {
+    const h = handlers();
+    await render(<Art9BlanketConsent locale="en" {...h} />);
+    const checkbox = screen.getByTestId('art9-checkbox');
+    const agree = screen.getByTestId('art9-agree');
+    expect(checkbox).not.toBeChecked();
+    expect(agree).toBeDisabled();
+    await fireEvent.press(agree);
+    expect(h.onAgree).not.toHaveBeenCalled();
+
+    await fireEvent.press(checkbox);
+    expect(agree).toBeEnabled();
+    await fireEvent.press(agree);
+    expect(h.onAgree).toHaveBeenCalledWith({
+      textVersion: 'art9-blanket-en-v1',
+      textSha256: LEGAL_TEXT_SHA256['art9-blanket-en-v1'],
+      appVersion,
+      checked: true,
+    });
+  });
+
+  it('records the Danish text and its own hash in Danish', async () => {
+    const h = handlers();
+    await render(<Art9BlanketConsent locale="da" {...h} />);
+    expect(screen.getByText('Følsomme interesser')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByTestId('art9-checkbox'));
+    await fireEvent.press(screen.getByRole('button', { name: 'Jeg siger ja' }));
+    expect(h.onAgree).toHaveBeenCalledWith(expect.objectContaining({ textVersion: 'art9-blanket-da-v1', textSha256: LEGAL_TEXT_SHA256['art9-blanket-da-v1'] }));
+  });
+
+  describe('onboarding step', () => {
+    let client: QueryClient;
+    const renderStep = async () => {
+      client = new QueryClient({ defaultOptions: { mutations: { retry: false, gcTime: Infinity } } });
+      await render(
+        <QueryClientProvider client={client}>
+          <SensitiveConsentStep />
+        </QueryClientProvider>,
+      );
+    };
+    afterEach(() => client.clear());
+
+    it('"Not now" carries on to the interests and records nothing, so saying no keeps the app usable', async () => {
+      await renderStep();
+      await fireEvent.press(screen.getByRole('button', { name: 'Not now' }));
+      expect(mockCall).not.toHaveBeenCalled();
+      expect(mockRouter.replace).toHaveBeenCalledWith('/add-interests');
+    });
+
+    it('"I agree" calls setArt9Consent with the proof, then carries on', async () => {
+      mockCall.mockResolvedValue({ ok: true });
+      await renderStep();
+      await fireEvent.press(screen.getByTestId('art9-checkbox'));
+      await fireEvent.press(screen.getByRole('button', { name: 'I agree' }));
+      await act(async () => {
+        await Promise.resolve();
+      });
+      expect(mockCall).toHaveBeenCalledTimes(1);
+      const [name, input] = mockCall.mock.calls[0] as [string, unknown];
+      expect(name).toBe('setArt9Consent');
+      expect(setArt9ConsentInput.parse(input)).toEqual({
+        consent: { textVersion: 'art9-blanket-en-v1', textSha256: LEGAL_TEXT_SHA256['art9-blanket-en-v1'], appVersion, checked: true },
+      });
+      expect(mockRouter.replace).toHaveBeenCalledWith('/add-interests');
+    });
+  });
+});

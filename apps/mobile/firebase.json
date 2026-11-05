@@ -1,0 +1,11 @@
+{
+  "$comment": "React Native Firebase native settings (not the Firebase CLI config, which lives at the repo root). No automatic data collection; FCM registers only after the notification permission (DESIGN.md A14, PRIVACY.md §12.1).",
+  "react-native": {
+    "app_data_collection_default_enabled": false,
+    "app_check_token_auto_refresh": true,
+    "messaging_auto_init_enabled": false,
+    "messaging_ios_auto_register_for_remote_messages": false,
+    "messaging_android_notification_delivery_metrics_export_enabled": false,
+    "messaging_max_stored_notifications": 0
+  }
+}

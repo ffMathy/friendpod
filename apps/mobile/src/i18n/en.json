@@ -1,0 +1,680 @@
+{
+  "common": {
+    "continue": "Continue",
+    "cancel": "Cancel",
+    "save": "Save",
+    "skip": "Skip",
+    "notNow": "Not now",
+    "ok": "OK",
+    "loading": "Loading",
+    "loadFailed": "This could not be loaded. Try again later.",
+    "retry": "Try again"
+  },
+  "welcome": {
+    "title": "Grouper",
+    "tagline": "Small groups. Real meetups. 18+.",
+    "start": "Get started"
+  },
+  "languages": {
+    "da": "Dansk",
+    "en": "English"
+  },
+  "auth": {
+    "signIn": {
+      "title": "Sign in",
+      "intro": "Sign in to join this week's drop. We never ask for a phone number.",
+      "apple": "Sign in with Apple",
+      "google": "Sign in with Google",
+      "email": "Sign in with an email link",
+      "failed": "Sign-in did not work. Please try again.",
+      "legalHint": "Next you will see our Terms and privacy notice."
+    },
+    "email": {
+      "title": "Email link",
+      "label": "Email address",
+      "send": "Send me a sign-in link",
+      "sent": "Check your inbox and open the link on this phone.",
+      "failed": "We could not send the link. Check the address and try again."
+    },
+    "complete": {
+      "title": "Signing in",
+      "body": "Finishing your sign-in…",
+      "pasteLink": "Sign-in link (emulator)",
+      "continue": "Sign in",
+      "invalid": "This link is not a valid sign-in link.",
+      "failed": "The link has expired or was already used. Request a new one."
+    }
+  },
+  "onboarding": {
+    "title": "Getting started",
+    "terms": {
+      "title": "Terms and privacy",
+      "body": "To use Grouper you accept our Terms. Our privacy notice explains what we do with your data; it is information, not something you consent to.",
+      "readTerms": "Read the Terms",
+      "readPrivacy": "Read the privacy notice",
+      "accept": "I accept the Terms"
+    },
+    "dob": {
+      "title": "Your date of birth",
+      "why": "Grouper is for people aged 18 and over. We only keep your birth year.",
+      "day": "Day",
+      "month": "Month",
+      "year": "Year",
+      "invalid": "That is not a valid date.",
+      "underage": "Grouper is only for people aged 18 and over."
+    },
+    "name": {
+      "title": "Your first name",
+      "who": "Only people in a confirmed pod with you see it.",
+      "label": "First name",
+      "invalid": "Use 1–30 letters. No contact details."
+    },
+    "area": {
+      "title": "Your area",
+      "privacy": "Your postcode or location is turned into a rough map cell on your phone. We only receive the cell, never the postcode or coordinates.",
+      "postcode": "Postcode",
+      "unknownPostcode": "We don't know that postcode.",
+      "usePostcode": "Use {{name}}",
+      "usePostcodeShort": "Use postcode",
+      "useLocation": "Use my approximate location instead",
+      "locationFailed": "We could not get your approximate location. Use your postcode instead.",
+      "outside": "Grouper isn't in your area yet",
+      "outsideHint": "You can still sign up; we'll tell you when we open near you.",
+      "underage": "Grouper is only for people aged 18 and over. We have deleted your sign-in and kept nothing else about you."
+    },
+    "interests": {
+      "title": "Your interests"
+    },
+    "prefs": {
+      "title": "Pod preferences",
+      "body": "These decide who you can be matched with. You can change them any time."
+    },
+    "photo": {
+      "title": "Photo (optional)",
+      "body": "Only people in a confirmed pod with you can see it. In pods about a sensitive interest, you choose per pod whether to show it.",
+      "choose": "Choose a photo",
+      "uploaded": "Thanks! Your photo will appear shortly.",
+      "failed": "The upload did not work. You can add a photo later."
+    },
+    "notifications": {
+      "title": "Notifications",
+      "body": "We tell you when your weekly drop is here, when your pod is confirmed, when there's a new message in your pod's meetup chat, and the morning after a meetup to ask how it went. Notifications never mention an interest, a person or what anyone wrote.",
+      "enable": "Turn on notifications"
+    },
+    "pledge": {
+      "title": "Our safety pledge",
+      "body": "Meet only in public places, be kind and on time, and never pressure anyone. If something feels wrong, leave and use Report.",
+      "checkbox": "I will meet in public places and treat everyone with respect."
+    },
+    "done": {
+      "title": "You're in",
+      "live": "Your first drop is Thursday at 18:00.",
+      "waitlist": "{{area}}: {{n}} of {{goal}} signed up. We'll open when enough people near you have joined.",
+      "outside": "Grouper isn't in your area yet. We'll let you know when it is.",
+      "go": "Go to Grouper"
+    },
+    "heardFrom": {
+      "question": "Where did you hear about Grouper? (optional)",
+      "hint": "We only count the answers per city and week; it is not saved on your profile.",
+      "dadsGroup": "A dads' or parents' group",
+      "newcomerEvent": "A newcomer event",
+      "university": "University or school",
+      "venuePoster": "A poster at a café or venue",
+      "friend": "A friend",
+      "socialMedia": "Social media",
+      "press": "News or press",
+      "other": "Somewhere else"
+    }
+  },
+  "areaStatus": {
+    "waitlist": "On the waitlist",
+    "beta": "In beta",
+    "live": "Live"
+  },
+  "interests": {
+    "fieldLabel": "Add an interest in your own words",
+    "add": "Add",
+    "added": "Added.",
+    "thirdPartyWarning": "Added. Please only add interests about yourself.",
+    "madePrivate": "This interest is now private.",
+    "duplicate": "You already have this interest.",
+    "limit": "You have reached 20 interests. Remove one to add another.",
+    "starLimit": "You can star up to 3 interests.",
+    "didYouMean": "Did you mean “{{label}}”?",
+    "useSuggestion": "Yes, use that",
+    "popularNearYou": "Popular near you",
+    "count_one": "{{count}} interest. Add at least {{min}}; {{nudge}} or more gives better pods.",
+    "count_other": "{{count}} interests. Add at least {{min}}; {{nudge}} or more gives better pods.",
+    "yours": "Your interests",
+    "empty": "No interests yet.",
+    "star": "Star",
+    "keepPrivate": "Keep this private",
+    "remove": "Remove",
+    "readMoreSensitive": "Read more about sensitive interests",
+    "madeOrdinary": "Done. We now treat this as an ordinary interest, for you only.",
+    "notSensitiveForMe": "This isn't sensitive for me",
+    "privateLabel": "{{name}}, private",
+    "privateExplainer": "🔒 Private: never shown on any profile, and used only as the theme of a pod whose members all added it too.",
+    "openSensitiveConsent": "Sensitive interests: give consent",
+    "model": {
+      "preparing": "Getting interests ready on your phone…",
+      "notBundled": "This version of the app doesn't include what your phone needs to understand interests. Install the app from the App Store or Google Play.",
+      "storage": "Your phone needs about 260 MB of free space to get interests ready, once. Free up some space, then try again.",
+      "integrity": "Something went wrong getting interests ready, so we deleted it. Please try again. If it keeps happening, reinstall the app.",
+      "runtime": "This phone can't run the interest check right now (it may need more free memory). Close other apps and try again.",
+      "notPinned": "Adding interests isn't available in this version yet."
+    },
+    "pendingConsent": "This interest may be sensitive, so it is on hold. Unless you agree to sensitive interests, it is removed on {{when}}.",
+    "pendingConsentNoDate": "This interest may be sensitive, so it is on hold until you agree to sensitive interests."
+  },
+  "moderation": {
+    "TAG_TOO_SHORT": "An interest needs at least 2 characters.",
+    "TAG_TOO_LONG": "An interest can have at most 40 characters.",
+    "PII": "Interests cannot contain contact details such as phone numbers, emails, links or handles.",
+    "BLOCKLIST": "This interest isn't allowed on Grouper.",
+    "THIRD_PARTY_SENSITIVE": "This seems to describe someone else's sensitive situation. Describe your own instead, for example “parent of an autistic child”.",
+    "INTEREST_LIMIT": "You have reached 20 interests.",
+    "SENSITIVE_ADD_LIMIT": "You can add at most 3 sensitive interests per week.",
+    "SENSITIVE_UNAVAILABLE": "Sensitive interests can't be added yet.",
+    "ART9_CONSENT_REQUIRED": "This interest may be sensitive, so we only save it if you've agreed to sensitive interests. Nothing was sent or saved. You can give consent in Settings → Privacy.",
+    "ART9_CONSENT_REQUIRED_SERVER": "This interest may be sensitive, so we only save it if you've agreed to sensitive interests. We didn't save it. You can give consent in Settings → Privacy."
+  },
+  "gender": {
+    "title": "Same-gender pods",
+    "options": {
+      "woman": "Woman",
+      "man": "Man",
+      "nonbinary": "Non-binary"
+    },
+    "englishOnly": "This text is only available in English for now.",
+    "confirm": "Turn on same-gender pods"
+  },
+  "prefs": {
+    "ageRange": "Age range",
+    "from": "From",
+    "to": "To",
+    "ageRangeTooNarrow": "The age range must span at least 5 years.",
+    "radius": "Distance",
+    "aboutKm": "about {{km}} km",
+    "languages": "Meetup languages",
+    "pickLanguage": "Pick at least one language.",
+    "availability": "When can you meet?",
+    "pickAvailability": "Pick at least one time.",
+    "openToAnyone": "Open to meet anyone",
+    "openToAnyoneHint": "If no interest fits, you can be matched with nearby people without a shared theme.",
+    "sameGender": "Same-gender pods only",
+    "sameGenderHint": "Needs your gender and a separate consent. Pods may be rarer.",
+    "sameGenderOffTitle": "Turn off same-gender pods?",
+    "sameGenderOffBody": "We'll delete your gender everywhere.",
+    "turnOff": "Turn off",
+    "decrease": "Decrease {{label}}",
+    "increase": "Increase {{label}}"
+  },
+  "availability": {
+    "weekdayDay": "Weekdays, daytime",
+    "weekdayEvening": "Weekdays, evening",
+    "saturdayDay": "Saturday, daytime",
+    "saturdayEvening": "Saturday, evening",
+    "sundayDay": "Sunday, daytime",
+    "sundayEvening": "Sunday, evening"
+  },
+  "tabs": {
+    "thisWeek": "This week",
+    "pods": "Pods",
+    "interests": "Interests",
+    "me": "Me"
+  },
+  "home": {
+    "noPod": "No pod this week",
+    "noPodYet": "Your first drop is coming up.",
+    "tip": "Tip: add a few more interests, or try a larger distance.",
+    "openPreferences": "Change preferences",
+    "nextDrop": "Next drop: {{when}}"
+  },
+  "unmatched": {
+    "NO_THEME_BUCKET": "Not enough people nearby share one of your interests yet.",
+    "RADIUS": "Your distance setting leaves too few people to form a pod.",
+    "AGE": "Your age range leaves too few people to form a pod.",
+    "GENDER": "Same-gender pods: too few people with the same setting nearby.",
+    "GENDER_POOL": "There are too few people for same-gender pods in your area right now.",
+    "LANGUAGE": "Too few people nearby share your meetup languages.",
+    "AVAILABILITY": "Too few people nearby can meet at your times.",
+    "MAX_ACTIVE_PODS": "You already have 2 active pods.",
+    "TOO_FEW_INTERESTS": "Add at least 3 interests to be matched.",
+    "SENSITIVE_ELIGIBILITY": "Pods about sensitive interests aren't open to you yet, so we looked at your other interests.",
+    "SENSITIVE_DENSITY": "Too few people nearby have added your sensitive interest for a pod.",
+    "AREA_WAITLIST": "Your area is still on the waitlist.",
+    "OUTSIDE_AREAS": "Grouper isn't in your area yet.",
+    "NO_FIT_THIS_WEEK": "There were people to match with, but no pod fitted this week."
+  },
+  "blockingSetting": {
+    "RADIUS": "Your distance is small for your area. A larger distance would help.",
+    "AGE": "Your age range is narrow for your area.",
+    "GENDER_POOL": "Same-gender pods are rare in your area right now.",
+    "LANGUAGE": "Few people near you share your meetup languages.",
+    "AVAILABILITY": "Few people near you can meet at your times."
+  },
+  "pods": {
+    "openToAnyone": "Open to anyone",
+    "sizeAndArea": "{{size}} people near {{area}}",
+    "nearYou": "Everyone lives about {{km}} km or less from you",
+    "ageSpan": "Ages {{min}}–{{max}}",
+    "alsoShare": "You also share: {{list}}",
+    "acceptBy": "Answer by {{when}}",
+    "acceptedCount": "{{accepted}} of {{size}} accepted",
+    "accept": "Accept",
+    "decline": "Decline",
+    "declineReasonPrompt": "Optional: why? (used only for anonymous statistics)",
+    "declineReasons": {
+      "notThisWeek": "Not this week",
+      "theme": "Not this interest",
+      "distance": "Too far",
+      "groupSize": "Group size",
+      "other": "Other"
+    },
+    "confirmDecline": "Decline this pod",
+    "whyThisPod": "Why this pod",
+    "active": "Active",
+    "past": "Past",
+    "noneActive": "No active pods.",
+    "nonePast": "No past pods."
+  },
+  "podState": {
+    "proposed": "Proposed",
+    "planning": "Planning",
+    "scheduled": "Scheduled",
+    "happened": "Met",
+    "archived": "Archived",
+    "dissolved": "Didn't come together"
+  },
+  "pod": {
+    "title": "Pod",
+    "gone": "This pod no longer exists.",
+    "you": "{{name}} (you)",
+    "photoOf": "Photo of {{name}}",
+    "podInterests": "Pod interests: {{list}}",
+    "meetup": "Meetup: {{when}}",
+    "planBy": "Pick a time by {{when}}",
+    "showMyPhoto": "Show my photo to this pod",
+    "openPlanner": "Meetup planner",
+    "giveFeedback": "Did you meet?",
+    "leave": "Leave pod",
+    "leaveTitle": "Leave this pod?",
+    "leaveBody": "The others will only see that a member left.",
+    "chat": "Meetup chat",
+    "chatOpens": "Opens {{when}}",
+    "chatOpenNow": "Open now",
+    "chatClosed": "Closed",
+    "sections": {
+      "plan": "Plan",
+      "chat": "Chat",
+      "members": "Members"
+    },
+    "next": {
+      "vote": "Vote on a time and place",
+      "voteBody": "Say yes to every option that works for you, by {{when}}.",
+      "voteAction": "Open the planner",
+      "addOption": "Suggest a time and place",
+      "addOptionAction": "Add an option",
+      "chat": "The meetup chat is open",
+      "chatAction": "Open chat",
+      "feedback": "How did it go?"
+    },
+    "addToCalendar": "Add to calendar",
+    "calendarTitle": "Pod meetup",
+    "calendarFailed": "Your calendar couldn't be opened.",
+    "openMap": "Open in Maps",
+    "mapFailed": "The map didn't open."
+  },
+  "plan": {
+    "title": "Planner",
+    "notPlanning": "The planner opens once the pod is confirmed.",
+    "options": "Options",
+    "noOptions": "No options yet. Propose a time and a public place.",
+    "yesVotes_one": "{{count}} yes",
+    "yesVotes_other": "{{count}} yes",
+    "yes": "Yes",
+    "no": "No",
+    "proposeFirst": "Propose an option",
+    "proposeAnother": "Propose another option",
+    "date": "Date",
+    "dateHint": "YYYY-MM-DD",
+    "time": "Time",
+    "timeHint": "HH:MM",
+    "place": "Place",
+    "propose": "Propose",
+    "errors": {
+      "DATE": "Enter a date and time.",
+      "WINDOW": "Pick a time within 14 days, between 08:00 and 22:00.",
+      "PLACE": "Pick a public place from the list."
+    },
+    "extendedTitle": "No time works yet — add another option",
+    "extendedBody": "You have one more day, until {{when}}. If no option gets 3 yes votes by then, the pod ends.",
+    "placeHint": "Search for a café, library, park…",
+    "placeNoResults": "No public places found. Try another name.",
+    "placeNotPublic": "That isn't a public place. Pick a café, library, park or similar.",
+    "placeFailed": "Places couldn't be searched right now. Try again.",
+    "placeAttribution": "Places from Google Maps.",
+    "changePlace": "Change place",
+    "report": "Report",
+    "reportOption": "Report the option at {{place}}"
+  },
+  "chat": {
+    "title": "Meetup chat",
+    "openUntil": "Open until {{when}}",
+    "opens": "Opens {{when}}",
+    "closed": "Closed",
+    "membersOnly": "Only current members of this pod can see its chat.",
+    "empty": "No messages yet. Say hi, or let the others know when you're on your way.",
+    "notOpenYet": "You can write here from 24 hours before the meetup until 24 hours after it.",
+    "closedEnded": "This chat closed 24 hours after the meetup. Messages are deleted about 3 days after it.",
+    "closedOff": "This chat closed because the meetup is no longer scheduled. Messages are deleted about 3 days after the original meetup time.",
+    "notScheduled": "The chat opens 24 hours before your meetup, once you have picked a time.",
+    "you": "You",
+    "messageLabel": "{{name}}, {{time}}: {{text}}",
+    "inputLabel": "Message",
+    "placeholder": "Write a message",
+    "counter": "{{length}}/{{max}}",
+    "counterLabel": "{{length}} of {{max}} characters",
+    "send": "Send",
+    "contactWarning": "You haven't met yet. It's fine to wait until after.",
+    "contactWarningDetail": "Your message contains contact details, such as a phone number, an email, a handle or a link.",
+    "sendAnyway": "Send anyway",
+    "edit": "Edit",
+    "report": "Report message"
+  },
+  "feedback": {
+    "title": "Feedback",
+    "didYouMeet": "Did you meet?",
+    "yes": "Yes",
+    "no": "No",
+    "meetAgain": "Meet {{name}} again?",
+    "rating": "How was it? (1–5)",
+    "private": "Your answers are private. Nobody sees what you said about them.",
+    "keep": "Keep pod",
+    "notForMe": "Not for me",
+    "send": "Send",
+    "whoWasThere": "Who was there?",
+    "whoWasThereHint": "Everyone is ticked. Untick anyone who didn’t come.",
+    "meetAgainEffect": "If you both say yes, you can be matched together again after 4 weeks instead of 6 months. If either of you says no, you won't be matched together again. Nobody is told what you answered."
+  },
+  "member": {
+    "title": "Member",
+    "formerMember": "Former member",
+    "report": "Report",
+    "block": "Block",
+    "blockTitle": "Block {{name}}?",
+    "blockBody": "You will never be matched again, and photos are hidden both ways.",
+    "blockExplainer": "Blocking is immediate. In an active pod, the blocked member is removed; the others only see that the pod changed.",
+    "leaveInstead": "Leave the pod myself instead",
+    "blockBodyReplan": "You will never be matched again, photos are hidden both ways, and the pod plans a new meetup within 48 hours.",
+    "blockedAlready": "You've blocked {{name}}.",
+    "replan": "Re-plan the meetup",
+    "replanExplainer": "They already know where and when you're meeting. Re-planning picks a new time and place within 48 hours."
+  },
+  "report": {
+    "title": "Report",
+    "intro": "Reports are confidential. We never tell anyone who reported them.",
+    "messageCopy": "We keep a copy of this message with your report for 12 months, also after the chat is deleted.",
+    "categories": {
+      "harassment": "Harassment",
+      "safety": "Safety",
+      "noShow": "No-show",
+      "content": "Content",
+      "underage": "Suspected under 18",
+      "notGenuine": "Not a genuine member"
+    },
+    "emergency": "In an emergency, call 112.",
+    "textLabel": "What happened? (optional)",
+    "textWarning": "Please don't include sensitive details about anyone.",
+    "send": "Send report"
+  },
+  "reasons": {
+    "THEME": "You both added “{{wording}}”",
+    "ALSO_SHARE": "You also share: {{list}}",
+    "AREA": "Near {{label}}",
+    "NEAR_YOU": "Everyone lives about {{km}} km or less from you",
+    "AGE_SPAN": "Ages {{min}}–{{max}}",
+    "PRIORITY_one": "You have waited {{count}} week, so you had priority",
+    "PRIORITY_other": "You have waited {{count}} weeks, so you had priority",
+    "SOFT_THEME": "Your “{{yourTag}}” is close to this pod's “{{podTheme}}”",
+    "OPEN_TO_ANYONE": "You are open to meet anyone nearby",
+    "footer": "Pods are formed automatically. Read “How matching works” to see which information is used."
+  },
+  "me": {
+    "participation": "Weekly drops",
+    "modes": {
+      "auto": "Every week",
+      "manual": "When I opt in",
+      "skipNext": "Skip next drop",
+      "pause": "Pause"
+    },
+    "effectiveFrom": "Applies from week {{week}}",
+    "record": "Your record",
+    "attended": "{{attended}}/{{total}} attended",
+    "noMeetupsYet": "No meetups yet.",
+    "language": "Language",
+    "preferences": "Pod preferences",
+    "settings": "Settings",
+    "photo": "Photo",
+    "photoWho": "Only people in a confirmed pod with you can see it. In pods about a sensitive interest, you choose per pod.",
+    "yourPhoto": "Your photo",
+    "changePhoto": "Change photo",
+    "photoFailed": "The upload didn't work. Try again."
+  },
+  "settings": {
+    "title": "Settings",
+    "signOut": "Sign out",
+    "reauthLinkSent": "To confirm it's you, we sent a sign-in link to your email. Open it, then try again.",
+    "privacy": {
+      "title": "Privacy",
+      "consents": "Your consents",
+      "genderOn": "Same-gender pods are on (uses your gender).",
+      "genderOff": "Same-gender pods are off; we don't store your gender.",
+      "withdrawGender": "Turn off and delete my gender",
+      "deletePhoto": "Delete my photo",
+      "yourData": "Your data",
+      "exportBody": "We prepare a file with your data. It is available for 24 hours and deleted within 48 hours.",
+      "export": "Download my data",
+      "exportRequested": "We're preparing your file and will let you know when it's ready.",
+      "restrict": "Pause or delete",
+      "pause": "Pause matching now",
+      "complaint": "You can complain to the Danish Data Protection Agency (datatilsynet.dk).",
+      "sensitiveTitle": "Sensitive interests",
+      "sensitiveOn_one": "You've agreed to sensitive interests. {{count}} of your interests is private.",
+      "sensitiveOn_other": "You've agreed to sensitive interests. {{count}} of your interests are private.",
+      "sensitiveOff": "You haven't agreed to sensitive interests, so we don't save interests that may be sensitive.",
+      "giveSensitive": "Agree to sensitive interests",
+      "withdrawSensitive": "Withdraw consent for sensitive interests",
+      "exportFileTitle": "Your Grouper data",
+      "exportDownload": "Download the file",
+      "exportDownloadFailed": "The download didn't work. Try again.",
+      "exportPending": "We're preparing your file.",
+      "exportFailed": "Preparing your file didn't work. You can ask again tomorrow.",
+      "exportReady": "Your file is ready until {{when}}.",
+      "deletePhotoBody": "Your photo is deleted and members of your pods stop seeing it.",
+      "pausedUntil": "Matching is paused until {{when}}.",
+      "paused": "Matching is paused.",
+      "skipping": "You're skipping the drop in week {{week}}.",
+      "skipNext": "Skip the next drop"
+    },
+    "delete": {
+      "title": "Delete account",
+      "heading": "Delete your account",
+      "what": "We delete your profile, interests, photo, pods and consents. Other members see only that a member left.",
+      "windows": "Backups are kept for up to 7 days. Google may keep a copy of your sign-in record for up to 180 days.",
+      "confirm": "Delete my account",
+      "confirmTitle": "Delete your account?",
+      "confirmBody": "This can't be undone. You will first confirm that it's you.",
+      "done": "Your account has been deleted. Thanks for trying Grouper."
+    },
+    "blocked": {
+      "title": "Blocked people",
+      "none": "You haven't blocked anyone.",
+      "unnamed": "Someone from an unconfirmed pod",
+      "unblock": "Unblock"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "body": "Pushes say only that your drop is here, that a pod changed or that there's a new message in your pod; never an interest, a name or the message.",
+      "turnOn": "Turn on notifications",
+      "turnOff": "Turn off notifications",
+      "failed": "That did not work. You can change notifications in your phone's settings."
+    }
+  },
+  "info": {
+    "legalTitle": "Legal",
+    "legalTerms": "Terms",
+    "legalPrivacy": "Privacy notice",
+    "legalLicences": "Licences",
+    "legalUnknown": "This page does not exist.",
+    "legalVersion": "Version {{version}}",
+    "legal": {
+      "terms": {
+        "title": "Terms",
+        "body": "Draft: the Terms are being reviewed by our lawyer and will be published here before launch."
+      },
+      "privacy": {
+        "title": "Privacy notice",
+        "body": "Draft: the layered privacy notice is being reviewed by our lawyer and will be published here before launch."
+      },
+      "licences": {
+        "title": "Licences",
+        "body": "Grouper uses open data and open-source software."
+      }
+    },
+    "howMatchingWorks": {
+      "title": "How matching works",
+      "inputs": "Every Thursday we form pods of 4–6 people who share an interest. We use your interests, your approximate area (a map cell), your birth year, your age range, distance, meetup languages and times, and how reliably you attend.",
+      "notUsed": "We never use photos or anything we infer about you. Gender is used only if you turn on same-gender pods.",
+      "sensitive": "Sensitive interests are only used if you have agreed to them, only as the theme of a pod whose members all added them, and only after your account is 14 days old and you have attended a meetup.",
+      "pauses": "Some pauses happen automatically. Each comes with an explanation and ends by itself.",
+      "humanReview": "No person reviews these decisions. You can still use your data protection rights by contacting our privacy team (see the privacy notice).",
+      "pause": "You can pause matching at any time.",
+      "pausesTitle": "Automatic pauses",
+      "pauseList": {
+        "reports": "Two independent reports within 30 days, or one safety report, pause you for a while. The pause ends automatically.",
+        "noShow": "Two missed meetups within 8 weeks pause you for 2 weeks.",
+        "underage": "A “suspected under 18” report pauses the account for a while. The pause ends automatically.",
+        "notGenuine": "A “not a genuine member” report holds you out of pods about sensitive interests for 4 weeks."
+      }
+    },
+    "safety": {
+      "title": "Safety tips",
+      "tips": {
+        "public": "Meet in a public place in daytime or early evening.",
+        "transport": "Arrange your own transport.",
+        "tellFriend": "Tell a friend where you are going.",
+        "leave": "You can leave at any time.",
+        "drink": "Drink responsibly; there is no pressure to drink.",
+        "address": "Never share your home address.",
+        "report": "Use Report if something feels wrong; call 112 in an emergency."
+      }
+    },
+    "sensitive": {
+      "title": "Sensitive interests",
+      "what": "Some interests say something about your health, beliefs, sexuality, politics, ethnic origin or union membership. The law calls this special category data.",
+      "where": "If you have agreed to sensitive interests, we save them privately on your account, marked with a lock. They are never shown on any profile. If you have not agreed, we don’t save them at all.",
+      "who": "Such an interest is shown only as the theme of a pod, only to people invited to that pod who added it too.",
+      "withdraw": "You can withdraw your consent at any time in Settings → Privacy. We then delete all your sensitive interests and take you out of pods built around them. To stop one interest only, remove it.",
+      "risk": "We cannot verify who people are, so only share in a pod what you are comfortable with."
+    }
+  },
+  "errors": {
+    "UNAUTHENTICATED": "Please sign in again.",
+    "APP_CHECK": "This copy of the app couldn't be verified. Please update it and try again.",
+    "VALIDATION": "Something in your input isn't valid.",
+    "URL": "That link isn't allowed.",
+    "CONTACT_INFO": "Contact details aren't allowed here.",
+    "BLOCKLIST": "This contains words that aren't allowed on Grouper, so it wasn't saved.",
+    "PII_CPR": "This looks like a CPR number, so it wasn't saved. Never share CPR numbers on Grouper.",
+    "CONTACT_INFO_BEFORE_MEETUP": "You haven't met yet. It's fine to wait until after.",
+    "UNDERAGE": "Grouper is only for people aged 18 and over.",
+    "GENDER_CONSENT": "Same-gender pods need your consent.",
+    "STAR_LIMIT": "You can star up to 3 interests.",
+    "DEADLINE": "The deadline has passed.",
+    "NOT_INVITED": "You weren't invited to this pod.",
+    "STATE": "This isn't possible at this stage of the pod.",
+    "LIMIT": "You've reached the limit for this.",
+    "WINDOW": "That time isn't possible.",
+    "CHAT_CLOSED": "This chat is closed.",
+    "RECENT_LOGIN": "Please sign in again to confirm it's you.",
+    "APP_CHECK_REPLAY": "Please try again.",
+    "NOT_ONBOARDED": "Finish getting started first.",
+    "NOT_MEMBER": "Only current members of this pod can do this.",
+    "NOT_CO_MEMBER": "You can only do this for people from your pods.",
+    "NOT_FOUND": "This no longer exists.",
+    "ALREADY_EXISTS": "This already exists.",
+    "RATE_LIMITED": "Too many attempts. Please wait a little.",
+    "FEATURE_DISABLED": "This isn't available right now.",
+    "INTERNAL": "Something went wrong on our side.",
+    "NOT_IMPLEMENTED": "This isn't available yet.",
+    "NETWORK": "No connection. Please try again.",
+    "UNKNOWN": "Something went wrong. Please try again.",
+    "ART9_CONSENT": "This needs your consent for sensitive interests (Settings → Privacy)."
+  },
+  "aboutMe": {
+    "intro": "Optional: one sentence about you. Only people in a confirmed pod with you see it, and it is never used for matching.",
+    "label": "About me",
+    "placeholder": "For example: New in Aarhus and always up for a long walk.",
+    "hint": "{{count}}/{{max}} characters",
+    "tooLong": "At most {{max}} characters.",
+    "CONTACT_INFO": "No contact details here: you haven't met yet. Share them in person if you like.",
+    "BLOCKLIST": "This contains words that aren't allowed on Grouper.",
+    "save": "Save",
+    "saved": "Saved."
+  },
+  "attendance": {
+    "stillComing": "Still coming on {{when}}?",
+    "why": "If fewer than 3 are coming, the pod picks a new time. Not answering never counts as a no-show.",
+    "coming": "I'm coming",
+    "comingAfterAll": "I'm coming after all",
+    "cantMakeIt": "Can't make it",
+    "cantMakeItTitle": "Can't make it?",
+    "cantMakeItBody": "We'll tell your pod you're not coming. Cancelling close to the meetup counts as a late cancellation.",
+    "mine": {
+      "pending": "You haven't said if you're coming yet.",
+      "coming": "You're coming.",
+      "notComing": "You said you can't make it.",
+      "unconfirmed": "You haven't confirmed. Let the others know if you're coming."
+    },
+    "other": {
+      "coming": "Coming",
+      "notComing": "Can't make it"
+    },
+    "hasntConfirmed": "{{name}} hasn't confirmed"
+  },
+  "waitlist": {
+    "title": "Grouper is coming to {{city}}",
+    "counter": "{{n}} of {{goal}} signed up",
+    "nextTitle": "What happens next",
+    "next": "We'll notify you when {{city}} opens; your first drop will be the Thursday after.",
+    "shareIntro": "The more people in {{city}} sign up, the sooner it opens.",
+    "share": "Invite people",
+    "shareTitle": "Grouper in {{city}}",
+    "shareMessage": "Grouper forms small groups of people near you around a shared interest. Join the waitlist for {{city}}: {{link}}",
+    "copy": "Copy link",
+    "copied": "Link copied"
+  },
+  "notices": {
+    "title": "Messages from Grouper",
+    "none": "No messages from Grouper.",
+    "unknown": "You have a message from Grouper. Update the app to read it.",
+    "automated": "This was decided automatically; no person reviewed it. It ends on its own.",
+    "contact": "Questions? Write to {{email}}.",
+    "exportGone": "This file is no longer available. You can ask for a new one in Settings → Privacy.",
+    "codes": {
+      "PAUSE_REPORTS": "You are paused from drops until {{until}} because two members reported you within 30 days.",
+      "PAUSE_SAFETY_REPORT": "You are paused from drops until {{until}} because a member made a safety report.",
+      "PAUSE_UNDERAGE_REPORT": "You are paused from drops until {{until}} because a member reported that you may be under 18. Grouper is for adults only.",
+      "PAUSE_NO_SHOW": "You are paused from drops until {{until}} because you missed meetups without cancelling. When you're back, we'll ask you to commit to showing up.",
+      "SUSPENSION_NO_SHOW": "You are suspended from drops until {{until}} because you missed several meetups without cancelling.",
+      "SENSITIVE_HOLD_NOT_GENUINE": "Until {{until}} you won't get pods about sensitive interests, because a member reported that you didn't seem to share the pod's interest.",
+      "SANCTION_ENDED": "Your pause has ended. You can be matched again from the next drop.",
+      "REPORT_RECEIVED": "We've received your report. The person you reported won't find out who reported them.",
+      "POD_MEMBER_LEFT": "A member left one of your pods.",
+      "EXPORT_READY": "Your data is ready to download. The file is deleted within 48 hours.",
+      "INACTIVITY_WARNING": "You haven't used Grouper for a year. Open the app before {{deleteAfter}} to keep your account; otherwise we delete it."
+    }
+  }
+}

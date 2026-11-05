@@ -1,0 +1,20 @@
+{
+  "name": "grouper-embedding-calibration",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Reproducible calibration of EmbeddingGemma v1 vs v2 (ONNX, transformers.js) for free-form Danish/English interest tags: merge thresholds, sensitive-interest detector, online clustering, latency.",
+  "type": "module",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "all": "bash scripts/run-all.sh",
+    "download": "bash scripts/download-model.sh onnx-community/embeddinggemma-300m-ONNX 5090578d9565bb06545b4552f76e6bc2c93e4a66 q4 q8 fp32 && bash scripts/download-model.sh onnx-community/embeddinggemma-2-ONNX daa72c51243991dfcaf9f9137d2c573d8f7790c0 q4 q8 fp32",
+    "smoke": "node scripts/smoke.mjs v2 q4",
+    "analyze": "for r in v1:q4 v1:q8 v1:fp32 v2:q4 v2:q8 v2:fp32; do node scripts/analyze.mjs $r --ref ${r%%:*}:fp32; done",
+    "compare": "node scripts/compare.mjs v1:q4 v2:q4,v2:q8,v2:fp32 --boot 500 && node scripts/compare.mjs v2:q4 v2:q8 --boot 500 --out comparison_v2q4_vs_v2q8"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "4.3.2"
+  }
+}

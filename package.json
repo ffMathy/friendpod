@@ -1,0 +1,49 @@
+{
+  "name": "grouper",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Pods: weekly drops that form small in-person friend groups (see docs/DESIGN.md).",
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "tools/*"
+  ],
+  "engines": {
+    "node": ">=24.12"
+  },
+  "scripts": {
+    "typecheck": "npm run typecheck --workspaces --if-present && tsc --noEmit -p tsconfig.json",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "eslint .",
+    "check": "npm run typecheck && npm run lint && npm test",
+    "sim": "npm -w tools/sim run sim --",
+    "sim:smoke": "npm -w tools/sim run sim:smoke",
+    "sim:thin-market": "npm -w tools/sim run thin-market --",
+    "bench:match": "npm -w tools/sim run bench --",
+    "admin": "npm -w tools/admin run admin --",
+    "mobile:start": "npm -w apps/mobile run start",
+    "mobile:config": "npm -w apps/mobile run config",
+    "mobile:bundle": "npm -w apps/mobile run build",
+    "typecheck:functions": "npm --prefix functions run typecheck",
+    "test:functions": "firebase emulators:exec --only auth,firestore --project demo-grouper \"npm --prefix functions test\"",
+    "build:functions": "npm --prefix functions run build",
+    "typecheck:rules": "npm --prefix tests/rules run typecheck",
+    "validate:indexes": "node tests/rules/scripts/validate-indexes.mjs",
+    "test:rules": "firebase emulators:exec --only firestore,storage --project demo-grouper \"npm --prefix tests/rules test\"",
+    "check:discovery": "firebase emulators:exec --only functions --project demo-grouper \"tsx scripts/check-functions-discovery.ts\"",
+    "emulators": "firebase emulators:start --project demo-grouper"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@types/node": "24.19.2",
+    "eslint": "10.14.0",
+    "globals": "17.14.0",
+    "tsx": "4.23.15",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.72.1"
+  },
+  "overrides": {
+    "react": "19.3.0"
+  }
+}
