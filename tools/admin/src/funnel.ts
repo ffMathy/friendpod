@@ -1,10 +1,25 @@
 /**
  * `funnel show` (DESIGN.md §6.8, PRIVACY.md P18): prints the day-1 funnel per launch area and ISO week as a table.
  * The counters in `funnel/{areaId}_{weekId}` are exact and uid-free; every cell under 10 is printed as "<10" here, so
- * the CLI never shows a small count. Until the CLI gets its Firebase dependency (M1) it reads an export of the
- * collection (`--from <file.json>`: an array of funnel docs, or an object of them keyed by doc id).
+ * the CLI never shows a small count. It reads the collection live (`--project`), or an export of it
+ * (`--from <file.json>`: an array of funnel docs, or an object of them keyed by doc id).
  */
-import { FUNNEL_STAGES, HEARD_FROM_SOURCES, suppressFunnelCounts, suppressSourceCounts, type FunnelStage, type HeardFromSource } from '@grouper/core';
+import {
+  addWeeks,
+  compareWeekIds,
+  FUNNEL_STAGES,
+  HEARD_FROM_SOURCES,
+  suppressFunnelCounts,
+  suppressSourceCounts,
+  weekIdAt,
+  type FunnelStage,
+  type HeardFromSource,
+  type WeekId,
+} from '@grouper/core';
+import type { Firestore } from 'firebase-admin/firestore';
+import { table } from './format';
+
+export const FUNNEL = 'funnel';
 
 export interface FunnelRow {
   readonly areaId: string;
@@ -38,17 +53,28 @@ export function parseFunnelExport(json: unknown): FunnelRow[] {
   });
 }
 
-function table(header: readonly string[], rows: readonly (readonly (string | number)[])[]): string {
-  const cells = [header, ...rows.map((r) => r.map(String))];
-  const widths = header.map((_, c) => Math.max(...cells.map((r) => r[c]!.length)));
-  const line = (r: readonly string[]) => r.map((v, c) => (c < 2 ? v.padEnd(widths[c]!) : v.padStart(widths[c]!))).join('  ');
-  return [line(cells[0]!), widths.map((w) => '-'.repeat(w)).join('  '), ...cells.slice(1).map(line)].join('\n');
+/** Reads `funnel/*` (counters only; the docs hold nothing else but the TTL field). */
+export async function loadFunnel(db: Firestore): Promise<FunnelRow[]> {
+  const snap = await db.collection(FUNNEL).select('areaId', 'weekId', 'counts', 'sources').get();
+  return parseFunnelExport(snap.docs.map((d) => d.data()));
+}
+
+/** The first week of the last `weeks` ISO weeks (Europe/Copenhagen), the current one included. */
+export function firstWeekOf(weeks: number, nowMs: number): WeekId {
+  return addWeeks(weekIdAt(nowMs), -(weeks - 1));
+}
+
+export interface FunnelFilter {
+  readonly areaId?: string;
+  /** Only weeks from this one on. */
+  readonly sinceWeek?: WeekId;
 }
 
 /** The funnel table and the "where did you hear" table, every cell under 10 suppressed. */
-export function formatFunnel(rows: readonly FunnelRow[], filter: { areaId?: string } = {}): string {
+export function formatFunnel(rows: readonly FunnelRow[], filter: FunnelFilter = {}): string {
   const selected = rows
     .filter((r) => filter.areaId === undefined || r.areaId === filter.areaId)
+    .filter((r) => filter.sinceWeek === undefined || compareWeekIds(r.weekId as WeekId, filter.sinceWeek) >= 0)
     .sort((a, b) => (a.areaId < b.areaId ? -1 : a.areaId > b.areaId ? 1 : a.weekId < b.weekId ? -1 : a.weekId > b.weekId ? 1 : 0));
   if (selected.length === 0) return 'no funnel rows';
   const stages = table(

@@ -192,3 +192,9 @@ export function participationEffectiveWeek(mode: SetParticipationMode, now: numb
   if (mode === 'pause' || mode === 'skipNext') return nextDropWeek(now, timeZone);
   return now < dropSchedule(week, timeZone).optInCutoffAt ? week : addWeeks(week, 1);
 }
+
+/** The drop released most recently at `now`: its unmatched users are the backfill pool (§4.2, `lastDrop.weekId`). */
+export function latestReleasedDropWeek(now: number, timeZone: string = DROP_TIME_ZONE): WeekId {
+  const week = weekIdAt(now, timeZone);
+  return now >= dropSchedule(week, timeZone).releaseAt ? week : addWeeks(week, -1);
+}

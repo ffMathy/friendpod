@@ -184,7 +184,8 @@ export const podDocSchema = z
     areaLabel: z.string().max(60),
     theme: podThemeSchema,
     memberUids: z.array(uidSchema).max(6),
-    roster: z.record(uidSchema, z.object({ firstName: firstNameSchema, photoV: z.int().positive().nullable() })),
+    /** `aboutMe` (D4) is copied at confirmation and on change, and leaves with the member. */
+    roster: z.record(uidSchema, z.object({ firstName: firstNameSchema, photoV: z.int().positive().nullable(), aboutMe: aboutMeSchema.optional() })),
     podInterests: z.object({ da: z.array(wording).max(5), en: z.array(wording).max(5) }),
     planning: z.object({
       deadline: timestampSchema,
@@ -408,15 +409,35 @@ export const podStateTimersSchema = z.object({
   feedbackPush: timestampSchema.optional(),
   feedbackReminder: timestampSchema.optional(),
   feedbackCloses: timestampSchema.optional(),
+  // DESIGN-DEVIATION: §8.2 lists no timers for the T−2 h reminder and T+2 h → `happened`; every timer the sweeper acts
+  // on is stored, and each one is deleted once it has been processed, so a retried sweep never repeats it.
+  reminder: timestampSchema.optional(),
+  happened: timestampSchema.optional(),
 });
 
-export const PODSTATE_MEMBER_STATUSES = ['invited', 'accepted', 'declined', 'left', 'removed'] as const;
+/**
+ * DESIGN-DEVIATION: §8.2 has no status for an invitation that ran out unanswered (`acceptBy`, or a backfill
+ * invitation's `backfillUntil`); `expired` counts towards `ignoredInRow`, never as a decline.
+ */
+export const PODSTATE_MEMBER_STATUSES = ['invited', 'accepted', 'declined', 'left', 'removed', 'expired'] as const;
 
 export const podStateDocSchema = z.object({
   weekId: weekIdSchema,
   componentId: z.string(),
   state: z.enum(POD_STATES),
+  /**
+   * DESIGN-DEVIATION: §8.2 keeps the theme only on `pods` (from confirmation) and on each card (as wording). Backfill
+   * of a `proposed` pod needs the concept for its pool query, so the server-only podState carries it too (no label).
+   */
+  theme: podThemeSchema,
+  /** Initial size of the proposal (cards' `sizeTarget`). */
+  sizeTarget: z.int().min(3).max(6),
   timers: podStateTimersSchema,
+  /**
+   * DESIGN-DEVIATION: the earliest unprocessed timer of the current state, so `hourlySweeper` queries one indexed field
+   * (`dueAt <= now`) instead of every timer field. Absent in `archived` and `dissolved`.
+   */
+  dueAt: timestampSchema.optional(),
   memberList: z.array(uidSchema),
   members: z.record(
     uidSchema,
@@ -430,6 +451,8 @@ export const podStateDocSchema = z.object({
       /** While `scheduled` (D5); mirrored to `pods.attendance`. */
       attendance: z.enum(ATTENDANCE_STATUSES).optional(),
       attendanceAt: timestampSchema.optional(),
+      /** A "Can't make it" under 24 h before this meetup was counted once as a late cancel (§4.4). */
+      lateCancelled: z.boolean().optional(),
     }),
   ),
   hasMet: z.boolean(),

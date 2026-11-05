@@ -12,12 +12,14 @@ import type { HandlerDeps } from './handler';
 import { log } from './log';
 import { sendGenericPush, type PushSender } from './push';
 import { UID_HMAC_KEY, hmacFromSecret } from './secrets';
-import { gcsObjectStore, type ObjectStore } from './storage';
+import { gcsObjectStore, type DropObjectStore } from './storage';
+import { cloudTasks, type TaskEnqueuer } from './tasks';
 
 export interface AppDeps extends HandlerDeps {
   readonly db: Firestore;
   readonly auth: Auth;
   readonly push: PushSender;
+  readonly tasks: TaskEnqueuer;
 }
 
 export const handlerDeps: HandlerDeps = {
@@ -38,12 +40,13 @@ export function appDeps(): AppDeps {
     db: getFirestore(app()),
     auth: getAuth(app()),
     push: (kind, recipients, params) => sendGenericPush(getMessaging(app()), kind, recipients, params),
+    tasks: cloudTasks(app),
   };
   return cached;
 }
 
 /** `gs://grouper-<env>-drops` (§7 Storage): the project id is `grouper-<env>`. */
-export function dropsStore(): ObjectStore {
+export function dropsStore(): DropObjectStore {
   const projectId = process.env.GCLOUD_PROJECT;
   if (!projectId) throw new Error('GCLOUD_PROJECT is not set');
   return gcsObjectStore(getStorage(app()).bucket(`${projectId}-drops`));
