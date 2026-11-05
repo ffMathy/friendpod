@@ -8,6 +8,7 @@ import { useUserDoc } from '@/data/docs';
 import { queryClient } from '@/data/queryClient';
 import { initFirebase } from '@/firebase';
 import { useDeviceCacheHygiene } from '@/features/account/useDeviceCacheHygiene';
+import { useNotificationRouting } from '@/features/notifications/useNotificationRouting';
 import { usePushTokenSync } from '@/features/notifications/usePushTokenSync';
 import { SessionProvider, useSession } from '@/features/session/SessionProvider';
 import { i18n, initI18n } from '@/i18n';
@@ -25,6 +26,7 @@ function ProfileEffects({ uid }: { uid: string }) {
   }, [locale]);
   useDeviceCacheHygiene(uid);
   usePushTokenSync();
+  useNotificationRouting(uid);
   return null;
 }
 
@@ -40,7 +42,7 @@ function Navigator() {
 
   return (
     <ThemeProvider value={scheme === 'dark' ? DarkTheme : DefaultTheme}>
-      {phase === 'ready' && user ? <ProfileEffects uid={user.uid} /> : null}
+      {phase === 'ready' && user ? <ProfileEffects key={user.uid} uid={user.uid} /> : null}
       <Stack screenOptions={{ headerBackButtonDisplayMode: 'minimal' }}>
         <Stack.Protected guard={phase === 'signedOut'}>
           <Stack.Screen name="(auth)" options={{ headerShown: false }} />

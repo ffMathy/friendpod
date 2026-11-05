@@ -6,13 +6,19 @@ import { Body, Button, Card, ErrorText, Heading, LinkRow, Screen } from '@/compo
 import { useSensitiveInterests, useUserDoc } from '@/data/docs';
 import { useCallable } from '@/data/useCallable';
 import { requestDataExport } from '@/features/account/account';
+import { clearImageCaches } from '@/features/account/clearDeviceData';
+import { ExportStatus } from '@/features/account/ExportStatus';
 import { art9WithdrawCopy } from '@/features/consent/art9';
 import { useUid } from '@/features/session/SessionProvider';
 import { toAppError } from '@/firebase/callables';
 import { currentLocale } from '@/i18n';
 import { errorMessageKey } from '@/lib/errors';
+import { formatDateTime } from '@/lib/format';
 
-/** Settings → Privacy (§11, PRIVACY.md §6): consents, export, pause, delete. */
+/**
+ * Settings → Privacy (§11, PRIVACY.md §6): consents (Art. 9 blanket, gender), photo, export with its authenticated
+ * download, pause or skip, blocked people, messages from Grouper, delete.
+ */
 export default function Privacy() {
   const { t } = useTranslation();
   const router = useRouter();
@@ -43,6 +49,17 @@ export default function Privacy() {
     ]);
   const sameGender = user.data?.prefs.sameGenderOnly === true;
   const hasPhoto = user.data?.photo !== null && user.data?.photo !== undefined;
+  const confirmDeletePhoto = () =>
+    Alert.alert(t('settings.privacy.deletePhoto'), t('settings.privacy.deletePhotoBody'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      {
+        text: t('settings.privacy.deletePhoto'),
+        style: 'destructive',
+        onPress: () => deletePhoto.mutate({}, { onSuccess: () => void clearImageCaches().catch(() => undefined) }),
+      },
+    ]);
+  const pausedUntil = user.data?.participation.pausedUntil?.toMillis();
+  const skipWeek = user.data?.participation.skipWeekId;
   const firstError = withdraw.error ?? updateProfile.error ?? participation.error ?? deletePhoto.error;
 
   return (
@@ -69,18 +86,47 @@ export default function Privacy() {
         ) : null}
       </Card>
       {hasPhoto ? (
-        <Button label={t('settings.privacy.deletePhoto')} variant="secondary" busy={deletePhoto.isPending} onPress={() => deletePhoto.mutate({})} />
+        <Button
+          testID="delete-photo"
+          label={t('settings.privacy.deletePhoto')}
+          variant="secondary"
+          busy={deletePhoto.isPending}
+          onPress={confirmDeletePhoto}
+        />
       ) : null}
 
       <Heading>{t('settings.privacy.yourData')}</Heading>
       <Body muted>{t('settings.privacy.exportBody')}</Body>
-      <Button label={t('settings.privacy.export')} busy={exportState === 'working'} onPress={() => void exportData()} />
+      <Button testID="export-request" label={t('settings.privacy.export')} busy={exportState === 'working'} onPress={() => void exportData()} />
+      <ExportStatus uid={uid} />
       {exportState === 'requested' ? <Body>{t('settings.privacy.exportRequested')}</Body> : null}
       {exportState === 'linkSent' ? <Body>{t('settings.reauthLinkSent')}</Body> : null}
       {typeof exportState === 'object' ? <ErrorText>{exportState.error}</ErrorText> : null}
 
       <Heading>{t('settings.privacy.restrict')}</Heading>
-      <Button label={t('settings.privacy.pause')} variant="secondary" busy={participation.isPending} onPress={() => participation.mutate({ mode: 'pause' })} />
+      {pausedUntil !== undefined ? (
+        <Body>{t('settings.privacy.pausedUntil', { when: formatDateTime(pausedUntil, currentLocale()) })}</Body>
+      ) : user.data?.status === 'paused' ? (
+        <Body>{t('settings.privacy.paused')}</Body>
+      ) : null}
+      {skipWeek ? <Body>{t('settings.privacy.skipping', { week: skipWeek })}</Body> : null}
+      <Button
+        testID="pause"
+        label={t('settings.privacy.pause')}
+        variant="secondary"
+        busy={participation.isPending && participation.variables.mode === 'pause'}
+        onPress={() => participation.mutate({ mode: 'pause' })}
+      />
+      <Button
+        testID="skip-next"
+        label={t('settings.privacy.skipNext')}
+        variant="secondary"
+        busy={participation.isPending && participation.variables.mode === 'skipNext'}
+        onPress={() => participation.mutate({ mode: 'skipNext' })}
+      />
+      {participation.data ? <Body muted>{t('me.effectiveFrom', { week: participation.data.effectiveWeekId })}</Body> : null}
+      <LinkRow label={t('settings.blocked.title')} onPress={() => router.push('/settings/blocked')} />
+      <LinkRow label={t('notices.title')} onPress={() => router.push('/settings/notices')} />
       <LinkRow label={t('settings.delete.title')} onPress={() => router.push('/settings/delete-account')} />
       <LinkRow label={t('info.howMatchingWorks.title')} onPress={() => router.push('/info/how-matching-works')} />
       <Body muted>{t('settings.privacy.complaint')}</Body>

@@ -3,15 +3,21 @@ import { Image } from 'expo-image';
 import { bumpFirestoreGeneration } from '@/data/firestoreGeneration';
 import { queryClient } from '@/data/queryClient';
 import { db } from '@/firebase';
+import { clearDownloadedExports } from './exportDownload';
 
 /**
  * Removes what the device caches about the account (§9 Photos, PRIVACY.md §5 "Device caches"):
  * Firestore's offline cache (sensitive interests, pod docs, chat messages), expo-image memory and disk caches,
- * and the in-memory query cache.
+ * a downloaded data export, and the in-memory query cache.
  */
 export async function clearDeviceData(): Promise<void> {
   await clearFirestoreCache();
   await clearImageCaches();
+  try {
+    clearDownloadedExports();
+  } catch {
+    // Nothing downloaded, or the cache folder is already gone.
+  }
   queryClient.clear();
 }
 

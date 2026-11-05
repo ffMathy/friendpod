@@ -1,3 +1,4 @@
+import { useCallback, useState } from 'react';
 import { putFile, ref } from '@react-native-firebase/storage';
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import * as ImagePicker from 'expo-image-picker';
@@ -31,4 +32,29 @@ export async function uploadPhoto(uid: string, sourceUri: string): Promise<void>
     const saved = await rendered.saveAsync({ format: SaveFormat.JPEG, compress: 0.7 });
     await putFile(ref(storage(), `uploads/${uid}/${size.name}`), saved.uri, { contentType: 'image/jpeg' });
   }
+}
+
+export type PhotoUploadState = 'idle' | 'uploading' | 'done' | 'failed';
+
+/** Pick → resize → upload, with the state the photo screens show; cancelling the picker changes nothing. */
+export function usePhotoUpload(uid: string): { readonly state: PhotoUploadState; choose(): Promise<void> } {
+  const [state, setState] = useState<PhotoUploadState>('idle');
+  const choose = useCallback(async () => {
+    let uri: string | null;
+    try {
+      uri = await pickPhoto();
+    } catch {
+      setState('failed');
+      return;
+    }
+    if (!uri) return;
+    setState('uploading');
+    try {
+      await uploadPhoto(uid, uri);
+      setState('done');
+    } catch {
+      setState('failed');
+    }
+  }, [uid]);
+  return { state, choose };
 }

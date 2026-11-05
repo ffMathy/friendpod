@@ -7,6 +7,7 @@ import { Body, Button, Card, ChipButton, ChipRow, ErrorText, Field, Heading, Tog
 import { useAreaDoc, useInterests, useSensitiveInterests, useUserDoc } from '@/data/docs';
 import { useCallable } from '@/data/useCallable';
 import { errorMessageKey } from '@/lib/errors';
+import { formatDateTime } from '@/lib/format';
 import { useAddInterest, type AddInterestOutcome, type HoldingChoice } from './useAddInterest';
 import { useEmbedder } from './useEmbedder';
 
@@ -58,6 +59,8 @@ interface Row {
   readonly starred: boolean;
   /** Stored as sensitive: lock icon, nothing else (D3). */
   readonly locked: boolean;
+  /** A rescan found it may be sensitive and there is no consent: held back, deleted at `pendingUntil` (§5.2 (8)). */
+  readonly pendingUntil: number | null;
 }
 
 /**
@@ -85,8 +88,14 @@ export function InterestManager({ uid, locale, mode }: Props) {
   const hasArt9Consent = user.data?.legal.art9 !== undefined;
   const notice = currentLegalText('interestNotice', locale);
   const rows: Row[] = [
-    ...(interests.data ?? []).map(({ id, data }) => ({ id, display: data.display, starred: data.starred, locked: false })),
-    ...(sensitive.data ?? []).map(({ id, data }) => ({ id, display: data.display, starred: data.starred, locked: true })),
+    ...(interests.data ?? []).map(({ id, data }) => ({
+      id,
+      display: data.display,
+      starred: data.starred,
+      locked: false,
+      pendingUntil: data.state === 'pendingConsent' ? (data.pendingUntil?.toMillis() ?? 0) : null,
+    })),
+    ...(sensitive.data ?? []).map(({ id, data }) => ({ id, display: data.display, starred: data.starred, locked: true, pendingUntil: null })),
   ];
   const starredCount = rows.filter((r) => r.starred).length;
   const ready = embedder.state.status === 'ready';
@@ -184,6 +193,16 @@ export function InterestManager({ uid, locale, mode }: Props) {
           <View accessible accessibilityLabel={row.locked ? t('interests.privateLabel', { name: row.display }) : row.display}>
             <Body bold>{`${row.locked ? '🔒 ' : ''}${row.starred ? '★ ' : ''}${row.display}`}</Body>
           </View>
+          {row.pendingUntil !== null ? (
+            <>
+              <Body muted>
+                {row.pendingUntil > 0
+                  ? t('interests.pendingConsent', { when: formatDateTime(row.pendingUntil, locale) })
+                  : t('interests.pendingConsentNoDate')}
+              </Body>
+              {hasArt9Consent ? null : <Button label={t('interests.openSensitiveConsent')} variant="secondary" onPress={openConsent} />}
+            </>
+          ) : null}
           <ChipRow>
             {mode === 'full' ? <Toggle label={t('interests.star')} value={row.starred} onChange={(on) => setStar(row.id, on)} /> : null}
             {row.locked ? (

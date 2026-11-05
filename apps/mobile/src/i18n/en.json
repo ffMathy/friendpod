@@ -163,7 +163,9 @@
       "integrity": "Something went wrong getting interests ready, so we deleted it. Please try again. If it keeps happening, reinstall the app.",
       "runtime": "This phone can't run the interest check right now (it may need more free memory). Close other apps and try again.",
       "notPinned": "Adding interests isn't available in this version yet."
-    }
+    },
+    "pendingConsent": "This interest may be sensitive, so it is on hold. Unless you agree to sensitive interests, it is removed on {{when}}.",
+    "pendingConsentNoDate": "This interest may be sensitive, so it is on hold until you agree to sensitive interests."
   },
   "moderation": {
     "TAG_TOO_SHORT": "An interest needs at least 2 characters.",
@@ -320,7 +322,9 @@
     },
     "addToCalendar": "Add to calendar",
     "calendarTitle": "Pod meetup",
-    "calendarFailed": "Your calendar couldn't be opened."
+    "calendarFailed": "Your calendar couldn't be opened.",
+    "openMap": "Open in Maps",
+    "mapFailed": "The map didn't open."
   },
   "plan": {
     "title": "Planner",
@@ -351,7 +355,9 @@
     "placeNotPublic": "That isn't a public place. Pick a café, library, park or similar.",
     "placeFailed": "Places couldn't be searched right now. Try again.",
     "placeAttribution": "Places from Google Maps.",
-    "changePlace": "Change place"
+    "changePlace": "Change place",
+    "report": "Report",
+    "reportOption": "Report the option at {{place}}"
   },
   "chat": {
     "title": "Meetup chat",
@@ -400,7 +406,11 @@
     "blockTitle": "Block {{name}}?",
     "blockBody": "You will never be matched again, and photos are hidden both ways.",
     "blockExplainer": "Blocking is immediate. In an active pod, the blocked member is removed; the others only see that the pod changed.",
-    "leaveInstead": "Leave the pod myself instead"
+    "leaveInstead": "Leave the pod myself instead",
+    "blockBodyReplan": "You will never be matched again, photos are hidden both ways, and the pod plans a new meetup within 48 hours.",
+    "blockedAlready": "You've blocked {{name}}.",
+    "replan": "Re-plan the meetup",
+    "replanExplainer": "They already know where and when you're meeting. Re-planning picks a new time and place within 48 hours."
   },
   "report": {
     "title": "Report",
@@ -445,7 +455,12 @@
     "noMeetupsYet": "No meetups yet.",
     "language": "Language",
     "preferences": "Pod preferences",
-    "settings": "Settings"
+    "settings": "Settings",
+    "photo": "Photo",
+    "photoWho": "Only people in a confirmed pod with you can see it. In pods about a sensitive interest, you choose per pod.",
+    "yourPhoto": "Your photo",
+    "changePhoto": "Change photo",
+    "photoFailed": "The upload didn't work. Try again."
   },
   "settings": {
     "title": "Settings",
@@ -470,14 +485,28 @@
       "sensitiveOn_other": "You've agreed to sensitive interests. {{count}} of your interests are private.",
       "sensitiveOff": "You haven't agreed to sensitive interests, so we don't save interests that may be sensitive.",
       "giveSensitive": "Agree to sensitive interests",
-      "withdrawSensitive": "Withdraw consent for sensitive interests"
+      "withdrawSensitive": "Withdraw consent for sensitive interests",
+      "exportFileTitle": "Your Grouper data",
+      "exportDownload": "Download the file",
+      "exportDownloadFailed": "The download didn't work. Try again.",
+      "exportPending": "We're preparing your file.",
+      "exportFailed": "Preparing your file didn't work. You can ask again tomorrow.",
+      "exportReady": "Your file is ready until {{when}}.",
+      "deletePhotoBody": "Your photo is deleted and members of your pods stop seeing it.",
+      "pausedUntil": "Matching is paused until {{when}}.",
+      "paused": "Matching is paused.",
+      "skipping": "You're skipping the drop in week {{week}}.",
+      "skipNext": "Skip the next drop"
     },
     "delete": {
       "title": "Delete account",
       "heading": "Delete your account",
       "what": "We delete your profile, interests, photo, pods and consents. Other members see only that a member left.",
       "windows": "Backups are kept for up to 7 days. Google may keep a copy of your sign-in record for up to 180 days.",
-      "confirm": "Delete my account"
+      "confirm": "Delete my account",
+      "confirmTitle": "Delete your account?",
+      "confirmBody": "This can't be undone. You will first confirm that it's you.",
+      "done": "Your account has been deleted. Thanks for trying Grouper."
     },
     "blocked": {
       "title": "Blocked people",
@@ -626,5 +655,26 @@
     "shareMessage": "Grouper forms small groups of people near you around a shared interest. Join the waitlist for {{city}}: {{link}}",
     "copy": "Copy link",
     "copied": "Link copied"
+  },
+  "notices": {
+    "title": "Messages from Grouper",
+    "none": "No messages from Grouper.",
+    "unknown": "You have a message from Grouper. Update the app to read it.",
+    "automated": "This was decided automatically; no person reviewed it. It ends on its own.",
+    "contact": "Questions? Write to {{email}}.",
+    "exportGone": "This file is no longer available. You can ask for a new one in Settings → Privacy.",
+    "codes": {
+      "PAUSE_REPORTS": "You are paused from drops until {{until}} because two members reported you within 30 days.",
+      "PAUSE_SAFETY_REPORT": "You are paused from drops until {{until}} because a member made a safety report.",
+      "PAUSE_UNDERAGE_REPORT": "You are paused from drops until {{until}} because a member reported that you may be under 18. Grouper is for adults only.",
+      "PAUSE_NO_SHOW": "You are paused from drops until {{until}} because you missed meetups without cancelling. When you're back, we'll ask you to commit to showing up.",
+      "SUSPENSION_NO_SHOW": "You are suspended from drops until {{until}} because you missed several meetups without cancelling.",
+      "SENSITIVE_HOLD_NOT_GENUINE": "Until {{until}} you won't get pods about sensitive interests, because a member reported that you didn't seem to share the pod's interest.",
+      "SANCTION_ENDED": "Your pause has ended. You can be matched again from the next drop.",
+      "REPORT_RECEIVED": "We've received your report. The person you reported won't find out who reported them.",
+      "POD_MEMBER_LEFT": "A member left one of your pods.",
+      "EXPORT_READY": "Your data is ready to download. The file is deleted within 48 hours.",
+      "INACTIVITY_WARNING": "You haven't used Grouper for a year. Open the app before {{deleteAfter}} to keep your account; otherwise we delete it."
+    }
   }
 }

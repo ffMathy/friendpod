@@ -1,6 +1,7 @@
 /** Typed live reads of the client-readable documents (DESIGN.md §8.1); rules allow nothing else. */
 import {
   areaDocSchema,
+  exportDocSchema,
   interestDocSchema,
   noticeDocSchema,
   optionDocSchema,
@@ -47,3 +48,6 @@ export const useNotices = (uid: string) =>
   useLiveCollection(`users/${uid}/notices`, noticeDocSchema, [orderBy('createdAt', 'desc')]);
 
 export const useAreaDoc = (areaId: string | null) => useLiveDoc(areaId ? `areas/${areaId}` : null, areaDocSchema);
+
+/** `users/{uid}/exports/{exportId}` (§3.9): status of each data export; the file itself is in Storage, owner-only. */
+export const useExports = (uid: string) => useLiveCollection(`users/${uid}/exports`, exportDocSchema, [orderBy('expiresAt', 'desc')]);

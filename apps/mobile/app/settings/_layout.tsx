@@ -12,6 +12,7 @@ export default function SettingsLayout() {
       <Stack.Screen name="notifications" options={{ title: t('settings.notifications.title') }} />
       <Stack.Screen name="preferences" options={{ title: t('me.preferences') }} />
       <Stack.Screen name="sensitive-consent" options={{ title: t('settings.privacy.sensitiveTitle') }} />
+      <Stack.Screen name="notices" options={{ title: t('notices.title') }} />
     </Stack>
   );
 }

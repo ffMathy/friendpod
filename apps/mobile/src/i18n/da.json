@@ -163,7 +163,9 @@
       "integrity": "Noget gik galt, da interesser blev gjort klar, så vi har slettet det. Prøv igen. Sker det igen, så geninstallér appen.",
       "runtime": "Telefonen kan ikke køre tjekket af interesser lige nu (den mangler måske ledig hukommelse). Luk andre apps, og prøv igen.",
       "notPinned": "Du kan ikke tilføje interesser i denne version endnu."
-    }
+    },
+    "pendingConsent": "Denne interesse kan være følsom, så den er sat i bero. Medmindre du siger ja til følsomme interesser, fjernes den {{when}}.",
+    "pendingConsentNoDate": "Denne interesse kan være følsom, så den er sat i bero, indtil du siger ja til følsomme interesser."
   },
   "moderation": {
     "TAG_TOO_SHORT": "En interesse skal have mindst 2 tegn.",
@@ -320,7 +322,9 @@
     },
     "addToCalendar": "Føj til kalender",
     "calendarTitle": "Pod-møde",
-    "calendarFailed": "Kalenderen kunne ikke åbnes."
+    "calendarFailed": "Kalenderen kunne ikke åbnes.",
+    "openMap": "Åbn i Kort",
+    "mapFailed": "Kortet kunne ikke åbnes."
   },
   "plan": {
     "title": "Planlægger",
@@ -351,7 +355,9 @@
     "placeNotPublic": "Det er ikke et offentligt sted. Vælg en café, et bibliotek, en park eller lignende.",
     "placeFailed": "Vi kan ikke søge efter steder lige nu. Prøv igen.",
     "placeAttribution": "Steder fra Google Maps.",
-    "changePlace": "Skift sted"
+    "changePlace": "Skift sted",
+    "report": "Anmeld",
+    "reportOption": "Anmeld forslaget ved {{place}}"
   },
   "chat": {
     "title": "Mødechat",
@@ -400,7 +406,11 @@
     "blockTitle": "Bloker {{name}}?",
     "blockBody": "I bliver aldrig matchet igen, og billeder skjules begge veje.",
     "blockExplainer": "Blokering sker med det samme. I en aktiv pod fjernes det blokerede medlem; de andre ser kun, at poden har ændret sig.",
-    "leaveInstead": "Forlad hellere selv poden"
+    "leaveInstead": "Forlad hellere selv poden",
+    "blockBodyReplan": "I bliver aldrig matchet igen, billeder skjules begge veje, og poden planlægger et nyt møde inden for 48 timer.",
+    "blockedAlready": "Du har blokeret {{name}}.",
+    "replan": "Planlæg mødet igen",
+    "replanExplainer": "Personen ved allerede, hvor og hvornår I mødes. Ny planlægning finder et nyt tidspunkt og sted inden for 48 timer."
   },
   "report": {
     "title": "Anmeld",
@@ -445,7 +455,12 @@
     "noMeetupsYet": "Ingen møder endnu.",
     "language": "Sprog",
     "preferences": "Ønsker til pods",
-    "settings": "Indstillinger"
+    "settings": "Indstillinger",
+    "photo": "Billede",
+    "photoWho": "Kun folk i en bekræftet pod med dig kan se det. I pods om en følsom interesse vælger du for hver pod.",
+    "yourPhoto": "Dit billede",
+    "changePhoto": "Skift billede",
+    "photoFailed": "Upload virkede ikke. Prøv igen."
   },
   "settings": {
     "title": "Indstillinger",
@@ -470,14 +485,28 @@
       "sensitiveOn_other": "Du har sagt ja til følsomme interesser. {{count}} af dine interesser er private.",
       "sensitiveOff": "Du har ikke sagt ja til følsomme interesser, så vi gemmer ikke interesser, der kan være følsomme.",
       "giveSensitive": "Sig ja til følsomme interesser",
-      "withdrawSensitive": "Træk samtykket til følsomme interesser tilbage"
+      "withdrawSensitive": "Træk samtykket til følsomme interesser tilbage",
+      "exportFileTitle": "Dine Grouper-data",
+      "exportDownload": "Hent filen",
+      "exportDownloadFailed": "Download virkede ikke. Prøv igen.",
+      "exportPending": "Vi gør din fil klar.",
+      "exportFailed": "Det lykkedes ikke at gøre din fil klar. Du kan spørge igen i morgen.",
+      "exportReady": "Din fil er klar indtil {{when}}.",
+      "deletePhotoBody": "Dit billede slettes, og medlemmerne af dine pods kan ikke længere se det.",
+      "pausedUntil": "Matchning er sat på pause indtil {{when}}.",
+      "paused": "Matchning er sat på pause.",
+      "skipping": "Du springer droppet over i uge {{week}}.",
+      "skipNext": "Spring næste drop over"
     },
     "delete": {
       "title": "Slet konto",
       "heading": "Slet din konto",
       "what": "Vi sletter din profil, dine interesser, dit billede, dine pods og samtykker. Andre medlemmer ser kun, at et medlem er gået.",
       "windows": "Sikkerhedskopier gemmes i op til 7 dage. Google kan gemme en kopi af dit login i op til 180 dage.",
-      "confirm": "Slet min konto"
+      "confirm": "Slet min konto",
+      "confirmTitle": "Slet din konto?",
+      "confirmBody": "Det kan ikke fortrydes. Du skal først bekræfte, at det er dig.",
+      "done": "Din konto er slettet. Tak, fordi du prøvede Grouper."
     },
     "blocked": {
       "title": "Blokerede personer",
@@ -626,5 +655,26 @@
     "shareMessage": "Grouper samler små grupper af folk nær dig om en fælles interesse. Skriv dig på ventelisten for {{city}}: {{link}}",
     "copy": "Kopiér link",
     "copied": "Link kopieret"
+  },
+  "notices": {
+    "title": "Beskeder fra Grouper",
+    "none": "Ingen beskeder fra Grouper.",
+    "unknown": "Du har en besked fra Grouper. Opdatér appen for at læse den.",
+    "automated": "Det blev afgjort automatisk; ingen person har gennemgået det. Det ophører af sig selv.",
+    "contact": "Spørgsmål? Skriv til {{email}}.",
+    "exportGone": "Filen er ikke længere tilgængelig. Du kan bede om en ny under Indstillinger → Privatliv.",
+    "codes": {
+      "PAUSE_REPORTS": "Du er sat på pause fra drops indtil {{until}}, fordi to medlemmer har anmeldt dig inden for 30 dage.",
+      "PAUSE_SAFETY_REPORT": "Du er sat på pause fra drops indtil {{until}}, fordi et medlem har lavet en sikkerhedsanmeldelse.",
+      "PAUSE_UNDERAGE_REPORT": "Du er sat på pause fra drops indtil {{until}}, fordi et medlem har anmeldt, at du måske er under 18. Grouper er kun for voksne.",
+      "PAUSE_NO_SHOW": "Du er sat på pause fra drops indtil {{until}}, fordi du er udeblevet fra møder uden at melde afbud. Når du er tilbage, beder vi dig love at møde op.",
+      "SUSPENSION_NO_SHOW": "Du er udelukket fra drops indtil {{until}}, fordi du er udeblevet fra flere møder uden at melde afbud.",
+      "SENSITIVE_HOLD_NOT_GENUINE": "Indtil {{until}} får du ikke pods om følsomme interesser, fordi et medlem har anmeldt, at du ikke så ud til at dele podens interesse.",
+      "SANCTION_ENDED": "Din pause er slut. Du kan blive matchet igen fra næste drop.",
+      "REPORT_RECEIVED": "Vi har modtaget din anmeldelse. Den, du har anmeldt, får ikke at vide, hvem der anmeldte.",
+      "POD_MEMBER_LEFT": "Et medlem har forladt en af dine pods.",
+      "EXPORT_READY": "Dine data er klar til download. Filen slettes inden for 48 timer.",
+      "INACTIVITY_WARNING": "Du har ikke brugt Grouper i et år. Åbn appen før {{deleteAfter}} for at beholde din konto; ellers sletter vi den."
+    }
   }
 }

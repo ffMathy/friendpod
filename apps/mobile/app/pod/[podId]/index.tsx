@@ -10,8 +10,8 @@ import { useChatMessages } from '@/features/chat/useChatMessages';
 import { useChatStatus } from '@/features/chat/window';
 import { AuthenticatedPhoto } from '@/features/photos/AuthenticatedPhoto';
 import { AttendanceCard } from '@/features/pods/AttendanceCard';
-import { addMeetupToCalendar } from '@/features/pods/calendar';
 import { useFeedbackSent } from '@/features/pods/feedbackSent';
+import { LockedPlan } from '@/features/pods/LockedPlan';
 import { isConfirmedMember } from '@/features/pods/membership';
 import { ProposalCard } from '@/features/pods/ProposalCard';
 import { ScreenCaptureGuard } from '@/features/pods/ScreenCaptureGuard';
@@ -50,7 +50,6 @@ export default function PodScreen() {
   const leave = useCallable('leavePod');
   const sharePhoto = useCallable('setPhotoSharing');
   const [now] = useState(() => Date.now());
-  const [calendarFailed, setCalendarFailed] = useState(false);
   const locale = currentLocale();
 
   if (card.isLoading) return <Loading label={t('common.loading')} />;
@@ -107,11 +106,6 @@ export default function PodScreen() {
       { text: t('common.cancel'), style: 'cancel' },
       { text: t('pod.leave'), style: 'destructive', onPress: () => leave.mutate({ podId }, { onSuccess: () => router.back() }) },
     ]);
-  const addToCalendar = () => {
-    if (meetupAt === null || !place) return;
-    setCalendarFailed(false);
-    addMeetupToCalendar({ startsAt: meetupAt, place, title: t('pod.calendarTitle') }).catch(() => setCalendarFailed(true));
-  };
 
   return (
     <Screen>
@@ -154,14 +148,7 @@ export default function PodScreen() {
           {meetupAt !== null ? (
             <View style={{ gap: 8 }}>
               <Body bold>{t('pod.meetup', { when })}</Body>
-              {place ? (
-                <>
-                  <Body>{place.name}</Body>
-                  <Body muted>{place.address}</Body>
-                  <Button testID="add-to-calendar" label={t('pod.addToCalendar')} variant="secondary" onPress={addToCalendar} />
-                  {calendarFailed ? <ErrorText>{t('pod.calendarFailed')}</ErrorText> : null}
-                </>
-              ) : null}
+              {place ? <LockedPlan meetupAt={meetupAt} place={place} /> : null}
               {p.state === 'scheduled' && step !== 'confirmAttendance' ? <AttendanceCard podId={podId} when={when} mine={mine} ask={false} /> : null}
             </View>
           ) : (
@@ -207,6 +194,7 @@ export default function PodScreen() {
                     {...(detail ? { detail } : {})}
                     onPress={() => router.push({ pathname: '/pod/[podId]/member/[uid]', params: { podId, uid: memberUid } })}
                   />
+                  {entry.aboutMe ? <Body muted>{entry.aboutMe}</Body> : null}
                 </View>
               </View>
             );

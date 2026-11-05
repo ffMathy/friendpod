@@ -1,11 +1,33 @@
 import { revokeToken, signOut as firebaseSignOut } from '@react-native-firebase/auth';
 import { auth } from '@/firebase';
 import { callFunction } from '@/firebase/callables';
+import { pushPermissionGranted, unregisterPush } from '@/features/notifications/push';
 import { reauthenticate, type ReauthOutcome } from '@/features/auth/reauth';
 import { signOutOfGoogle } from '@/features/auth/google';
 import { endDeviceSession } from './deviceSession';
 
+/**
+ * Set once `deleteAccount` succeeded, so the welcome screen can confirm it (§3.10 step 3) after the guard has
+ * switched to the signed-out stack. Read once.
+ */
+let accountDeleted = false;
+export function consumeAccountDeleted(): boolean {
+  const was = accountDeleted;
+  accountDeleted = false;
+  return was;
+}
+
+/**
+ * Drops this device's FCM token before the session ends: `pushTokens/{uid}` keeps it until FCM reports it gone, so
+ * without this the next account on the same phone would get the previous one's pushes. The next sign-in that has
+ * notifications on registers a fresh token (usePushTokenSync).
+ */
+async function dropPushToken(): Promise<void> {
+  if (await pushPermissionGranted()) await unregisterPush();
+}
+
 export async function signOut(): Promise<void> {
+  await dropPushToken().catch(() => undefined);
   await signOutOfGoogle().catch(() => undefined);
   await firebaseSignOut(auth());
   await endDeviceSession();
@@ -33,6 +55,7 @@ export async function deleteAccount(): Promise<AccountActionOutcome> {
   if (reauth.kind === 'emailLinkSent') return reauth;
   if (reauth.appleAuthorizationCode) await revokeAppleToken(reauth.appleAuthorizationCode);
   await callFunction('deleteAccount', {});
+  accountDeleted = true;
   // The server has already deleted the Auth user; signing out only clears local state.
   await signOut().catch(() => endDeviceSession());
   return { kind: 'done' };

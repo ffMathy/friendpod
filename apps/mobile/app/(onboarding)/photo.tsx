@@ -1,28 +1,14 @@
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Body, Button, ErrorText, Heading, Screen } from '@/components/ui';
-import { pickPhoto, uploadPhoto } from '@/features/photos/upload';
+import { usePhotoUpload } from '@/features/photos/upload';
 import { useUid } from '@/features/session/SessionProvider';
 
 /** §3.1 step 9 (optional). */
 export default function Photo() {
   const { t } = useTranslation();
   const router = useRouter();
-  const uid = useUid();
-  const [state, setState] = useState<'idle' | 'uploading' | 'done' | 'failed'>('idle');
-
-  const choose = async () => {
-    const uri = await pickPhoto();
-    if (!uri) return;
-    setState('uploading');
-    try {
-      await uploadPhoto(uid, uri);
-      setState('done');
-    } catch {
-      setState('failed');
-    }
-  };
+  const { state, choose } = usePhotoUpload(useUid());
 
   return (
     <Screen>
