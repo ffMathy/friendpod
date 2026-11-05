@@ -24,7 +24,7 @@ import {
 } from '@grouper/core';
 import { docs, matchProfiles, ts } from '../lib/firestore';
 import type { AppDeps } from '../lib/runtime';
-import { ms, podProfile, pruneRecent, recentMinUntil, type PodStateDoc, type ProfileDoc } from './context';
+import { ms, podProfile, pruneRecent, recentMinUntil, type PodStateDoc, type ProfileDoc, type UserDoc } from './context';
 import { withPod } from './effects';
 import { matchUserOf, profileParticipates } from './orchestrator';
 import { cardFor, holdingsOf, type Holding } from './release';
@@ -34,6 +34,17 @@ const POOL_LIMIT = 200;
 /** The podState changed between the pool computation and the claim: compute the round again. */
 class VersionChanged extends Error {}
 const MAX_ROUNDS = 3;
+
+/**
+ * S3 and the consent, read again inside the claim transaction (as release revalidation does): a blanket withdrawal
+ * first strips the sensitive themes and `users.legal.art9` in one transaction, so a candidate whose withdrawal has
+ * begun is never invited to a sensitive pod (PRIVACY.md §3.5).
+ */
+function consentHolds(u: UserDoc, p: ProfileDoc, theme: PodStateDoc['theme']): boolean {
+  if (theme.kind !== 'concept') return false;
+  const entry = p.themes.find((t) => t.c === theme.conceptId);
+  return u.legal.art9 !== undefined && entry !== undefined && entry.sens && Boolean(entry.consentRef);
+}
 
 export type BackfillOutcome = 'notApplicable' | 'alreadyInvited' | 'noCandidates' | 'invited';
 
@@ -141,7 +152,7 @@ export async function backfillPod(deps: AppDeps, task: { readonly weekId: WeekId
           p.lastDrop?.weekId === task.weekId &&
           p.lastDrop.outcome === 'unmatched' &&
           p.activePods < profile.params.maxActivePods &&
-          (!sensitive || p.activeSensitivePods === 0);
+          (!sensitive || (p.activeSensitivePods === 0 && consentHolds(u, p, ctx.ps.theme)));
         if (fresh) invited.push(pick);
       }
       if (invited.length === 0) return { outcome: 'noCandidates', invited: 0 };

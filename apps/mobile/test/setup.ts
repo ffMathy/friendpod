@@ -1,4 +1,9 @@
+import { notifyManager } from '@tanstack/react-query';
 import { initI18n } from '@/i18n';
+
+// TanStack batches observer notifications on a timer; run them at once, so a mutation's result reaches the
+// component inside the act() of the press that started it.
+notifyManager.setScheduler((cb) => cb());
 
 jest.mock('react-native-safe-area-context', () => jest.requireActual<{ default: unknown }>('react-native-safe-area-context/jest/mock').default);
 

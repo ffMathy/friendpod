@@ -74,11 +74,11 @@ app/                 expo-router routes, exactly the §11 screens table
   (tabs)/            this week, pods, interests, me
   pod/[podId]/       pod, plan, chat (meetup chat, §3.6), feedback, member/[uid]
   sheets/            why-this-pod, report
-  settings/, info/   privacy, blocked, notifications, preferences; transparency pages
+  settings/, info/   privacy, blocked, notifications, notices, preferences; transparency pages
 src/
   firebase/          RNFirebase init, App Check, emulators, typed callables (core zod schemas)
   data/              TanStack Query client, callable mutations, onSnapshot bridges, typed doc hooks
-  features/          auth, session, onboarding, interests (+ embedder/), consent, profile, pods, places, chat, photos, notifications, account
+  features/          auth, session, onboarding, interests (+ embedder/), consent, profile, pods, places, chat, photos, notifications, notices, account
   components/        small UI kit
   i18n/              da.json, en.json (+ native/ for iOS permission prompts)
 test/                jest tests
@@ -128,6 +128,42 @@ scored by the core detector against `prototypes.bin`; `addInterests` receives `{
 - If the device cannot run it, adding interests is blocked with a message and a retry; there is no server fallback.
 - `src/features/interests/embedder/stub.ts` is the deterministic stand-in for jest and `EXPO_PUBLIC_EMBEDDER=stub`.
 
+## Wiring to the backend
+
+Every screen reads Firestore through the typed live hooks in `src/data/docs.ts` (core schemas) and writes only
+through the typed callables (`src/firebase/callables.ts`, `useCallable`); nothing in the app is mocked outside jest.
+
+| Journey | Where | Callables / reads |
+|---|---|---|
+| Proposal, accept/decline, "Why this pod" | `(tabs)/index`, `ProposalCard`, `sheets/why-this-pod` | `respondToPod`; `users/{uid}/pods` |
+| Confirmed pod: next step, plan, chat, members (with "about me") | `pod/[podId]/index`, `LockedPlan` | `pods/{podId}`, `options`; `setPhotoSharing` |
+| Propose and vote, extension round, report an option | `pod/[podId]/plan`, `PlacePicker` | `proposeOption`, `voteOption` |
+| Attendance ("Still coming?", "Can't make it", "hasn't confirmed") | `AttendanceCard` | `confirmAttendance` |
+| Add to calendar, open in Maps | `LockedPlan` | system sheet (`expo-calendar/legacy`), `place.mapUrl` |
+| Feedback | `pod/[podId]/feedback` | `submitFeedback` |
+| Leave pod | pod screen | `leavePod` |
+| Block (remove them / leave instead / re-plan when scheduled), unblock, report a member, option or message | `pod/[podId]/member/[uid]`, `sheets/report`, `settings/blocked` | `blockUser`, `unblockUser`, `report`; `users/{uid}/blocks` |
+| Interests (remove, star, did-you-mean, keep private, not sensitive for me, rescan holds) | `InterestManager` | `addInterests`, `removeInterest`, `updateInterest`, `confirmSuggestion` |
+| Privacy: Art. 9 and gender consent, pause / skip, photo, export, blocked, notices, delete | `settings/privacy`, `settings/delete-account` | `setArt9Consent`, `withdrawArt9Consent`, `updateProfile`, `setParticipation`, `deletePhoto`, `exportData`, `deleteAccount`; `users/{uid}/exports` |
+| Photo upload, change and delete | `(onboarding)/photo`, Me → `PhotoCard` | Storage `uploads/{uid}/pending*.jpg` (`onPhotoUploaded`), `deletePhoto` |
+| Messages from Grouper (statements of reasons, report receipts, export ready) | `settings/notices`, `NoticeCard` | `users/{uid}/notices` |
+| Push token and taps | `usePushTokenSync`, `useNotificationRouting` | `registerPushToken` |
+
+- **Authenticated downloads** (`src/firebase/storageRest.ts`): photos and the data export are fetched over the Storage
+  REST API with `Authorization: Firebase <ID token>` and `X-Firebase-AppCheck`, never `getDownloadURL()`. The export
+  is saved to `<cache>/exports/` (only the latest; removed with the other device data at sign-out and deletion) and
+  handed to the system viewer (`File.preview`), from which the user saves or shares it.
+- **Push.** The token is registered at every start of a signed-in session that has notification permission, and again
+  on each `onTokenRefresh`. Sign-out first deletes the FCM token (the server keeps tokens until FCM reports them gone,
+  so the next account on the phone would otherwise get this one's pushes). A tapped push carries only `data.kind`
+  (S4): `routing.ts` maps it to Home, the notices list, or the one pod (its chat for chat pushes) the kind can be about,
+  else the Pods tab. The kind list mirrors `functions/src/lib/push.ts`.
+- **Caches** (§9): sign-out and deletion clear Firestore (`terminate()` + `clearPersistence()`), expo-image, the
+  downloaded export and the query cache; a block and a photo deletion clear the image caches at once; a pod leaving
+  the active list clears them at the next open (`useDeviceCacheHygiene`).
+- Statements of reasons point to `SUPPORT_EMAIL` in `src/lib/support.ts`, the same placeholder address as the hosted
+  privacy pages until the company domain is fixed.
+
 Places (D8) come from Google Places (New) over REST with session tokens, filtered to core's `PUBLIC_PLACE_TYPES`
 (`src/features/places`); `stub.ts` stands in for tests. Add-to-calendar uses the system sheet
 (`expo-calendar/legacy` `createEventInCalendarAsync`) and needs no calendar permission.
@@ -152,4 +188,10 @@ See the M0 checklist in DESIGN.md §11/§15. In short:
 - add-to-calendar on iOS 16 (needs calendar permission there, which the app does not request) and on Android;
 - on devices: Sign in with Apple on iOS only, Google and email link on both (iOS SPM build of GoogleSignIn), Universal/App Links for
   email links, Hermes behaviour of core's Unicode regexes and `Intl.DateTimeFormat` with `timeZone`,
-  photo download with auth headers, and Firestore `terminate()`/`clearPersistence()` with emulators.
+  photo download with auth headers, and Firestore `terminate()`/`clearPersistence()` with emulators;
+- push: notification taps from the background and from a cold start (`getInitialNotification`) on both platforms,
+  and that `deleteToken` at sign-out makes FCM report the old token as unregistered;
+- export: the authenticated download from the Storage emulator and production, and `File.preview` of a `.json` file
+  (iOS Quick Look share sheet; Android needs an app that opens `application/json`);
+- the golden embedding test (`src/features/interests/embedder/golden.ts` throws `NOT_IMPLEMENTED` until core packages
+  the reference vectors).

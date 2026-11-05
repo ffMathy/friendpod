@@ -49,7 +49,7 @@ export async function setParticipation(
     if (!user || !profile) throw new AppError('NOT_FOUND');
 
     const { next, effectiveWeekId } = applyParticipation(stateOf(user), input.mode, input.until, call.now);
-    tx.set(userRef, { ...user, status: next.status, participation: userParticipation(next), lastActiveAt: at });
+    tx.set(userRef, { ...user, status: next.status, participation: userParticipation(next) });
     tx.set(profileRef, {
       ...profile,
       status: next.status,

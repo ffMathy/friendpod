@@ -10,6 +10,7 @@
  *      (sensitive-themed pods only after the S6 opt-in), then every earlier version is deleted.
  */
 import { podDocSchema } from '@grouper/core';
+import { blockedPairs, pairOf } from '../lib/blocks';
 import { AppError } from '../lib/errors';
 import { DAY_MS, PATHS, docs, ts } from '../lib/firestore';
 import { OBJECT_PATHS } from '../lib/objects';
@@ -108,7 +109,10 @@ async function shareInPods(deps: AppDeps, uid: string, v: number, now: number): 
       const card = (await tx.get(refs.podCard(uid, p.id))).data();
       const shared = sensitive ? card?.photoShared === true : true;
       const active = ACTIVE_STATES.has(pod.state);
-      const viewers = pod.memberUids.filter((x) => x !== uid);
+      // Never to someone blocked in either direction (§3.7), even if they still share the pod.
+      const members = pod.memberUids.filter((x) => x !== uid);
+      const blocked = active && shared ? await blockedPairs(tx, deps.db, members.map((x) => [uid, x] as const)) : new Set<string>();
+      const viewers = members.filter((x) => !blocked.has(pairOf(uid, x)));
       const grants = active && shared && viewers.length > 0 ? await tx.getAll(...viewers.map((x) => refs.photoGrant(uid, x))) : [];
       if (shared && (active || entry.photoV !== null)) tx.set(refs.pod(p.id), podDocSchema.parse({ ...pod, roster: { ...pod.roster, [uid]: { ...entry, photoV: v } } }));
       grants.forEach((g, i) => {

@@ -2,7 +2,7 @@ import { DAY_MS, googleMapsPlaceUrl } from '@grouper/core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { createEventInCalendarAsync } from 'expo-calendar/legacy';
-import { Alert, type AlertButton } from 'react-native';
+import { Alert, Linking, type AlertButton } from 'react-native';
 import PodScreen from '../app/pod/[podId]/index';
 
 const POD_ID = 'abcdefghijklmnopqrst';
@@ -172,5 +172,65 @@ describe('pod screen (D13)', () => {
     expect(screen.getByText('Suggest a time and place')).toBeOnTheScreen();
     await fireEvent.press(screen.getByTestId('next-step'));
     expect(mockRouter.push).toHaveBeenCalledWith({ pathname: '/pod/[podId]/plan', params: { podId: POD_ID } });
+  });
+
+  it('leaves the pod only after a confirmation, then goes back', async () => {
+    const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
+    mockCall.mockResolvedValue({ ok: true });
+    scheduled(30 * HOUR, { me: 'coming', anna: 'coming', bo: 'coming' });
+    await renderPod();
+    await fireEvent.press(screen.getByRole('button', { name: 'Leave pod' }));
+    expect(mockCall).not.toHaveBeenCalled();
+    const buttons = alert.mock.calls[0]?.[2] as AlertButton[];
+    await act(async () => {
+      buttons.find((b) => b.style === 'destructive')?.onPress?.();
+    });
+    expect(mockCall).toHaveBeenCalledWith('leavePod', { podId: POD_ID });
+    expect(mockRouter.back).toHaveBeenCalled();
+    alert.mockRestore();
+  });
+
+  it('lists members with their "about me", opens a member sheet, and opens the place in Maps', async () => {
+    const openURL = jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
+    scheduled(30 * HOUR, { me: 'coming', anna: 'coming', bo: 'coming' });
+    (mockPod.roster as Record<string, Record<string, unknown>>).anna = { firstName: 'Anna', photoV: null, aboutMe: 'Loves long walks.' };
+    await renderPod();
+    expect(screen.getByText('Loves long walks.')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('link', { name: /^Anna/ }));
+    expect(mockRouter.push).toHaveBeenCalledWith({ pathname: '/pod/[podId]/member/[uid]', params: { podId: POD_ID, uid: 'anna' } });
+    await fireEvent.press(screen.getByTestId('open-map'));
+    expect(openURL).toHaveBeenCalledWith(place.mapUrl);
+    openURL.mockRestore();
+  });
+
+  it('before confirmation shows the proposal card instead of the pod', async () => {
+    mockCard = {
+      state: 'proposed',
+      myStatus: 'invited',
+      themeLabel: 'Brætspil',
+      themeSensitive: false,
+      sizeTarget: 5,
+      acceptedCount: 1,
+      acceptBy: ts(Date.now() + DAY_MS),
+      reasons: [],
+      areaLabel: 'Aarhus C',
+    };
+    await renderPod();
+    expect(screen.getByRole('button', { name: 'Accept' })).toBeOnTheScreen();
+    expect(screen.queryByText('Members')).toBeNull();
+  });
+
+  it('"I\'m coming" calls confirmAttendance at once; after "Can\'t make it" it reads "I\'m coming after all"', async () => {
+    mockCall.mockResolvedValue({ ok: true });
+    scheduled(30 * HOUR, { me: 'pending', anna: 'coming', bo: 'coming' });
+    await renderPod();
+    await fireEvent.press(screen.getByTestId('attendance-coming'));
+    expect(mockCall).toHaveBeenCalledWith('confirmAttendance', { podId: POD_ID, coming: true });
+    client.clear();
+
+    scheduled(30 * HOUR, { me: 'notComing', anna: 'coming', bo: 'coming' });
+    await renderPod();
+    expect(screen.getByRole('button', { name: "I'm coming after all" })).toBeOnTheScreen();
+    expect(screen.queryByTestId('attendance-cant')).toBeNull();
   });
 });

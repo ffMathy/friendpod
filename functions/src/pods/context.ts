@@ -23,6 +23,7 @@ import {
   type WeekId,
 } from '@grouper/core';
 import type { Transaction } from 'firebase-admin/firestore';
+import { blockedPairs, pairOf } from '../lib/blocks';
 import { DAY_MS, docs, PATHS, podOptions, ts, userNotices, type DocOf } from '../lib/firestore';
 import { claimMilestones, FunnelIncrements, type FunnelEvent } from '../lib/funnel';
 import type { PushKind } from '../lib/push';
@@ -355,6 +356,9 @@ export class PodTx {
     for (const o of this.grantOps) pairs.set(grantKey(o.owner, o.viewer), [o.owner, o.viewer]);
     const grantKeys = [...pairs.keys()];
     const grantSnaps = grantKeys.length > 0 ? await tx.getAll(...grantKeys.map((k) => refs.photoGrant(...pairs.get(k)!))) : [];
+    // A block (either direction) wins over every grant this transaction would add (§3.7): confirmation, late joins,
+    // "Show my photo to this pod" and any other path that grants inside a pod transaction.
+    const blocked = await blockedPairs(tx, this.deps.db, this.grantOps.filter((o) => o.add).map((o) => [o.owner, o.viewer] as const));
 
     // podState
     this.ps.version += 1;
@@ -407,6 +411,7 @@ export class PodTx {
     grantSnaps.forEach((s, i) => grants.set(grantKeys[i]!, s.data() ?? null));
     const before = new Map([...grants].map(([k, v]) => [k, JSON.stringify(v?.pods ?? [])]));
     for (const op of this.grantOps) {
+      if (op.add && blocked.has(pairOf(op.owner, op.viewer))) continue;
       const key = grantKey(op.owner, op.viewer);
       const g = grants.get(key) ?? null;
       const pods = new Set(g?.pods ?? []);

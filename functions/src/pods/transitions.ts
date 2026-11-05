@@ -36,7 +36,8 @@ import {
   type PlanningRound,
   type WeekId,
 } from '@grouper/core';
-import { DAY_MS, docs, ts } from '../lib/firestore';
+import { blocksBetween, pairOf } from '../lib/blocks';
+import { COLLECTIONS, DAY_MS, docs, ts } from '../lib/firestore';
 import { applySanction } from '../lib/sanctions';
 import { taskId } from '../lib/tasks';
 import { ms, podAreaLabel, podDueAt, pruneRecent, recentMinUntil, type OptionDoc, type PodDoc, type PodTx, type ProfileDoc } from './context';
@@ -316,7 +317,13 @@ export async function enterPlanning(ctx: PodTx, round: Exclude<PlanningRound, 'c
   ctx.ps.state = 'planning';
   ctx.ps.planningExtended = false;
   if (round === 'reschedule') ctx.ps.rescheduled = true;
-  if (round === 'keep') ctx.ps.rescheduled = false;
+  if (round === 'keep') {
+    ctx.ps.rescheduled = false;
+    // Feedback belongs to one meetup: it was applied at close, and a later round must not count it again (wrongful
+    // no-shows or Keeps, a reminder skipped). Deleted for everyone ever in the pod, so the next round starts empty.
+    const refs = docs(ctx.deps.db);
+    for (const uid of ctx.ps.memberList) ctx.write((tx) => tx.delete(refs.podFeedback(ctx.podId, uid)));
+  }
   const timers = { ...ctx.ps.timers };
   for (const k of MEETUP_TIMERS) delete timers[k];
   ctx.ps.timers = { ...timers, planDeadline: ts(deadline) };
@@ -516,13 +523,46 @@ async function closeFeedback(ctx: PodTx): Promise<void> {
   }
   await applyMeetAgain(ctx, members, true);
 
-  const keepers = members.filter((uid) => feedback.get(uid)?.keep === true);
+  const wantKeep = members.filter((uid) => feedback.get(uid)?.keep === true);
+  const keepers = wantKeep.length >= MIN_MEMBERS ? await withoutConflicts(ctx, wantKeep) : wantKeep;
   if (keepers.length >= MIN_MEMBERS) {
-    for (const uid of members) if (!keepers.includes(uid)) await removeFromPod(ctx, uid, 'left');
+    for (const uid of members) if (!wantKeep.includes(uid)) await removeFromPod(ctx, uid, 'left');
+    for (const uid of wantKeep) if (!keepers.includes(uid)) await removeFromPod(ctx, uid, 'removed');
     await enterPlanning(ctx, 'keep');
   } else {
     await endPod(ctx, 'archived');
   }
+}
+
+/**
+ * The Keep loop never reunites a blocked pair or a pair with an open report (§3.7): a block made after the meetup chat
+ * closed left both in the `happened` pod. One member of each such pair stays out, by the §3.7 default the blocked
+ * one (for a report, its target). Blocks are read for every pair; reports only for pairs `blockedH` flags.
+ */
+async function withoutConflicts(ctx: PodTx, keepers: readonly string[]): Promise<string[]> {
+  const pairs: [string, string][] = [];
+  for (let i = 0; i < keepers.length; i++) for (let j = i + 1; j < keepers.length; j++) pairs.push([keepers[i]!, keepers[j]!]);
+  const db = ctx.deps.db;
+  const edges = await blocksBetween(ctx.tx, db, pairs);
+  const drop = new Set<string>();
+  for (const e of [...edges].sort((x, y) => x.createdAtMs - y.createdAtMs || (x.blocked < y.blocked ? -1 : 1))) {
+    if (!drop.has(e.blocker) && !drop.has(e.blocked)) drop.add(e.blocked);
+  }
+  await ctx.loadProfiles(keepers);
+  const blockedPair = new Set(edges.map((e) => pairOf(e.blocker, e.blocked)));
+  for (const [a, b] of pairs) {
+    if (drop.has(a) || drop.has(b) || blockedPair.has(pairOf(a, b))) continue;
+    const [ha, hb] = await Promise.all([ctx.uidH(a), ctx.uidH(b)]);
+    if (!ctx.matchProfile(a)?.blockedH.includes(hb) && !ctx.matchProfile(b)?.blockedH.includes(ha)) continue;
+    const reports = db.collection(COLLECTIONS.reports);
+    const [ab, ba] = await Promise.all([
+      ctx.tx.get(reports.where('reporterUid', '==', a).where('targetUid', '==', b)),
+      ctx.tx.get(reports.where('reporterUid', '==', b).where('targetUid', '==', a)),
+    ]);
+    if (ab.docs.some((d) => d.get('status') === 'open')) drop.add(b);
+    else if (ba.docs.some((d) => d.get('status') === 'open')) drop.add(a);
+  }
+  return keepers.filter((uid) => !drop.has(uid));
 }
 
 /**

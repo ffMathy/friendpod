@@ -7,7 +7,8 @@
  *       signals with the pod's members;
  *   (c) their meetup-chat messages;
  *   (d) last, a pod transaction that removes them from `podState.members` and `memberList`, and deletes their card.
- * Other members see only "A member left" (a generic notice and push).
+ * Other members of an active pod (planning or scheduled) see only "A member left" (a generic notice and push); other pods
+ * change silently.
  */
 import { NOTICE_CODES, pairKey } from '@grouper/core';
 import { docs, PATHS, podStates } from '../lib/firestore';
@@ -37,6 +38,9 @@ async function leaveMembership(ctx: PodTx, uid: string, kind: ExitKind): Promise
   await advance(ctx);
   const m = ctx.ps.members[uid]!;
   const wasCurrent = ctx.pod?.memberUids.includes(uid) ?? false;
+  // "A member left" is news only while the pod still plans or meets; an archived or dissolved pod (or one past its
+  // meetup) changes silently.
+  const wasActive = ctx.isActive;
   if (wasCurrent || m.status === 'invited' || m.status === 'accepted') {
     await removeFromPod(ctx, uid, 'removed');
     if (wasCurrent && ctx.pod) {
@@ -44,8 +48,10 @@ async function leaveMembership(ctx: PodTx, uid: string, kind: ExitKind): Promise
       await ctx.loadProfiles(rest);
       const shared = await podInterests(ctx, rest);
       ctx.updatePod((p) => ({ ...p, podInterests: shared }));
-      for (const other of rest) ctx.notice(other, NOTICE_CODES.POD_MEMBER_LEFT);
-      ctx.push('podChanged', rest);
+      if (wasActive) {
+        for (const other of rest) ctx.notice(other, NOTICE_CODES.POD_MEMBER_LEFT);
+        ctx.push('podChanged', rest);
+      }
     }
     if (wasCurrent || ctx.state === 'proposed') await afterMemberLoss(ctx);
   }

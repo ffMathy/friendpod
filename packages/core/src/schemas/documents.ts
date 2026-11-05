@@ -593,7 +593,11 @@ export const reportDocSchema = z
     decision: z.string().optional(),
     createdAt: timestampSchema,
     resolvedAt: timestampSchema.optional(),
-    expiresAt: timestampSchema,
+    /**
+     * TTL. Set when the report is resolved (its 12-month expiry, by dailyMaintenance), never while it is open, so the
+     * TTL cannot delete an open report before its pair leaves `blockedH`. Older open reports may still carry one.
+     */
+    expiresAt: timestampSchema.optional(),
   })
   .refine((r) => (r.reporterUid === undefined) !== (r.reporterH === undefined), { message: 'exactly one of reporterUid / reporterH' })
   .refine((r) => (r.targetUid === undefined) !== (r.targetH === undefined), { message: 'exactly one of targetUid / targetH' })

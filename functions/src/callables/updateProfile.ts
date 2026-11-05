@@ -117,7 +117,6 @@ export async function updateProfile(deps: AppDeps, call: CallContext, input: Inp
       prefs,
       gender,
       legal: grantText ? { ...user.legal, genderConsentAt: at } : withdrawGender ? legalWithoutGender : user.legal,
-      lastActiveAt: at,
     };
     tx.set(userRef, nextUser);
     tx.set(profileRef, {

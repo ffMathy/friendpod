@@ -75,4 +75,25 @@ describe('feedback (D9, D15)', () => {
       keep: true,
     });
   });
+
+  it('sends a rating with Keep pod, and "Not for me" when they did not meet', async () => {
+    mockCall.mockReset();
+    mockCall.mockResolvedValue({ ok: true });
+    await renderFeedback();
+    expect(screen.getByRole('button', { name: 'Send' })).toBeDisabled();
+    await fireEvent.press(screen.getByRole('switch', { name: '4' }));
+    await fireEvent.press(screen.getByRole('switch', { name: 'Keep pod' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Send' }));
+    expect(submitFeedbackInput.parse(mockCall.mock.calls[0]?.[1])).toEqual({ podId: POD_ID, met: true, notThere: [], meetAgain: {}, rating: 4, keep: true });
+    client.clear();
+    mockCall.mockClear();
+
+    await renderFeedback();
+    // [0] "Yes", [1] "No" of "Did you meet?"
+    await fireEvent.press(screen.getAllByRole('switch', { name: 'No' })[0]!);
+    expect(screen.queryByText('Who was there?')).toBeNull();
+    await fireEvent.press(screen.getByRole('switch', { name: 'Not for me' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Send' }));
+    expect(submitFeedbackInput.parse(mockCall.mock.calls[0]?.[1])).toEqual({ podId: POD_ID, met: false, notThere: [], meetAgain: {}, keep: false });
+  });
 });

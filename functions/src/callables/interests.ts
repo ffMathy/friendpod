@@ -100,7 +100,6 @@ export async function updateInterest(deps: AppDeps, call: CallContext, input: Ca
       [...sensitive].map(([id, d]) => sensitiveHoldingFromDoc(id, d)),
     );
     tx.update(db.doc(`matchProfiles/${uid}`), { themes, themeIds, secondary, updatedAt: ts(call.now) });
-    tx.update(docs(db).user(uid), { lastActiveAt: ts(call.now) });
   });
   return { ok: true };
 }

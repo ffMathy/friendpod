@@ -45,19 +45,27 @@ export async function setArt9Consent(deps: AppDeps, call: CallContext, input: Ca
       method: 'checkbox+button',
       createdAt: at,
     });
-    tx.update(userRef, { 'legal.art9': { textVersion: text.id, textSha256: consent.textSha256, at }, lastActiveAt: at });
+    tx.update(userRef, { 'legal.art9': { textVersion: text.id, textSha256: consent.textSha256, at } });
   });
   return { ok: true };
 }
 
 /**
- * PRIVACY.md §3.5 for the blanket consent, in its order: (4) every sensitive-themed pod the user was ever in, found
- * through `podState.memberList` (sensitive themes exist only for holders of a sensitive holding, S3), archived ones
- * included, open invitations too (exitPod: memberUids and roster first, then options, votes, messages, feedback and
- * grants, podState membership last), with the pod cards; then one transaction for (1), (2), (6) and (7): every
- * sensitive holding and its tag counts, `matchProfiles.themes`/`themeIds`, a `withdraw` event, a 3-year expiry and
- * `redactedAt` on every art9 event, an erasure-ledger entry (`consentWithdrawal`) and, last, `users.legal.art9`.
- * Idempotent: a retry finds the pods again, and without consent or holdings there is nothing left to do.
+ * PRIVACY.md §3.5 for the blanket consent, in this order:
+ *   (0) one transaction ends the consent before anything else: a `withdraw` event, `users.legal.art9` removed, the
+ *       erasure-ledger entry (`consentWithdrawal`), and the sensitive themes stripped from `matchProfiles.themes`/
+ *       `themeIds` (step 6). From its commit on no new sensitive invitation can reach the user: release revalidation
+ *       needs `consentRef` and `users.legal.art9` and its batch fails on the matchProfiles write (precondition), and
+ *       backfillPod reads both inside its claim transaction;
+ *   (4) every sensitive-themed pod the user was ever in, found through `podState.memberList` (sensitive themes exist
+ *       only for holders of a sensitive holding, S3), archived ones included, open invitations too (exitPod:
+ *       memberUids and roster first, then options, votes, messages, feedback and grants, podState membership last),
+ *       with the pod cards;
+ *   (1), (2), (7) one transaction for every sensitive holding and its tag counts, the matchProfiles rebuild, and a
+ *       3-year expiry and `redactedAt` on every art9 event;
+ *   then (4) once more, idempotently, so a pod reached in the meantime is left too.
+ * Idempotent: a retry finds the pods and holdings again; without consent, holdings or sensitive themes it only checks
+ * the pods.
  */
 export async function withdrawArt9Consent(deps: AppDeps, call: CallContext): Promise<CallableOutput<'withdrawArt9Consent'>> {
   return { removed: await withdrawBlanketConsent(deps, call.uid, call.now, { ledger: { uidH: await call.uidH() } }) };
@@ -68,49 +76,69 @@ export interface WithdrawOptions {
   readonly ledger: { readonly uidH: string; readonly id?: string } | null;
 }
 
-export async function withdrawBlanketConsent(deps: AppDeps, uid: string, now: number, o: WithdrawOptions): Promise<number> {
+/** Step (0): ends the consent and strips sensitive themes; false when there was nothing left to end. */
+export async function markArt9Withdrawal(deps: AppDeps, uid: string, now: number, o: WithdrawOptions): Promise<boolean> {
   const refs = docs(deps.db);
-  const user = (await refs.user(uid).get()).data();
-  if (!user) throw new AppError('NOT_FOUND');
-  const held = await deps.db.collection(`users/${uid}/sensitiveInterests`).limit(1).get();
-  if (!user.legal.art9 && held.empty) return 0;
+  return deps.db.runTransaction(async (tx) => {
+    const [u, p, held] = await Promise.all([tx.get(refs.user(uid)), tx.get(refs.matchProfile(uid)), tx.get(deps.db.collection(`users/${uid}/sensitiveInterests`).limit(1))]);
+    const user = u.data();
+    if (!user) throw new AppError('NOT_FOUND');
+    const profile = p.data();
+    const grant = user.legal.art9;
+    const sensThemes = profile?.themes.some((t) => t.sens) ?? false;
+    if (!grant && held.empty && !sensThemes) return false;
+    if (grant) {
+      const text = getLegalText(grant.textVersion);
+      tx.create(consentEvents(deps.db).doc(), {
+        uid,
+        scope: 'art9',
+        action: 'withdraw',
+        textVersion: grant.textVersion,
+        textSha256: grant.textSha256,
+        locale: text?.locale ?? (user.locale === 'da' ? 'da' : 'en'),
+        appVersion: UNKNOWN_APP_VERSION,
+        method: 'checkbox+button',
+        createdAt: ts(now),
+        expiresAt: ts(now + CONSENT_EVENT_RETENTION_MS),
+        redactedAt: ts(now),
+      });
+      tx.update(refs.user(uid), { 'legal.art9': FieldValue.delete() });
+    }
+    if (profile) {
+      // Always written: it also fails a concurrent release batch's matchProfiles precondition (§10.3).
+      const themes = profile.themes.filter((t) => !t.sens);
+      tx.update(p.ref.withConverter(null), { themes, themeIds: themes.map((t) => t.c), updatedAt: ts(now) });
+    }
+    if (o.ledger) {
+      const ref = o.ledger.id ? erasureLedger(deps.db).doc(o.ledger.id) : erasureLedger(deps.db).doc();
+      tx.set(ref, { uidH: o.ledger.uidH, kind: 'consentWithdrawal', ref: 'art9', at: ts(now), expiresAt: ts(now + ERASURE_LEDGER_TTL_MS) });
+    }
+    return true;
+  });
+}
 
+async function exitSensitivePods(deps: AppDeps, uid: string): Promise<void> {
   for (const { podId, ps } of await podsOf(deps, uid)) {
     if (ps.theme.kind === 'concept' && ps.theme.sensitive) await exitPod(deps, podId, uid, 'withdrawal');
   }
+}
+
+export async function withdrawBlanketConsent(deps: AppDeps, uid: string, now: number, o: WithdrawOptions): Promise<number> {
+  const marked = await markArt9Withdrawal(deps, uid, now, o);
+  await exitSensitivePods(deps, uid);
+  if (!marked) return 0;
 
   const removed = await removeHoldings(deps, uid, (h) => ({ ordinary: [], sensitive: [...h.sensitive.keys()] }), now, {
     read: (tx) => tx.get(consentEvents(deps.db).where('uid', '==', uid).where('scope', '==', 'art9')),
-    finish: ({ tx, user: raw }, events) => {
-      const grant = (raw?.legal as { art9?: { textVersion: string; textSha256: string } } | undefined)?.art9;
+    finish: ({ tx }, events) => {
       const expiresAt = ts(now + CONSENT_EVENT_RETENTION_MS);
       for (const e of events.docs) {
         const d = e.data();
         if (d.expiresAt === undefined || d.redactedAt === undefined) tx.update(e.ref, { ...(d.expiresAt === undefined ? { expiresAt } : {}), ...(d.redactedAt === undefined ? { redactedAt: ts(now) } : {}) });
       }
-      if (grant) {
-        const text = getLegalText(grant.textVersion);
-        tx.create(consentEvents(deps.db).doc(), {
-          uid,
-          scope: 'art9',
-          action: 'withdraw',
-          textVersion: grant.textVersion,
-          textSha256: grant.textSha256,
-          locale: text?.locale ?? (raw?.locale === 'da' ? 'da' : 'en'),
-          appVersion: UNKNOWN_APP_VERSION,
-          method: 'checkbox+button',
-          createdAt: ts(now),
-          expiresAt,
-          redactedAt: ts(now),
-        });
-        // Last, so a retry still runs every step.
-        tx.update(refs.user(uid), { 'legal.art9': FieldValue.delete(), lastActiveAt: ts(now) });
-      }
-      if (o.ledger) {
-        const ref = o.ledger.id ? erasureLedger(deps.db).doc(o.ledger.id) : erasureLedger(deps.db).doc();
-        tx.set(ref, { uidH: o.ledger.uidH, kind: 'consentWithdrawal', ref: 'art9', at: ts(now), expiresAt: ts(now + ERASURE_LEDGER_TTL_MS) });
-      }
     },
   });
+  // Idempotent: catches a sensitive pod that an invitation computed before step (0) still reached.
+  await exitSensitivePods(deps, uid);
   return removed.length;
 }

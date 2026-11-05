@@ -1,5 +1,6 @@
 /** Every callable of codebase "default" (DESIGN.md §10.1) with its final name and options. */
 import type { CallableInput, CallableName, CallableOutput } from '@grouper/core';
+import { withActivity } from '../lib/activity';
 import { callable, type CallContext } from '../lib/handler';
 import { callableOptions } from '../lib/options';
 import { appDeps, handlerDeps, modelsPrototypes, type AppDeps } from '../lib/runtime';
@@ -16,8 +17,10 @@ import { updateProfile as updateProfileImpl } from './updateProfile';
 
 type Impl<N extends CallableName> = (deps: AppDeps, call: CallContext, input: CallableInput<N>) => Promise<CallableOutput<N>>;
 
+/** Every onboarded callable records activity first (`users.lastActiveAt`, throttled, lib/activity.ts). */
 function define<N extends CallableName>(name: N, impl: Impl<N>) {
-  return callable(name, callableOptions(name), (call, input) => impl(appDeps(), call, input), () => handlerDeps);
+  const tracked = withActivity(name, impl);
+  return callable(name, callableOptions(name), (call, input) => tracked(appDeps(), call, input), () => handlerDeps);
 }
 
 export const completeOnboarding = define('completeOnboarding', completeOnboardingImpl);

@@ -5,7 +5,6 @@
  */
 import {
   NOTICE_CODES,
-  REPORT_RETENTION_MS,
   isChatOpen,
   reportOutcome,
   uidHash,
@@ -181,7 +180,8 @@ export async function report(deps: AppDeps, call: CallContext, input: CallableIn
   const reportRef = deps.db.collection(COLLECTIONS.reports).doc();
   const bucketRef = refs.rateLimit(rateLimitKey(uid, REPORT_BUCKET));
   await deps.db.runTransaction(async (tx) => {
-    const [bucket, reporterProfile, targetUser, targetProfile, sanction, prior] = await Promise.all([
+    const [reporterUser, bucket, reporterProfile, targetUser, targetProfile, sanction, prior] = await Promise.all([
+      tx.get(refs.user(uid)),
       tx.get(bucketRef),
       tx.get(refs.matchProfile(uid)),
       tx.get(refs.user(targetUid)),
@@ -189,6 +189,9 @@ export async function report(deps: AppDeps, call: CallContext, input: CallableIn
       tx.get(refs.sanction(targetUid)),
       tx.get(deps.db.collection(COLLECTIONS.reports).where('targetUid', '==', targetUid)),
     ]);
+    // An account being deleted files nothing: its purge may already have pseudonymised its reports (§10.3).
+    const reporter = reporterUser.data();
+    if (!reporter || reporter.status === 'deleting') throw new AppError('STATE');
     const next = takeWindow(bucket.data(), now, { limit: REPORTS_PER_DAY, windowMs: DAY_MS });
     if (!next) throw new AppError('RATE_LIMITED');
     const priorReports: PriorReport[] = prior.docs.map((d) => ({
@@ -213,7 +216,8 @@ export async function report(deps: AppDeps, call: CallContext, input: CallableIn
       status: 'open',
       decision: outcome.decision,
       createdAt: ts(now),
-      expiresAt: ts(now + REPORT_RETENTION_MS),
+      // No expiresAt while open: the TTL must never delete a report before dailyMaintenance resolves it (expireReports
+      // sets it at resolution), or the pair would stay in blockedH and openReportCount for good.
     });
     if (reporterProfile.exists) tx.update(reporterProfile.ref.withConverter(null), { blockedH: FieldValue.arrayUnion(ht), updatedAt: ts(now) });
     const user = targetUser.data();
