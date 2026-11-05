@@ -3,14 +3,15 @@
  * FIRESTORE_EMULATOR_HOST is not set, so `npm test` stays emulator-free. The task queue is a fake enqueuer.
  */
 import { randomUUID } from 'node:crypto';
-import { getLaunchArea } from '@grouper/core';
+import { getLaunchArea, uidHash } from '@grouper/core';
+import { nodeHmacSha256 } from '@grouper/core/node';
 import { deleteApp, initializeApp, type App } from 'firebase-admin/app';
 import { getFirestore, Timestamp, type Firestore } from 'firebase-admin/firestore';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { ADMIN_RUNS } from '../src/audit';
 import { EXIT_INCOMPLETE, EXIT_OK, EXIT_USAGE, run, type CliDeps } from '../src/cli';
 import { createContext, type AdminContext, type EnqueueOutcome } from '../src/context';
-import type { ReplayHandlers } from '../src/replay';
+import { serverReplayHandlers, type ReplayHandlers } from '../src/replay';
 
 const HOST = process.env.FIRESTORE_EMULATOR_HOST;
 const PROJECT = 'demo-grouper';
@@ -226,14 +227,14 @@ describe.skipIf(!HOST)('admin CLI against the Firestore emulator', () => {
       await db.doc(`erasureLedger/${id}`).set({ uidH, kind, at: Timestamp.fromMillis(atMs), expiresAt: Timestamp.fromMillis(atMs + 35 * 864e5), ...extra });
     }
 
-    it('reads the live ledger, replays nothing while kinds are not available yet, and exits non-zero', async () => {
+    it('reads the live ledger, replays nothing without UID_HMAC_KEY, and exits non-zero', async () => {
       await ledger('l1', 'account', NOW - 3000);
       await ledger('l2', 'gender', NOW - 2000);
       const r = await cli(['restore', 'replay-ledger', '--database', RESTORED, '--reason', 'staging restore drill']);
       expect(r.code).toBe(EXIT_INCOMPLETE);
       expect(r.stdout).toMatch(/^account\s+1\s+0\s+0\s+1$/m);
-      expect(r.stdout).toMatch(/account: not available yet: purgeUser/);
-      expect(r.stdout).toMatch(/gender: not available yet/);
+      expect(r.stdout).toMatch(/account: not available: UID_HMAC_KEY is not set.*\(purgeUser\)/);
+      expect(r.stdout).toMatch(/gender: not available: UID_HMAC_KEY/);
       expect(r.stdout).toMatch(/Do NOT resume traffic/);
       expect((await runs())[0]).toMatchObject({ command: 'restore replay-ledger', target: RESTORED, outcome: 'incomplete', details: { source: '(default)', entries: 2, replayed: 0 } });
     });
@@ -256,6 +257,51 @@ describe.skipIf(!HOST)('admin CLI against the Firestore emulator', () => {
       expect((await restored.collection('replayed').get()).size).toBe(2);
       expect((await db.collection('replayed').get()).size).toBe(0);
       expect(r.stdout).toMatch(/every entry replayed/);
+    });
+
+    it('replays gender and account entries into the restored database with the server code (UID_HMAC_KEY set)', async () => {
+      const key = Buffer.alloc(32, 7).toString('base64');
+      const hmac = nodeHmacSha256(new Uint8Array(Buffer.from(key, 'base64')));
+      const uid = 'replayUser000000000000000001';
+      const other = 'replayUser000000000000000002';
+      const h = await uidHash(hmac, uid);
+      const at = Timestamp.fromMillis(NOW - 864e5);
+      const user = (gender: 'woman' | null) => ({
+        firstName: 'Ada', locale: 'en', birthYear: 1990, area: { gh5: 'u1zr2', label: '', areaId: null },
+        prefs: { ageMin: 18, ageMax: 99, maxKm: 25, languages: ['en'], availability: 63, sameGenderOnly: gender !== null, openToAnyone: false },
+        gender, participation: { mode: 'auto' }, photo: null, stats: { attended: 0, noShows: 0, lateCancels: 0 }, status: 'active', lastDrop: null,
+        legal: { terms: 't1', privacy: 'p1', ...(gender ? { genderConsentAt: at } : {}) }, interestCount: 0, createdAt: at, lastActiveAt: at,
+      });
+      const profile = (gender: 'woman' | null, blockedH: string[] = []) => ({
+        status: 'active', areaId: null, gh5: 'u1zr2', birthYear: 1990, ageMin: 18, ageMax: 99, maxKm: 25, sameGenderOnly: gender !== null, gender,
+        languages: ['en'], availability: 63, themes: [], themeIds: [], secondary: [], blockedH, recentH: {}, recentMinUntil: null, reliability: 0.8,
+        noShowEvents: [], waitingSinceWeek: '2026-W40', declinesInRow: 0, ignoredInRow: 0, activePods: 0, activeSensitivePods: 0, sensitiveProposals: [],
+        sensitiveHold: null, weekClaim: null, lastDrop: null, attendedVerified: 0, founderInvited: false, openReportCount: 0, priority: false, openToAnyone: false,
+        participation: { mode: 'auto', skipWeekId: null, optInWeekId: null, pausedUntil: null }, milestones: {}, createdAt: at, updatedAt: at,
+      });
+      // The restored copy still holds what was erased: the gender, then the whole account.
+      await restored.doc(`users/${uid}`).set(user('woman'));
+      await restored.doc(`matchProfiles/${uid}`).set(profile('woman'));
+      await restored.doc(`users/${other}`).set(user(null));
+      await restored.doc(`matchProfiles/${other}`).set(profile(null, [h]));
+      await db.doc('erasureLedger/g1').set({ uidH: h, kind: 'gender', at: Timestamp.fromMillis(NOW - 3000), expiresAt: Timestamp.fromMillis(NOW + 864e5) });
+      const { handlers, close } = await serverReplayHandlers(PROJECT, RESTORED, { UID_HMAC_KEY: key });
+      try {
+        const r = await cli(['restore', 'replay-ledger', '--database', RESTORED, '--reason', 'staging restore drill'], { replayHandlers: handlers });
+        expect(r.stderr).toBe('');
+        expect(r.code).toBe(EXIT_OK);
+        expect((await restored.doc(`users/${uid}`).get()).get('gender')).toBeNull();
+        expect((await restored.doc('erasureLedger/g1').get()).get('kind')).toBe('gender');
+        await db.doc('erasureLedger/a1').set({ uidH: h, kind: 'account', at: Timestamp.fromMillis(NOW - 2000), expiresAt: Timestamp.fromMillis(NOW + 864e5) });
+        const again = await cli(['restore', 'replay-ledger', '--database', RESTORED, '--reason', 'staging restore drill'], { replayHandlers: handlers });
+        expect(again.code).toBe(EXIT_OK);
+        expect((await restored.doc(`users/${uid}`).get()).exists).toBe(false);
+        expect((await restored.doc(`matchProfiles/${uid}`).get()).exists).toBe(false);
+        expect((await restored.doc(`matchProfiles/${other}`).get()).get('blockedH')).toEqual([]);
+        expect((await db.doc(`users/${uid}`).get()).exists).toBe(false);
+      } finally {
+        await close();
+      }
     });
 
     it('refuses a malformed ledger entry and supports a dry run', async () => {

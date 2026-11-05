@@ -79,14 +79,4 @@ describeEmulator('blanket Art. 9 consent (emulator)', () => {
     expect(ledger).toEqual([expect.objectContaining({ kind: 'consentWithdrawal', ref: 'art9' })]);
     expect(ledger[0]!.expiresAt.toMillis()).toBe(later + ERASURE_LEDGER_TTL_MS);
   });
-
-  it('is a typed stub, changing nothing, while the user holds a sensitive interest', async () => {
-    const uid = await onboarded();
-    await grant(uid, { consent: proof('art9-blanket-en-v1') });
-    await deps.db.doc(PATHS.sensitiveInterest(uid, 'aaaaaaaaaaaaaaaa')).set({ norm: 'gravid' });
-    const e = await withdraw(uid).catch((err: unknown) => err as { code: string; details: unknown });
-    expect(e).toMatchObject({ code: 'unimplemented', details: { code: 'NOT_IMPLEMENTED', design: '§3.5' } });
-    expect((await user(uid)).legal.art9).toBeDefined();
-    expect((await events(uid)).map((x) => x.action)).toEqual(['grant']);
-  });
 });

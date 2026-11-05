@@ -227,9 +227,15 @@ describeEmulator('addInterests (emulator)', () => {
     expect((await deps.db.collection('reviewQueue').limit(1).get()).empty).toBe(true);
   });
 
-  it('refuses every sensitive holding while sensitive holdings are switched off (the production setting)', async () => {
+  it('accepts sensitive holdings with the consent in the production setting (ART9_HOLDINGS_ENABLED)', async () => {
     const uid = await onboarded({ consent: true });
-    const gated = runtime({ art9Holdings: undefined });
+    const res = await call(uid, body(item('Gravid')), runtime({ art9Holdings: undefined }));
+    expect(res.results[0]).toMatchObject({ status: 'added', private: true });
+  });
+
+  it('refuses every sensitive holding when sensitive holdings are switched off (the safety gate)', async () => {
+    const uid = await onboarded({ consent: true });
+    const gated = runtime({ art9Holdings: false });
     const res = await call(uid, body(item('Gravid'), item('ønsker os et barn'), item('board games', { selfFlagPrivate: true }), item('cooking')), gated);
     const unavailable = { status: 'limit', reasonCode: 'SENSITIVE_UNAVAILABLE' };
     expect(res.results.slice(0, 3)).toEqual([unavailable, unavailable, unavailable]);
@@ -393,17 +399,6 @@ describeEmulator('addInterests (emulator)', () => {
 
     const other = await onboarded();
     expect((await call(other, body(item('ønsker os et barn')))).results[0]).toEqual({ status: 'rejected', reasonCode: 'ART9_CONSENT_REQUIRED' });
-  });
-
-  it('moving a holding is a typed stub while the user is in an active pod, and changes nothing', async () => {
-    const uid = await onboarded({ consent: true });
-    const first = await call(uid, body(item('board games')));
-    await deps.db.doc(`pods/p_${randomBytes(6).toString('hex')}`).set({ state: 'planning', memberUids: [uid] });
-    const before = await footprint(uid);
-    const e = await call(uid, body(item('board games', { selfFlagPrivate: true }))).catch((err: unknown) => err as { code: string; details: unknown });
-    expect(e).toMatchObject({ code: 'unimplemented', details: { code: 'NOT_IMPLEMENTED', design: '§10.2' } });
-    expect(changed(before, await footprint(uid))).toEqual([`rateLimits/${uid}_addInterests`]);
-    expect(await doc(`users/${uid}/interests/${first.results[0]?.interestId}`)).toBeDefined();
   });
 
   it('refuses a sensitive tag about a third party, and warns on an ordinary one', async () => {

@@ -9,7 +9,7 @@ import { formatAreas, formatSetStatus, formatSync, listAreas, parseAreaStatus, r
 import { recorded } from './audit';
 import { checkDatabaseId, DEFAULT_DATABASE, type AdminContext } from './context';
 import { firstWeekOf, formatFunnel, loadFunnel, parseFunnelExport, type FunnelFilter } from './funnel';
-import { formatReplay, readLedger, replayLedger, type ReplayHandlers } from './replay';
+import { formatReplay, readLedger, replayLedger, serverReplayHandlers, type ReplayHandlers } from './replay';
 import { formatReports, listReports, parseReportFilter } from './reports';
 import { BAN_REFUSAL, formatLift, formatSanctions, liftSanction, listSanctions, requireUid } from './sanctions';
 
@@ -34,7 +34,8 @@ export interface CommandEnv {
   readonly reason: string;
   /** Opens the Firebase context for `--project` (only commands that need it call this). */
   context(): AdminContext;
-  readonly replayHandlers: ReplayHandlers;
+  /** Tests inject handlers; otherwise the server's own replay entry points (UID_HMAC_KEY required). */
+  readonly replayHandlers?: ReplayHandlers;
 }
 
 export interface AdminCommand {
@@ -210,8 +211,9 @@ export const COMMANDS: readonly AdminCommand[] = [
       if (sinceMs !== undefined && !Number.isFinite(sinceMs)) throw new UsageError('--since must be an ISO date-time');
       const dryRun = args.flags.has('--dry-run');
       const ctx = context();
+      const opened = replayHandlers ? { handlers: replayHandlers, close: async () => undefined } : await serverReplayHandlers(ctx.project, target);
       const summary = await recorded(ctx, ctx.db(), { command: 'restore replay-ledger', target, reason }, async () => {
-        const s = await replayLedger(await readLedger(ctx.db(source), sinceMs), ctx.db(target), replayHandlers, { dryRun });
+        const s = await replayLedger(await readLedger(ctx.db(source), sinceMs), ctx.db(target), opened.handlers, { dryRun }).finally(() => opened.close());
         const counts = Object.values(s.byKind).reduce((n, k) => ({ entries: n.entries + k.entries, replayed: n.replayed + k.replayed + k.nothingToDo }), { entries: 0, replayed: 0 });
         return { value: s, outcome: s.complete ? 'complete' : dryRun ? 'dryRun' : 'incomplete', details: { source, ...counts } };
       });

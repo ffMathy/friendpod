@@ -41,6 +41,7 @@ const TTL_GROUPS = [
   'erasureLedger',
   'underageMarkers',
   'funnel', // day-1 funnel counters: 24 months (PRIVACY.md P18)
+  'adminRuns', // admin CLI run records: 12 months (§8.2)
 ];
 
 describe('firestore.indexes.json', () => {

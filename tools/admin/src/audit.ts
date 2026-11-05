@@ -1,9 +1,8 @@
 /**
  * Every admin run records who ran it and why (DESIGN.md §9 Admin access: "each run records a reason").
  *
- * DESIGN-DEVIATION: §8 names no collection for this. Runs go to `adminRuns/{autoId}` (server-only: the rules deny
- * every path they do not list) with `expiresAt` = run + 12 months; the TTL policy for `adminRuns.expiresAt` still has
- * to be added to firestore.indexes.json. A record holds the command, its target (an area id, a sanction's uid, a
+ * Runs go to `adminRuns/{autoId}` (DESIGN.md §8.2; server-only: the rules deny every path they do not list) with
+ * `expiresAt` = run + 12 months, deleted by the TTL policy on `adminRuns.expiresAt` in firestore.indexes.json. A record holds the command, its target (an area id, a sanction's uid, a
  * database id), the reason, the admin and an outcome code with counts; never report text, tags or other user content.
  */
 import { FieldValue, Timestamp, type DocumentReference, type Firestore } from 'firebase-admin/firestore';

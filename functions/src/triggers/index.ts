@@ -3,10 +3,12 @@ import { onMessagePublished } from 'firebase-functions/pubsub';
 import { onObjectFinalized, type StorageOptions } from 'firebase-functions/storage';
 import type { PubSubOptions } from 'firebase-functions/pubsub';
 import { runBackground } from '../lib/background';
-import { notImplemented } from '../lib/errors';
 import { BASE_OPTIONS } from '../lib/options';
+import { getStorage } from 'firebase-admin/storage';
+import { gcsUserObjects } from '../lib/objects';
 import { appDeps, handlerDeps } from '../lib/runtime';
 import { BUDGET_TOPIC, handleBudgetAlert } from './budget';
+import { processUpload } from '../photos/process';
 
 /** Fixed upload names cap pending uploads at one pair per uid (§8 Storage paths, §9 Storage rules). */
 const PENDING_UPLOAD = /^uploads\/[^/]+\/pending(?:_256)?\.jpg$/;
@@ -24,8 +26,10 @@ export const TRIGGER_OPTIONS = {
 export const onPhotoUploaded = onObjectFinalized(TRIGGER_OPTIONS.onPhotoUploaded, (event) =>
   runBackground('event', 'onPhotoUploaded', handlerDeps, async () => {
     // The trigger fires for every object in the bucket, including the photos and exports written by functions.
-    if (!isPendingUpload(event.data.name)) return { skipped: true };
-    throw notImplemented('§9');
+    if (!isPendingUpload(event.data.name)) return { outcome: 'skipped' };
+    const deps = appDeps();
+    const { outcome } = await processUpload({ ...deps, objects: gcsUserObjects(() => getStorage().bucket(event.data.bucket)) }, event.data.name);
+    return { outcome };
   }),
 );
 

@@ -8,6 +8,8 @@
 import { gzipSync } from 'node:zlib';
 import {
   LAUNCH_AREAS,
+  areaDocFromConfig,
+  getLaunchArea,
   LONG_TASK_DISPATCH_DEADLINE_SECONDS,
   dropSchedule,
   encodeMatchSnapshot,
@@ -157,6 +159,8 @@ export async function orchestrateDrop(deps: OrchestratorDeps, now: number): Prom
 
   const hmac = deps.uidHmac();
   const users: { user: MatchUser; areaId: string }[] = [];
+  // Ordinary holders per concept per area, for the area chips (every onboarded profile, not only this week's).
+  const holders = new Map<string, Map<string, number>>();
   for (let i = 0; i < matched.length; i += 30) {
     const ids = matched.slice(i, i + 30).map((a) => a.id);
     let after: string | null = null;
@@ -166,6 +170,11 @@ export async function orchestrateDrop(deps: OrchestratorDeps, now: number): Prom
       const page = await q.get();
       for (const d of page.docs) {
         const p = d.data();
+        if (p.areaId !== null && p.status !== 'deleting') {
+          let m = holders.get(p.areaId);
+          if (!m) holders.set(p.areaId, (m = new Map()));
+          for (const c of new Set(p.secondary)) m.set(c, (m.get(c) ?? 0) + 1);
+        }
         if (p.areaId === null || !profileParticipates(p, weekId, now)) continue;
         users.push({ user: await matchUserOf(d.id, p, await uidHash(hmac, d.id)), areaId: p.areaId });
       }
@@ -210,6 +219,35 @@ export async function orchestrateDrop(deps: OrchestratorDeps, now: number): Prom
       componentCount++;
     }
   }
+  for (const a of matched) await writeAreaChips(deps, a.id, holders.get(a.id) ?? new Map());
   await deps.tasks.enqueue('releaseDrop', { weekId }, { id: taskId('release', weekId), scheduleTime: schedule.releaseAt, dispatchDeadlineSeconds: MATCH_DISPATCH_DEADLINE_S });
   return { outcome: 'orchestrated', components: componentCount, users: users.length };
+}
+
+/** Chips per area (§8.1 `areas.chips`): ≤ 30 non-sensitive active concepts with ≥ 10 ordinary holders there and a label. */
+export const CHIPS_MAX = 30;
+export const CHIP_MIN_HOLDERS = 10;
+
+export async function writeAreaChips(deps: AppDeps, areaId: string, counts: ReadonlyMap<string, number>): Promise<number> {
+  const candidates = [...counts].filter(([, n]) => n >= CHIP_MIN_HOLDERS).sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1)).slice(0, CHIPS_MAX * 2);
+  const chips: { conceptId: string; da: string; en: string }[] = [];
+  if (candidates.length > 0) {
+    const snaps = await deps.db.getAll(...candidates.map(([id]) => deps.db.doc(PATHS.concept(id))), { fieldMask: ['labels', 'sensitive', 'status'] });
+    for (const s of snaps) {
+      if (chips.length >= CHIPS_MAX) break;
+      if (!s.exists || s.get('sensitive') !== false || s.get('status') !== 'active') continue;
+      const da = s.get('labels.da') as string | undefined;
+      const en = s.get('labels.en') as string | undefined;
+      if (!da && !en) continue;
+      chips.push({ conceptId: s.id, da: da ?? en!, en: en ?? da! });
+    }
+  }
+  const ref = docs(deps.db).area(areaId);
+  await deps.db.runTransaction(async (tx) => {
+    const area = (await tx.get(ref)).data();
+    const config = getLaunchArea(areaId);
+    if (area) tx.update(ref, { chips });
+    else if (config) tx.set(ref, { ...areaDocFromConfig(config, 0, config.status), chips });
+  });
+  return chips.length;
 }

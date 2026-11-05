@@ -62,7 +62,7 @@ const SERVER_ONLY_DOCS: Record<string, Data> = {
   'conceptLinks/c1__c2': { cos: 0.91, status: 'candidate' },
   'podState/p1': { weekId: WEEK, state: 'confirmed', memberList: [ALICE, BOB] },
   [`podFeedback/p1_${ALICE}`]: { met: true, keep: true },
-  [`drops/${WEEK}`]: { status: 'released' },
+  [`drops/${WEEK}`]: { status: 'released', mondayNudgeAt: AT },
   [`drops/${WEEK}/components/c0`]: { status: 'computed' },
   'consentEvents/ev1': { uid: ALICE, scope: 'art9', action: 'grant', createdAt: AT },
   [`blocks/${ALICE}_${BOB}`]: { blocker: ALICE, blocked: BOB, podId: 'p1', createdAt: AT },
@@ -75,6 +75,11 @@ const SERVER_ONLY_DOCS: Record<string, Data> = {
   [`pushTokens/${ALICE}`]: { tokens: [] },
   [`rateLimits/${ALICE}_addInterests`]: { count: 1, windowStart: AT, expiresAt: AT },
   [`rateLimits/${ALICE}_sensitiveAdds`]: { count: 1, windowStart: AT, expiresAt: AT },
+  [`rateLimits/${ALICE}_addInterestItems`]: { count: 10, windowStart: AT, expiresAt: AT },
+  [`rateLimits/${ALICE}_report`]: { count: 1, windowStart: AT, expiresAt: AT },
+  [`rateLimits/${ALICE}_photoUploads`]: { count: 1, windowStart: AT, expiresAt: AT },
+  // Admin CLI run records (§8.2 adminRuns): who ran what and why; no client reads them.
+  'adminRuns/run1': { command: 'areas list', reason: 'check', actor: 'admin@example.test', outcome: 'read', at: AT, expiresAt: AT },
   'erasureLedger/l1': { uidH: 'uidhash', kind: 'interest', at: AT, expiresAt: AT },
   'underageMarkers/emailHash2': { createdAt: AT, expiresAt: AT },
   // Day-1 funnel counters (§6.8): uid-free, but only the admin CLI reads them (and suppresses cells under 10).

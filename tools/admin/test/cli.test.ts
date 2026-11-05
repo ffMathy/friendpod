@@ -110,10 +110,10 @@ describe('restore replay-ledger dispatcher (§13)', () => {
     const out = formatReplay(s, { source: '(default)', target: 'restored' });
     expect(out).toContain(`account: ${UNAVAILABLE.account}`);
     expect(out).toMatch(/Do NOT resume traffic/);
-    for (const reason of Object.values(UNAVAILABLE)) expect(reason).toMatch(/^not available yet: /);
+    for (const reason of Object.values(UNAVAILABLE)) expect(reason).toMatch(/^not available: UID_HMAC_KEY is not set/);
   });
 
-  it('with no handlers at all (today), every kind is reported as not available yet', async () => {
+  it('with no handlers at all (no UID_HMAC_KEY), every kind is reported as not available', async () => {
     const s = await replayLedger({ entries, invalid: [] }, target);
     expect(s.unavailable).toHaveLength(3);
     expect(s.byKind.block).toEqual({ entries: 1, replayed: 0, nothingToDo: 0, notRun: 1 });

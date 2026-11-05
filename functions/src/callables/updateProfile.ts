@@ -211,3 +211,27 @@ async function recordGenderWithdrawal(tx: Transaction, deps: AppDeps, call: Call
     expiresAt: ts(call.now + ERASURE_LEDGER_TTL_MS),
   });
 }
+
+/**
+ * The data effect of a gender opt-out (PRIVACY.md §3.6), for the restore runbook (§13): gender deleted on `users` and
+ * `matchProfiles`, same-gender pods off, the consent timestamp gone. The consent events of the original withdrawal
+ * live in the ledger's source database; the replayed ledger entry is written under its own id. False when there was
+ * nothing to erase.
+ */
+export async function eraseGender(deps: Pick<AppDeps, 'db'>, uid: string, now: number, ledger: { readonly uidH: string; readonly id: string }): Promise<boolean> {
+  const refs = docs(deps.db);
+  return deps.db.runTransaction(async (tx) => {
+    const [u, p] = await Promise.all([tx.get(refs.user(uid)), tx.get(refs.matchProfile(uid))]);
+    const user = u.data();
+    const profile = p.data();
+    const has = (user && (user.gender !== null || user.prefs.sameGenderOnly || user.legal.genderConsentAt)) || (profile && (profile.gender !== null || profile.sameGenderOnly));
+    if (!has) return false;
+    if (user) {
+      const { genderConsentAt: _g, ...legal } = user.legal;
+      tx.set(refs.user(uid), { ...user, gender: null, prefs: { ...user.prefs, sameGenderOnly: false }, legal });
+    }
+    if (profile) tx.set(refs.matchProfile(uid), { ...profile, gender: null, sameGenderOnly: false, updatedAt: ts(now) });
+    tx.set(erasureLedger(deps.db).doc(ledger.id), { uidH: ledger.uidH, kind: 'gender', at: ts(now), expiresAt: ts(now + ERASURE_LEDGER_TTL_MS) });
+    return true;
+  });
+}

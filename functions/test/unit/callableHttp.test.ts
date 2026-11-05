@@ -77,13 +77,13 @@ describe('callables over HTTP', () => {
     expect(capturedLogs().some((l) => l.includes('callable.invalidInput'))).toBe(true);
   });
 
-  it('serves a replay-protected stub as 501 NOT_IMPLEMENTED once its input is valid', async () => {
-    const text = 'he said something about my faith';
-    forbidInLogs(text, 'HttpUser0003', 'HttpTarget01');
+  it('refuses an invalid report on the replay-protected callable with only the app code, logging no report text', async () => {
+    const text = `he said something about my faith ${'x'.repeat(500)}`;
+    forbidInLogs('he said something about my faith', 'HttpUser0003', 'HttpTarget01');
     const data = { target: { type: 'user', podId: 'b'.repeat(20), uid: 'HttpTarget01' }, category: 'harassment', text };
     const res = await call(fns.report as unknown as HttpFn, data, { uid: 'HttpUser0003' });
-    expect(res.statusCode).toBe(501);
-    expect(errorOf(res)).toEqual({ status: 'UNIMPLEMENTED', message: 'not implemented (see DESIGN.md §3.7)', details: { code: 'NOT_IMPLEMENTED', design: '§3.7' } });
+    expect(res.statusCode).toBe(400);
+    expect(errorOf(res)).toEqual({ status: 'INVALID_ARGUMENT', message: 'VALIDATION', details: { code: 'VALIDATION' } });
   });
 
   it('logs no meetup-chat text when a message fails validation', async () => {
@@ -118,11 +118,10 @@ describe('callables over HTTP', () => {
     expect(errorOf(freeText).details).toEqual({ code: 'VALIDATION' });
   });
 
-  it('accepts a report of a chat message by its id, and requires the id', async () => {
+  // A valid message report reaches the handler (emulator test: safety.test.ts); here only the input check runs.
+  it('requires the message id of a chat-message report', async () => {
     forbidInLogs('HttpUser0006');
     const target = { type: 'message', podId: 'd'.repeat(20), messageId: 'msg0001' };
-    const ok = await call(fns.report as unknown as HttpFn, { target, category: 'harassment' }, { uid: 'HttpUser0006' });
-    expect(ok.statusCode).toBe(501);
     const { messageId: _omitted, ...withoutId } = target;
     const missing = await call(fns.report as unknown as HttpFn, { target: withoutId, category: 'harassment' }, { uid: 'HttpUser0006' });
     expect(errorOf(missing).details).toEqual({ code: 'VALIDATION' });

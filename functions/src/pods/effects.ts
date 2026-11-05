@@ -10,6 +10,7 @@ import { errorFields } from '../lib/log';
 import type { PushKind, PushRecipient } from '../lib/push';
 import type { AppDeps } from '../lib/runtime';
 import { PodTx, type Effects } from './context';
+import { pruneTokens } from '../lib/pushTokens';
 
 /** Recipients of a pod push: each uid's tokens and locale; accounts being deleted get nothing. */
 export async function recipientsFor(deps: AppDeps, uids: readonly string[]): Promise<PushRecipient[]> {
@@ -28,19 +29,29 @@ export async function recipientsFor(deps: AppDeps, uids: readonly string[]): Pro
 export async function pushTo(deps: AppDeps, kind: PushKind, uids: readonly string[]): Promise<number> {
   try {
     const recipients = await recipientsFor(deps, uids);
-    return recipients.length > 0 ? (await deps.push(kind, recipients)).sent : 0;
+    if (recipients.length === 0) return 0;
+    const result = await deps.push(kind, recipients);
+    if (result.staleTokens.length > 0) await pruneTokens(deps, uids, result.staleTokens);
+    return result.sent;
   } catch (err) {
     deps.log.warn('pod.pushFailed', { kind, ...errorFields(err) });
     return 0;
   }
 }
 
-export async function deliver(deps: AppDeps, effects: Effects): Promise<void> {
+/** Enqueue attempts after a commit; a round that still fails is picked up by the backfill watchdog timer. */
+export const ENQUEUE_ATTEMPTS = 3;
+
+export async function deliver(deps: AppDeps, effects: Effects, wait: (ms: number) => Promise<void> = (ms) => new Promise((r) => setTimeout(r, ms))): Promise<void> {
   for (const t of effects.tasks) {
-    try {
-      await deps.tasks.enqueue(t.queue, t.data, t.options);
-    } catch (err) {
-      deps.log.error('pod.enqueueFailed', { queue: t.queue, ...errorFields(err) });
+    for (let attempt = 1; attempt <= ENQUEUE_ATTEMPTS; attempt++) {
+      try {
+        await deps.tasks.enqueue(t.queue, t.data, t.options);
+        break;
+      } catch (err) {
+        if (attempt === ENQUEUE_ATTEMPTS) deps.log.error('pod.enqueueFailed', { queue: t.queue, attempts: attempt, ...errorFields(err) });
+        else await wait(200 * 2 ** attempt);
+      }
     }
   }
   for (const p of effects.pushes) await pushTo(deps, p.kind, p.uids);

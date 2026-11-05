@@ -117,7 +117,7 @@ function rosterEntry(ctx: PodTx, uid: string): PodDoc['roster'][string] {
 }
 
 /** Ordinary concepts held by ≥ 2 members, ≤ 5, unattributed, with their stored labels (§3.4, S2). */
-async function podInterests(ctx: PodTx, members: readonly string[]): Promise<PodDoc['podInterests']> {
+export async function podInterests(ctx: PodTx, members: readonly string[]): Promise<PodDoc['podInterests']> {
   const counts = new Map<string, number>();
   for (const uid of members) for (const c of new Set(ctx.matchProfile(uid)?.secondary ?? [])) counts.set(c, (counts.get(c) ?? 0) + 1);
   const shared = [...counts]

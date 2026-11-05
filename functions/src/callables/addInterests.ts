@@ -9,13 +9,14 @@
 import { EMBEDDING_MODEL, HOUR_MS, type CallableInput, type CallableOutput } from '@grouper/core';
 import type { Timestamp } from 'firebase-admin/firestore';
 import { AppError } from '../lib/errors';
-import { PATHS, docs } from '../lib/firestore';
+import { DAY_MS, PATHS, docs, ts } from '../lib/firestore';
 import type { CallContext } from '../lib/handler';
 import { rateLimitKey, takeWindow } from '../lib/rateLimits';
 import type { AppDeps } from '../lib/runtime';
 import { FirestoreConceptIndex, type ConceptIndex } from '../interests/assign';
-import { ADD_INTERESTS_BUCKET, ART9_HOLDINGS_ENABLED, LIMITS } from '../interests/config';
+import { ADD_INTEREST_ITEMS_BUCKET, ADD_INTERESTS_BUCKET, ART9_HOLDINGS_ENABLED, LIMITS } from '../interests/config';
 import { addInterests as runPipeline } from '../interests/pipeline';
+import { recomputePodInterests } from '../interests/podInterests';
 import type { PrototypeSource } from '../interests/prototypes';
 
 type Input = CallableInput<'addInterests'>;
@@ -40,20 +41,30 @@ async function interestsEnabled(deps: AppDeps, path: string): Promise<boolean> {
 }
 
 /** Charges one call to `rateLimits/{uid}_addInterests`; accounts younger than 24 h get half the allowance. */
-async function takeCall(deps: AppDeps, call: CallContext): Promise<void> {
+async function takeCall(deps: AppDeps, call: CallContext, items: number): Promise<void> {
   const refs = docs(deps.db);
   const userRef = deps.db.doc(`users/${call.uid}`);
   const bucketRef = refs.rateLimit(rateLimitKey(call.uid, ADD_INTERESTS_BUCKET));
+  const itemsRef = refs.rateLimit(rateLimitKey(call.uid, ADD_INTEREST_ITEMS_BUCKET));
   const ok = await deps.db.runTransaction(async (tx) => {
-    const [user, bucket] = await Promise.all([tx.get(userRef), tx.get(bucketRef)]);
+    const [user, bucket, itemBucket] = await Promise.all([tx.get(userRef), tx.get(bucketRef), tx.get(itemsRef)]);
     const createdAt = user.get('createdAt') as Timestamp | undefined;
     if (!user.exists || !createdAt) throw new AppError('NOT_ONBOARDED');
     // Before the window doc, whose id carries the uid, is written.
     if (!ACCEPTS_INTERESTS.has(String(user.get('status')))) throw new AppError('STATE');
-    const limit = call.now - createdAt.toMillis() < LIMITS.newAccountMs ? Math.floor(LIMITS.callsPerHour / 2) : LIMITS.callsPerHour;
+    const young = call.now - createdAt.toMillis() < LIMITS.newAccountMs;
+    const limit = young ? Math.floor(LIMITS.callsPerHour / 2) : LIMITS.callsPerHour;
     const next = takeWindow(bucket.data(), call.now, { limit, windowMs: HOUR_MS });
     if (!next) return false;
+    // 100 items per day (half for new accounts, §4.3): the whole request is refused if it does not fit.
+    const itemLimit = young ? Math.floor(LIMITS.itemsPerDay / 2) : LIMITS.itemsPerDay;
+    const prev = itemBucket.data();
+    const fresh = prev === undefined || call.now - prev.windowStart.toMillis() >= DAY_MS;
+    const used = fresh ? 0 : prev.count;
+    if (used + items > itemLimit) return false;
+    const start = fresh ? call.now : prev.windowStart.toMillis();
     tx.set(bucketRef, next);
+    tx.set(itemsRef, { count: used + items, windowStart: ts(start), expiresAt: ts(start + DAY_MS) });
     return true;
   });
   if (!ok) throw new AppError('RATE_LIMITED');
@@ -62,7 +73,7 @@ async function takeCall(deps: AppDeps, call: CallContext): Promise<void> {
 export function addInterestsWith(rt: InterestsRuntime) {
   return async (deps: AppDeps, call: CallContext, input: Input): Promise<Output> => {
     if (!(await interestsEnabled(deps, rt.configPath ?? PATHS.configApp()))) throw new AppError('FEATURE_DISABLED');
-    await takeCall(deps, call);
+    await takeCall(deps, call, input.items.length);
     const results = await runPipeline(
       {
         db: deps.db,
@@ -73,6 +84,8 @@ export function addInterestsWith(rt: InterestsRuntime) {
       },
       { uid: call.uid, items: input.items, now: call.now },
     );
+    // A holding that moved partition changes what the user shares with their pods (§10.2): never a private one.
+    if (results.some((r) => r.status === 'madePrivate' || r.status === 'madeOrdinary')) await recomputePodInterests(deps, call.uid, call.now);
     return { results };
   };
 }

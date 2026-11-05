@@ -8,9 +8,8 @@ Once at least 4 accept, first names and photos are revealed and the pod plans on
 short meetup chat opens 24 hours before it and closes 24 hours after. Sensitive interests (GDPR Art. 9) are allowed
 only with a one-time explicit consent and are only ever revealed inside a pod formed around them. Everything runs on Firebase in
 `europe-west1`. The product and technical design is [docs/DESIGN.md](docs/DESIGN.md); the GDPR design is
-[docs/PRIVACY.md](docs/PRIVACY.md). This repository is the M0 scaffold (DESIGN.md §15): structure, configuration,
-schemas, security-critical logic and tests, with later feature logic as typed stubs
-([What is stubbed](#what-is-stubbed)).
+[docs/PRIVACY.md](docs/PRIVACY.md). This repository holds the M1 backend (DESIGN.md §15) on the M0 scaffold: every
+server function is built and tested; what is still open is listed in [What is stubbed](#what-is-stubbed).
 
 ## Repository map
 
@@ -21,7 +20,7 @@ schemas, security-critical logic and tests, with later feature logic as typed st
 | `functions/` | The one Functions codebase, `default`: callables (`addInterests` included), scheduled, task and event functions (§10.1, §10.3) | standalone npm project |
 | `tests/rules/` | Firestore and Storage security-rules tests and the index validator (§9, §13) | standalone npm project |
 | `tools/sim/` | Synthetic-city simulation harness, thin-market runs and matcher benchmarks (§6.9) | workspace |
-| `tools/admin/` | Admin CLI skeleton (§9 Admin access, §13 Backups); `funnel show` prints the day-1 funnel with cells under 10 suppressed (§6.8) | workspace |
+| `tools/admin/` | Admin CLI (§9 Admin access, §13 Backups): launch areas, funnel (cells under 10 suppressed, §6.8), sanctions list/lift, reports list, and `restore replay-ledger`, which runs the server's replay entry points (`functions/src/replay`) with `UID_HMAC_KEY` | workspace |
 | `scripts/` | Root CI helpers (`check-functions-discovery.ts`) | root |
 | `firebase.json`, `.firebaserc`, `firestore.rules`, `storage.rules`, `firestore.indexes.json` | Firebase configuration, rules, indexes and TTL policies (§7–§9) | root |
 | `hosting/public/` | Static privacy and account-deletion pages, and the shared city page `/c/{areaId}` (`c/index.html`, rewritten for `/c/**`; city name from the path, store links, no tracking) | root |
@@ -160,65 +159,29 @@ before every native build (local or EAS); see [apps/mobile/README.md](apps/mobil
 
 ## What is stubbed
 
-Stubs keep their final name, trigger, options and input validation, then fail loudly: callables and tasks with
-`unimplemented` and `details: {code: 'NOT_IMPLEMENTED', design: '§…'}`, other code with
-`not implemented (see DESIGN.md §…)`. Nothing pretends to succeed (a silent `purgeUser` would look like a completed
-erasure).
+Every function of codebase `default` is implemented. A stub keeps its final name, trigger, options and input
+validation, then fails loudly (`unimplemented`, `details: {code: 'NOT_IMPLEMENTED', design: '§…'}`), so nothing
+pretends to succeed; one such path is left on the server, plus the items that live outside it.
 
-**Implemented end to end:** `completeOnboarding`, `updateProfile` (with "about me", D4, copied to the roster of the
-user's confirmed pods), `setParticipation`, `sendMessage` (the text-only meetup chat: membership, window, moderation
-with the contact-info warning, rate limit, throttled generic pushes), `addInterests` (pipeline steps 1–7 on the
-client's vector, the blanket-consent gate, "Keep this private", "This isn't sensitive for me", the known-ordinary list,
-the server-side lexicon and margin), `setArt9Consent`, `withdrawArt9Consent` for a user without sensitive holdings,
-`onBudgetAlert`, the security rules, the matcher (with first-timers first, F35) and the app's main flows. Since the
-2026-11-05 launch decisions also: the five launch cities, the exact per-city `waitlistCount` (onboarding, area change,
-and `eraseMatchProfileAndAreaCount` for erasure), the in-app waitlist screen with share and copy, the `/c/{areaId}`
-Hosting page, the `openArea` task and its "<city> is open" push, and the day-1 funnel (`funnel/{areaId}_{weekId}`,
-once per user through `matchProfiles.milestones`) for every stage except the abandoned-sign-up `signup` (counted by
-the stubbed `dailyMaintenance`).
+**Built:** onboarding, profile, participation, the meetup chat and the whole pod lifecycle (DESIGN.md §4.6:
+`dropOrchestrator` with the area chips, `matchComponent`, `releaseDrop`, `respondToPod`, `backfillPod` with its
+enqueue retry and watchdog, planning, attendance, feedback, leaving, `hourlySweeper`), the interest pipeline
+(`addInterests` with both per-uid limits, `removeInterest`, `updateInterest`, `confirmSuggestion` with alias votes, "Keep
+this private" and "This isn't sensitive for me" also in active pods), the blanket Art. 9 consent and its full
+withdrawal (PRIVACY.md §3.5), block and report with automated, expiring pauses and holds (§3.7) and the no-show pause
+and suspension (§4.4), `registerPushToken`, photos (`onPhotoUploaded`, `deletePhoto`, the `uploads` kill switch),
+`exportData` / `buildExport` / `deleteExport`, `deleteAccount` / `purgeUser` (PRIVACY.md §6), `dailyMaintenance`,
+`interestsBatch(maintenance)`, and the erasure-ledger replay entry points (`functions/src/replay`) that
+`tools/admin restore replay-ledger` runs with `UID_HMAC_KEY`. Sensitive interests are switched on
+(`ART9_HOLDINGS_ENABLED`); a unit test fails if the gate is on while their removal or withdrawal is missing.
 
-**The pod lifecycle** (DESIGN.md §4.6) is built: `dropOrchestrator` (frozen per-component input snapshots, beta areas
-as dry runs, `matchComponent` tasks and the 18:00 `releaseDrop`), the `matchComponent` task, `releaseDrop` (release
-revalidation, `create()` of podState and cards, `lastUpdateTime` preconditions on `matchProfiles`, staggered generic
-pushes, snapshot cleanup), `respondToPod` (confirmation at the area profile's `confirmationMin`, roster, photo grants
-with the S6 opt-in, late joins, auto-pause), `backfillPod` (only before the plan first locks, D6), `proposeOption`,
-`voteOption`, `confirmAttendance` (late cancels), `submitFeedback` (majority no-shows at feedback close, HMAC-keyed
-meet-again pair signals, D9), `leavePod`, `setPhotoSharing` and the `hourlySweeper` pod timers (accept and backfill
-deadlines, the planning deadline with its one extension round, "Still coming?" at T−3 d and T−24 h with "Your pod chat
-is open", the T−6 h nudge, the T−3 h check and reschedule round, T+2 h → `happened`, the feedback push at 10:00 the
-next morning and its day-3 reminder, feedback close with the Keep loop). Every transition is one podState transaction
-with a `version` bump, and every callable first processes the timers that are already due, so a late sweep changes no
-outcome. Code: `functions/src/pods/` and `functions/src/callables/pods.ts`.
-
-**Sensitive interests are switched off** until their withdrawal exists: `ART9_HOLDINGS_ENABLED` in
-`functions/src/interests/config.ts` is `false`, so `addInterests` answers every sensitive holding with
-`limit`/`SENSITIVE_UNAVAILABLE`, with or without the blanket consent, and keeps nothing about it (withdrawing must be
-as easy as consenting, Art. 7(3)). Users can give and withdraw the blanket consent itself. Switch the gate on together
-with `removeInterest` and the holding steps of `withdrawArt9Consent` (`WITHDRAWAL_REMOVES_HOLDINGS`, M1); a unit test
-fails if it is on before then. The emulator tests cover the sensitive path with the gate open.
-
-| Stub | Where | DESIGN.md |
+| Still open | Where | DESIGN.md |
 |---|---|---|
-| `removeInterest`, `updateInterest`, `registerPushToken` | `functions/src/callables/index.ts` | §10.1 |
-| `withdrawArt9Consent` for a user who holds sensitive interests (PRIVACY.md §3.5 steps 1–8) | `functions/src/callables/art9Consent.ts` | §10.1 |
-| `confirmSuggestion` | same | §5.2 (6) |
-| `blockUser`, `unblockUser`, `report` (including message reports, whose input is already validated) | same | §3.7 |
-| `deletePhoto` | same | §9 |
-| `exportData` | same | §3.9 |
-| `deleteAccount` | same | §3.10 |
-| `dailyMaintenance` (deletion of archived and dissolved pods, inactive accounts, Auth reconciliation) | `functions/src/scheduled/index.ts` | §10.3 |
-| `hourlySweeper`: the Monday 10:00 "In this week?" nudge and lifting expired sanctions and sensitive holds (the pod timers are built) | same | §4.1, §10.3 |
-| Automated no-show pause and suspension (2 / 3 no-show weight in 8 weeks); the counters and `noShowEvents` are kept | `functions/src/pods/transitions.ts` | §4.4 |
-| `areas/*` chips at the drop (`dropOrchestrator` freezes inputs but writes no chips) | `functions/src/pods/orchestrator.ts` | §10.3 |
-| `purgeUser` | `functions/src/tasks/index.ts` | §10.3 |
-| `buildExport`, `deleteExport` | same | §3.9 |
-| `onPhotoUploaded` processing (the pending-upload filter is implemented) | `functions/src/triggers/index.ts` | §9 |
-| `interestsBatch` (rescan of stored tags, maintenance) | `functions/src/tasks/index.ts` | §5.2 (8) |
-| Moving a holding between partitions ("Keep this private", "This isn't sensitive for me") while the user is in an active pod (`podInterests` recompute) | `functions/src/interests/persist.ts` | §10.2 |
-| Concept shortlist above 20k concepts (stage 1 index only) | `functions/src/interests/assign.ts` | §5.2 (6) |
-| Interest-add limits (30 adds per hour, 100 per day per user; only the 30-calls-per-hour limit exists) | `functions/src/callables/addInterests.ts` | §4.3 |
+| `interestsBatch(rescan)`: re-classifying stored tags moves holdings into the 14-day `pendingConsent` hold, which needs counsel's approval first (PRIVACY.md §4.3); a typed stub until then. `dailyMaintenance` already deletes expired `pendingConsent` holdings | `functions/src/tasks/index.ts` | §5.2 (8) |
+| Concept shortlist above 20k concepts (stage 2; Wednesday maintenance warns at 15k) | `functions/src/interests/assign.ts` | §5.2 (6) |
+| Inactivity warning by email (in-app notice and push are sent; the email provider is Q17) | `functions/src/scheduled/maintenance.ts` | §8.1, Q17 |
 | `prototypes.bin` build and the nightly calibration gate (offline model tooling, not built) | `.github/workflows/calibration.yml` | §13 |
-| `prototypes.bin` pin in `EMBEDDING_MODEL.files` (until it exists the device embedder refuses to load, so interests cannot be added on a device) | `packages/core/src/interests/model.ts` | §5.1 |
+| `prototypes.bin` pin in `EMBEDDING_MODEL.files` (until it exists the device embedder refuses to load) | `packages/core/src/interests/model.ts` | §5.1 |
 | Device golden test reference vectors (the comparison logic exists) | `apps/mobile/src/features/interests/embedder/golden.ts` | §5.1 |
-| Every admin command (launch areas, restore runbook; no review or sanction commands, F17) | `tools/admin/src/commands.ts` | §9, §13 |
+| Device-only steps: Apple token revocation before `deleteAccount`, clearing image and Firestore caches, the re-commit pledge screen after a no-show pause | `apps/mobile` | §3.10, §4.4, §9 |
 | Staging and production deploys (WIF, secrets, model bucket) | `.github/workflows/deploy.yml` | §13 |

@@ -12,10 +12,12 @@
  * unblock must follow its block); the run stops at the first failure and can simply be run again, because every
  * replay path must be idempotent.
  *
- * Today no kind has a replay path the CLI can call (see UNAVAILABLE): the server code is still a stub for most kinds,
- * and where it exists it lives inside a callable that takes the user's own call context and writes a new ledger
- * entry. Each handler, once added, receives the ledger entry (which carries only `uidH`, never the uid, so the
- * server side must resolve uidH to uid with UID_HMAC_KEY) and the restored database.
+ * The handlers are the server's own replay entry points (functions/src/replay): one per ledger kind, each calling the
+ * same code as the original action (purgeUser, removeInterest, the blanket withdrawal, the gender opt-out,
+ * deletePhoto, blockUser, unblockUser) and idempotent. They resolve uidH → uid by hashing every uid the restored
+ * database holds with UID_HMAC_KEY; an `account` entry whose uid is gone still clears the uidH-keyed records. The CLI
+ * needs that key (`UID_HMAC_KEY`, base64, read from Secret Manager by the admin running the drill); without it no
+ * kind can be replayed and nothing is.
  */
 import { ERASURE_KINDS, erasureLedgerDocSchema, type ErasureKind } from '@grouper/core';
 import { Timestamp, type Firestore } from 'firebase-admin/firestore';
@@ -35,20 +37,38 @@ export type ReplayOutcome = 'replayed' | 'nothingToDo';
 export type ReplayHandler = (entry: LedgerEntry, target: Firestore) => Promise<ReplayOutcome>;
 export type ReplayHandlers = Partial<Record<ErasureKind, ReplayHandler>>;
 
-/** Why each kind cannot be replayed yet, naming the server code its replay must call. */
+const NO_KEY = 'not available: UID_HMAC_KEY is not set, so the server replay entry point (functions/src/replay) cannot resolve uidH';
+
+/** Why a kind present in the ledger has no handler in this run. */
 export const UNAVAILABLE: Readonly<Record<ErasureKind, string>> = {
-  account: 'not available yet: purgeUser (functions/src/tasks/index.ts) is a stub; replay will enqueue purgeUser for the resolved uid',
-  interest: 'not available yet: removeInterest (functions/src/callables/index.ts) is a stub',
-  consentWithdrawal:
-    'not available yet: withdrawArt9Consent (functions/src/callables/art9Consent.ts) has stubbed holding steps and no replay entry point (it needs the user\'s call context and writes a new ledger entry)',
-  gender: 'not available yet: the gender withdrawal in updateProfile (functions/src/callables/updateProfile.ts) has no replay entry point',
-  photo: 'not available yet: deletePhoto (functions/src/callables/index.ts) is a stub',
-  block: 'not available yet: blockUser (functions/src/callables/index.ts) is a stub',
-  unblock: 'not available yet: unblockUser (functions/src/callables/index.ts) is a stub',
+  account: `${NO_KEY} (purgeUser)`,
+  interest: `${NO_KEY} (removeInterest)`,
+  consentWithdrawal: `${NO_KEY} (withdrawArt9Consent)`,
+  gender: `${NO_KEY} (the gender opt-out of updateProfile)`,
+  photo: `${NO_KEY} (deletePhoto)`,
+  block: `${NO_KEY} (blockUser)`,
+  unblock: `${NO_KEY} (unblockUser)`,
 };
 
-/** No kind has a replay path yet (see UNAVAILABLE). */
-export const DEFAULT_REPLAY_HANDLERS: ReplayHandlers = {};
+export interface OpenedHandlers {
+  readonly handlers: ReplayHandlers;
+  close(): Promise<void>;
+}
+
+/**
+ * The server's replay handlers for the restored database `databaseId` of `project`, or none without UID_HMAC_KEY.
+ * Loaded on demand: they bring the functions codebase (and its own firebase-admin) into this process.
+ */
+export async function serverReplayHandlers(project: string, databaseId: string, env: NodeJS.ProcessEnv = process.env): Promise<OpenedHandlers> {
+  const key = env.UID_HMAC_KEY?.trim();
+  if (!key) return { handlers: {}, close: async () => undefined };
+  const { serverReplay } = await import('../../../functions/src/replay/index');
+  const server = serverReplay({ projectId: project, databaseId, uidHmacKeyB64: key, storage: env.REPLAY_STORAGE === '1' });
+  const handlers: ReplayHandlers = Object.fromEntries(
+    ERASURE_KINDS.map((k) => [k, (entry: LedgerEntry) => server.handlers[k]({ ...entry })] as const),
+  );
+  return { handlers, close: server.close };
+}
 
 export interface LedgerRead {
   readonly entries: readonly LedgerEntry[];
@@ -98,7 +118,7 @@ function emptyByKind(): Record<ErasureKind, KindSummary> {
 export async function replayLedger(
   ledger: LedgerRead,
   target: Firestore,
-  handlers: ReplayHandlers = DEFAULT_REPLAY_HANDLERS,
+  handlers: ReplayHandlers = {},
   opts: { dryRun?: boolean } = {},
 ): Promise<ReplaySummary> {
   const byKind = emptyByKind();

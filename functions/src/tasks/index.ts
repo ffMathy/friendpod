@@ -21,7 +21,10 @@ import { appDeps, dropsStore, handlerDeps } from '../lib/runtime';
 import { POD_ID_KEY, UID_HMAC_KEY, hmacFromSecret } from '../lib/secrets';
 import { backfillPod as backfillPodImpl } from '../pods/backfill';
 import { releaseDrop as releaseDropImpl } from '../pods/release';
+import { buildExport as buildExportImpl, deleteExport as deleteExportImpl } from './export';
+import { interestsMaintenance } from './interestsBatch';
 import { firestoreComponentStore, runMatchComponentTask } from './matchComponent';
+import { purgeUser as purgeUserImpl } from './purge';
 import { openArea as openAreaImpl } from './openArea';
 
 export const TASK_OPTIONS = {
@@ -121,45 +124,36 @@ export const backfillPod = onTaskDispatched(TASK_OPTIONS.backfillPod, (req) =>
   }),
 );
 
-// The export lists "about me" (D4) and the user's own meetup-chat messages that still exist (text, pod id, time),
-// found through podState.memberList and pods/{podId}/messages where authorUid == uid; never other members' (§3.9).
-// Reports about the user include the copy of their reported message (text, date), without the reporter or the report
-// text (PRIVACY.md §6). The user's own meet-again answers come from podFeedback; pairSignals adds only the other member's answer, which is
-// theirs and never shown (D9).
+// The export (PRIVACY.md §6): profile, "about me", interests with their classification, consent log, pods (own
+// status, own wording, member counts, never co-members' names), options, votes, attendance and feedback the user gave,
+// their own meetup-chat messages that still exist, derived matching data, blocks, reports filed, reports about them
+// (with the copy of their own reported message, never the reporter or the report text), sanctions and notices.
 export const buildExport = onTaskDispatched(TASK_OPTIONS.buildExport, (req) =>
-  runTask('buildExport', buildExportTask, req.data, handlerDeps, async () => {
-    throw notImplemented('§3.9');
-  }),
+  runTask('buildExport', buildExportTask, req.data, handlerDeps, async (task) => ({ outcome: await buildExportImpl(appDeps(), task.uid, task.exportId) })),
 );
 
 export const deleteExport = onTaskDispatched(TASK_OPTIONS.deleteExport, (req) =>
-  runTask('deleteExport', deleteExportTask, req.data, handlerDeps, async () => {
-    throw notImplemented('§3.9');
+  runTask('deleteExport', deleteExportTask, req.data, handlerDeps, async (task) => {
+    await deleteExportImpl(appDeps(), task.uid, task.exportId);
   }),
 );
 
-// The erasure steps include the user's meetup-chat messages (authorUid == uid) in every pod in podState.memberList
-// (PRIVACY.md §6 step 3) and their rateLimits buckets, whose ids start with `{uid}_` (the per-pod chat and chat-push
-// buckets included). Step 3 order: find the pods through memberList, leave memberUids, delete the messages, and
-// leave podState.members and memberList last, so that a retry still finds every pod. Reports keep their copy of a
-// reported message, with targetH instead of targetUid (step 5). "About me" goes with the users doc. Pair signals
-// (D9): delete pairSignals where uidHs array-contains the user's uidH, and remove that uidH from the other member's
-// matchProfiles.recentH.
-// rescan: re-run decideSensitivity on each stored tag (stored vector, margin from prototypes.bin, lexicon and
-// known-ordinary list of this build) and move holdings whose partition changed, leaving `notSensitiveForMe` holdings
-// alone; maintenance: concept garbage collection and links. Embedding never happens here (D1).
+// maintenance: concept sums, empty concepts, holder counts and labels (non-sensitive only), with a cursor.
+// rescan: re-classifying stored tags after a lexicon, prototype or known-ordinary change moves holdings into the
+// pendingConsent hold, which counsel must approve first (PRIVACY.md §4.3); it stays a typed stub until then.
 export const interestsBatch = onTaskDispatched(TASK_OPTIONS.interestsBatch, (req) =>
-  runTask('interestsBatch', interestsBatchTask, req.data, handlerDeps, async () => {
-    throw notImplemented('§5.2 (8)');
+  runTask('interestsBatch', interestsBatchTask, req.data, handlerDeps, async (task) => {
+    if (task.op === 'rescan') throw notImplemented('§5.2 (8) rescan');
+    const { outcome, concepts, updated, deleted } = await interestsMaintenance(appDeps(), task.cursor);
+    return { outcome, concepts, updated, deleted };
   }),
 );
 
-// The match profile goes through eraseMatchProfileAndAreaCount (lib/areas.ts): one transaction deletes it, with its
-// funnel milestones, and decrements areas/{areaId}.waitlistCount, so a retry cannot decrement twice.
+// PRIVACY.md §6 erasure sequence (tasks/purge.ts), including eraseMatchProfileAndAreaCount (lib/areas.ts).
 export const purgeUser = onTaskDispatched(TASK_OPTIONS.purgeUser, (req) =>
-  runTask('purgeUser', purgeUserTask, req.data, handlerDeps, async () => {
-    // TODO(M1, PRIVACY.md §6): await eraseMatchProfileAndAreaCount(appDeps(), uid) among the erasure steps.
-    throw notImplemented('§10.3');
+  runTask('purgeUser', purgeUserTask, req.data, handlerDeps, async (task) => {
+    const { pods } = await purgeUserImpl(appDeps(), task.uid, null);
+    return { pods };
   }),
 );
 

@@ -9,7 +9,7 @@ import { pathToFileURL } from 'node:url';
 import { parseArgs, stringFlag, UsageError } from './args';
 import { checkUsage, COMMANDS, EXIT_ERROR, EXIT_USAGE, findCommand } from './commands';
 import { createContext, type AdminContext, type ContextOptions } from './context';
-import { DEFAULT_REPLAY_HANDLERS, type ReplayHandlers } from './replay';
+import type { ReplayHandlers } from './replay';
 
 export { EXIT_ERROR, EXIT_INCOMPLETE, EXIT_OK, EXIT_REFUSED, EXIT_USAGE } from './commands';
 
@@ -62,7 +62,7 @@ export async function run(argv: readonly string[], deps: CliDeps = {}): Promise<
       args,
       operands: args.positionals.slice(2),
       reason,
-      replayHandlers: deps.replayHandlers ?? DEFAULT_REPLAY_HANDLERS,
+      ...(deps.replayHandlers ? { replayHandlers: deps.replayHandlers } : {}),
       context: () => (opened ??= open({ project: stringFlag(args, '--project'), taskServiceAccount: stringFlag(args, '--task-service-account') })),
     });
     return { code: out.code, stdout: out.stdout, stderr: out.stderr ?? '' };

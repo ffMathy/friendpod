@@ -24,7 +24,7 @@ import {
   type SensitivitySource,
 } from '@grouper/core';
 import { FieldValue, type DocumentReference, type DocumentSnapshot, type Firestore, type Timestamp, type Transaction } from 'firebase-admin/firestore';
-import { AppError, notImplemented } from '../lib/errors';
+import { AppError } from '../lib/errors';
 import { COLLECTIONS, docs, ts, type DocOf } from '../lib/firestore';
 import { rateLimitKey } from '../lib/rateLimits';
 import { C128_DIM, CONCEPT_GEN, LIMITS, SENSITIVE_ADDS_BUCKET } from './config';
@@ -81,11 +81,10 @@ export class StalePlanError extends Error {
   }
 }
 
-const ACTIVE_POD_STATES = new Set(['proposed', 'planning', 'scheduled', 'happened']);
 /** Account states in which addInterests may write (a deleting or suspended account adds nothing, PRIVACY.md §6). */
 const ACCEPTS_INTERESTS = new Set(['active', 'paused']);
 
-interface ConceptWork {
+export interface ConceptWork {
   readonly ref: DocumentReference;
   readonly isNew: boolean;
   readonly active: boolean;
@@ -97,7 +96,7 @@ interface ConceptWork {
   dirty: boolean;
 }
 
-function loadConcept(snap: DocumentSnapshot, dim: number): ConceptWork | null {
+export function loadConcept(snap: DocumentSnapshot, dim: number): ConceptWork | null {
   const d = snap.data();
   if (!d) return null;
   return {
@@ -113,7 +112,7 @@ function loadConcept(snap: DocumentSnapshot, dim: number): ConceptWork | null {
   };
 }
 
-function conceptWrite(c: ConceptWork, now: Timestamp): Record<string, unknown> | null {
+export function conceptWrite(c: ConceptWork, now: Timestamp): Record<string, unknown> | null {
   if (c.n === 0) return c.seed ? { sum: toF32Bytes(c.sum), n: 0, updatedAt: now } : null;
   const centroid = normalized(c.sum);
   return {
@@ -138,7 +137,7 @@ function assignMethod(a: Exclude<Assignment, { kind: 'existing' }>): 'merge' | '
 }
 
 /** Tag-doc fields of a slot set to `conceptId` with `count` holders (side slots are removed at 0). */
-function slotFields(slot: Slot, conceptId: string | null, count: number): Record<string, unknown> {
+export function slotFields(slot: Slot, conceptId: string | null, count: number): Record<string, unknown> {
   if (slot === 'own') return { refCount: count, ...(count === 0 ? { conceptId: null } : conceptId ? { conceptId } : {}) };
   return { [sideSlotField(slot)]: count === 0 || !conceptId ? FieldValue.delete() : { conceptId, refCount: count } };
 }
@@ -191,14 +190,6 @@ export async function persist(ctx: PersistContext, items: readonly PersistItem[]
       const b = (await tx.get(bucketRef)).data();
       bucket = b && ctx.now - b.windowStart.toMillis() < LIMITS.sensitiveAddsWindowMs ? b : undefined;
     }
-    if (items.some((i) => i.from !== null)) {
-      const pods = await tx.get(db.collection('pods').where('memberUids', 'array-contains', uid));
-      if (pods.docs.some((p) => ACTIVE_POD_STATES.has(String(p.get('state'))))) {
-        // TODO(M1): recompute podInterests of the user's active pods in this transaction (§10.2).
-        throw notImplemented('§10.2');
-      }
-    }
-
     const conceptIds = new Set<string>();
     const linkIds = new Map<number, string>();
     for (const item of items) {
