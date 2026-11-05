@@ -197,9 +197,9 @@ describe('assertAllConstraints fails closed', () => {
 });
 
 describe('profiles (§6.10)', () => {
-  it('default age ranges are ±7 at launch and ±10 in alpha, at least 18 and 5 years wide', () => {
+  it('default age ranges are ±7 at launch and ±13 in alpha (Q19 c), at least 18 and 5 years wide', () => {
     expect(defaultAgeRange(30, LAUNCH_PROFILE)).toEqual({ ageMin: 23, ageMax: 37 });
-    expect(defaultAgeRange(30, ALPHA_PROFILE)).toEqual({ ageMin: 20, ageMax: 40 });
+    expect(defaultAgeRange(30, ALPHA_PROFILE)).toEqual({ ageMin: 18, ageMax: 43 });
     expect(defaultAgeRange(18, LAUNCH_PROFILE)).toEqual({ ageMin: 18, ageMax: 25 });
   });
 

@@ -237,9 +237,10 @@ export function simulate(opts: SimOptions) {
           }
         };
         for (const u of invitees) respond(u, invitees);
+        const need = opts.profile.defaults.confirmationMin;
 
         // Backfill (§4.2): with 2–3 accepted, invite compatible holders from this week's unmatched pool.
-        if (accepted.length >= 2 && accepted.length < 4) {
+        if (accepted.length >= 2 && accepted.length < need) {
           const pool = ctx.users
             .filter((u) => u.ineligible === null && !claimed.has(u.uid) && holdsTheme(ctx, u.idx, theme))
             .filter((u) => accepted.every((m) => compat(ctx, u.idx, m)) && (accepted.reduce((a, m) => a & ctx.users[m]!.avail, u.avail) !== 0))
@@ -248,16 +249,16 @@ export function simulate(opts: SimOptions) {
             .sort((a, b) => b.score - a.score || a.u - b.u);
           const before = accepted.length;
           for (const { u } of pool.slice(0, 3)) {
-            if (accepted.length >= 4) break;
+            if (accepted.length >= need) break;
             claimed.add(ctx.users[u]!.uid);
             c.backfillInvites++;
             c.proposedUsers++;
             respond(u, [...accepted, u]);
           }
-          if (before < 4 && accepted.length >= 4) c.backfillRescues++;
+          if (before < need && accepted.length >= need) c.backfillRescues++;
         }
 
-        if (accepted.length < 4) {
+        if (accepted.length < need) {
           // Dissolved through no fault of those who accepted: priority next week (§4.6).
           for (const u of accepted) states.get(ctx.users[u]!.uid)!.priority = true;
           return;

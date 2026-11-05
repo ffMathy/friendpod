@@ -70,10 +70,13 @@ export const ALPHA_PROFILE: MatchingProfile = {
     ...SHARED,
     profile: 'alpha',
     overbook: { mode: 'always' },
-    sizePenalty: { 4: 0.5, 5: 0.1, 6: 0 },
+    // Q19 (b): prefer 5–6 invitees even more strongly. In the simulation the alpha already proposes 6 whenever 6 fit,
+    // so this changes little; kept as the founder's explicit choice.
+    sizePenalty: { 4: 1.0, 5: 0.1, 6: 0 },
     sensitive: { ...SENSITIVE, waiveActivityForFounderInvited: true },
   },
-  defaults: { ageHalfWidth: 10, openToAnyoneDefault: true, h5: { coMemberWeeks: 8, coProposedWeeks: 2, meetAgainWeeks: 4 }, confirmationMin: 4 },
+  // Q19 (c) wider default ages (±13) and (d) a pod confirms at 3 accepts; founder decision 2026-11-05.
+  defaults: { ageHalfWidth: 13, openToAnyoneDefault: true, h5: { coMemberWeeks: 8, coProposedWeeks: 2, meetAgainWeeks: 4 }, confirmationMin: 3 },
 };
 
 export const MATCHING_PROFILES: Readonly<Record<MatchingProfileId, MatchingProfile>> = {

@@ -190,7 +190,7 @@ Measured results win over estimates.
 | Q16 | Same-gender pods for non-binary users: "non-binary only" or also "women + non-binary" / "men + non-binary"? | "Same gender" only in MVP; the app tells non-binary users when the pool is too small (`GENDER_POOL`). |
 | Q17 | Transactional email provider for inactivity warnings and Art. 34 notices (PRIVACY.md §9) | An EU provider with a DPA, chosen in M1 [A]. |
 | Q18 | ~~Run the sensitivity detector on the device?~~ **Answered by F16 (D1): the whole model runs on the device**, for embedding and detection. | — |
-| Q19 | **Thin-market levers for the alpha.** The simulation [SIM] says the planned 50–150 testers cannot fill pods: at n = 100 about half the testers get no confirmed pod in 12 weeks. Even n = 300 with 5 seed-theme cohorts reaches only 35% confirmation and a first pod after a median 4.3 weeks, because most proposals have only 4 invitees and need all 4 to accept. Which levers do we pull? (a) recruit ≥ 300 testers in Aarhus into ≤ 5 seed-theme cohorts; (b) invite 5–6 whenever the pool allows; (c) a wider default age range in the alpha; (d) let an alpha pod confirm at 3 accepts (changes F3). | (a) and (b), tested in `tools/sim` before M1; (c) and (d) only with founder sign-off. |
+| Q19 | ~~Thin-market levers for the alpha.~~ **Answered 2026-11-05: all four.** (a) ≥ 300 testers per city in ≤ 5 seed-theme cohorts, (b) prefer 5–6 invitees, (c) default age range ±13 in the alpha, (d) an alpha pod confirms at 3 accepts. Simulated effect in [`research/thin-market-sim.md`](../research/thin-market-sim.md) §"All four levers". | Applied in `ALPHA_PROFILE`. |
 | Q21 | Google Maps Platform terms allow caching place IDs indefinitely, but limit how long other Places content (name, address, lat/lng) may be stored. Options are deleted within 30 days of the meetup; `pods.planning.place` lives until the pod is archived. | Verify in M0; if needed, `dailyMaintenance` removes `pods.planning.place` 30 days after the meetup. |
 | Q22 | Minimum device for adding interests: the on-device model needs an estimated 350–500 MB of extra RAM [ODV]. Devices that cannot run it cannot add tags (§5.1 fallback). | About 4 GB of RAM; confirm in the M0 device spike. |
 | Q23 | Offer "This isn't sensitive for me" also to users **without** the blanket consent, when a tag is refused only because the detector (not the lexicon) flagged it? Core accepts it; the app offers it only on holdings already stored as sensitive. | No: without consent the app offers the Settings path or rewording; revisit with counsel (PRIVACY.md §17). |
@@ -366,7 +366,7 @@ Timers are absolute timestamps in `podState.timers`, computed in Europe/Copenhag
 |---|---|---|
 | Pod size | min 4, target 5, max 6 | [MAT] |
 | Overbooking | 6th seat when expected attendance of the five (Σ r) < 4.0 (alpha profile: 6 whenever 6 are compatible, §6.10) | [MAT] |
-| Confirmation | ≥ 4 accepted | [MAT] |
+| Confirmation | ≥ 4 accepted (alpha profile: ≥ 3, Q19 d) | [MAT] |
 | Backfill | **Only before the plan locks** (`proposed` or `planning`, never `scheduled` or later, and never again in a pod whose plan has locked once; F21, `canBackfill`). Triggered at the accept deadline with exactly 3 accepted, on a decline when accepted + pending < 4, or in `planning` when a leave or removal leaves 3 members [A]. Runs as a `backfillPod` task over the server-only pool of the latest drop's unmatched users (`matchProfiles.lastDrop`, §8.2). Each candidate is claimed in a transaction on `matchProfiles/{uid}` (`weekClaim != weekId`, `activePods < 2`), and all constraints (H1–H6, S1–S7, consent references) are re-checked before inviting. Once per pod; deadline `backfillDeadline`: min(start + 24 h, Sun 18:00), in `planning` min(start + 24 h, planning deadline) [A]. A backfilled member who joins during planning can vote at once. | [MAT], F21 |
 | New pods per user per drop | ≤ 1, enforced by `matchProfiles.weekClaim` (set at release and at each backfill claim) | [MAT] |
 | Active pods per user | ≤ 2 (planning or scheduled); at most 1 of them sensitive-themed (S5) | A11 |
@@ -776,10 +776,10 @@ A named parameter set in `packages/core/src/matching/profiles.ts`, selected per 
 |---|---|---|
 | Recruiting | Open | Cohorts around 4–6 seed themes (e.g. board games, running, new parents, cooking) |
 | "Open to anyone" (Q12) | Opt-in | On by default, opt-out |
-| Default age range | Own age ±7 | Own age ±10 (min width 5 unchanged) |
+| Default age range | Own age ±7 | Own age ±13 (Q19 c; min width 5 unchanged) |
 | H5 windows | 26 weeks co-member, 4 weeks co-proposed; mutual meet-again 4 weeks | 8 and 2 weeks; mutual meet-again 4 weeks |
 | Proposal size | 5, or 6 when Σ r < 4.0 | 6 whenever 6 are compatible |
-| Confirmation | ≥ 4 | ≥ 4 (the brief's minimum) |
+| Confirmation | ≥ 4 | ≥ 3 (Q19 d, founder decision 2026-11-05) |
 | S1 density | 12 | 12 (privacy guard, never relaxed) |
 | S5 activity gate | ≥ 1 attended meetup | Waived for founder-invited testers; account age still applies |
 

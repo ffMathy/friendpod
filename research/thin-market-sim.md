@@ -95,3 +95,29 @@ Synthetic component: 20,000 users in the Aarhus area, 30,000 concepts (§6.4 exp
 - Every behavioural constant is a guess; the conclusions above are about mechanics (pod-size mix, which constraints bind), which are less sensitive to the guesses than the absolute rates.
 - Interest popularity is the biggest unknown. Real tags fragment more than a 2,000-concept Zipf law (§5.3: ~163 clusters for 68 true concepts at τ 0.93), which would make the launch results worse and make cohorts and "open to anyone" more important.
 - Not modelled: reschedule rounds, late cancellations, reports and sanctions, manual participation, repeated Keep loops, re-plans after blocks, and users joining over time (everyone joins before week 1).
+
+## All four levers (founder decision Q19, 2026-11-05)
+
+The founder chose all four alpha levers: (a) seed-theme cohorts, (b) prefer 5–6 invitees, (c) default age range ±13 instead of ±10, (d) a pod confirms at 3 accepts instead of 4. Same synthetic city and behaviour as above, alpha profile, 5 seed-theme cohorts, seeds 1–3, 12 weeks. The simulator now honours the profile's `confirmationMin` (it was hard-coded to 4 before).
+
+| Testers | Levers | Match rate | Confirmation | Never matched in 12 weeks | Weeks to first pod (P50, per seed) | Meetup happened |
+|---|---|---|---|---|---|---|
+| 100 | a | 23% | 30% | 51% | –, –, 9 | 81% |
+| 100 | a+b+c | 27% | 30% | 49% | 9, 10, 11 | 67% |
+| 100 | **a+b+c+d** | 22% | **70%** | **37%** | **6, 5, 4** | 59% |
+| 200 | a | 36% | 35% | 33% | 4, 6, 5 | 67% |
+| 200 | a+b+c | 38% | 38% | 29% | 5, 4, 4 | 68% |
+| 200 | **a+b+c+d** | 34% | **73%** | **24%** | **3, 3, 3** | 54% |
+| 300 | a | 42% | 35% | 28% | 5, 4, 4 | 71% |
+| 300 | a+b+c | 45% | 38% | 24% | 4, 3, 4 | 68% |
+| 300 | **a+b+c+d** | 40% | **76%** | **19%** | **3, 2, 3** | 53% |
+| 500 | a | 50% | 42% | 18% | 3, 3, 3 | 71% |
+| 500 | **a+b+c+d** | 47% | **79%** | **12%** | **2, 2, 2** | 56% |
+| 1,000 | a | 57% | 50% | 11% | 2, 2, 2 | 72% |
+| 1,000 | **a+b+c+d** | 56% | **84%** | **6%** | **1, 1, 2** | 56% |
+
+- **(d) is the lever that matters.** Confirming at 3 roughly doubles the confirmation rate and brings the first pod to about 3 weeks at 200–300 testers. Both M1 exit targets (confirmation ≥ 35–40%, first pod P50 ≤ 3–5 weeks) are met from about 200 testers per city.
+- **The price of (d):** more pods start with only 3 people, so more meetups fall through (53–59% happen, against 67–81% without it), because the sim cancels a meetup when fewer than 3 show up. The attendance nudges (D5) and the extension round (D7) are not modelled and should help here.
+- **(b) changed nothing measurable:** the alpha already proposes 6 whenever 6 compatible people exist; the limit is how many compatible people there are, not the preference.
+- **(c) helps a little** (2–4 points less never-matched) at the cost of wider age spans in pods.
+- **Per city:** each launch city is its own pool, so these numbers apply per city. Five cities at once need about 200–300 testers *each* (1,000–1,500 total), concentrated rather than spread thinly.
