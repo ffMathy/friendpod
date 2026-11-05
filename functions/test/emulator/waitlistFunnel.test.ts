@@ -159,4 +159,28 @@ describeEmulator('waitlist counter and funnel (emulator)', () => {
     expect(Object.keys(await milestones(c))).not.toContain('waitlistedAt');
     expect(await stage('aalborg', 'firstDropEligible')).toBe(before + 3);
   });
+
+  it('openArea skips accounts being deleted and still notifies users marked by a run that failed before its push', async () => {
+    // Aalborg is live now (previous test); these profiles were never marked (written directly, as before go-live).
+    const unmarked = async (status: 'active' | 'deleting') => {
+      const uid = await onboard(AALBORG.cells[0]!);
+      await deps.db.doc(PATHS.matchProfile(uid)).update({ milestones: {}, status });
+      if (status === 'deleting') await deps.db.doc(PATHS.user(uid)).update({ status });
+      await deps.db.doc(PATHS.pushTokens(uid)).set({ tokens: [{ token: `tok-${uid}`, platform: 'ios', updatedAt: new Date(NOW) }] });
+      return uid;
+    };
+    const live = await unmarked('active');
+    const leaving = await unmarked('deleting');
+    // The first run marks, then FCM fails: the task fails and is retried.
+    const failing = Object.create(deps) as typeof deps;
+    Object.defineProperty(failing, 'push', { value: async () => Promise.reject(new Error('fcm down')) });
+    await expect(openArea(failing, 'aalborg')).rejects.toThrow('fcm down');
+    expect((await deps.db.doc(PATHS.matchProfile(leaving)).get()).get('milestones.firstDropEligibleAt')).toBeUndefined();
+    deps.pushes.length = 0;
+    await expect(openArea(deps, 'aalborg')).resolves.toMatchObject({ marked: 0, pushed: 1 });
+    expect(deps.pushes.flatMap((p) => p.recipients.flatMap((r) => r.tokens))).toEqual([`tok-${live}`]);
+    expect((await deps.db.doc(PATHS.matchProfile(live)).get()).get('openAreaPush')).toBeUndefined();
+    // Nobody is owed anything any more.
+    await expect(openArea(deps, 'aalborg')).resolves.toMatchObject({ marked: 0, pushed: 0 });
+  });
 });

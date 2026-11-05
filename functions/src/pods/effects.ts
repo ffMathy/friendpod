@@ -10,25 +10,35 @@ import { errorFields } from '../lib/log';
 import type { PushKind, PushRecipient } from '../lib/push';
 import type { AppDeps } from '../lib/runtime';
 import { PodTx, type Effects } from './context';
-import { pruneTokens } from '../lib/pushTokens';
+import { dedupeTokens, freshTokens, pruneTokens } from '../lib/pushTokens';
 
-/** Recipients of a pod push: each uid's tokens and locale; accounts being deleted get nothing. */
-export async function recipientsFor(deps: AppDeps, uids: readonly string[]): Promise<PushRecipient[]> {
+/**
+ * Recipients of a push: each uid's fresh tokens (refreshed within 60 days) and locale; accounts being deleted get
+ * nothing (`activeOnly`: only active accounts). A token listed under several of these uids goes to the one that
+ * refreshed it last (one device, one account).
+ */
+export async function recipientsFor(deps: AppDeps, uids: readonly string[], o: { readonly activeOnly?: boolean; readonly includeStale?: boolean } = {}): Promise<PushRecipient[]> {
   const refs = docs(deps.db);
+  const now = deps.now();
   const found = await Promise.all(
-    uids.map(async (uid): Promise<PushRecipient | null> => {
+    uids.map(async (uid) => {
       const [tokens, user] = await Promise.all([refs.pushTokens(uid).get(), refs.user(uid).get()]);
-      const list = tokens.data()?.tokens.map((t) => t.token) ?? [];
       const u = user.data();
-      return list.length > 0 && u && u.status !== 'deleting' ? { locale: u.locale, tokens: list } : null;
+      const ok = u !== undefined && (o.activeOnly ? u.status === 'active' : u.status !== 'deleting');
+      return { uid, locale: u?.locale ?? 'en', tokens: ok ? freshTokens(tokens.data(), o.includeStale ? -Infinity : now) : [] };
     }),
   );
-  return found.filter((r) => r !== null);
+  const kept = dedupeTokens(new Map(found.map((f) => [f.uid, f.tokens])));
+  return found.flatMap((f) => {
+    const list = kept.get(f.uid) ?? [];
+    return list.length > 0 ? [{ locale: f.locale, tokens: list }] : [];
+  });
 }
 
-export async function pushTo(deps: AppDeps, kind: PushKind, uids: readonly string[]): Promise<number> {
+/** `includeStale`: also tokens older than 60 days (only the inactivity warning, whose recipients have not opened the app in a year). */
+export async function pushTo(deps: AppDeps, kind: PushKind, uids: readonly string[], o: { readonly includeStale?: boolean } = {}): Promise<number> {
   try {
-    const recipients = await recipientsFor(deps, uids);
+    const recipients = await recipientsFor(deps, uids, o);
     if (recipients.length === 0) return 0;
     const result = await deps.push(kind, recipients);
     if (result.staleTokens.length > 0) await pruneTokens(deps, uids, result.staleTokens);

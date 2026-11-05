@@ -10,7 +10,9 @@
  * resolves to no uid still runs the uidH-keyed part of the purge (other profiles' `blockedH` and `recentH`,
  * `pairSignals`); every other kind then has nothing to do.
  *
- * Each handler is idempotent and writes the entry under its own id into the restored database, so the restored copy's
+ * Each handler skips an entry the restored data has overtaken (consent given again after a withdrawal, a holding or
+ * gender consent created after its removal, a block made again after an unblock: the restored copy is newer than the
+ * entry) and is otherwise idempotent. It writes the entry under its own id into the restored database, so the restored copy's
  * ledger is complete again (a later restore of that copy replays it too). Replays send no pushes, enqueue no tasks
  * and, by default, touch no Storage objects and no Auth users: neither is restored with Firestore.
  */
@@ -30,6 +32,8 @@ import { docs } from '../lib/firestore';
 import { log } from '../lib/log';
 import type { AppDeps } from '../lib/runtime';
 import { purgeUser } from '../tasks/purge';
+
+const ms = (t: unknown): number | undefined => (t && typeof (t as { toMillis?: unknown }).toMillis === 'function' ? (t as { toMillis(): number }).toMillis() : undefined);
 
 export interface ReplayEntry {
   readonly id: string;
@@ -93,6 +97,10 @@ export function replayHandlers(deps: AppDeps, o: { readonly storage?: boolean } 
     async interest(e) {
       const uid = await uidOf(e.uidH);
       if (!uid || !e.ref) return 'nothingToDo';
+      // A holding created after the removal (same id) is not the one that was removed.
+      const [ord, sens] = await Promise.all([docs(deps.db).interest(uid, e.ref).get(), docs(deps.db).sensitiveInterest(uid, e.ref).get()]);
+      const created = ms(ord.get('createdAt')) ?? ms(sens.get('consentedAt'));
+      if (created !== undefined && created > e.atMs) return 'nothingToDo';
       return (await removeOneInterest(deps, uid, e.ref, deps.now(), { ledger: { uidH: e.uidH, id: e.id } })) ? 'replayed' : 'nothingToDo';
     },
     async consentWithdrawal(e) {
@@ -101,12 +109,17 @@ export function replayHandlers(deps: AppDeps, o: { readonly storage?: boolean } 
       const user = (await docs(deps.db).user(uid).get()).data();
       const held = !(await deps.db.collection(`users/${uid}/sensitiveInterests`).limit(1).get()).empty;
       if (!user || (!user.legal.art9 && !held)) return 'nothingToDo';
+      // Consent given again after the withdrawal is a new consent: its holdings are not the withdrawn ones.
+      if (user.legal.art9 && user.legal.art9.at.toMillis() > e.atMs) return 'nothingToDo';
       await withdrawBlanketConsent(deps, uid, deps.now(), { ledger: { uidH: e.uidH, id: e.id } });
       return 'replayed';
     },
     async gender(e) {
       const uid = await uidOf(e.uidH);
       if (!uid) return 'nothingToDo';
+      // A gender consent given after the opt-out stands.
+      const consentAt = (await docs(deps.db).user(uid).get()).data()?.legal.genderConsentAt?.toMillis();
+      if (consentAt !== undefined && consentAt > e.atMs) return 'nothingToDo';
       return (await eraseGender(deps, uid, deps.now(), { uidH: e.uidH, id: e.id })) ? 'replayed' : 'nothingToDo';
     },
     async photo(e) {
@@ -121,12 +134,16 @@ export function replayHandlers(deps: AppDeps, o: { readonly storage?: boolean } 
     async block(e) {
       const p = await pair(e);
       if (!p || (await docs(deps.db).block(p.a, p.b).get()).exists) return 'nothingToDo';
+      // Entries run in `at` order, so an unblock after this block is replayed after it.
       await applyBlock(deps, p.a, p.b, p.podId, deps.now(), { ledger: { id: e.id } });
       return 'replayed';
     },
     async unblock(e) {
       const p = await pair(e);
       if (!p) return 'nothingToDo';
+      // A block made again after this unblock stands.
+      const block = (await docs(deps.db).block(p.a, p.b).get()).data();
+      if (block && block.createdAt.toMillis() > e.atMs) return 'nothingToDo';
       return (await applyUnblock(deps, p.a, p.b, deps.now(), { ledger: { id: e.id } })) ? 'replayed' : 'nothingToDo';
     },
   };

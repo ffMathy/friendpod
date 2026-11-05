@@ -121,6 +121,8 @@ describeEmulator('maintenance and replay (emulator)', () => {
     const orphan = await makeUser(deps);
     const mine = new Set([abandoned, fresh, orphan]);
     const created = Date.parse((await deps.auth.getUser(abandoned)).metadata.creationTime);
+    // Auth runs on the wall clock: the orphan's profile predates the listing.
+    await docs(deps.db).user(orphan).update({ createdAt: ts(created - DAY_MS) });
     const funnelId = `funnel/none_${weekIdAt(created)}`;
     const before = Number((await deps.db.doc(funnelId).get()).get('counts.signup') ?? 0);
     const r = await reconcileAuth(deps, created + 8 * DAY_MS, { only: (u) => mine.has(u) && u !== fresh });

@@ -7,6 +7,10 @@
  * is therefore read from the source database (`--ledger-database`, the live one by default, which still holds the
  * 35-day ledger) and replayed into the restored one (`--database`).
  *
+ * Only entries since the restore point (`--since`, required) are replayed: older ones are already in the restored copy,
+ * and replaying them could undo what the user did afterwards. Each server handler also skips an entry whose effect the
+ * restored data has already overtaken (a newer consent, holding, gender consent or block).
+ *
  * Replay is all or nothing: if any entry is malformed or its kind has no replay path, nothing is replayed and the run
  * exits non-zero, so a partly erased restore is never mistaken for a finished one. Entries run in `at` order (an
  * unblock must follow its block); the run stops at the first failure and can simply be run again, because every

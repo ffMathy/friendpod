@@ -21,7 +21,7 @@ import { AppError } from '../lib/errors';
 import { docs, podMessages, ts } from '../lib/firestore';
 import type { CallContext } from '../lib/handler';
 import { errorFields } from '../lib/log';
-import type { PushRecipient } from '../lib/push';
+import { recipientsFor } from '../pods/effects';
 import { rateLimitKey, takeWindow } from '../lib/rateLimits';
 import type { AppDeps } from '../lib/runtime';
 
@@ -109,15 +109,8 @@ async function notifyMembers(deps: AppDeps, podId: string, members: readonly str
     });
     if (due.length === 0) return;
 
-    const found = await Promise.all(
-      due.map(async (m): Promise<PushRecipient | null> => {
-        const [tokens, user] = await Promise.all([refs.pushTokens(m).get(), refs.user(m).get()]);
-        const list = tokens.data()?.tokens.map((t) => t.token) ?? [];
-        const locale = user.data()?.locale;
-        return list.length > 0 && locale !== undefined ? { locale, tokens: list } : null;
-      }),
-    );
-    const recipients = found.filter((r) => r !== null);
+    // Fresh, deduplicated tokens only, like every other push (recipientsFor).
+    const recipients = await recipientsFor(deps, due);
     if (recipients.length > 0) await deps.push('chatMessage', recipients);
   } catch (err) {
     deps.log.warn('sendMessage.pushFailed', errorFields(err));

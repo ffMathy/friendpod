@@ -155,7 +155,8 @@ export async function makeUser(deps: TestDeps, o: UserOptions = {}): Promise<str
   const batch = deps.db.batch();
   batch.set(refs.user(uid), user);
   batch.set(refs.matchProfile(uid), profile);
-  batch.set(refs.pushTokens(uid), { tokens: [{ token: `tok-${uid}`, platform: 'ios', updatedAt: at }] });
+  // A fresh token: pushes skip tokens not refreshed for 60 days.
+  batch.set(refs.pushTokens(uid), { tokens: [{ token: `tok-${uid}`, platform: 'ios', updatedAt: ts(deps.clock.now) }] });
   for (const t of themes) {
     const id = base32Id(16);
     if (t.sens) {

@@ -8,12 +8,14 @@
  *      feedback, meet-again entries and chat messages; `podState.members`/`memberList` last);
  *   4. other links: photo grants both ways, blocks both ways, `blockedH` and `recentH` entries of the user's uidH in
  *      other profiles, `pairSignals`, push tokens, rate-limit buckets;
- *   5. reports: `reporterUid` → `reporterH`, `targetUid` → `targetH` (kept until their 12-month expiry);
+ *   5. reports: `reporterUid` → `reporterH`, `targetUid` → `targetH` (kept until their 12-month expiry); admin runs
+ *      about the user (`adminRuns.subjectH`) lose their target and reason;
  *      `sanctions/{uid}` deleted;
  *   6. bulk delete: `users/{uid}` recursively ("about me" included), `matchProfiles/{uid}` with the area's
  *      waitlistCount (eraseMatchProfileAndAreaCount), Storage `photos/`, `uploads/` and `exports/`;
  *   7. records: consent events `uid` → `uidH`, `redactedAt`, `expiresAt` + 3 years; one erasure-ledger entry (`account`);
- *   8. the Auth user is deleted again if it still exists.
+ *   8. the Auth user is deleted again if it still exists;
+ *   9. `exports/` once more, for a file a running buildExport wrote after step 6 (buildExport then writes nothing).
  * Afterwards no document or object holds the uid or its uidH except consentEvents, erasureLedger and retained reports.
  */
 import { uidHash, type WeekId } from '@grouper/core';
@@ -37,6 +39,8 @@ export interface PurgeOptions {
 }
 
 const PAGE = 300;
+/** What an erased user's admin runs keep in place of their target and reason. */
+export const ADMIN_RUN_REDACTED = 'redacted (account erased)';
 
 async function deleteQuery(deps: Pick<AppDeps, 'db'>, q: Query): Promise<number> {
   let n = 0;
@@ -124,6 +128,11 @@ export async function purgeUser(deps: AppDeps, uid: string | null, uidHIn: strin
     });
   }
   await deleteQuery(deps, db.collection(COLLECTIONS.pairSignals).where('uidHs', 'array-contains', uidH));
+  // Admin runs about this user (tools/admin `sanctions lift`) name them only by `subjectH`; the run stays on record,
+  // without its target and reason (which may describe the user).
+  for (const r of (await db.collection(COLLECTIONS.adminRuns).where('subjectH', '==', uidH).get()).docs) {
+    await r.ref.update({ subjectH: FieldValue.delete(), target: ADMIN_RUN_REDACTED, reason: ADMIN_RUN_REDACTED });
+  }
 
   // 7. ledger
   const ledgerRef = o.ledgerId ? erasureLedger(db).doc(o.ledgerId) : erasureLedger(db).doc();
@@ -131,5 +140,8 @@ export async function purgeUser(deps: AppDeps, uid: string | null, uidHIn: strin
 
   // 8.
   if (uid && o.auth !== false) await deleteAuthUser(deps, uid);
+  // 9. A buildExport that was assembling a file when the purge started deletes its own object on finding the account
+  // gone; this second pass catches one written between step 6 and that check.
+  if (uid && o.storage !== false) await deletePrefix(deps.objects, OBJECT_PATHS.exportsPrefix(uid));
   return { pods: podCount };
 }

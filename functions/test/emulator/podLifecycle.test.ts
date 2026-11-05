@@ -539,6 +539,8 @@ describeEmulator('pod lifecycle (emulator)', () => {
     ] as const) {
       it(`sends the feedback push at 10:00 Europe/Copenhagen the next morning and the reminder 3 days later (${label} DST week), through the global sweep`, async () => {
         const lockAt = dropSchedule(weekId).releaseAt + 3 * HOUR;
+        // Members (and their push tokens) are created in this drop week: a token not refreshed for 60 days is stale.
+        deps.clock.now = dropSchedule(weekId).releaseAt;
         const { podId, members } = await scheduledPod(4, meetup, lockAt, { weekId });
         const sweep = (t: number) => {
           deps.clock.now = t;
@@ -559,7 +561,9 @@ describeEmulator('pod lifecycle (emulator)', () => {
         await sweep(push + 65 * 60_000);
         expect(pushedUids(deps, 'feedback', p)).toEqual([]);
         await sweep(reminder + 5 * 60_000);
-        expect(pushedUids(deps, 'feedback', p)).toEqual([...members].sort());
+        // The global sweep also reminds other pods of this file (e.g. the Keep-loop pod's second meetup, whose
+        // members have no feedback for that round): only this pod's members are asserted on.
+        expect(pushedUids(deps, 'feedback', p).filter((u) => members.includes(u))).toEqual([...members].sort());
       });
     }
   }

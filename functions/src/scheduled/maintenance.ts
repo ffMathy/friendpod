@@ -132,13 +132,15 @@ export async function pruneRecentH(deps: AppDeps, now: number) {
 
 /**
  * Reports are never resolved by hand (F17): an open report keeps the pair apart in matching until it expires
- * (12 months, TTL). Two days before the TTL, the pair leaves `blockedH` (unless a block or another open report keeps
- * it) and the target's `openReportCount` goes down. DESIGN-DEVIATION: §8.2 says the pair is removed "at resolution";
+ * (12 months). Two days before that, the pair leaves `blockedH` (unless a block or another open report keeps
+ * it), the target's `openReportCount` goes down and the report gets its TTL (`expiresAt`, 12 months after it was filed,
+ * never earlier than a day from now). DESIGN-DEVIATION: §8.2 says the pair is removed "at resolution";
  * with no reviewer, the expiry is the resolution.
  */
 export async function expireReports(deps: AppDeps, now: number) {
   const cutoff = ts(now - REPORT_RETENTION_MS + 2 * DAY_MS);
-  const due = await deps.db.collection(COLLECTIONS.reports).where('createdAt', '<=', cutoff).limit(PAGE * 5).get();
+  // Open reports only (composite index status + createdAt), so resolved ones can never fill the page and hide them.
+  const due = await deps.db.collection(COLLECTIONS.reports).where('status', '==', 'open').where('createdAt', '<=', cutoff).orderBy('createdAt').limit(PAGE * 5).get();
   const hmac = deps.uidHmac();
   return each(deps, 'reports', due.docs, async (r) => {
     if (r.get('status') !== 'open') return false;
@@ -159,7 +161,9 @@ export async function expireReports(deps: AppDeps, now: number) {
           ] as const)
         : null;
       const targetProfile = target ? (reads ? reads[5] : await tx.get(refs.matchProfile(target))) : null;
-      tx.update(r.ref, { status: 'resolved', decision: 'EXPIRED', resolvedAt: ts(now) });
+      // The TTL starts only now: an open report carries no expiresAt (report()), so it is never deleted unresolved.
+      const createdMs = (fresh.get('createdAt') as { toMillis(): number }).toMillis();
+      tx.update(r.ref, { status: 'resolved', decision: 'EXPIRED', resolvedAt: ts(now), expiresAt: ts(Math.max(createdMs + REPORT_RETENTION_MS, now + DAY_MS)) });
       if (targetProfile?.exists) tx.update(targetProfile.ref.withConverter(null), { openReportCount: Math.max(0, Number(targetProfile.get('openReportCount') ?? 0) - 1) });
       if (reads && reporter && target) {
         const [b1, b2, q1, q2, pr, pt] = reads;
@@ -201,7 +205,8 @@ export async function inactivity(deps: AppDeps, now: number, o: { readonly only?
     batch.update(d.ref, { inactivityWarnedAt: ts(now) });
     writeNotice(deps.db, batch, d.id, 'system', NOTICE_CODES.INACTIVITY_WARNING, { deleteAfter: now + INACTIVE_GRACE_MS }, now);
     await batch.commit();
-    await pushTo(deps, 'notice', [d.id]);
+    // A year without opening the app means every token is older than 60 days: the deletion warning still tries them.
+    await pushTo(deps, 'notice', [d.id], { includeStale: true });
     return true;
   });
   return { warned: r2.done, deleted: r1.done, failed: r1.failed + r2.failed };
@@ -213,10 +218,13 @@ export const ABANDONED_SIGNUP_MS = 7 * DAY_MS;
 /**
  * Auth reconciliation (§10.3): pages through Auth `listUsers()` and diffs against `users` and `erasureLedger`. An Auth
  * user without a profile is deleted after 7 days (counted as a `signup` in the funnel, its only stage), or at once when
- * the ledger shows the account was erased (a failed Auth deletion). A `users` doc without an Auth user is purged.
+ * the ledger shows the account was erased (a failed Auth deletion), unless its profile appeared meanwhile. A `users`
+ * doc without an Auth user is purged only if it predates the listing and `getUser` confirms the Auth user is gone, so a
+ * sign-up that races the listing is never erased.
  */
 export async function reconcileAuth(deps: AppDeps, now: number, o: { readonly only?: (uid: string) => boolean } = {}) {
   const only = o.only ?? (() => true);
+  const listedAt = Math.min(now, deps.now());
   const authUids = new Set<string>();
   let abandoned = 0;
   let purged = 0;
@@ -238,6 +246,8 @@ export async function reconcileAuth(deps: AppDeps, now: number, o: { readonly on
       const erased = !(await erasureLedger(deps.db).where('uidH', '==', h).where('kind', '==', 'account').limit(1).get()).empty;
       if (!erased && !(created <= now - ABANDONED_SIGNUP_MS)) continue;
       try {
+        // A profile written since the batch read (onboarding finished meanwhile) keeps the account.
+        if ((await deps.db.doc(PATHS.user(u.uid)).get()).exists) continue;
         await deleteAuthUser(deps, u.uid);
         if (!erased) {
           funnel.stage(null, created, 'signup');
@@ -257,12 +267,17 @@ export async function reconcileAuth(deps: AppDeps, now: number, o: { readonly on
   let after: string | null = null;
   const day = new Date(now).toISOString().slice(0, 10);
   for (;;) {
-    let q = deps.db.collection('users').orderBy(FieldPath.documentId()).select('status').limit(500);
+    let q = deps.db.collection('users').orderBy(FieldPath.documentId()).select('status', 'createdAt').limit(500);
     if (after) q = q.startAfter(after);
     const page = await q.get();
     for (const d of page.docs) {
       if (authUids.has(d.id) || !only(d.id)) continue;
+      // An account created after the listing started may simply be missing from it (paging): never an orphan.
+      const createdMs = (d.get('createdAt') as { toMillis?: () => number } | undefined)?.toMillis?.();
+      if (createdMs === undefined || createdMs >= listedAt) continue;
       try {
+        // Confirmed one by one: only an Auth user that is really gone makes the profile an orphan.
+        if (await authUserExists(deps, d.id)) continue;
         await startAccountDeletion(deps, d.id, now, day);
         purged++;
       } catch (err) {
@@ -273,6 +288,16 @@ export async function reconcileAuth(deps: AppDeps, now: number, o: { readonly on
     after = page.docs[page.docs.length - 1]!.id;
   }
   return { abandoned, purged };
+}
+
+async function authUserExists(deps: Pick<AppDeps, 'auth'>, uid: string): Promise<boolean> {
+  try {
+    await deps.auth.getUser(uid);
+    return true;
+  } catch (err) {
+    if ((err as { code?: unknown }).code === 'auth/user-not-found') return false;
+    throw err;
+  }
 }
 
 /** Wednesdays: weekly interest maintenance (§5.2 (8)), once per week by task id. */

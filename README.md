@@ -172,7 +172,7 @@ withdrawal (PRIVACY.md §3.5), block and report with automated, expiring pauses 
 and suspension (§4.4), `registerPushToken`, photos (`onPhotoUploaded`, `deletePhoto`, the `uploads` kill switch),
 `exportData` / `buildExport` / `deleteExport`, `deleteAccount` / `purgeUser` (PRIVACY.md §6), `dailyMaintenance`,
 `interestsBatch(maintenance)`, and the erasure-ledger replay entry points (`functions/src/replay`) that
-`tools/admin restore replay-ledger` runs with `UID_HMAC_KEY`. Sensitive interests are switched on
+`tools/admin restore replay-ledger --since <restore point>` runs with `UID_HMAC_KEY`. Sensitive interests are switched on
 (`ART9_HOLDINGS_ENABLED`); a unit test fails if the gate is on while their removal or withdrawal is missing.
 
 | Still open | Where | DESIGN.md |

@@ -176,17 +176,32 @@ describe.skipIf(!HOST)('admin CLI against the Firestore emulator', () => {
       expect(list.stdout).not.toContain('u-old');
       expect((await cli(['sanctions', 'list', '--all', '--reason', 'check pauses'])).stdout).toContain('u-old');
 
-      const lift = await cli(['sanctions', 'lift', 'u-paused', '--reason', 'reporter withdrew']);
+      const lift = await cli(['sanctions', 'lift', 'u-paused', '--reason', 'reporter withdrew'], { env: {} });
       expect(lift.code).toBe(EXIT_OK);
       expect(lift.stdout).toMatch(/until moved from 2026-11-19T12:00:00.000Z to now/);
       const doc = (await db.doc('sanctions/u-paused').get()).data()!;
       expect((doc.until as Timestamp).toMillis()).toBe(NOW);
       expect(doc).toMatchObject({ type: 'pause', reasonCode: 'reports', noticeId: 'n1' });
-      expect((await runs()).find((r) => r.command === 'sanctions lift')).toMatchObject({ target: 'sanctions/u-paused', reason: 'reporter withdrew', outcome: 'lifted' });
+      // adminRuns never holds the uid (12 months): without UID_HMAC_KEY no subject at all.
+      const run1 = (await runs()).find((r) => r.command === 'sanctions lift')!;
+      expect(run1).toMatchObject({ target: 'sanctions', reason: 'reporter withdrew', outcome: 'lifted' });
+      expect(run1.subjectH).toBeUndefined();
+      expect(JSON.stringify(run1)).not.toContain('u-paused');
 
       expect((await cli(['sanctions', 'lift', 'u-old', '--reason', 'tidy'])).stdout).toMatch(/already expired/);
       expect((await cli(['sanctions', 'lift', 'u-none', '--reason', 'tidy'])).stdout).toMatch(/no sanction/);
       expect((await db.doc('sanctions/u-none').get()).exists).toBe(false);
+    });
+
+    it('records a lift by uidH (subjectH, for redaction at erasure) with UID_HMAC_KEY, and refuses a reason naming the uid', async () => {
+      await db.doc('sanctions/u-keyed').set({ type: 'pause', until: Timestamp.fromMillis(NOW + 864e5), reasonCode: 'reports', noticeId: 'n1' });
+      const key = Buffer.alloc(32, 7).toString('base64');
+      const h = await uidHash(nodeHmacSha256(new Uint8Array(Buffer.from(key, 'base64'))), 'u-keyed');
+      expect((await cli(['sanctions', 'lift', 'u-keyed', '--reason', 'appeal for u-keyed'], { env: { UID_HMAC_KEY: key } })).code).toBe(EXIT_USAGE);
+      expect((await cli(['sanctions', 'lift', 'u-keyed', '--reason', 'appeal upheld'], { env: { UID_HMAC_KEY: key } })).code).toBe(EXIT_OK);
+      const r = (await runs()).find((x) => x.command === 'sanctions lift' && x.outcome === 'lifted')!;
+      expect(r).toMatchObject({ target: `sanctions/${h}`, subjectH: h, reason: 'appeal upheld' });
+      expect(JSON.stringify(await runs())).not.toContain('u-keyed');
     });
   });
 
@@ -230,13 +245,21 @@ describe.skipIf(!HOST)('admin CLI against the Firestore emulator', () => {
     it('reads the live ledger, replays nothing without UID_HMAC_KEY, and exits non-zero', async () => {
       await ledger('l1', 'account', NOW - 3000);
       await ledger('l2', 'gender', NOW - 2000);
-      const r = await cli(['restore', 'replay-ledger', '--database', RESTORED, '--reason', 'staging restore drill']);
+      const r = await cli(['restore', 'replay-ledger', '--database', RESTORED, '--since', new Date(NOW - 864e5).toISOString(), '--reason', 'staging restore drill']);
       expect(r.code).toBe(EXIT_INCOMPLETE);
       expect(r.stdout).toMatch(/^account\s+1\s+0\s+0\s+1$/m);
       expect(r.stdout).toMatch(/account: not available: UID_HMAC_KEY is not set.*\(purgeUser\)/);
       expect(r.stdout).toMatch(/gender: not available: UID_HMAC_KEY/);
       expect(r.stdout).toMatch(/Do NOT resume traffic/);
       expect((await runs())[0]).toMatchObject({ command: 'restore replay-ledger', target: RESTORED, outcome: 'incomplete', details: { source: '(default)', entries: 2, replayed: 0 } });
+    });
+
+    it('requires --since (the restore point): older entries are already in the restored copy', async () => {
+      await ledger('l1', 'account', NOW - 3000);
+      const r = await cli(['restore', 'replay-ledger', '--database', RESTORED, '--reason', 'staging restore drill'], { replayHandlers: { account: async () => 'replayed' } });
+      expect(r.code).toBe(EXIT_USAGE);
+      expect(r.stderr).toMatch(/--since <restore point> is required/);
+      expect(await runs()).toEqual([]);
     });
 
     it('replays every entry since --since into the restored database, in order, through the handlers', async () => {
@@ -286,14 +309,15 @@ describe.skipIf(!HOST)('admin CLI against the Firestore emulator', () => {
       await restored.doc(`matchProfiles/${other}`).set(profile(null, [h]));
       await db.doc('erasureLedger/g1').set({ uidH: h, kind: 'gender', at: Timestamp.fromMillis(NOW - 3000), expiresAt: Timestamp.fromMillis(NOW + 864e5) });
       const { handlers, close } = await serverReplayHandlers(PROJECT, RESTORED, { UID_HMAC_KEY: key });
+      const since = new Date(NOW - 864e5).toISOString();
       try {
-        const r = await cli(['restore', 'replay-ledger', '--database', RESTORED, '--reason', 'staging restore drill'], { replayHandlers: handlers });
+        const r = await cli(['restore', 'replay-ledger', '--database', RESTORED, '--since', since, '--reason', 'staging restore drill'], { replayHandlers: handlers });
         expect(r.stderr).toBe('');
         expect(r.code).toBe(EXIT_OK);
         expect((await restored.doc(`users/${uid}`).get()).get('gender')).toBeNull();
         expect((await restored.doc('erasureLedger/g1').get()).get('kind')).toBe('gender');
         await db.doc('erasureLedger/a1').set({ uidH: h, kind: 'account', at: Timestamp.fromMillis(NOW - 2000), expiresAt: Timestamp.fromMillis(NOW + 864e5) });
-        const again = await cli(['restore', 'replay-ledger', '--database', RESTORED, '--reason', 'staging restore drill'], { replayHandlers: handlers });
+        const again = await cli(['restore', 'replay-ledger', '--database', RESTORED, '--since', since, '--reason', 'staging restore drill'], { replayHandlers: handlers });
         expect(again.code).toBe(EXIT_OK);
         expect((await restored.doc(`users/${uid}`).get()).exists).toBe(false);
         expect((await restored.doc(`matchProfiles/${uid}`).get()).exists).toBe(false);
@@ -308,10 +332,11 @@ describe.skipIf(!HOST)('admin CLI against the Firestore emulator', () => {
       await ledger('ok', 'block', NOW - 2000, { ref: 'bbbbbbbbbbbbbbbbbbbb' });
       await db.doc('erasureLedger/bad').set({ uidH: 'raw-uid-not-a-hash', kind: 'account', at: Timestamp.fromMillis(NOW - 1000) });
       const handlers: ReplayHandlers = { block: async () => 'replayed', account: async () => 'replayed' };
-      const r = await cli(['restore', 'replay-ledger', '--database', RESTORED, '--reason', 'drill'], { replayHandlers: handlers });
+      const since = new Date(NOW - 864e5).toISOString();
+      const r = await cli(['restore', 'replay-ledger', '--database', RESTORED, '--since', since, '--reason', 'drill'], { replayHandlers: handlers });
       expect(r.code).toBe(EXIT_INCOMPLETE);
       expect(r.stdout).toMatch(/malformed ledger entries .*bad/);
-      const dry = await cli(['restore', 'replay-ledger', '--dry-run', '--reason', 'drill']);
+      const dry = await cli(['restore', 'replay-ledger', '--dry-run', '--since', since, '--reason', 'drill']);
       expect(dry.code).toBe(EXIT_OK);
       expect(dry.stdout).toMatch(/ledger is read from \(default\) itself/);
       expect(dry.stdout).toMatch(/dry run: nothing was replayed/);

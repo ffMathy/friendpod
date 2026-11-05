@@ -36,6 +36,8 @@ export interface CommandEnv {
   context(): AdminContext;
   /** Tests inject handlers; otherwise the server's own replay entry points (UID_HMAC_KEY required). */
   readonly replayHandlers?: ReplayHandlers;
+  /** The environment (UID_HMAC_KEY); process.env unless a test injects one. */
+  readonly env?: NodeJS.ProcessEnv;
 }
 
 export interface AdminCommand {
@@ -161,9 +163,9 @@ export const COMMANDS: readonly AdminCommand[] = [
     design: 'DESIGN.md §3.7, §10.3 hourlySweeper, F17',
     flags: [],
     arity: 1,
-    async run({ operands, context, reason }) {
+    async run({ operands, context, reason, env }) {
       const uid = requireUid(operands[0]);
-      return ok(formatLift(uid, await liftSanction(context(), uid, reason)));
+      return ok(formatLift(uid, await liftSanction(context(), uid, reason, env ?? process.env)));
     },
   },
   {
@@ -197,18 +199,20 @@ export const COMMANDS: readonly AdminCommand[] = [
     group: 'restore',
     name: 'replay-ledger',
     usage:
-      'restore replay-ledger --project <id> [--database <restored-db>] [--ledger-database <live-db>] [--since <iso-datetime>] [--dry-run] --reason <text>',
+      'restore replay-ledger --since <restore-point iso-datetime> --project <id> [--database <restored-db>] [--ledger-database <live-db>] [--dry-run] --reason <text>',
     summary:
-      'After a PITR/backup restore, replay every erasureLedger entry (read from the live database) into the restored database with the original server code, before traffic resumes. All or nothing: exits 3 if any kind cannot be replayed.',
+      'After a PITR/backup restore, replay every erasureLedger entry since the restore point (--since, required: older entries are already in the restored copy, and replaying them could undo later actions) from the live database into the restored one with the original server code, before traffic resumes. All or nothing: exits 3 if any kind cannot be replayed.',
     design: 'DESIGN.md §13 Backups, PRIVACY.md §5',
     flags: ['--database', '--ledger-database', '--since', '--dry-run'],
     arity: 0,
     async run({ args, context, reason, replayHandlers }) {
       const target = checkDatabaseId(stringFlag(args, '--database') ?? DEFAULT_DATABASE);
       const source = checkDatabaseId(stringFlag(args, '--ledger-database') ?? DEFAULT_DATABASE);
+      // The restore point: entries before it are already reflected in the restored copy (§13).
       const sinceArg = stringFlag(args, '--since');
-      const sinceMs = sinceArg === undefined ? undefined : Date.parse(sinceArg);
-      if (sinceMs !== undefined && !Number.isFinite(sinceMs)) throw new UsageError('--since must be an ISO date-time');
+      if (sinceArg === undefined) throw new UsageError('--since <restore point> is required: the PITR timestamp or the backup time of the restored copy');
+      const sinceMs = Date.parse(sinceArg);
+      if (!Number.isFinite(sinceMs)) throw new UsageError('--since must be an ISO date-time');
       const dryRun = args.flags.has('--dry-run');
       const ctx = context();
       const opened = replayHandlers ? { handlers: replayHandlers, close: async () => undefined } : await serverReplayHandlers(ctx.project, target);

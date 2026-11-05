@@ -104,6 +104,8 @@ export const COLLECTIONS = {
   erasureLedger: 'erasureLedger',
   reports: 'reports',
   pairSignals: 'pairSignals',
+  /** Written by tools/admin only (audit.ts); purgeUser redacts the runs about an erased user. */
+  adminRuns: 'adminRuns',
 } as const;
 
 const CONVERTERS = {

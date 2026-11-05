@@ -329,6 +329,11 @@ export const matchProfileDocSchema = z
      * `firstConfirmedAt` also makes the user a first-timer in matching (§6.2).
      */
     milestones: milestonesSchema.default({}),
+    /**
+     * openArea (§10.3): the area whose "<city> is open" push this user still owes. Set with the firstDropEligible
+     * milestone and cleared once the push went out, so a retried task notifies exactly the users it has not reached.
+     */
+    openAreaPush: z.string().optional(),
     createdAt: timestampSchema,
     updatedAt: timestampSchema,
   })
@@ -627,6 +632,11 @@ export const photoGrantDocSchema = z.object({ pods: z.array(podIdSchema).min(1),
 
 export const pushTokensDocSchema = z.object({
   tokens: z.array(z.object({ token: z.string().min(1).max(4096), platform: z.enum(PLATFORMS), updatedAt: timestampSchema })),
+  /**
+   * SHA-256 (hex) of each token, so registerPushToken can find the token under another uid (a shared device that
+   * signed in to another account) and move it to the latest one. Optional: older docs lack it until their next write.
+   */
+  tokenHs: z.array(z.string().regex(/^[0-9a-f]{64}$/)).optional(),
 });
 
 export const rateLimitDocSchema = z.object({ count: z.int().min(0), windowStart: timestampSchema, expiresAt: timestampSchema });

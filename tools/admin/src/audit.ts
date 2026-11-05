@@ -2,8 +2,10 @@
  * Every admin run records who ran it and why (DESIGN.md §9 Admin access: "each run records a reason").
  *
  * Runs go to `adminRuns/{autoId}` (DESIGN.md §8.2; server-only: the rules deny every path they do not list) with
- * `expiresAt` = run + 12 months, deleted by the TTL policy on `adminRuns.expiresAt` in firestore.indexes.json. A record holds the command, its target (an area id, a sanction's uid, a
- * database id), the reason, the admin and an outcome code with counts; never report text, tags or other user content.
+ * `expiresAt` = run + 12 months, deleted by the TTL policy on `adminRuns.expiresAt` in firestore.indexes.json. A record holds the command, its target (an area id, a database
+ * id, or for a user only `sanctions/{uidH}`), the reason, the admin and an outcome code with counts; never a raw uid,
+ * report text, tags or other user content. A run about a user carries `subjectH` (their uidH), so purgeUser can
+ * redact its target and reason when the account is erased.
  */
 import { FieldValue, Timestamp, type DocumentReference, type Firestore } from 'firebase-admin/firestore';
 import type { AdminContext } from './context';
@@ -15,6 +17,8 @@ export interface RunRecord {
   readonly command: string;
   readonly target?: string;
   readonly reason: string;
+  /** The uidH of the user the run is about (never the uid itself). */
+  readonly subjectH?: string;
 }
 
 export type RunDetails = Readonly<Record<string, string | number | boolean>>;
@@ -26,6 +30,7 @@ export async function startRun(ctx: AdminContext, db: Firestore, run: RunRecord)
   await ref.create({
     command: run.command,
     ...(run.target === undefined ? {} : { target: run.target }),
+    ...(run.subjectH === undefined ? {} : { subjectH: run.subjectH }),
     reason: run.reason,
     actor: await ctx.actor(),
     project: ctx.project,

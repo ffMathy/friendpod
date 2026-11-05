@@ -7,7 +7,7 @@
  * `rescan` re-classifies stored tags from their stored vectors (see rescan.ts).
  */
 import { EMBEDDING_MODEL } from '@grouper/core';
-import { FieldPath, FieldValue, type DocumentSnapshot } from 'firebase-admin/firestore';
+import { FieldPath, FieldValue, type DocumentSnapshot, type Query, type QuerySnapshot } from 'firebase-admin/firestore';
 import { ts } from '../lib/firestore';
 import type { AppDeps } from '../lib/runtime';
 import { taskId } from '../lib/tasks';
@@ -28,12 +28,14 @@ interface Member {
   readonly ordinaryTag: boolean;
 }
 
-async function membersOf(deps: Pick<AppDeps, 'db'>, conceptId: string): Promise<Member[]> {
+type QueryReader = (q: Query) => Promise<QuerySnapshot>;
+
+async function membersOf(deps: Pick<AppDeps, 'db'>, conceptId: string, read: QueryReader = (q) => q.get()): Promise<Member[]> {
   const tags = deps.db.collection('tags');
   const [own, priv, ord] = await Promise.all([
-    tags.where('conceptId', '==', conceptId).get(),
-    tags.where('privateAssign.conceptId', '==', conceptId).get(),
-    tags.where('ordinaryAssign.conceptId', '==', conceptId).get(),
+    read(tags.where('conceptId', '==', conceptId)),
+    read(tags.where('privateAssign.conceptId', '==', conceptId)),
+    read(tags.where('ordinaryAssign.conceptId', '==', conceptId)),
   ]);
   const out = new Map<string, Member>();
   const add = (d: DocumentSnapshot, own: boolean, count: number) => {
@@ -58,8 +60,17 @@ export async function maintainConcept(deps: Pick<AppDeps, 'db'>, snap: DocumentS
   const sensitive = snap.get('sensitive') === true;
   if (members.length === 0) {
     if (snap.get('seed') === true) return 'unchanged';
-    await snap.ref.delete();
-    return 'deleted';
+    // addInterests may assign a tag to this concept between the scan and the delete: the transaction reads the member
+    // tags and the concept again (any change to either makes it retry) and deletes only a concept that is still empty
+    // and unchanged since the scan.
+    const deleted = await deps.db.runTransaction(async (tx) => {
+      const fresh = await tx.get(snap.ref);
+      if (!fresh.exists || fresh.get('seed') === true || fresh.get('n') !== snap.get('n')) return false;
+      if ((await membersOf(deps, snap.id, (q) => tx.get(q))).length > 0) return false;
+      tx.delete(snap.ref);
+      return true;
+    });
+    return deleted ? 'deleted' : 'unchanged';
   }
   const sum = new Float32Array(dim);
   for (const m of members) addInto(sum, m.vec, 1);

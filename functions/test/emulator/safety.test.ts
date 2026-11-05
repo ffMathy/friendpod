@@ -93,7 +93,8 @@ describeEmulator('block, report and sanctions (emulator)', () => {
     const r1 = await reportAs(a, { target: { type: 'message', podId, messageId: 'msg1' }, category: 'harassment', text: 'he was rude' });
     const stored = (await docs(deps.db).report(r1.reportId).get()).data()!;
     expect(stored).toMatchObject({ reporterUid: a, targetUid: b, message: { text }, status: 'open', decision: 'RECORDED', target: { type: 'message', messageId: 'msg1' } });
-    expect(stored.expiresAt.toMillis()).toBe(now + 365 * DAY);
+    // No TTL while open: dailyMaintenance sets it when the report expires (resolution).
+    expect(stored.expiresAt).toBeUndefined();
     expect((await read.profile(deps, a)).blockedH).toContain(await h(b));
     expect((await read.profile(deps, b))).toMatchObject({ openReportCount: 1, blockedH: [await h(a)] });
     expect((await read.user(deps, b))!.status).toBe('active');

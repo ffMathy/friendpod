@@ -156,14 +156,14 @@ export async function updateProfile(deps: AppDeps, call: CallContext, input: Inp
 }
 
 /**
- * The roster copy of the first name and "about me" (§8.1, D4) in the user's confirmed pods that are not over yet.
- * Each pod gets its own transaction, reading the user doc again, so a later edit always wins.
+ * The roster copy of the first name and "about me" (§8.1, D4) in every confirmed pod the user is still on the roster
+ * of, archived and dissolved ones included (founder decision: an edit or a cleared "about me" must not linger in old
+ * pods until their deletion). Each pod gets its own transaction, reading the user doc again, so a later edit wins.
  */
 async function refreshRosters(deps: AppDeps, uid: string): Promise<void> {
   const refs = docs(deps.db);
   const states = await podStates(deps.db).where('memberList', 'array-contains', uid).get();
   for (const s of states.docs) {
-    if (s.data().state === 'archived' || s.data().state === 'dissolved') continue;
     await deps.db.runTransaction(async (tx) => {
       const [podSnap, userSnap] = await Promise.all([tx.get(refs.pod(s.id)), tx.get(refs.user(uid))]);
       const pod = podSnap.data();

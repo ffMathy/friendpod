@@ -23,6 +23,8 @@ export interface CliDeps {
   /** Opens the Firebase context; tests pass the emulator and a fake task enqueuer. */
   readonly context?: (options: ContextOptions) => AdminContext;
   readonly replayHandlers?: ReplayHandlers;
+  /** Environment for UID_HMAC_KEY (tests); process.env otherwise. */
+  readonly env?: NodeJS.ProcessEnv;
 }
 
 const REASON_MIN = 3;
@@ -63,6 +65,7 @@ export async function run(argv: readonly string[], deps: CliDeps = {}): Promise<
       operands: args.positionals.slice(2),
       reason,
       ...(deps.replayHandlers ? { replayHandlers: deps.replayHandlers } : {}),
+      ...(deps.env ? { env: deps.env } : {}),
       context: () => (opened ??= open({ project: stringFlag(args, '--project'), taskServiceAccount: stringFlag(args, '--task-service-account') })),
     });
     return { code: out.code, stdout: out.stdout, stderr: out.stderr ?? '' };

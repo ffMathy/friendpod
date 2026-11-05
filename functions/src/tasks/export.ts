@@ -177,10 +177,21 @@ export async function buildExport(deps: AppDeps, uid: string, exportId: string):
     const body = JSON.stringify({ exportedAt: new Date(now).toISOString(), ...(await assembleExport(deps, uid)) }, null, 2);
     const path = OBJECT_PATHS.export(uid, exportId);
     await deps.objects.write(path, new TextEncoder().encode(body), { contentType: 'application/json', cacheControl: 'private, no-store' });
-    await deps.db.runTransaction(async (tx) => {
+    // The account may have been deleted (and purged) while the file was assembled: the final transaction reads the
+    // account and the export doc again and writes nothing for an account that is gone or deleting, so neither the
+    // export doc nor a notice recreates its subtree; the object is deleted again.
+    const live = await deps.db.runTransaction(async (tx) => {
+      const [u, e] = await Promise.all([tx.get(refs.user(uid)), tx.get(ref)]);
+      const fresh = u.data();
+      if (!fresh || fresh.status === 'deleting' || !e.exists) return false;
       tx.set(ref, { status: 'ready', path, expiresAt: ts(now + EXPORT_AVAILABLE_MS) });
       writeNotice(deps.db, tx, uid, 'system', NOTICE_CODES.EXPORT_READY, { exportId }, now);
+      return true;
     });
+    if (!live) {
+      await deps.objects.delete(path);
+      return 'gone';
+    }
     await pushTo(deps, 'notice', [uid]);
   }
   await deps.tasks.enqueue('deleteExport', { uid, exportId }, { id: taskId('export-delete', exportId), scheduleTime: now + EXPORT_AVAILABLE_MS });
