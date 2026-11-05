@@ -31,6 +31,13 @@ Cloud Build only installs the uploaded `functions/` folder, so it must never reb
 - `src/lib/push.ts`: FCM with generic payloads only (S4).
 - `src/lib/rateLimits.ts`: fixed-window counters in `rateLimits/{uid}_{bucket}` (§9), charged inside the
   caller's transaction.
+- `src/pods/`: the pod lifecycle (§4.6). `context.ts` is one podState transaction (`PodTx`: reads on demand, writes
+  buffered until `commit()`, `version + 1`, `dueAt` = the earliest unprocessed timer; pushes and task enqueues run only
+  after the commit, `effects.ts`). `transitions.ts` is the state machine shared by callables and the sweeper
+  (`advance()` processes every due timer in order). `orchestrator.ts`, `release.ts`, `backfill.ts` and `sweeper.ts`
+  are the scheduled and task bodies; `src/callables/pods.ts` holds the seven pod callables.
+- `src/lib/tasks.ts`: Cloud Tasks enqueueing with deterministic ids (a duplicate id is `exists`), injected so tests
+  record tasks instead.
 - `src/interests/`: the `addInterests` pipeline (§5.2). `pipeline.ts` (normalise, moderate, read `tags` by tagKey,
   trust the client vector for a new text, sensitivity per holding with core's `decideSensitivity`, the consent gate,
   `findNearest` in the holding's partition) and `persist.ts` (one transaction, never across partitions). `tags.ts`
@@ -40,13 +47,17 @@ Cloud Build only installs the uploaded `functions/` folder, so it must never reb
 ## Implemented and stubbed
 
 Implemented: `completeOnboarding`, `updateProfile`, `setParticipation`, `sendMessage`, `addInterests`,
-`setArt9Consent`, `withdrawArt9Consent` (for a user without sensitive holdings), the `matchComponent` task body,
+`setArt9Consent`, `withdrawArt9Consent` (for a user without sensitive holdings), the pod lifecycle (`respondToPod`,
+`setPhotoSharing`, `leavePod`, `proposeOption`, `voteOption`, `confirmAttendance`, `submitFeedback`,
+`dropOrchestrator`, `matchComponent`, `releaseDrop`, `backfillPod`, and the pod timers of `hourlySweeper`),
 `onBudgetAlert` and the upload-path filter in `onPhotoUploaded`. Every other function has its final name, trigger and
 options, validates its input, and fails with `unimplemented` / `details: {code: 'NOT_IMPLEMENTED', design: '§…'}`.
 
 ## Runtime configuration
 
 - Secrets (`firebase functions:secrets:set`): `UID_HMAC_KEY` and `POD_ID_KEY`, each base64 of ≥ 32 random bytes.
+  `hourlySweeper` needs `UID_HMAC_KEY` too (meet-again pair keys and uidH at feedback close).
+- `sa-api@` enqueues `matchComponent`, `releaseDrop` and `backfillPod` (`roles/cloudtasks.enqueuer`, §9 IAM).
   For the Functions emulator, put test values in `functions/.secret.local` (not committed).
 - The drops bucket is `gs://<projectId>-drops` (`grouper-staging-drops`, `grouper-prod-drops`).
   `drops/{weekId}/components/{componentId}.inputPath` is an object path inside that bucket.

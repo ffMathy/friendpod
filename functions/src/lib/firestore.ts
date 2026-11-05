@@ -184,3 +184,30 @@ export const CONSENT_EVENT_RETENTION_MS = 3 * 365 * DAY_MS;
 export const UNDERAGE_MARKER_TTL_MS = 30 * DAY_MS;
 
 export const ts = (ms: number): Timestamp => Timestamp.fromMillis(ms);
+
+/** `pods/{podId}/options` (meetup options), for queries and auto ids. */
+export function podOptions(db: Firestore, podId: string): CollectionReference<Converted<'option'>, DocumentData> {
+  return db.collection(`${PATHS.pod(podId)}/options`).withConverter(CONVERTERS.option);
+}
+
+/** `users/{uid}/notices`, for auto ids. */
+export function userNotices(db: Firestore, uid: string): CollectionReference<Converted<'notice'>, DocumentData> {
+  return db.collection(`${PATHS.user(uid)}/notices`).withConverter(CONVERTERS.notice);
+}
+
+/** `users/{uid}/pods` (pod cards). */
+export function podCards(db: Firestore, uid: string): CollectionReference<Converted<'podCard'>, DocumentData> {
+  return db.collection(`${PATHS.user(uid)}/pods`).withConverter(CONVERTERS.podCard);
+}
+
+export function podStates(db: Firestore): CollectionReference<Converted<'podState'>, DocumentData> {
+  return db.collection('podState').withConverter(CONVERTERS.podState);
+}
+
+export function matchProfiles(db: Firestore): CollectionReference<Converted<'matchProfile'>, DocumentData> {
+  return db.collection('matchProfiles').withConverter(CONVERTERS.matchProfile);
+}
+
+export function dropComponents(db: Firestore, weekId: WeekId): CollectionReference<Converted<'dropComponent'>, DocumentData> {
+  return db.collection(`drops/${seg(weekId)}/components`).withConverter(CONVERTERS.dropComponent);
+}

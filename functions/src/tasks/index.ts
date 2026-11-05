@@ -18,7 +18,9 @@ import { runTask } from '../lib/background';
 import { notImplemented } from '../lib/errors';
 import { BASE_OPTIONS, HEAVY_OPTIONS } from '../lib/options';
 import { appDeps, dropsStore, handlerDeps } from '../lib/runtime';
-import { POD_ID_KEY, UID_HMAC_KEY } from '../lib/secrets';
+import { POD_ID_KEY, UID_HMAC_KEY, hmacFromSecret } from '../lib/secrets';
+import { backfillPod as backfillPodImpl } from '../pods/backfill';
+import { releaseDrop as releaseDropImpl } from '../pods/release';
 import { firestoreComponentStore, runMatchComponentTask } from './matchComponent';
 import { openArea as openAreaImpl } from './openArea';
 
@@ -99,19 +101,23 @@ export const matchComponent = onTaskDispatched(TASK_OPTIONS.matchComponent, (req
   }),
 );
 
-// Funnel (§6.8): for every member of a released pod, recordMilestones(deps, uid, ['firstProposal'], now); the
-// snapshot's `firstTimer` comes from `matchProfiles.milestones.firstConfirmedAt` being absent (§6.2).
+// Release revalidation, podState and cards with create(), matchProfiles with lastUpdateTime preconditions, the
+// firstProposal funnel stage in the same batch (§6.8), staggered generic pushes and snapshot cleanup (pods/release.ts).
 export const releaseDrop = onTaskDispatched(TASK_OPTIONS.releaseDrop, (req) =>
-  runTask('releaseDrop', releaseDropTask, req.data, handlerDeps, async () => {
-    // TODO(M1, §6.8): recordMilestones(appDeps(), uid, ['firstProposal'], now) for each proposed member.
-    throw notImplemented('§10.3');
+  runTask('releaseDrop', releaseDropTask, req.data, handlerDeps, async (task) => {
+    const deps = appDeps();
+    return releaseDropImpl(
+      { ...deps, drops: dropsStore(), podIdHmac: () => hmacFromSecret(POD_ID_KEY.value()), wait: (ms) => new Promise((r) => setTimeout(r, ms)) },
+      task.weekId,
+    );
   }),
 );
 
+// One backfill round before the plan locks (D6); the invitation counts as a first proposal (§6.8).
 export const backfillPod = onTaskDispatched(TASK_OPTIONS.backfillPod, (req) =>
-  runTask('backfillPod', backfillPodTask, req.data, handlerDeps, async () => {
-    // TODO(M1, §6.8): recordMilestones(appDeps(), uid, ['firstProposal'], now) for each invited candidate.
-    throw notImplemented('§10.3');
+  runTask('backfillPod', backfillPodTask, req.data, handlerDeps, async (task) => {
+    const { outcome, invited } = await backfillPodImpl(appDeps(), task);
+    return { outcome, invited };
   }),
 );
 

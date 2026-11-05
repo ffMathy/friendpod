@@ -10,6 +10,7 @@ import { appDeps, handlerDeps, modelsPrototypes, type AppDeps } from '../lib/run
 import { addInterestsWith } from './addInterests';
 import { setArt9Consent as setArt9ConsentImpl, withdrawArt9Consent as withdrawArt9ConsentImpl } from './art9Consent';
 import { completeOnboarding as completeOnboardingImpl } from './completeOnboarding';
+import * as pods from './pods';
 import { sendMessage as sendMessageImpl } from './sendMessage';
 import { setParticipation as setParticipationImpl } from './setParticipation';
 import { updateProfile as updateProfileImpl } from './updateProfile';
@@ -47,30 +48,14 @@ export const withdrawArt9Consent = define('withdrawArt9Consent', withdrawArt9Con
 export const removeInterest = stub('removeInterest', '§10.1');
 export const updateInterest = stub('updateInterest', '§10.1');
 export const confirmSuggestion = stub('confirmSuggestion', '§5.2 (6)');
-// At confirmation the roster entry is {firstName, photoV} plus the member's "about me" (D4), so only confirmed members
-// ever read it (pods/{podId} is readable through memberUids alone, firestore.rules). The roster schema in core gains
-// `aboutMe` with this callable.
-// Funnel (§6.8): at confirmation, recordMilestones(deps, uid, ['firstConfirmed'], now) for every accepted member; this
-// also ends their first-timer priority in matching (§6.2).
-// TODO(M1, §6.8): call recordMilestones from the confirming transaction's follow-up.
-export const respondToPod = stub('respondToPod', '§4.6');
-export const setPhotoSharing = stub('setPhotoSharing', '§6.1');
-export const leavePod = stub('leavePod', '§3.8');
-// The input schema already checks the place (D8): a Google Places pick of a public type, rounded coordinates, and the
-// map URL built from placeId and name. To do: the pod is `planning` and the caller a member, the window and limits;
-// the option doc and later `pods.planning.place` are written whole, never merged.
-export const proposeOption = stub('proposeOption', '§3.5');
-// When an option reaches WINNING_YES_VOTES the plan locks: state `scheduled`, `podState.planLockedAt`,
-// attendanceAtPlanLock() into podState.members[*].attendance and `pods.attendance`, and the meetupTimers() timers.
-export const voteOption = stub('voteOption', '§3.5');
-// "Still coming?" answers and the attendance card's "Can't make it" (D5, D14): 'coming' / 'notComing' while the pod
-// is `scheduled`, in podState.members[uid].attendance (+ attendanceAt) and pods.attendance[uid].
-export const confirmAttendance = stub('confirmAttendance', '§3.6');
-// `notThere` → attendanceFromNotThere() (D15) only when `met` is true: with `met: false` the app sends an empty
-// `notThere`, which must not count everyone as there. No-show disputes resolve by majority only (D2). meetAgain
-// answers go to pairSignals/{pairKey(hmac, a, b)} (D9): a "no" writes NEVER_WEEK_ID into both matchProfiles.recentH
-// at once; a mutual "yes" calls setRecentAfterMeetAgain(); nothing about the pair is ever shown to either member.
-export const submitFeedback = stub('submitFeedback', '§3.6');
+// The pod lifecycle (§3.3–§3.8, §4.6): one podState transaction each, see callables/pods.ts.
+export const respondToPod = define('respondToPod', pods.respondToPod);
+export const setPhotoSharing = define('setPhotoSharing', pods.setPhotoSharing);
+export const leavePod = define('leavePod', pods.leavePod);
+export const proposeOption = define('proposeOption', pods.proposeOption);
+export const voteOption = define('voteOption', pods.voteOption);
+export const confirmAttendance = define('confirmAttendance', pods.confirmAttendance);
+export const submitFeedback = define('submitFeedback', pods.submitFeedback);
 export const blockUser = stub('blockUser', '§3.7');
 export const unblockUser = stub('unblockUser', '§3.7');
 // A `message` target: read pods/{podId}/messages/{messageId} after checking the reporter is in the pod, copy its

@@ -7,7 +7,9 @@ import { onSchedule, type ScheduleOptions } from 'firebase-functions/scheduler';
 import { runBackground } from '../lib/background';
 import { notImplemented } from '../lib/errors';
 import { BASE_OPTIONS, HEAVY_OPTIONS } from '../lib/options';
-import { handlerDeps } from '../lib/runtime';
+import { appDeps, dropsStore, handlerDeps } from '../lib/runtime';
+import { orchestrateDrop } from '../pods/orchestrator';
+import { sweepPods } from '../pods/sweeper';
 import { UID_HMAC_KEY } from '../lib/secrets';
 
 export const SCHEDULE_OPTIONS = {
@@ -21,13 +23,14 @@ export const SCHEDULE_OPTIONS = {
     retryCount: 1,
     secrets: [UID_HMAC_KEY],
   },
-  // :05 every hour; the next run catches up, so no scheduler retry.
+  // :05 every hour; the next run catches up, so no scheduler retry. Meet-again pair keys and uidH need the HMAC key.
   hourlySweeper: {
     ...BASE_OPTIONS,
     schedule: '5 * * * *',
     timeZone: DROP_TIME_ZONE,
     retryCount: 0,
     timeoutSeconds: 540,
+    secrets: [UID_HMAC_KEY],
   },
   dailyMaintenance: {
     ...BASE_OPTIONS,
@@ -43,32 +46,20 @@ export const SCHEDULE_OPTIONS = {
 
 export const dropOrchestrator = onSchedule(SCHEDULE_OPTIONS.dropOrchestrator, () =>
   runBackground('schedule', 'dropOrchestrator', handlerDeps, async () => {
-    throw notImplemented('§10.3');
+    const deps = appDeps();
+    return orchestrateDrop({ ...deps, drops: dropsStore() }, deps.now());
   }),
 );
 
-// TODO(M1, §4.6): every timer in podState.timers that has passed, each idempotent:
-// - planDeadline: planningDeadlineOutcome(): 'schedule' locks the plan; 'extend' (once per round, D7) sets
-//   planningExtended, pods.planning.extended and planDeadline = planningExtensionDeadline(); 'dissolve' / 'archive'.
-//   Backfill only while canBackfill(state, used, planLockedAt set): before the plan first locks, never after (D6);
-//   its deadline is backfillDeadline(start, {state: 'planning', planDeadline}).
-//   Locking copies planLockedAt onto pods.planning too, so the app derives the same meetupTimers().
-// - stillComing3d (null unless the meetup is ≥ 4 days after plan lock) and stillComing24h (never before plan lock):
-//   "Still coming?" to every member (D5). At T−24 h also the one generic `chatOpen` push ("Your pod chat is open");
-//   the chat itself opens by time alone (sendMessage checks isChatOpen).
-// - nudge6h (null when the first ask was not before T−6 h): a second "Still coming?" to membersToNudge() only.
-// - attendanceCheck (T−3 h, never before plan lock): markUnconfirmed() into podState and pods.attendance ("<firstName>
-//   hasn't confirmed") only when timers.markUnconfirmed, then attendanceCheckPasses(); neither pending nor
-//   unconfirmed is coming, and below 3 the existing single reschedule round runs.
-//   No answer is never a no-show by itself.
-// - feedbackPush (10:00 Europe/Copenhagen the morning after) and feedbackReminder (3 days later), from
-//   feedbackTimers(); feedbackCloses stays 7 days (D12).
-// - T+2 h → `happened`: recordMilestones(deps, uid, ['meetupHappened'], now) for each member who came (the first,
-//   then the second meetup: continuation, §6.8).
+// Every pod timer that is due (§4.1, §4.6; pods/transitions.ts): accept and backfill deadlines, the planning deadline
+// with its one extension round, "Still coming?" at T−3 d / T−24 h (with the one "Your pod chat is open"), the T−6 h
+// nudge, the T−3 h unconfirmed marking and attendance check, the T−2 h reminder, T+2 h → happened (funnel: first or
+// second meetup), the feedback push at 10:00 the next morning and its day-3 reminder, and feedback close (meet-again
+// outcomes, no-show majority, the Keep loop). Not yet here: the Monday 10:00 nudge and lifting expired sanctions.
 export const hourlySweeper = onSchedule(SCHEDULE_OPTIONS.hourlySweeper, () =>
   runBackground('schedule', 'hourlySweeper', handlerDeps, async () => {
-    // TODO(M1, §6.8): recordMilestones(appDeps(), uid, ['meetupHappened'], now) at T+2 h for members who came.
-    throw notImplemented('§4.6');
+    const deps = appDeps();
+    return sweepPods(deps, deps.now());
   }),
 );
 

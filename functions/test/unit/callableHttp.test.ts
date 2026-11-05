@@ -95,12 +95,16 @@ describe('callables over HTTP', () => {
     expect(capturedLogs().some((l) => l.includes('callable.invalidInput') && l.includes('sendMessage'))).toBe(true);
   });
 
-  it('checks a proposed place against the Places shape before the proposeOption stub (D8)', async () => {
+  it('checks a proposed place against the Places shape before proposeOption runs (D8)', async () => {
     const { googleMapsPlaceUrl } = await import('@grouper/core');
     const placeId = 'ChIJ0000aarhusLibrary';
     const place = { placeId, name: 'Dokk1', address: 'Hack Kampmanns Plads 2, Aarhus', lat: 56.1532, lng: 10.214, type: 'library', mapUrl: googleMapsPlaceUrl(placeId, 'Dokk1') };
     const data = { podId: 'e'.repeat(20), startsAt: Date.UTC(2026, 10, 20, 17), place };
-    expect((await call(fns.proposeOption as unknown as HttpFn, data, { uid: 'HttpUser0007' })).statusCode).toBe(501);
+    // A valid shape reaches the implementation, which reads Firestore and refuses a pod the caller is not in.
+    if (process.env.FIRESTORE_EMULATOR_HOST) {
+      const valid = await call(fns.proposeOption as unknown as HttpFn, data, { uid: 'HttpUser0007' });
+      expect(errorOf(valid).details).toEqual({ code: 'NOT_MEMBER' });
+    }
     for (const bad of [
       { ...place, mapUrl: 'https://maps.app.goo.gl/Xy12AbCd' },
       { ...place, type: 'night_club' },

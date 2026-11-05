@@ -165,18 +165,30 @@ Stubs keep their final name, trigger, options and input validation, then fail lo
 `not implemented (see DESIGN.md §…)`. Nothing pretends to succeed (a silent `purgeUser` would look like a completed
 erasure).
 
-**Implemented end to end:** `completeOnboarding`, `updateProfile` (with "about me", D4), `setParticipation`,
-`sendMessage` (the text-only meetup chat: membership, window, moderation with the contact-info warning, rate limit,
-throttled generic pushes), `addInterests` (pipeline steps 1–7 on the client's vector, the blanket-consent gate,
-"Keep this private", "This isn't sensitive for me", the known-ordinary list, the server-side lexicon and margin),
-`setArt9Consent`, `withdrawArt9Consent` for a user without sensitive holdings, the `matchComponent` task body,
+**Implemented end to end:** `completeOnboarding`, `updateProfile` (with "about me", D4, copied to the roster of the
+user's confirmed pods), `setParticipation`, `sendMessage` (the text-only meetup chat: membership, window, moderation
+with the contact-info warning, rate limit, throttled generic pushes), `addInterests` (pipeline steps 1–7 on the
+client's vector, the blanket-consent gate, "Keep this private", "This isn't sensitive for me", the known-ordinary list,
+the server-side lexicon and margin), `setArt9Consent`, `withdrawArt9Consent` for a user without sensitive holdings,
 `onBudgetAlert`, the security rules, the matcher (with first-timers first, F35) and the app's main flows. Since the
 2026-11-05 launch decisions also: the five launch cities, the exact per-city `waitlistCount` (onboarding, area change,
 and `eraseMatchProfileAndAreaCount` for erasure), the in-app waitlist screen with share and copy, the `/c/{areaId}`
 Hosting page, the `openArea` task and its "<city> is open" push, and the day-1 funnel (`funnel/{areaId}_{weekId}`,
-once per user through `matchProfiles.milestones`) for the stages that happen in built code; the stubbed stages
-(proposal, confirmation, meetups, abandoned sign-ups) carry the helper call as a TODO. No pod reaches `scheduled` until the pod
-lifecycle stubs below exist, so the chat works end to end only in M1.
+once per user through `matchProfiles.milestones`) for every stage except the abandoned-sign-up `signup` (counted by
+the stubbed `dailyMaintenance`).
+
+**The pod lifecycle** (DESIGN.md §4.6) is built: `dropOrchestrator` (frozen per-component input snapshots, beta areas
+as dry runs, `matchComponent` tasks and the 18:00 `releaseDrop`), the `matchComponent` task, `releaseDrop` (release
+revalidation, `create()` of podState and cards, `lastUpdateTime` preconditions on `matchProfiles`, staggered generic
+pushes, snapshot cleanup), `respondToPod` (confirmation at the area profile's `confirmationMin`, roster, photo grants
+with the S6 opt-in, late joins, auto-pause), `backfillPod` (only before the plan first locks, D6), `proposeOption`,
+`voteOption`, `confirmAttendance` (late cancels), `submitFeedback` (majority no-shows at feedback close, HMAC-keyed
+meet-again pair signals, D9), `leavePod`, `setPhotoSharing` and the `hourlySweeper` pod timers (accept and backfill
+deadlines, the planning deadline with its one extension round, "Still coming?" at T−3 d and T−24 h with "Your pod chat
+is open", the T−6 h nudge, the T−3 h check and reschedule round, T+2 h → `happened`, the feedback push at 10:00 the
+next morning and its day-3 reminder, feedback close with the Keep loop). Every transition is one podState transaction
+with a `version` bump, and every callable first processes the timers that are already due, so a late sweep changes no
+outcome. Code: `functions/src/pods/` and `functions/src/callables/pods.ts`.
 
 **Sensitive interests are switched off** until their withdrawal exists: `ART9_HOLDINGS_ENABLED` in
 `functions/src/interests/config.ts` is `false`, so `addInterests` answers every sensitive holding with
@@ -190,18 +202,15 @@ fails if it is on before then. The emulator tests cover the sensitive path with 
 | `removeInterest`, `updateInterest`, `registerPushToken` | `functions/src/callables/index.ts` | §10.1 |
 | `withdrawArt9Consent` for a user who holds sensitive interests (PRIVACY.md §3.5 steps 1–8) | `functions/src/callables/art9Consent.ts` | §10.1 |
 | `confirmSuggestion` | same | §5.2 (6) |
-| `respondToPod` | same | §4.6 |
-| `setPhotoSharing` | same | §6.1 (S6) |
-| `leavePod` | same | §3.8 |
-| `proposeOption` (the Places shape of the option is validated), `voteOption` | same | §3.5 |
-| `confirmAttendance`, `submitFeedback` (attendance from `notThere`, meet-again pair signals) | same | §3.6 |
 | `blockUser`, `unblockUser`, `report` (including message reports, whose input is already validated) | same | §3.7 |
 | `deletePhoto` | same | §9 |
 | `exportData` | same | §3.9 |
 | `deleteAccount` | same | §3.10 |
-| `dropOrchestrator`, `dailyMaintenance` | `functions/src/scheduled/index.ts` | §10.3 |
-| `hourlySweeper` (planning extension, "Still coming?" at T−3 d and T−24 h, the T−6 h nudge, the T−3 h attendance check, the feedback pushes, "Your pod chat is open") | same | §4.6 |
-| `releaseDrop`, `backfillPod`, `purgeUser` | `functions/src/tasks/index.ts` | §10.3 |
+| `dailyMaintenance` (deletion of archived and dissolved pods, inactive accounts, Auth reconciliation) | `functions/src/scheduled/index.ts` | §10.3 |
+| `hourlySweeper`: the Monday 10:00 "In this week?" nudge and lifting expired sanctions and sensitive holds (the pod timers are built) | same | §4.1, §10.3 |
+| Automated no-show pause and suspension (2 / 3 no-show weight in 8 weeks); the counters and `noShowEvents` are kept | `functions/src/pods/transitions.ts` | §4.4 |
+| `areas/*` chips at the drop (`dropOrchestrator` freezes inputs but writes no chips) | `functions/src/pods/orchestrator.ts` | §10.3 |
+| `purgeUser` | `functions/src/tasks/index.ts` | §10.3 |
 | `buildExport`, `deleteExport` | same | §3.9 |
 | `onPhotoUploaded` processing (the pending-upload filter is implemented) | `functions/src/triggers/index.ts` | §9 |
 | `interestsBatch` (rescan of stored tags, maintenance) | `functions/src/tasks/index.ts` | §5.2 (8) |

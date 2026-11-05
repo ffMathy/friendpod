@@ -11,8 +11,10 @@
 import {
   ACTIVE_POD_STATES,
   getMatchingProfile,
+  meetupMilestone,
   proposalDecisionAt,
   resolveLaunchArea,
+  uidHash,
   type CardMemberStatus,
   type FunnelStage,
   type Gh5,
@@ -20,10 +22,9 @@ import {
   type PodState,
   type WeekId,
 } from '@grouper/core';
-import { FieldPath, type DocumentReference, type Transaction } from 'firebase-admin/firestore';
-import { DAY_MS, docs, PATHS, ts, type DocOf } from '../lib/firestore';
+import type { Transaction } from 'firebase-admin/firestore';
+import { DAY_MS, docs, PATHS, podOptions, ts, userNotices, type DocOf } from '../lib/firestore';
 import { claimMilestones, FunnelIncrements, type FunnelEvent } from '../lib/funnel';
-import { meetupMilestone } from '@grouper/core';
 import type { PushKind } from '../lib/push';
 import type { AppDeps } from '../lib/runtime';
 import type { TaskOptions, TaskQueueName } from '../lib/tasks';
@@ -108,20 +109,26 @@ export class PodTx {
   private readonly dirtyProfiles = new Set<string>();
   private readonly newCards = new Map<string, CardDoc>();
   private readonly cardPatches = new Map<string, Partial<CardDoc>>();
-  private readonly grantOps: { key: string; add: boolean }[] = [];
+  private readonly grantOps: { owner: string; viewer: string; add: boolean }[] = [];
   private options: Map<string, OptionDoc> | null = null;
   private readonly optionWrites = new Map<string, OptionDoc | null>();
   private readonly extraWrites: ((tx: Transaction) => void)[] = [];
   private readonly funnel = new FunnelIncrements();
+  private readonly uidHs = new Map<string, Promise<string>>();
+  private readonly cards = new Map<string, CardDoc | null>();
   readonly effects: Effects = { pushes: [], tasks: [] };
-  private readonly refs;
+  private readonly refs: ReturnType<typeof docs>;
 
-  private constructor(
-    readonly deps: AppDeps,
-    readonly tx: Transaction,
-    readonly podId: string,
-    readonly now: number,
-  ) {
+  readonly deps: AppDeps;
+  readonly tx: Transaction;
+  readonly podId: string;
+  readonly now: number;
+
+  private constructor(deps: AppDeps, tx: Transaction, podId: string, now: number) {
+    this.deps = deps;
+    this.tx = tx;
+    this.podId = podId;
+    this.now = now;
     this.refs = docs(deps.db);
   }
 
@@ -132,8 +139,7 @@ export class PodTx {
     const [ps, pod] = await Promise.all([tx.get(refs.podState(podId)), tx.get(refs.pod(podId))]);
     const data = ps.data();
     if (!data) return null;
-    ctx.ps = structuredClone(data);
-    // Timestamps do not survive structuredClone's prototype loss; keep the parsed objects.
+    // A shallow copy per level: Timestamps stay the SDK's objects.
     ctx.ps = { ...data, timers: { ...data.timers }, members: Object.fromEntries(Object.entries(data.members).map(([k, v]) => [k, { ...v }])), backfill: { ...data.backfill }, memberList: [...data.memberList] };
     const p = pod.data();
     ctx.podExisted = p !== undefined;
@@ -199,6 +205,27 @@ export class PodTx {
     await Promise.all([this.loadUsers(uids), this.loadProfiles(uids)]);
   }
 
+  /** The member's uidH (pair history and blocks are keyed by it, §8). */
+  uidH(uid: string): Promise<string> {
+    let h = this.uidHs.get(uid);
+    if (!h) this.uidHs.set(uid, (h = uidHash(this.deps.uidHmac(), uid)));
+    return h;
+  }
+
+  async loadCards(uids: readonly string[]): Promise<void> {
+    const missing = [...new Set(uids)].filter((u) => !this.cards.has(u) && !this.newCards.has(u));
+    if (missing.length === 0) return;
+    const snaps = await this.tx.getAll(...missing.map((u) => this.refs.podCard(u, this.podId)));
+    snaps.forEach((s, i) => this.cards.set(missing[i]!, s.data() ?? null));
+  }
+
+  /** A loaded card with this transaction's patches applied. */
+  card(uid: string): CardDoc | null {
+    const base = this.newCards.get(uid) ?? this.cards.get(uid);
+    if (base === undefined) throw new Error('card not loaded');
+    return base === null ? null : { ...base, ...this.cardPatches.get(uid) };
+  }
+
   user(uid: string): UserDoc | null {
     if (!this.users.has(uid)) throw new Error('user not loaded');
     return this.users.get(uid)!;
@@ -237,8 +264,8 @@ export class PodTx {
 
   async loadOptions(): Promise<Map<string, OptionDoc>> {
     if (!this.options) {
-      const snap = await this.tx.get(this.deps.db.collection(`${PATHS.pod(this.podId)}/options`).withConverter(this.refs.option('x', 'x').converter as never));
-      this.options = new Map(snap.docs.map((d) => [d.id, d.data() as OptionDoc]));
+      const snap = await this.tx.get(podOptions(this.deps.db, this.podId));
+      this.options = new Map(snap.docs.map((d) => [d.id, d.data()]));
     }
     return this.options;
   }
@@ -283,11 +310,11 @@ export class PodTx {
   }
 
   grant(owner: string, viewer: string): void {
-    if (owner !== viewer) this.grantOps.push({ key: grantKey(owner, viewer), add: true });
+    if (owner !== viewer) this.grantOps.push({ owner, viewer, add: true });
   }
 
   revoke(owner: string, viewer: string): void {
-    if (owner !== viewer) this.grantOps.push({ key: grantKey(owner, viewer), add: false });
+    if (owner !== viewer) this.grantOps.push({ owner, viewer, add: false });
   }
 
   /** Every grant entry for this pod, in both directions, between any two people ever in it. */
@@ -297,12 +324,10 @@ export class PodTx {
   }
 
   notice(uid: string, code: string): void {
-    const ref = this.deps.db.collection(`${PATHS.user(uid)}/notices`).doc().withConverter(this.refs.notice(uid, 'x').converter as never);
+    const ref = userNotices(this.deps.db, uid).doc();
     const at = this.now;
     const podId = this.podId;
-    this.extraWrites.push((tx) =>
-      tx.create(ref as DocumentReference, { type: 'system', code, params: { podId }, createdAt: ts(at), expiresAt: ts(at + NOTICE_TTL_MS) }),
-    );
+    this.extraWrites.push((tx) => tx.create(ref, { type: 'system', code, params: { podId }, createdAt: ts(at), expiresAt: ts(at + NOTICE_TTL_MS) }));
   }
 
   write(f: (tx: Transaction) => void): void {
@@ -324,10 +349,11 @@ export class PodTx {
     const tx = this.tx;
     const refs = this.refs;
     // Reads still needed by the writes.
-    const cardUids = this.ps.memberList.filter((u) => !this.newCards.has(u));
-    const cardSnaps = cardUids.length > 0 ? await tx.getAll(...cardUids.map((u) => refs.podCard(u, this.podId))) : [];
-    const grantKeys = [...new Set(this.grantOps.map((o) => o.key))];
-    const grantSnaps = grantKeys.length > 0 ? await tx.getAll(...grantKeys.map((k) => this.deps.db.collection('photoGrants').doc(k).withConverter(refs.photoGrant('a', 'b').converter as never))) : [];
+    await this.loadCards(this.ps.memberList);
+    const pairs = new Map<string, readonly [string, string]>();
+    for (const o of this.grantOps) pairs.set(grantKey(o.owner, o.viewer), [o.owner, o.viewer]);
+    const grantKeys = [...pairs.keys()];
+    const grantSnaps = grantKeys.length > 0 ? await tx.getAll(...grantKeys.map((k) => refs.photoGrant(...pairs.get(k)!))) : [];
 
     // podState
     this.ps.version += 1;
@@ -341,33 +367,30 @@ export class PodTx {
       else tx.create(refs.pod(this.podId), this.pod);
     }
 
-    // Cards follow the pod: state, accepted count and the viewer's own status (§8.1).
-    const current = new Set(this.currentMembers());
+    // Cards follow the pod (§8.1): an invitee or member sees its state and accepted count; a card whose invitation
+    // ended (declined, expired, left) keeps its last state until the pod ends, and expires 14 days later.
     const count = this.pod ? this.pod.memberUids.length : this.byStatus('accepted').length;
+    const ended = this.ps.state === 'archived' || this.ps.state === 'dissolved';
     const cardFor = (uid: string, card: CardDoc): CardDoc => {
       const m = this.ps.members[uid];
       if (!m) return card;
       const live = m.status === 'invited' || m.status === 'accepted';
-      const myStatus = CARD_STATUS[m.status];
-      const ended = this.ps.state === 'dissolved' || (!live && m.status !== 'accepted');
       const next: CardDoc = {
         ...card,
-        ...(live || current.has(uid) || this.ps.state === 'archived' || this.ps.state === 'dissolved' ? { state: this.ps.state } : {}),
-        myStatus,
-        ...(live || current.has(uid) ? { acceptedCount: Math.min(6, count) } : {}),
+        ...(live || ended ? { state: this.ps.state } : {}),
+        ...(live ? { acceptedCount: Math.min(6, count) } : {}),
+        myStatus: CARD_STATUS[m.status],
         ...this.cardPatches.get(uid),
       };
-      if ((ended || m.status === 'expired') && next.expiresAt === undefined) return { ...next, expiresAt: ts(this.now + CARD_TTL_MS) };
-      return next;
+      const expires = !live || this.ps.state === 'dissolved';
+      return expires && next.expiresAt === undefined ? { ...next, expiresAt: ts(this.now + CARD_TTL_MS) } : next;
     };
     for (const [uid, card] of this.newCards) tx.create(refs.podCard(uid, this.podId), cardFor(uid, card));
-    cardSnaps.forEach((snap, i) => {
-      const card = snap.data();
-      if (!card) return;
-      const uid = cardUids[i]!;
+    for (const [uid, card] of this.cards) {
+      if (!card) continue;
       const next = cardFor(uid, card);
       if (!sameCard(card, next)) tx.set(refs.podCard(uid, this.podId), next);
-    });
+    }
 
     for (const uid of this.dirtyUsers) {
       const u = this.users.get(uid);
@@ -380,20 +403,21 @@ export class PodTx {
 
     // Photo grants: a pod id is added or removed per (owner, viewer); an empty grant doc is deleted (§9).
     const grants = new Map<string, { pods: string[]; createdAt: DocOf<'photoGrant'>['createdAt'] } | null>();
-    grantSnaps.forEach((s, i) => grants.set(grantKeys[i]!, (s.data() as DocOf<'photoGrant'> | undefined) ?? null));
+    grantSnaps.forEach((s, i) => grants.set(grantKeys[i]!, s.data() ?? null));
     const before = new Map([...grants].map(([k, v]) => [k, JSON.stringify(v?.pods ?? [])]));
     for (const op of this.grantOps) {
-      const g = grants.get(op.key) ?? null;
+      const key = grantKey(op.owner, op.viewer);
+      const g = grants.get(key) ?? null;
       const pods = new Set(g?.pods ?? []);
       if (op.add) pods.add(this.podId);
       else pods.delete(this.podId);
-      grants.set(op.key, pods.size === 0 ? null : { pods: [...pods].sort(), createdAt: g?.createdAt ?? ts(this.now) });
+      grants.set(key, pods.size === 0 ? null : { pods: [...pods].sort(), createdAt: g?.createdAt ?? ts(this.now) });
     }
     for (const [key, g] of grants) {
       if (JSON.stringify(g?.pods ?? []) === before.get(key)) continue;
-      const ref = this.deps.db.collection('photoGrants').doc(key);
+      const ref = refs.photoGrant(...pairs.get(key)!);
       if (g === null) tx.delete(ref);
-      else tx.set(ref.withConverter(refs.photoGrant('a', 'b').converter as never), g);
+      else tx.set(ref, g);
     }
 
     for (const [id, o] of this.optionWrites) {
@@ -432,4 +456,3 @@ export function pruneRecent(recentH: Readonly<Record<string, WeekId>>, currentWe
   return Object.fromEntries(Object.entries(recentH).filter(([, until]) => currentWeek < until));
 }
 
-export { FieldPath };

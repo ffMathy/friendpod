@@ -23,7 +23,7 @@ import type { QueryDocumentSnapshot, Transaction } from 'firebase-admin/firestor
 import { areaStage, readAreas, writeAreaDeltas } from '../lib/areas';
 import { AppError } from '../lib/errors';
 import { claimMilestones, FunnelIncrements } from '../lib/funnel';
-import { CONSENT_EVENT_RETENTION_MS, ERASURE_LEDGER_TTL_MS, consentEvents, docs, erasureLedger, ts, type DocOf } from '../lib/firestore';
+import { CONSENT_EVENT_RETENTION_MS, ERASURE_LEDGER_TTL_MS, consentEvents, docs, erasureLedger, podStates, ts, type DocOf } from '../lib/firestore';
 import type { CallContext } from '../lib/handler';
 import type { AppDeps } from '../lib/runtime';
 
@@ -106,7 +106,7 @@ export async function updateProfile(deps: AppDeps, call: CallContext, input: Inp
     }
     const { genderConsentAt: _withdrawn, ...legalWithoutGender } = user.legal;
     const { aboutMe: _replaced, ...userWithoutAboutMe } = user;
-    // TODO(M1): refresh `roster[uid].aboutMe` in the user's confirmed pods once rosters carry it (respondToPod).
+    // The roster copies in the user's confirmed pods follow after the commit (refreshRosters).
     const aboutMe = input.aboutMe === undefined ? user.aboutMe : input.aboutMe || undefined;
     const nextUser: UserDoc = {
       ...userWithoutAboutMe,
@@ -152,7 +152,29 @@ export async function updateProfile(deps: AppDeps, call: CallContext, input: Inp
     }
     if (withdrawGender) await recordGenderWithdrawal(tx, deps, call, user.locale, priorGenderEvents!.docs);
   });
+  if (input.firstName !== undefined || input.aboutMe !== undefined) await refreshRosters(deps, call.uid);
   return { ok: true };
+}
+
+/**
+ * The roster copy of the first name and "about me" (§8.1, D4) in the user's confirmed pods that are not over yet.
+ * Each pod gets its own transaction, reading the user doc again, so a later edit always wins.
+ */
+async function refreshRosters(deps: AppDeps, uid: string): Promise<void> {
+  const refs = docs(deps.db);
+  const states = await podStates(deps.db).where('memberList', 'array-contains', uid).get();
+  for (const s of states.docs) {
+    if (s.data().state === 'archived' || s.data().state === 'dissolved') continue;
+    await deps.db.runTransaction(async (tx) => {
+      const [podSnap, userSnap] = await Promise.all([tx.get(refs.pod(s.id)), tx.get(refs.user(uid))]);
+      const pod = podSnap.data();
+      const user = userSnap.data();
+      const entry = pod?.roster[uid];
+      if (!pod || !user || !entry) return;
+      const { aboutMe: _old, ...rest } = entry;
+      tx.set(podSnap.ref, { ...pod, roster: { ...pod.roster, [uid]: { ...rest, firstName: user.firstName, ...(user.aboutMe ? { aboutMe: user.aboutMe } : {}) } } });
+    });
+  }
 }
 
 /**
