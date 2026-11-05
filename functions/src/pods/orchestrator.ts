@@ -8,6 +8,7 @@
 import { gzipSync } from 'node:zlib';
 import {
   LAUNCH_AREAS,
+  LONG_TASK_DISPATCH_DEADLINE_SECONDS,
   dropSchedule,
   encodeMatchSnapshot,
   matchingComponents,
@@ -41,7 +42,7 @@ const CONCEPT_CHUNK = 300;
 const C128_DIM = 128;
 const GRPC_ALREADY_EXISTS = 6;
 /** `dispatchDeadlineSeconds` for the long tasks (§10.3). */
-export const MATCH_DISPATCH_DEADLINE_S = 1800;
+export const MATCH_DISPATCH_DEADLINE_S = LONG_TASK_DISPATCH_DEADLINE_SECONDS;
 
 export function inputPath(weekId: WeekId, componentId: string): string {
   return `${weekId}/${componentId}.input.json.gz`;

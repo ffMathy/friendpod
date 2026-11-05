@@ -165,7 +165,14 @@ export const submitFeedbackInput = z.strictObject({
 });
 export const submitFeedbackOutput = ok;
 
-export const blockUserInput = z.strictObject({ podId: podIdSchema, uid: uidSchema, leave: z.boolean().optional() });
+/**
+ * `leave`: the blocker leaves the shared active pods instead of the blocked member (§3.7). `replan`: "Re-plan the
+ * meetup" for a scheduled pod the blocked member knew the plan of: planning reopens with a 48-hour deadline and the old
+ * options are deleted. DESIGN-DEVIATION: §10.1 lists no `replan`; the app asks before it blocks.
+ */
+export const blockUserInput = z
+  .strictObject({ podId: podIdSchema, uid: uidSchema, leave: z.boolean().optional(), replan: z.boolean().optional() })
+  .refine((b) => !(b.leave && b.replan), { message: 'leave and replan exclude each other' });
 export const blockUserOutput = ok;
 export const unblockUserInput = z.strictObject({ uid: uidSchema });
 export const unblockUserOutput = ok;

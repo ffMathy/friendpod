@@ -27,6 +27,7 @@ import {
   reliability,
   resolveAttendance,
   appendNoShowEvent,
+  noShowSanction,
   setRecentAfterMeetAgain,
   weekIdAt,
   winningOption,
@@ -35,9 +36,16 @@ import {
   type PlanningRound,
   type WeekId,
 } from '@grouper/core';
-import { docs, ts } from '../lib/firestore';
+import { DAY_MS, docs, ts } from '../lib/firestore';
+import { applySanction } from '../lib/sanctions';
 import { taskId } from '../lib/tasks';
 import { ms, podAreaLabel, podDueAt, pruneRecent, recentMinUntil, type OptionDoc, type PodDoc, type PodTx, type ProfileDoc } from './context';
+
+/** Ended pods are deleted by dailyMaintenance: 90 days after archive, 30 days after dissolving (§4.2). */
+export const ARCHIVED_RETENTION_MS = 90 * DAY_MS;
+export const DISSOLVED_RETENTION_MS = 30 * DAY_MS;
+/** The backfill watchdog (podState.timers.backfillRetry): one re-enqueue if no invitation went out by then. */
+export const BACKFILL_RETRY_AFTER_MS = 15 * 60_000;
 
 /** Below this many members a pod that has met archives and one that has not dissolves (§3.8, §4.6). */
 export const MIN_MEMBERS = 3;
@@ -231,6 +239,25 @@ export async function removeFromPod(ctx: PodTx, uid: string, status: 'left' | 'r
   }
 }
 
+/**
+ * The automated no-show rule after a new no-show or late cancel (§4.4): 2 weight within 8 weeks → a 2-week pause and
+ * the re-commit pledge, 3 → an 8-week suspension; each with a statement of reasons, each expiring on its own (A38).
+ * Runs inside the pod transaction, so the sanction commits with the event that caused it.
+ */
+export async function checkNoShowSanction(ctx: PodTx, uid: string): Promise<void> {
+  const user = ctx.user(uid);
+  const profile = ctx.matchProfile(uid);
+  if (!user || !profile) return;
+  const decision = noShowSanction(profile.noShowEvents, weekIdAt(ctx.now), ctx.now);
+  if (!decision) return;
+  const existing = (await ctx.tx.get(docs(ctx.deps.db).sanction(uid))).data() ?? null;
+  const applied = applySanction(ctx.deps.db, uid, { user, profile, existing }, decision, ctx.now);
+  if (!applied) return;
+  ctx.updateUser(uid, () => applied.user);
+  ctx.updateProfile(uid, () => applied.profile);
+  ctx.write(applied.write);
+}
+
 /** Starts the one backfill round (§4.2, D6) and enqueues `backfillPod`; the caller has checked canBackfill. */
 export function startBackfill(ctx: PodTx): void {
   const now = ctx.now;
@@ -241,6 +268,7 @@ export function startBackfill(ctx: PodTx): void {
   if (until <= now) return;
   ctx.ps.backfill = { used: true, until: ts(until) };
   ctx.ps.timers.backfillUntil = ts(until);
+  ctx.ps.timers.backfillRetry = ts(Math.min(until, now + BACKFILL_RETRY_AFTER_MS));
   ctx.task('backfillPod', { weekId: latestReleasedDropWeek(now), podId: ctx.podId }, { id: taskId('backfill', ctx.podId) });
 }
 
@@ -261,6 +289,7 @@ export async function endPod(ctx: PodTx, kind: 'archived' | 'dissolved' = ctx.ps
   ctx.revokeAll();
   ctx.ps.state = kind;
   ctx.ps.timers = { acceptBy: ctx.ps.timers.acceptBy };
+  ctx.ps.deleteAt = ts(ctx.now + (kind === 'archived' ? ARCHIVED_RETENTION_MS : DISSOLVED_RETENTION_MS));
   if (ctx.pod) ctx.updatePod((p) => ({ ...p, state: kind, ...(kind === 'archived' ? { archivedAt: ts(ctx.now) } : {}) }));
   ctx.push('podChanged', members);
 }
@@ -483,6 +512,7 @@ async function closeFeedback(ctx: PodTx): Promise<void> {
       ...(r.outcome === 'noShow' ? { noShowEvents: appendNoShowEvent(p.noShowEvents, { weekId: meetWeek, w: 1 }, weekIdAt(ctx.now)) } : {}),
       ...(r.outcome === 'attended' && r.cameVotes >= 2 ? { attendedVerified: p.attendedVerified + 1 } : {}),
     }));
+    if (r.outcome === 'noShow') await checkNoShowSanction(ctx, uid);
   }
   await applyMeetAgain(ctx, members, true);
 
@@ -597,6 +627,23 @@ async function happenedStep(ctx: PodTx): Promise<void> {
   }
 }
 
+/**
+ * The backfill watchdog: the `backfillPod` task is enqueued after the commit that started the round, and an enqueue
+ * that failed then would leave the round without invitations. Once, 15 minutes later, the task is enqueued again under
+ * a new id if nobody was invited yet (the task itself is idempotent). Returns whether the timer was due.
+ */
+function backfillRetryStep(ctx: PodTx): boolean {
+  const due = ms(ctx.ps.timers.backfillRetry);
+  if (due === undefined || due > ctx.now) return false;
+  delete ctx.ps.timers.backfillRetry;
+  const until = ms(ctx.ps.backfill.until);
+  const invited = Object.values(ctx.ps.members).some((m) => m.viaBackfill);
+  if (!invited && until !== undefined && until > ctx.now && canBackfill(ctx.state, false, ctx.ps.planLockedAt !== undefined)) {
+    ctx.task('backfillPod', { weekId: latestReleasedDropWeek(ctx.now), podId: ctx.podId }, { id: taskId('backfill', ctx.podId, 'retry') });
+  }
+  return true;
+}
+
 const signature = (ctx: PodTx): string => JSON.stringify([ctx.ps.state, podDueAt(ctx.ps), Object.values(ctx.ps.members).map((m) => m.status)]);
 
 /** Processes every timer of the pod that is due at `ctx.now`, earliest first (§4.1); idempotent. */
@@ -605,6 +652,7 @@ export async function advance(ctx: PodTx): Promise<void> {
     const due = podDueAt(ctx.ps);
     if (due === null || due > ctx.now) return;
     const before = signature(ctx);
+    if (backfillRetryStep(ctx)) continue;
     if (!(await expireInvites(ctx))) {
       if (ctx.state === 'proposed') await proposedDeadline(ctx);
       else if (ctx.state === 'planning') await planDeadlineStep(ctx);

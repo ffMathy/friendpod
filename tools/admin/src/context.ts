@@ -5,16 +5,14 @@
  * which firebase-admin reads itself; then the project must be a `demo-*` project, and a `demo-*` project is refused
  * without the emulator, so a run can never be mistaken for the other.
  */
-import { openAreaTask } from '@grouper/core';
+import { FUNCTIONS_REGION, OPEN_AREA_DISPATCH_DEADLINE_SECONDS, openAreaTask, openAreaTaskId } from '@grouper/core';
 import { applicationDefault, deleteApp, initializeApp, type App } from 'firebase-admin/app';
 import { getFirestore, type Firestore } from 'firebase-admin/firestore';
 import { getFunctions } from 'firebase-admin/functions';
 import { UsageError } from './args';
 
-/** Region of codebase "default" (functions/src/lib/options.ts REGION; duplicated here, the CLI does not import functions/). */
-export const FUNCTIONS_REGION = 'europe-west1';
-/** `openArea` runs for at most 1,800 s (functions/src/tasks/index.ts TASK_OPTIONS.openArea). */
-export const OPEN_AREA_DISPATCH_DEADLINE_SECONDS = 1800;
+/** Shared with codebase "default" through @grouper/core (deploy.ts), so the two cannot drift. */
+export { FUNCTIONS_REGION, OPEN_AREA_DISPATCH_DEADLINE_SECONDS, openAreaTaskId };
 export const DEFAULT_DATABASE = '(default)';
 
 export type EnqueueOutcome = 'enqueued' | 'alreadyQueued';
@@ -53,11 +51,6 @@ export function checkProject(project: string | undefined, env: NodeJS.ProcessEnv
   if (demo && !emulator) throw new UsageError(`${project} is a demo project: set FIRESTORE_EMULATOR_HOST to use the emulators`);
   if (!demo && emulator) throw new UsageError(`FIRESTORE_EMULATOR_HOST is set: use a demo-* project with the emulators, or unset it to reach ${project}`);
   return { project, emulator };
-}
-
-/** The task id of the openArea task for an area (§10.3). */
-export function openAreaTaskId(areaId: string): string {
-  return `open-${areaId}`;
 }
 
 interface TaskQueueLike {

@@ -15,6 +15,7 @@ import type { PushKind, PushParams, PushRecipient } from '../../src/lib/push';
 import type { AppDeps } from '../../src/lib/runtime';
 import type { TaskOptions, TaskQueueName } from '../../src/lib/tasks';
 import { testUidHmac } from './keys';
+import { MemoryUserObjects } from './objects';
 import { PROJECT_ID, request, type RequestOptions } from './requests';
 
 export const HAS_EMULATORS = Boolean(process.env.FIRESTORE_EMULATOR_HOST && process.env.FIREBASE_AUTH_EMULATOR_HOST);
@@ -41,6 +42,7 @@ export interface TestDeps extends AppDeps {
   readonly pushes: SentPush[];
   /** Every task enqueued (duplicates by id answered `exists`, as Cloud Tasks does); there is no Tasks emulator here. */
   readonly enqueued: EnqueuedTask[];
+  readonly objects: MemoryUserObjects;
 }
 
 /** One Admin app per test file, against the emulators; a settable clock instead of Date.now(), pushes recorded. */
@@ -49,6 +51,7 @@ export function emulatorDeps(startMs: number): TestDeps {
   const clock = { now: startMs };
   const pushes: SentPush[] = [];
   const enqueued: EnqueuedTask[] = [];
+  const objects = new MemoryUserObjects();
   const lazyApp = (): App => (app ??= initializeApp({ projectId: PROJECT_ID }, `test-${randomBytes(6).toString('hex')}`));
   afterAll(async () => {
     if (app) await deleteApp(app);
@@ -57,6 +60,7 @@ export function emulatorDeps(startMs: number): TestDeps {
     clock,
     pushes,
     enqueued,
+    objects,
     tasks: {
       async enqueue(queue, data, options) {
         if (enqueued.some((t) => t.queue === queue && t.options.id === options.id)) return 'exists';

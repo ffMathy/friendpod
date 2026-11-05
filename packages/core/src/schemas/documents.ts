@@ -84,6 +84,11 @@ export const userDocSchema = z.object({
   interestCount: z.int().min(0).max(20),
   createdAt: timestampSchema,
   lastActiveAt: timestampSchema,
+  /**
+   * DESIGN-DEVIATION: §8.1 names no field for the inactivity warning. Set by dailyMaintenance when it warns after 12
+   * months without activity; the account is deleted 30 days later unless `lastActiveAt` has moved past it.
+   */
+  inactivityWarnedAt: timestampSchema.optional(),
 });
 export type UserDoc = z.infer<typeof userDocSchema>;
 
@@ -413,6 +418,11 @@ export const podStateTimersSchema = z.object({
   // on is stored, and each one is deleted once it has been processed, so a retried sweep never repeats it.
   reminder: timestampSchema.optional(),
   happened: timestampSchema.optional(),
+  /**
+   * DESIGN-DEVIATION: a one-time watchdog 15 minutes after a backfill round starts. If the `backfillPod` task was never
+   * enqueued (an enqueue failure after the commit) and nobody was invited yet, the sweeper enqueues it again.
+   */
+  backfillRetry: timestampSchema.optional(),
 });
 
 /**
@@ -464,6 +474,11 @@ export const podStateDocSchema = z.object({
   score: z.number(),
   backfill: z.object({ used: z.boolean(), until: timestampSchema.optional() }),
   version: z.int().min(0),
+  /**
+   * DESIGN-DEVIATION: when dailyMaintenance deletes the ended pod (archive + 90 days, dissolve + 30 days, §4.2), set
+   * when the pod ends, so the daily job queries one indexed field. Absent while the pod runs.
+   */
+  deleteAt: timestampSchema.optional(),
 });
 export type PodStateDoc = z.infer<typeof podStateDocSchema>;
 
@@ -594,8 +609,12 @@ export const reportDocSchema = z
 export const sanctionDocSchema = z.object({
   type: z.enum(['pause', 'suspension']),
   until: timestampSchema,
+  /** The pause reason it set on the account (`noShow`, `reports`, `underageReport`). */
   reasonCode: z.string(),
   noticeId: docIdSchema,
+  createdAt: timestampSchema.optional(),
+  /** When the current sanction started (an under-18 pause restarts only on a report from another pod, §3.7). */
+  since: timestampSchema.optional(),
 });
 
 export const banDocSchema = z.object({ reasonCode: z.string(), createdAt: timestampSchema, expiresAt: timestampSchema });

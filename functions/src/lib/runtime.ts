@@ -12,6 +12,7 @@ import type { HandlerDeps } from './handler';
 import { log } from './log';
 import { sendGenericPush, type PushSender } from './push';
 import { UID_HMAC_KEY, hmacFromSecret } from './secrets';
+import { gcsUserObjects, type UserObjectStore } from './objects';
 import { gcsObjectStore, type DropObjectStore } from './storage';
 import { cloudTasks, type TaskEnqueuer } from './tasks';
 
@@ -20,6 +21,8 @@ export interface AppDeps extends HandlerDeps {
   readonly auth: Auth;
   readonly push: PushSender;
   readonly tasks: TaskEnqueuer;
+  /** The user-content bucket: photos, pending uploads and exports (§8 Storage paths). */
+  readonly objects: UserObjectStore;
 }
 
 export const handlerDeps: HandlerDeps = {
@@ -41,6 +44,7 @@ export function appDeps(): AppDeps {
     auth: getAuth(app()),
     push: (kind, recipients, params) => sendGenericPush(getMessaging(app()), kind, recipients, params),
     tasks: cloudTasks(app),
+    objects: gcsUserObjects(() => getStorage(app()).bucket()),
   };
   return cached;
 }

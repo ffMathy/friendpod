@@ -7,7 +7,7 @@ import type { App } from 'firebase-admin/app';
 import { getFunctions } from 'firebase-admin/functions';
 import { REGION } from './options';
 
-export type TaskQueueName = 'matchComponent' | 'releaseDrop' | 'backfillPod';
+export type TaskQueueName = 'matchComponent' | 'releaseDrop' | 'backfillPod' | 'purgeUser' | 'buildExport' | 'deleteExport' | 'interestsBatch';
 
 export interface TaskOptions {
   /** Deterministic task id (letters, digits, `-` and `_`). */

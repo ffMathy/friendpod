@@ -16,6 +16,7 @@ export * from './matching';
 export * from './pods';
 export * from './metrics';
 export * from './profile';
+export * from './deploy';
 export { xxhash32 } from './util/xxhash32';
 export { base64Decode, base64Encode } from './util/base64';
 export { utf8Encode } from './util/utf8';

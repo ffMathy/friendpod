@@ -2,12 +2,12 @@
  * Deployment options for codebase "default" (DESIGN.md §7, §9, §10). Every function spreads one of these
  * explicitly instead of relying on setGlobalOptions(), so a function's options do not depend on import order.
  */
-import { CALLABLES, type CallableName } from '@grouper/core';
+import { CALLABLES, FUNCTIONS_REGION, LONG_TASK_DISPATCH_DEADLINE_SECONDS, type CallableName } from '@grouper/core';
 import type { CallableOptions } from 'firebase-functions/https';
 import type { GlobalOptions } from 'firebase-functions/options';
 import { UID_HMAC_KEY } from './secrets';
 
-export const REGION = 'europe-west1';
+export const REGION = FUNCTIONS_REGION;
 /** `sa-api@<project>.iam.gserviceaccount.com`; the CLI expands the trailing `@` (§9 IAM). */
 export const SERVICE_ACCOUNT = 'sa-api@';
 
@@ -26,7 +26,7 @@ export const BASE_OPTIONS = {
 export const HOT_OPTIONS = { cpu: 1, memory: '512MiB', concurrency: 40, maxInstances: 20 } as const satisfies GlobalOptions;
 
 /** Drop compute and release: 1 vCPU / 1 GiB, 1,800 s (§10.3). */
-export const HEAVY_OPTIONS = { cpu: 1, memory: '1GiB', concurrency: 1, timeoutSeconds: 1800 } as const satisfies GlobalOptions;
+export const HEAVY_OPTIONS = { cpu: 1, memory: '1GiB', concurrency: 1, timeoutSeconds: LONG_TASK_DISPATCH_DEADLINE_SECONDS } as const satisfies GlobalOptions;
 
 export const HOT_CALLABLES: ReadonlySet<CallableName> = new Set<CallableName>(['respondToPod', 'voteOption', 'registerPushToken', 'confirmAttendance']);
 

@@ -35,6 +35,7 @@ import {
   applyRecent,
   attendanceFailure,
   autoPause,
+  checkNoShowSanction,
   confirm,
   isSensitiveTheme,
   lateJoin,
@@ -211,6 +212,7 @@ export async function confirmAttendance(deps: AppDeps, call: CallContext, input:
           }));
         }
         ctx.setMember(uid, { lateCancelled: true });
+        await checkNoShowSanction(ctx, uid);
       }
       if (possibleAttendees(ctx) < MIN_MEMBERS) await attendanceFailure(ctx);
     }

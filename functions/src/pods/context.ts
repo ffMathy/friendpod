@@ -67,6 +67,7 @@ export function podDueAt(ps: PodStateDoc): number | null {
   const invited = Object.values(ps.members).filter((m) => m.status === 'invited');
   if (invited.some((m) => !m.viaBackfill)) c.push(ms(t.acceptBy));
   if (invited.some((m) => m.viaBackfill)) c.push(ms(t.backfillUntil));
+  if (ps.state === 'proposed' || ps.state === 'planning') c.push(ms(t.backfillRetry));
   switch (ps.state) {
     case 'proposed':
       c.push(proposalDecisionAt(t.acceptBy.toMillis(), ms(t.backfillUntil) ?? null));

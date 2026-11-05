@@ -61,6 +61,7 @@ export function releaseDeps(deps: TestDeps, drops: DropObjectStore = sharedDrops
     log: deps.log,
     push: (kind, recipients, params) => deps.push(kind, recipients, params),
     tasks: deps.tasks,
+    objects: deps.objects,
     get db() {
       return deps.db;
     },
