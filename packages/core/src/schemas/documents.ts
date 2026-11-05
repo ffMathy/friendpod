@@ -44,7 +44,7 @@ import {
 import { CHAT_MESSAGE_MAX } from './callables';
 import { aboutMeSchema, prefsSchema } from './profile';
 import { podReasonSchema, unmatchedReasonSchema } from './reasons';
-import { FUNNEL_NO_AREA, type FunnelStage, type MilestoneField } from '../metrics/funnel';
+import { FUNNEL_NO_AREA, type FunnelStage, type HeardFromSource, type MilestoneField } from '../metrics/funnel';
 
 const wording = z.string().min(1).max(80);
 const vectorValue = z.unknown().refine((v) => v !== undefined && v !== null, { message: 'required' });
@@ -493,6 +493,19 @@ export const funnelDocSchema = z.object({
     firstMeetupHappened: funnelCount,
     secondMeetup: funnelCount,
   } satisfies Record<FunnelStage, unknown>),
+  /** "Where did you hear about Grouper?" answers of users onboarded that week (uid-free, once per user). */
+  sources: z
+    .object({
+      dadsGroup: funnelCount,
+      newcomerEvent: funnelCount,
+      university: funnelCount,
+      venuePoster: funnelCount,
+      friend: funnelCount,
+      socialMedia: funnelCount,
+      press: funnelCount,
+      other: funnelCount,
+    } satisfies Record<HeardFromSource, unknown>)
+    .default({ dadsGroup: 0, newcomerEvent: 0, university: 0, venuePoster: 0, friend: 0, socialMedia: 0, press: 0, other: 0 }),
   expiresAt: timestampSchema,
 });
 export type FunnelDoc = z.infer<typeof funnelDocSchema>;

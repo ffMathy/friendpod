@@ -109,9 +109,21 @@
     "done": {
       "title": "You're in",
       "live": "Your first drop is Thursday at 18:00.",
-      "waitlist": "{{area}}: {{bucket}} signed up. We open at {{goal}}.",
+      "waitlist": "{{area}}: {{n}} of {{goal}} signed up. We'll open when enough people near you have joined.",
       "outside": "Grouper isn't in your area yet. We'll let you know when it is.",
       "go": "Go to Grouper"
+    },
+    "heardFrom": {
+      "question": "Where did you hear about Grouper? (optional)",
+      "hint": "We only count the answers per city and week; it is not saved on your profile.",
+      "dadsGroup": "A dads' or parents' group",
+      "newcomerEvent": "A newcomer event",
+      "university": "University or school",
+      "venuePoster": "A poster at a café or venue",
+      "friend": "A friend",
+      "socialMedia": "Social media",
+      "press": "News or press",
+      "other": "Somewhere else"
     }
   },
   "areaStatus": {
@@ -602,5 +614,17 @@
       "notComing": "Can't make it"
     },
     "hasntConfirmed": "{{name}} hasn't confirmed"
+  },
+  "waitlist": {
+    "title": "Grouper is coming to {{city}}",
+    "counter": "{{n}} of {{goal}} signed up",
+    "nextTitle": "What happens next",
+    "next": "We'll notify you when {{city}} opens; your first drop will be the Thursday after.",
+    "shareIntro": "The more people in {{city}} sign up, the sooner it opens.",
+    "share": "Invite people",
+    "shareTitle": "Grouper in {{city}}",
+    "shareMessage": "Grouper forms small groups of people near you around a shared interest. Join the waitlist for {{city}}: {{link}}",
+    "copy": "Copy link",
+    "copied": "Link copied"
   }
 }

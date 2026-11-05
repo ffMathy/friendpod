@@ -2,7 +2,8 @@ rules_version = '2';
 
 // DESIGN.md §9. Deny by default; clients never write. Every write goes through a callable (Admin SDK), which
 // bypasses these rules. Anything not matched below (matchProfiles, tags, concepts, podState, consentEvents,
-// reports, pairSignals, photoGrants, rateLimits, …) is server-only.
+// reports, pairSignals, photoGrants, rateLimits, funnel, …) is server-only. `funnel/{areaId}_{weekId}` (the uid-free
+// day-1 funnel counters, §6.8) is read only by the admin CLI, which suppresses cells under 10.
 service cloud.firestore {
   match /databases/{db}/documents {
     function signedIn()  { return request.auth != null; }
@@ -34,6 +35,7 @@ service cloud.firestore {
       }
     }
 
+    // Launch areas, including the exact waitlistCount and goal the waitlist screen shows (§3.1 step 12).
     match /areas/{areaId} {
       allow read: if onboarded();
     }

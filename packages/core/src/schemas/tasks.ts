@@ -17,3 +17,8 @@ export const interestsBatchTask = z.strictObject({
   op: z.enum(['rescan', 'maintenance']),
   cursor: z.string().max(1500).optional(),
 });
+/**
+ * An area went live (admin CLI `areas set-status <areaId> live`): mark every user in it `firstDropEligible` (once per
+ * user) and send the "<city> is open" push to those newly marked. Idempotent; enqueued with task id `open-{areaId}`.
+ */
+export const openAreaTask = z.strictObject({ areaId: z.string().regex(/^[a-z][a-z0-9-]{1,31}$/) });

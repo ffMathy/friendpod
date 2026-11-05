@@ -10,7 +10,10 @@ import {
   meetupMilestone,
   newMilestones,
   suppressFunnelCounts,
+  HEARD_FROM_SOURCES,
+  suppressSourceCounts,
 } from '../src/metrics/funnel';
+import { completeOnboardingInput } from '../src/schemas/callables';
 import { funnelDocSchema, matchProfileDocSchema, milestonesSchema } from '../src/schemas/documents';
 import type { WeekId } from '../src/types/ids';
 
@@ -62,10 +65,21 @@ describe('funnel (§6.8)', () => {
     });
   });
 
+  it('accepts only the fixed "where did you hear" choices, optionally, and suppresses their counts', () => {
+    expect(HEARD_FROM_SOURCES).toEqual(['dadsGroup', 'newcomerEvent', 'university', 'venuePoster', 'friend', 'socialMedia', 'press', 'other']);
+    const base = { firstName: 'Ada', dob: '1990-01-01', locale: 'da', area: { gh5: 'u1zr2' }, legal: { terms: 'terms-2026-11', privacy: 'privacy-2026-11' } };
+    expect(completeOnboardingInput.safeParse(base).success).toBe(true);
+    expect(completeOnboardingInput.safeParse({ ...base, heardFrom: 'dadsGroup' }).success).toBe(true);
+    expect(completeOnboardingInput.safeParse({ ...base, heardFrom: 'tiktok' }).success).toBe(false);
+    expect(completeOnboardingInput.safeParse({ ...base, heardFrom: ['friend', 'press'] }).success).toBe(false);
+    expect(suppressSourceCounts({ friend: 3, press: 12 })).toMatchObject({ friend: '<10', press: 12, other: 0 });
+    expect(funnelDocSchema.parse({ areaId: 'odense', weekId: '2026-W45', counts: {}, expiresAt: ts }).sources.university).toBe(0);
+  });
+
   it('validates funnel docs, filling missing counters with 0, and holds no uid', () => {
     const doc = funnelDocSchema.parse({ areaId: 'vejle', weekId: '2026-W45', counts: { signup: 3 }, expiresAt: ts });
     expect(doc.counts).toMatchObject({ signup: 3, onboarded: 0, secondMeetup: 0 });
-    expect(Object.keys(funnelDocSchema.shape).sort()).toEqual(['areaId', 'counts', 'expiresAt', 'weekId']);
+    expect(Object.keys(funnelDocSchema.shape).sort()).toEqual(['areaId', 'counts', 'expiresAt', 'sources', 'weekId']);
     expect(funnelDocSchema.safeParse({ areaId: 'none', weekId: '2026-W45', counts: {}, expiresAt: ts }).success).toBe(true);
     expect(funnelDocSchema.safeParse({ areaId: 'vejle', weekId: '2026-W45', counts: { signup: -1 }, expiresAt: ts }).success).toBe(false);
   });

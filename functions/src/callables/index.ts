@@ -50,6 +50,9 @@ export const confirmSuggestion = stub('confirmSuggestion', '§5.2 (6)');
 // At confirmation the roster entry is {firstName, photoV} plus the member's "about me" (D4), so only confirmed members
 // ever read it (pods/{podId} is readable through memberUids alone, firestore.rules). The roster schema in core gains
 // `aboutMe` with this callable.
+// Funnel (§6.8): at confirmation, recordMilestones(deps, uid, ['firstConfirmed'], now) for every accepted member; this
+// also ends their first-timer priority in matching (§6.2).
+// TODO(M1, §6.8): call recordMilestones from the confirming transaction's follow-up.
 export const respondToPod = stub('respondToPod', '§4.6');
 export const setPhotoSharing = stub('setPhotoSharing', '§6.1');
 export const leavePod = stub('leavePod', '§3.8');

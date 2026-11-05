@@ -21,10 +21,10 @@ schemas, security-critical logic and tests, with later feature logic as typed st
 | `functions/` | The one Functions codebase, `default`: callables (`addInterests` included), scheduled, task and event functions (§10.1, §10.3) | standalone npm project |
 | `tests/rules/` | Firestore and Storage security-rules tests and the index validator (§9, §13) | standalone npm project |
 | `tools/sim/` | Synthetic-city simulation harness, thin-market runs and matcher benchmarks (§6.9) | workspace |
-| `tools/admin/` | Admin CLI skeleton (§9 Admin access, §13 Backups) | workspace |
+| `tools/admin/` | Admin CLI skeleton (§9 Admin access, §13 Backups); `funnel show` prints the day-1 funnel with cells under 10 suppressed (§6.8) | workspace |
 | `scripts/` | Root CI helpers (`check-functions-discovery.ts`) | root |
 | `firebase.json`, `.firebaserc`, `firestore.rules`, `storage.rules`, `firestore.indexes.json` | Firebase configuration, rules, indexes and TTL policies (§7–§9) | root |
-| `hosting/public/` | Static privacy and account-deletion pages | root |
+| `hosting/public/` | Static privacy and account-deletion pages, and the shared city page `/c/{areaId}` (`c/index.html`, rewritten for `/c/**`; city name from the path, store links, no tracking) | root |
 | `.github/` | CI (`ci.yml`), calibration and deploy workflows, shared setup action (§13) | root |
 | `docs/`, `research/` | Founder overview, design, privacy design, cost overview (`COSTS.md`) and research reports | root |
 
@@ -170,7 +170,12 @@ erasure).
 throttled generic pushes), `addInterests` (pipeline steps 1–7 on the client's vector, the blanket-consent gate,
 "Keep this private", "This isn't sensitive for me", the known-ordinary list, the server-side lexicon and margin),
 `setArt9Consent`, `withdrawArt9Consent` for a user without sensitive holdings, the `matchComponent` task body,
-`onBudgetAlert`, the security rules, the matcher and the app's main flows. No pod reaches `scheduled` until the pod
+`onBudgetAlert`, the security rules, the matcher (with first-timers first, F35) and the app's main flows. Since the
+2026-11-05 launch decisions also: the five launch cities, the exact per-city `waitlistCount` (onboarding, area change,
+and `eraseMatchProfileAndAreaCount` for erasure), the in-app waitlist screen with share and copy, the `/c/{areaId}`
+Hosting page, the `openArea` task and its "<city> is open" push, and the day-1 funnel (`funnel/{areaId}_{weekId}`,
+once per user through `matchProfiles.milestones`) for the stages that happen in built code; the stubbed stages
+(proposal, confirmation, meetups, abandoned sign-ups) carry the helper call as a TODO. No pod reaches `scheduled` until the pod
 lifecycle stubs below exist, so the chat works end to end only in M1.
 
 **Sensitive interests are switched off** until their withdrawal exists: `ART9_HOLDINGS_ENABLED` in

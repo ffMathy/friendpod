@@ -59,6 +59,7 @@ export async function users(n: number): Promise<MatchUser[]> {
         reliability: 0.8,
         waitingSinceWeek: WEEK,
         priority: false,
+        firstTimer: true,
         openToAnyone: false,
         activePods: 0,
         activeSensitivePods: 0,

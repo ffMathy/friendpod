@@ -68,6 +68,7 @@ const users: MatchUser[] = city.users.map((u) => ({
   reliability: 0.6 + 0.35 * rng.next(),
   waitingSinceWeek: addWeeks(weekId, -rng.int(0, 5)),
   priority: rng.chance(0.03),
+  firstTimer: rng.chance(0.5),
   openToAnyone: u.openToAnyone,
   activePods: rng.weighted([[0, 0.7], [1, 0.25], [2, 0.05]] as const),
   activeSensitivePods: 0,

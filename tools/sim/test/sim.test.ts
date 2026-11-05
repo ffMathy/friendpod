@@ -86,6 +86,19 @@ describe('12-week loop', () => {
   });
 });
 
+describe('first-timers first (§6.2)', () => {
+  const off = (p: typeof ALPHA_PROFILE) => ({ ...p, params: { ...p.params, firstTimer: { seedFirst: false, boost: 0 } } });
+  const sum = (xs: number[]) => xs.reduce((a, b) => a + b, 0);
+
+  it('gives first-timers more of the seats and leaves fewer of them out than with the parameter off', () => {
+    const seeds = [1, 2, 3];
+    const on = seeds.map((seed) => simulate({ n: 200, weeks: 6, profile: ALPHA_PROFILE, seed }).metrics.firstTimers);
+    const without = seeds.map((seed) => simulate({ n: 200, weeks: 6, profile: off(ALPHA_PROFILE), seed }).metrics.firstTimers);
+    expect(sum(on.map((m) => m.seatShare!))).toBeGreaterThan(sum(without.map((m) => m.seatShare!)));
+    expect(sum(on.map((m) => m.leftOut))).toBeLessThanOrEqual(sum(without.map((m) => m.leftOut)));
+  });
+});
+
 describe('metric helpers', () => {
   it('computes censored percentiles', () => {
     expect(censoredPercentile([1, 2, 3, 4], 0.5)).toBe(2);

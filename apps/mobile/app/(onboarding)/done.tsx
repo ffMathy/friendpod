@@ -1,4 +1,4 @@
-import { getLaunchArea } from '@grouper/core';
+import { getLaunchArea, waitlistDisplay } from '@grouper/core';
 import { useTranslation } from 'react-i18next';
 import { Body, Button, Heading, Loading, Screen } from '@/components/ui';
 import { useAreaDoc, useUserDoc } from '@/data/docs';
@@ -6,7 +6,7 @@ import { AboutMeField } from '@/features/profile/AboutMeField';
 import { useSession, useUid } from '@/features/session/SessionProvider';
 import { currentLocale } from '@/i18n';
 
-/** §3.1 step 11: live area, waitlist progress (bucketed) or "not in your area yet", and the optional "About me" (D4). */
+/** §3.1 step 12: live area, waitlist progress ("N of goal", "<10" below 10) or "not in your area yet", and "About me" (D4). */
 export default function Done() {
   const { t } = useTranslation();
   const { finishOnboarding } = useSession();
@@ -25,8 +25,8 @@ export default function Done() {
   else
     message = t('onboarding.done.waitlist', {
       area: label,
-      bucket: area.data?.optedInBucket ?? '<50',
-      goal: area.data?.goal.optedIn ?? launchArea?.goal.optedIn ?? 200,
+      n: waitlistDisplay(area.data?.waitlistCount ?? 0),
+      goal: area.data?.goal.waitlist ?? launchArea?.goal.waitlist ?? 250,
     });
 
   return (

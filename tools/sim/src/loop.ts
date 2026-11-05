@@ -80,6 +80,10 @@ interface Counters {
   confirmedBySize: Record<number, number>;
   matchMs: number;
   matchMsMax: number;
+  /** Proposed seats (release, not backfill) that went to users without a confirmed pod yet (§6.2). */
+  firstTimerSeats: number;
+  /** Seats offered while at least one first-timer of that component was left unmatched. */
+  firstTimersLeftOut: number;
 }
 
 function toMatchUser(u: SimUser, s: UserState, weekId: WeekId): MatchUser {
@@ -108,6 +112,8 @@ function toMatchUser(u: SimUser, s: UserState, weekId: WeekId): MatchUser {
     reliability: reliability({ attended: s.attended, noShows: s.noShows, lateCancels: 0 }),
     waitingSinceWeek: s.waitingSinceWeek,
     priority: s.priority,
+    // Never had a confirmed pod (`milestones.firstConfirmedAt` absent in production, §6.2).
+    firstTimer: s.firstConfirmed === null,
     openToAnyone: u.openToAnyone,
     activePods: active.length,
     activeSensitivePods: active.filter((x) => x.sensitive).length,
@@ -168,7 +174,7 @@ export function simulate(opts: SimOptions) {
   const c: Counters = {
     optedIn: 0, proposedUsers: 0, proposedPods: 0, confirmedPods: 0, invites: 0, accepts: 0, backfillInvites: 0, backfillRescues: 0,
     happened: 0, attendanceSlots: 0, attendees: 0, meetAgainPairs: 0, meetAgainYes: 0, kept: 0, sensitivePods: 0, openToAnyonePods: 0,
-    podSize: {}, confirmedBySize: {}, matchMs: 0, matchMsMax: 0,
+    podSize: {}, confirmedBySize: {}, matchMs: 0, matchMsMax: 0, firstTimerSeats: 0, firstTimersLeftOut: 0,
   };
   const perWeek: { week: WeekId; optedIn: number; proposed: number; pods: number; confirmed: number; matchMs: number }[] = [];
 
@@ -203,6 +209,8 @@ export function simulate(opts: SimOptions) {
       const conceptIdx = new Map(ctx.conceptIds.map((id, i) => [id, i]));
       const claimed = new Set<string>(result.pods.flatMap((p) => p.members));
       for (const u of result.unmatched) states.get(u.uid)!.reasons.push(u.reason);
+      for (const pod of result.pods) for (const uid of pod.members) if (states.get(uid)!.firstConfirmed === null) c.firstTimerSeats++;
+      c.firstTimersLeftOut += result.unmatched.filter((u) => states.get(u.uid)!.firstConfirmed === null).length;
 
       for (const pod of result.pods) {
         const theme = pod.theme.kind === 'openToAnyone' ? OPEN_THEME : conceptIdx.get(pod.theme.conceptId)!;
@@ -354,6 +362,12 @@ export function simulate(opts: SimOptions) {
       attendance: round(ratio(c.attendees, c.attendanceSlots)),
       meetAgainRate: round(ratio(c.meetAgainYes, c.meetAgainPairs)),
       continuationRate: round(ratio(c.kept, c.happened)),
+      firstTimers: {
+        /** Share of drop seats (before backfill) that went to users without a confirmed pod yet (§6.2). */
+        seatShare: round(ratio(c.firstTimerSeats, c.proposedUsers - c.backfillInvites)),
+        /** First-timer user-weeks left unmatched. */
+        leftOut: c.firstTimersLeftOut,
+      },
       runtimeMs: { matchTotal: round(c.matchMs, 1), matchMaxWeek: round(c.matchMsMax, 1), wall: round(performance.now() - started, 1) },
       perWeek,
     },

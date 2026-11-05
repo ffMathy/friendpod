@@ -1,5 +1,7 @@
 import {
+  HEARD_FROM_SOURCES,
   POSTCODE_ATTRIBUTION,
+  type HeardFromSource,
   coordinatesToGh5,
   lookupPostcode,
   postcodeToGh5,
@@ -10,7 +12,7 @@ import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Body, Button, Card, ErrorText, Field, Heading, Screen } from '@/components/ui';
+import { Body, Button, Card, Checkbox, ErrorText, Field, Heading, Screen } from '@/components/ui';
 import { useCallable } from '@/data/useCallable';
 import { signOut } from '@/features/account/account';
 import { useOnboardingDraft } from '@/features/onboarding/draft';
@@ -22,7 +24,8 @@ import { errorMessageKey } from '@/lib/errors';
 /**
  * §3.1 step 6: postcode (default, no permission) or approximate location (coarse permission). Either is
  * converted to a geohash-5 cell on the device and discarded; the server receives only `gh5`. Then
- * `completeOnboarding` runs with steps 3–6.
+ * `completeOnboarding` runs with steps 3–6, plus the optional "Where did you hear about Grouper?" (one choice or none;
+ * the server keeps only an aggregate counter per city and week, never the answer on the profile, §6.8).
  */
 export default function Area() {
   const { t } = useTranslation();
@@ -32,6 +35,7 @@ export default function Area() {
   const [postcode, setPostcode] = useState('');
   const [locating, setLocating] = useState(false);
   const [locationFailed, setLocationFailed] = useState(false);
+  const [heardFrom, setHeardFrom] = useState<HeardFromSource | null>(null);
   const complete = useCallable('completeOnboarding');
 
   const place = postcode.length === 4 ? lookupPostcode(postcode) : null;
@@ -65,7 +69,7 @@ export default function Area() {
   const finish = () => {
     if (!gh5 || !draft.dob || !draft.firstName || !draft.legalAccepted) return;
     complete.mutate(
-      { firstName: draft.firstName, dob: draft.dob, locale, area: { gh5 }, legal: LEGAL_DOC_VERSIONS },
+      { firstName: draft.firstName, dob: draft.dob, locale, area: { gh5 }, legal: LEGAL_DOC_VERSIONS, ...(heardFrom ? { heardFrom } : {}) },
       {
         onSuccess: async () => {
           update({ dob: null });
@@ -94,6 +98,19 @@ export default function Area() {
           <Body muted>{area ? t(`areaStatus.${area.status}`) : t('onboarding.area.outsideHint')}</Body>
         </Card>
       ) : null}
+      <Card>
+        <Body bold>{t('onboarding.heardFrom.question')}</Body>
+        <Body muted>{t('onboarding.heardFrom.hint')}</Body>
+        {HEARD_FROM_SOURCES.map((source) => (
+          <Checkbox
+            key={source}
+            testID={`heard-from-${source}`}
+            label={t(`onboarding.heardFrom.${source}`)}
+            checked={heardFrom === source}
+            onChange={(checked) => setHeardFrom(checked ? source : null)}
+          />
+        ))}
+      </Card>
       {underage ? (
         <>
           <ErrorText>{t('onboarding.area.underage')}</ErrorText>

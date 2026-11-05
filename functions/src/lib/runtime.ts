@@ -37,7 +37,7 @@ export function appDeps(): AppDeps {
     ...handlerDeps,
     db: getFirestore(app()),
     auth: getAuth(app()),
-    push: (kind, recipients) => sendGenericPush(getMessaging(app()), kind, recipients),
+    push: (kind, recipients, params) => sendGenericPush(getMessaging(app()), kind, recipients, params),
   };
   return cached;
 }

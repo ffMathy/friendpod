@@ -48,6 +48,8 @@ const POD_DOCS: Record<string, Data> = {
 
 const PUBLICISH_DOCS: Record<string, Data> = {
   'areas/aarhus': { label: 'Aarhus', status: 'waitlist', chips: [] },
+  // A new launch city with the waitlist counter (§3.1 step 12).
+  'areas/vejle': { label: { da: 'Vejle', en: 'Vejle' }, status: 'waitlist', waitlistCount: 12, goal: { waitlist: 250 }, chips: [] },
   'config/app': { minAppVersion: '0.1.0', features: { interests: true, uploads: true } },
   'config/internal': { note: 'not public' },
 };
@@ -75,6 +77,9 @@ const SERVER_ONLY_DOCS: Record<string, Data> = {
   [`rateLimits/${ALICE}_sensitiveAdds`]: { count: 1, windowStart: AT, expiresAt: AT },
   'erasureLedger/l1': { uidH: 'uidhash', kind: 'interest', at: AT, expiresAt: AT },
   'underageMarkers/emailHash2': { createdAt: AT, expiresAt: AT },
+  // Day-1 funnel counters (§6.8): uid-free, but only the admin CLI reads them (and suppresses cells under 10).
+  [`funnel/aarhus_${WEEK}`]: { areaId: 'aarhus', weekId: WEEK, counts: { signup: 12, onboarded: 11 }, sources: { friend: 3 }, expiresAt: AT },
+  [`funnel/none_${WEEK}`]: { areaId: 'none', weekId: WEEK, counts: { signup: 2 }, expiresAt: AT },
 };
 
 const UNKNOWN_DOCS: Record<string, Data> = { 'misc/doc1': { x: 1 } };
@@ -255,6 +260,8 @@ describe('a member removed from memberUids (block, leave, withdrawal) loses opti
 describe('areas require the onb claim', () => {
   it('allows onboarded users to get and list', async () => {
     await assertSucceeds(get(aliceOnb, 'areas/aarhus'));
+    await assertSucceeds(get(aliceOnb, 'areas/vejle'));
+    await assertSucceeds(get(bobOnb, 'areas/vejle'));
     await assertSucceeds(list(aliceOnb, 'areas'));
   });
 
@@ -262,6 +269,8 @@ describe('areas require the onb claim', () => {
     await assertFails(get(alice, 'areas/aarhus'));
     await assertFails(list(alice, 'areas'));
     await assertFails(get(anon, 'areas/aarhus'));
+    await assertFails(get(alice, 'areas/vejle'));
+    await assertFails(get(anon, 'areas/vejle'));
   });
 });
 

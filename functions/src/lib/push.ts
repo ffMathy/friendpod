@@ -1,6 +1,8 @@
 /**
  * Push notifications with generic payloads only (DESIGN.md §6.1 S4, A14): a fixed text per kind and locale,
  * and `data.kind`. Never a theme, name, place, pod id or count, because FCM, APNs and lock screens see them.
+ * The one parameter is `areaOpen`'s city: the recipient's own launch area, the same text for everyone in that city
+ * (founder decision 2026-11-05, "<city> is open — your first drop is Thursday 18:00").
  * The app opens Home and reads everything else from Firestore under the rules.
  */
 import type { Locale } from '@grouper/core';
@@ -17,6 +19,7 @@ export const PUSH_KINDS = [
   'feedback',
   'weeklyNudge',
   'notice',
+  'areaOpen',
 ] as const;
 export type PushKind = (typeof PUSH_KINDS)[number];
 
@@ -25,8 +28,13 @@ interface PushCopy {
   readonly body: string;
 }
 
+/** Only `areaOpen` takes a parameter: the launch area's label in both languages. */
+export interface PushParams {
+  readonly city?: { readonly da: string; readonly en: string };
+}
+
 // [A] Danish copy awaits native review together with the app's i18n files.
-const COPY: Readonly<Record<PushKind, Readonly<Record<Locale, PushCopy>>>> = {
+const COPY: Readonly<Record<Exclude<PushKind, 'areaOpen'>, Readonly<Record<Locale, PushCopy>>>> = {
   dropReady: {
     en: { title: 'Grouper', body: 'Your weekly drop is here' },
     da: { title: 'Grouper', body: 'Dit ugentlige drop er her' },
@@ -74,10 +82,18 @@ export interface PushRecipient {
   readonly tokens: readonly string[];
 }
 
-/** One FCM message per device token; the only variable parts are the token and the locale of the fixed copy. */
-export function genericMessages(kind: PushKind, recipients: readonly PushRecipient[]): Message[] {
+function copyFor(kind: PushKind, locale: Locale, params: PushParams): PushCopy {
+  if (kind !== 'areaOpen') return COPY[kind][locale];
+  if (!params.city) throw new Error('areaOpen needs the city');
+  return locale === 'da'
+    ? { title: 'Grouper', body: `${params.city.da} er åben — dit første drop er torsdag kl. 18:00` }
+    : { title: 'Grouper', body: `${params.city.en} is open — your first drop is Thursday 18:00` };
+}
+
+/** One FCM message per device token; the only variable parts are the token, the locale and (areaOpen) the city. */
+export function genericMessages(kind: PushKind, recipients: readonly PushRecipient[], params: PushParams = {}): Message[] {
   return recipients.flatMap(({ locale, tokens }) => {
-    const copy = COPY[kind][locale];
+    const copy = copyFor(kind, locale, params);
     return tokens.map((token) => ({
       token,
       notification: { title: copy.title, body: copy.body },
@@ -99,11 +115,11 @@ export interface PushResult {
 }
 
 /** What callables use to push (injected, so tests need no FCM). */
-export type PushSender = (kind: PushKind, recipients: readonly PushRecipient[]) => Promise<PushResult>;
+export type PushSender = (kind: PushKind, recipients: readonly PushRecipient[], params?: PushParams) => Promise<PushResult>;
 
 /** Sends in batches of 500 and returns the tokens FCM reported as gone, for pruning from `pushTokens`. */
-export async function sendGenericPush(messaging: Messaging, kind: PushKind, recipients: readonly PushRecipient[]): Promise<PushResult> {
-  const messages = genericMessages(kind, recipients);
+export async function sendGenericPush(messaging: Messaging, kind: PushKind, recipients: readonly PushRecipient[], params: PushParams = {}): Promise<PushResult> {
+  const messages = genericMessages(kind, recipients, params);
   let sent = 0;
   const staleTokens: string[] = [];
   for (let i = 0; i < messages.length; i += PUSH_BATCH) {

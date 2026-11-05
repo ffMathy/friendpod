@@ -22,7 +22,7 @@ interface Endpoint {
 const endpoint = (name: string): Endpoint => (index as unknown as Record<string, { __endpoint: Endpoint }>)[name]!.__endpoint;
 
 const DEFAULT_CALLABLES = (Object.keys(CALLABLES) as CallableName[]).filter((n) => CALLABLES[n].codebase === 'default');
-const BACKGROUND = ['dropOrchestrator', 'hourlySweeper', 'dailyMaintenance', 'matchComponent', 'releaseDrop', 'backfillPod', 'buildExport', 'deleteExport', 'interestsBatch', 'purgeUser', 'onPhotoUploaded', 'onBudgetAlert'];
+const BACKGROUND = ['dropOrchestrator', 'hourlySweeper', 'dailyMaintenance', 'matchComponent', 'releaseDrop', 'backfillPod', 'buildExport', 'deleteExport', 'interestsBatch', 'purgeUser', 'openArea', 'onPhotoUploaded', 'onBudgetAlert'];
 
 describe('codebase "default" exports', () => {
   it('exports exactly the §10.1 callables and the §10.3 functions, and nothing else', () => {

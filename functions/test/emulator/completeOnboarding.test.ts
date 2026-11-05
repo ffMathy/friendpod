@@ -10,7 +10,7 @@ import { forbidInLogs } from '../helpers/logCapture';
 const NOW = Date.UTC(2026, 10, 4, 12, 0, 0);
 const AARHUS = getLaunchArea('aarhus')!;
 const AARHUS_CELL = AARHUS.cells[0]!;
-const OUTSIDE_CELL = encodeGeohash(55.3959, 10.3883, 5); // Odense: not a launch area yet
+const OUTSIDE_CELL = encodeGeohash(55.4765, 8.4594, 5); // Esbjerg: not a launch area
 const LEGAL = { terms: 'terms-2026-11', privacy: 'privacy-2026-11' };
 
 describe('ageOn', () => {

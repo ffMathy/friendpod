@@ -28,6 +28,14 @@ export const FUNNEL_STAGES = [
 ] as const;
 export type FunnelStage = (typeof FUNNEL_STAGES)[number];
 
+/**
+ * "Where did you hear about Grouper?" (optional, single choice, skippable; coordinator addition 2026-11-05). The
+ * answer is never stored on the user: completeOnboarding increments `funnel/{areaId}_{weekId}.sources.<choice>` once
+ * (onboarding succeeds once per account), and readers suppress cells under 10 like every other funnel cell.
+ */
+export const HEARD_FROM_SOURCES = ['dadsGroup', 'newcomerEvent', 'university', 'venuePoster', 'friend', 'socialMedia', 'press', 'other'] as const;
+export type HeardFromSource = (typeof HEARD_FROM_SOURCES)[number];
+
 /** The milestone field on `matchProfiles/{uid}.milestones` for each stage. */
 export const FUNNEL_MILESTONE_FIELD = {
   signup: 'signupAt',
@@ -82,6 +90,16 @@ export function newMilestones(milestones: Partial<Record<MilestoneField, unknown
 
 export type FunnelCounts = Readonly<Record<FunnelStage, number>>;
 export type SuppressedFunnelCounts = Readonly<Record<FunnelStage, number | '<10'>>;
+
+/** The same suppression for the source counters. */
+export function suppressSourceCounts(counts: Partial<Record<HeardFromSource, number>>): Readonly<Record<HeardFromSource, number | '<10'>> {
+  return Object.fromEntries(
+    HEARD_FROM_SOURCES.map((s) => {
+      const n = counts[s] ?? 0;
+      return [s, n > 0 && n < FUNNEL_SUPPRESS_BELOW ? '<10' : n];
+    }),
+  ) as Readonly<Record<HeardFromSource, number | '<10'>>;
+}
 
 /** Small-count suppression for display (§6.6): 1–9 → "<10"; 0 stays 0. */
 export function suppressFunnelCounts(counts: Partial<Record<FunnelStage, number>>): SuppressedFunnelCounts {

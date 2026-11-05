@@ -11,7 +11,7 @@ import { getFirestore } from 'firebase-admin/firestore';
 import { afterAll, describe } from 'vitest';
 import { runCallable, type CallContext } from '../../src/lib/handler';
 import { log } from '../../src/lib/log';
-import type { PushKind, PushRecipient } from '../../src/lib/push';
+import type { PushKind, PushParams, PushRecipient } from '../../src/lib/push';
 import type { AppDeps } from '../../src/lib/runtime';
 import { testUidHmac } from './keys';
 import { PROJECT_ID, request, type RequestOptions } from './requests';
@@ -25,6 +25,7 @@ export const describeEmulator = HAS_EMULATORS ? describe : describe.skip;
 export interface SentPush {
   readonly kind: PushKind;
   readonly recipients: readonly PushRecipient[];
+  readonly params?: PushParams;
 }
 
 export interface TestDeps extends AppDeps {
@@ -48,8 +49,8 @@ export function emulatorDeps(startMs: number): TestDeps {
     now: () => clock.now,
     uidHmac: () => testUidHmac,
     log,
-    push: async (kind, recipients) => {
-      pushes.push({ kind, recipients });
+    push: async (kind, recipients, params) => {
+      pushes.push({ kind, recipients, ...(params ? { params } : {}) });
       return { sent: recipients.reduce((n, r) => n + r.tokens.length, 0), staleTokens: [] };
     },
     get db() {

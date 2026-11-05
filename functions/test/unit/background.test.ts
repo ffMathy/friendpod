@@ -120,11 +120,20 @@ describe('triggers', () => {
 describe('push', () => {
   it('sends only fixed generic copy and the kind (S4)', () => {
     for (const kind of PUSH_KINDS) {
-      const [en, da] = genericMessages(kind, [{ locale: 'en', tokens: ['t1'] }, { locale: 'da', tokens: ['t2'] }]);
+      const params = kind === 'areaOpen' ? { city: { da: 'København', en: 'Copenhagen' } } : {};
+      const [en, da] = genericMessages(kind, [{ locale: 'en', tokens: ['t1'] }, { locale: 'da', tokens: ['t2'] }], params);
       expect(Object.keys(en!).sort()).toEqual(['android', 'apns', 'data', 'notification', 'token']);
       expect(en!.data).toEqual({ kind });
       expect(en!.notification?.body).not.toEqual(da!.notification?.body);
     }
+  });
+
+  it('names only the city in the area-open push (founder decision 2026-11-05)', () => {
+    const city = { da: 'København', en: 'Copenhagen' };
+    const [en, da] = genericMessages('areaOpen', [{ locale: 'en', tokens: ['t1'] }, { locale: 'da', tokens: ['t2'] }], { city });
+    expect(en!.notification?.body).toBe('Copenhagen is open — your first drop is Thursday 18:00');
+    expect(da!.notification?.body).toBe('København er åben — dit første drop er torsdag kl. 18:00');
+    expect(() => genericMessages('areaOpen', [{ locale: 'en', tokens: ['t1'] }])).toThrow();
   });
 
   it('batches by 500 and reports stale tokens for pruning', async () => {

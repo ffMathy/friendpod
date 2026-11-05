@@ -20,7 +20,9 @@ import {
   type UserDoc,
 } from '@grouper/core';
 import type { QueryDocumentSnapshot, Transaction } from 'firebase-admin/firestore';
+import { areaStage, readAreas, writeAreaDeltas } from '../lib/areas';
 import { AppError } from '../lib/errors';
+import { claimMilestones, FunnelIncrements } from '../lib/funnel';
 import { CONSENT_EVENT_RETENTION_MS, ERASURE_LEDGER_TTL_MS, consentEvents, docs, erasureLedger, ts, type DocOf } from '../lib/firestore';
 import type { CallContext } from '../lib/handler';
 import type { AppDeps } from '../lib/runtime';
@@ -78,12 +80,30 @@ export async function updateProfile(deps: AppDeps, call: CallContext, input: Inp
     const withdrawGender = !prefs.sameGenderOnly && user.gender !== null;
     if (withdrawGender) gender = null;
 
-    // Reads must precede writes in a transaction.
-    const priorGenderEvents = withdrawGender ? await tx.get(consentEvents(deps.db).where('uid', '==', call.uid).where('scope', '==', 'gender')) : null;
-
     const locale = input.locale ?? user.locale;
     const gh5 = input.area?.gh5 ?? user.area.gh5;
     const area = resolveLaunchArea(gh5);
+    const fromAreaId = profile.areaId;
+    const toAreaId = area?.id ?? null;
+    const areaChanged = fromAreaId !== toAreaId;
+
+    // Reads must precede writes in a transaction.
+    const priorGenderEvents = withdrawGender ? await tx.get(consentEvents(deps.db).where('uid', '==', call.uid).where('scope', '==', 'gender')) : null;
+    const areas = areaChanged ? await readAreas(tx, deps.db, [fromAreaId, toAreaId]) : null;
+
+    // A move between areas: the exact waitlistCount follows the user, and the new area may reach a funnel stage
+    // (waitlisted, or eligible for the next drop in a live area), each once per user (§6.8).
+    let milestones = profile.milestones;
+    const funnel = new FunnelIncrements();
+    if (areas) {
+      writeAreaDeltas(tx, deps.db, areas, new Map([[fromAreaId, -1], [toAreaId, 1]]));
+      const stage = areaStage(toAreaId === null ? null : (areas.get(toAreaId)?.status ?? area!.status));
+      if (stage) {
+        const claimed = claimMilestones(milestones, [stage], call.now);
+        milestones = claimed.milestones;
+        for (const s of claimed.fresh) funnel.stage(toAreaId, call.now, s);
+      }
+    }
     const { genderConsentAt: _withdrawn, ...legalWithoutGender } = user.legal;
     const { aboutMe: _replaced, ...userWithoutAboutMe } = user;
     // TODO(M1): refresh `roster[uid].aboutMe` in the user's confirmed pods once rosters carry it (respondToPod).
@@ -112,8 +132,10 @@ export async function updateProfile(deps: AppDeps, call: CallContext, input: Inp
       languages: prefs.languages,
       availability: prefs.availability,
       openToAnyone: prefs.openToAnyone,
+      milestones,
       updatedAt: at,
     });
+    funnel.write(deps.db, tx);
 
     if (grantText) {
       tx.create(consentEvents(deps.db).doc(), {

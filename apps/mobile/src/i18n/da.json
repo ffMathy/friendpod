@@ -109,9 +109,21 @@
     "done": {
       "title": "Du er med",
       "live": "Dit første drop er torsdag kl. 18.00.",
-      "waitlist": "{{area}}: {{bucket}} tilmeldt. Vi åbner ved {{goal}}.",
+      "waitlist": "{{area}}: {{n}} af {{goal}} tilmeldt. Vi åbner, når nok i nærheden af dig er med.",
       "outside": "Grouper er ikke i dit område endnu. Vi giver besked, når det er.",
       "go": "Gå til Grouper"
+    },
+    "heardFrom": {
+      "question": "Hvor hørte du om Grouper? (valgfrit)",
+      "hint": "Vi tæller kun svarene pr. by og uge; svaret gemmes ikke på din profil.",
+      "dadsGroup": "En far- eller forældregruppe",
+      "newcomerEvent": "Et arrangement for nytilflyttere",
+      "university": "Universitet eller skole",
+      "venuePoster": "En plakat på en café eller et spillested",
+      "friend": "En ven",
+      "socialMedia": "Sociale medier",
+      "press": "Nyheder eller presse",
+      "other": "Et andet sted"
     }
   },
   "areaStatus": {
@@ -602,5 +614,17 @@
       "notComing": "Kan ikke komme"
     },
     "hasntConfirmed": "{{name}} har ikke bekræftet"
+  },
+  "waitlist": {
+    "title": "Grouper kommer til {{city}}",
+    "counter": "{{n}} af {{goal}} tilmeldt",
+    "nextTitle": "Hvad sker der nu",
+    "next": "Vi giver besked, når {{city}} åbner; dit første drop kommer torsdagen efter.",
+    "shareIntro": "Jo flere i {{city}} der tilmelder sig, jo før åbner vi.",
+    "share": "Inviter andre",
+    "shareTitle": "Grouper i {{city}}",
+    "shareMessage": "Grouper samler små grupper af folk nær dig om en fælles interesse. Skriv dig på ventelisten for {{city}}: {{link}}",
+    "copy": "Kopiér link",
+    "copied": "Link kopieret"
   }
 }

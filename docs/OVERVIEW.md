@@ -8,7 +8,7 @@ Start here. This page summarises the design in about ten minutes of reading. Eve
 - [research/embedding-calibration](../research/embedding-calibration/README.md): the embedding experiment.
 - [research/thin-market-sim.md](../research/thin-market-sim.md): the pod simulation.
 
-Status, 2026-11-04: design for your review, updated with your review-round-2 decisions (D1–D16) and your later decision to bundle the model in the app, plus a working scaffold (M0). Nothing has been deployed.
+Status, 2026-11-05: design for your review, updated with your review-round-2 decisions (D1–D16), your later decision to bundle the model in the app, and your 2026-11-05 launch decisions (five cities, in-app waitlist, first-timers first, day-1 funnel), plus a working scaffold (M0). Nothing has been deployed.
 
 ## What we are building
 
@@ -38,7 +38,7 @@ The pod screen shows **one "next step" card** at a time (vote → confirm you're
 | Sensitive interests | Pregnancy, faith, LGBTQ+, health and so on are allowed with explicit consent. They are never public and are shown only inside a pod formed around that interest |
 | Talking | A meetup planner plus a short meetup chat from 24 hours before until 24 hours after each meetup |
 | Preferences | Age range, optional same-gender pods, optional photo shown only after confirmation |
-| Market | Denmark first (Aarhus, then Copenhagen), Danish and English, 18+, free |
+| Market | Denmark first (Aarhus, then Copenhagen; since 2026-11-05 also Aalborg, Odense and Vejle), Danish and English, 18+, free |
 | Stack | Expo (React Native) and Firebase in the EU, kept cheap |
 
 **Review round 2 (2026-11-04)**, folded into every document (DESIGN §2.1, F16–F31):
@@ -64,6 +64,16 @@ The pod screen shows **one "next step" card** at a time (vote → confirm you're
 
 **Later the same day** (DESIGN F32): **the on-device model ships inside the app** instead of downloading on first use. It is fetched and checked against its pinned hashes when the app is built; the app gets about 210 MB bigger.
 
+**Launch decisions (2026-11-05)** (DESIGN F33–F37):
+
+| # | Decision | What it means in the app |
+|---|---|---|
+| F33 | **Five launch cities:** Aarhus, Copenhagen, Aalborg, Odense, Vejle; all on the waitlist and the alpha profile; goal 250 sign-ups each | The city lists are still the 20 km approximation; go-live itself still uses Q11 (200 opted in, ≥ 50% predicted match rate) |
+| F34 | **In-app waitlist per city:** sign up as usual; until your city opens, Home shows "<city>: N of 250 signed up" (exact; "<10" below 10), a progress bar, what happens next and "Invite people" / "Copy link" | The link is `https://<our domain>/c/<city>`: a static page with the city's name and store links. No referral codes, nothing about who shared it. When a city opens, everyone there gets "<city> is open — your first drop is Thursday 18:00" |
+| F35 | **First-timers first:** people who never had a confirmed pod are seeded first and get a bonus in the matcher | A setting per profile (+0.5, on in both) |
+| F36 | **Funnel from day 1** without an analytics SDK: sign-up → onboarded → waitlisted → eligible → first proposal → first confirmed → first meetup → second meetup, per city and week | Counters without user IDs; each person counted once per stage; anything under 10 shown as "<10"; kept 24 months; `funnel show` in the admin CLI |
+| F37 | **"Where did you hear about Grouper?"**, optional, one choice | Only counted per city and week, never saved on the profile |
+
 ## Decisions I made for you (please confirm or veto)
 
 The full list is DESIGN §2.2; these are the ones with the most product impact.
@@ -78,7 +88,7 @@ The full list is DESIGN §2.2; these are the ones with the most product impact.
 4. **Location is a ~5 km cell, computed on the phone** from a postcode or coarse GPS. The server never sees coordinates, and nobody is ever shown a distance.
 5. **Clients never write to the database.** Every write goes through a validated server function.
 6. **No analytics, no crash SDK, no Expo push.** Push goes directly through Firebase Cloud Messaging with generic text, so the app needs no consent banner.
-7. **Launch areas are fixed lists** ("Aarhus live, Copenhagen waitlist").
+7. **Launch areas are fixed lists** ("Aarhus live, Copenhagen waitlist"); five cities since F33.
 8. **Alpha profile for the first testers:** "open to meet anyone" on by default, a wider default age range, shorter pair-history windows.
 9. **Safety switch in code:** sensitive interests are refused until removing them and withdrawing the consent are fully built. Withdrawing must be as easy as consenting.
 10. **Where your decisions left room** (DESIGN A29–A38): the attendance check runs at **T−3 h**, so people nudged at T−6 h have 3 hours to answer; one extension per planning round; automatic pauses last **28 days** (no-shows: 2 weeks, then 8 weeks); a meet-again "no" is stored as a never-ending pair-history entry, so the matcher needed no change; places keep their Google type so the server can check they are public.

@@ -9,6 +9,7 @@ import {
   deleteExportTask,
   interestsBatchTask,
   matchComponentTask,
+  openAreaTask,
   purgeUserTask,
   releaseDropTask,
 } from '@grouper/core';
@@ -19,6 +20,7 @@ import { BASE_OPTIONS, HEAVY_OPTIONS } from '../lib/options';
 import { appDeps, dropsStore, handlerDeps } from '../lib/runtime';
 import { POD_ID_KEY, UID_HMAC_KEY } from '../lib/secrets';
 import { firestoreComponentStore, runMatchComponentTask } from './matchComponent';
+import { openArea as openAreaImpl } from './openArea';
 
 export const TASK_OPTIONS = {
   // "retry 1" (§10.3): one retry after the first attempt. The matcher is deterministic, so a retry only helps
@@ -78,6 +80,15 @@ export const TASK_OPTIONS = {
     retryConfig: { maxAttempts: 6, minBackoffSeconds: 60, maxBackoffSeconds: 3600 },
     rateLimits: { maxConcurrentDispatches: 2, maxDispatchesPerSecond: 1 },
   },
+  // Enqueued by the admin CLI after `areas set-status <areaId> live` (task id `open-{areaId}`); idempotent.
+  openArea: {
+    ...BASE_OPTIONS,
+    cpu: 1,
+    memory: '512MiB',
+    timeoutSeconds: 1800,
+    retryConfig: { maxAttempts: 3, minBackoffSeconds: 60, maxBackoffSeconds: 600 },
+    rateLimits: { maxConcurrentDispatches: 1, maxDispatchesPerSecond: 1 },
+  },
 } as const satisfies Record<string, TaskQueueOptions>;
 
 export const matchComponent = onTaskDispatched(TASK_OPTIONS.matchComponent, (req) =>
@@ -88,14 +99,18 @@ export const matchComponent = onTaskDispatched(TASK_OPTIONS.matchComponent, (req
   }),
 );
 
+// Funnel (§6.8): for every member of a released pod, recordMilestones(deps, uid, ['firstProposal'], now); the
+// snapshot's `firstTimer` comes from `matchProfiles.milestones.firstConfirmedAt` being absent (§6.2).
 export const releaseDrop = onTaskDispatched(TASK_OPTIONS.releaseDrop, (req) =>
   runTask('releaseDrop', releaseDropTask, req.data, handlerDeps, async () => {
+    // TODO(M1, §6.8): recordMilestones(appDeps(), uid, ['firstProposal'], now) for each proposed member.
     throw notImplemented('§10.3');
   }),
 );
 
 export const backfillPod = onTaskDispatched(TASK_OPTIONS.backfillPod, (req) =>
   runTask('backfillPod', backfillPodTask, req.data, handlerDeps, async () => {
+    // TODO(M1, §6.8): recordMilestones(appDeps(), uid, ['firstProposal'], now) for each invited candidate.
     throw notImplemented('§10.3');
   }),
 );
@@ -133,8 +148,18 @@ export const interestsBatch = onTaskDispatched(TASK_OPTIONS.interestsBatch, (req
   }),
 );
 
+// The match profile goes through eraseMatchProfileAndAreaCount (lib/areas.ts): one transaction deletes it, with its
+// funnel milestones, and decrements areas/{areaId}.waitlistCount, so a retry cannot decrement twice.
 export const purgeUser = onTaskDispatched(TASK_OPTIONS.purgeUser, (req) =>
   runTask('purgeUser', purgeUserTask, req.data, handlerDeps, async () => {
+    // TODO(M1, PRIVACY.md §6): await eraseMatchProfileAndAreaCount(appDeps(), uid) among the erasure steps.
     throw notImplemented('§10.3');
+  }),
+);
+
+export const openArea = onTaskDispatched(TASK_OPTIONS.openArea, (req) =>
+  runTask('openArea', openAreaTask, req.data, handlerDeps, async (task) => {
+    const { outcome, marked, pushed } = await openAreaImpl(appDeps(), task.areaId);
+    return { outcome, marked, pushed };
   }),
 );

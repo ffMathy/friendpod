@@ -24,8 +24,16 @@ export const COMMANDS: readonly AdminCommand[] = [
     group: 'areas',
     name: 'set-status',
     usage: 'areas set-status <areaId> <waitlist|beta|live> --reason <text>',
-    summary: 'Change a launch area status ("Aarhus live, Copenhagen waitlist" is a config change).',
-    design: 'DESIGN.md §6.4, Q11',
+    summary:
+      'Change a launch area status ("Aarhus live, Copenhagen waitlist" is a config change). Going live also enqueues the openArea task (id open-{areaId}): everyone in the area becomes eligible and gets "<city> is open — your first drop is Thursday 18:00".',
+    design: 'DESIGN.md §6.4, Q11, §10.3 openArea',
+  },
+  {
+    group: 'funnel',
+    name: 'show',
+    usage: 'funnel show [--area <areaId>] --from <funnel-export.json> --reason <text>',
+    summary: 'Print the day-1 funnel per launch area and ISO week (funnel/{areaId}_{weekId}), every cell under 10 as "<10". Reads an export until M1.',
+    design: 'DESIGN.md §6.8 Funnel',
   },
   {
     group: 'restore',

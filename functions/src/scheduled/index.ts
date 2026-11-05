@@ -63,14 +63,20 @@ export const dropOrchestrator = onSchedule(SCHEDULE_OPTIONS.dropOrchestrator, ()
 //   No answer is never a no-show by itself.
 // - feedbackPush (10:00 Europe/Copenhagen the morning after) and feedbackReminder (3 days later), from
 //   feedbackTimers(); feedbackCloses stays 7 days (D12).
+// - T+2 h → `happened`: recordMilestones(deps, uid, ['meetupHappened'], now) for each member who came (the first,
+//   then the second meetup: continuation, §6.8).
 export const hourlySweeper = onSchedule(SCHEDULE_OPTIONS.hourlySweeper, () =>
   runBackground('schedule', 'hourlySweeper', handlerDeps, async () => {
+    // TODO(M1, §6.8): recordMilestones(appDeps(), uid, ['meetupHappened'], now) at T+2 h for members who came.
     throw notImplemented('§4.6');
   }),
 );
 
 export const dailyMaintenance = onSchedule(SCHEDULE_OPTIONS.dailyMaintenance, () =>
   runBackground('schedule', 'dailyMaintenance', handlerDeps, async () => {
+    // TODO(M1, §6.8): an abandoned sign-up (Auth user, no users doc after 7 days) never reached completeOnboarding,
+    // so its sign-up is counted when the reconciliation deletes it: in one batch per page,
+    // new FunnelIncrements().stage(null, Date.parse(record.metadata.creationTime), 'signup').write(db, batch).
     throw notImplemented('§10.3');
   }),
 );

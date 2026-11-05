@@ -41,6 +41,8 @@ if (values['assert-smoke']) {
     m.proposedPods > 0 ? null : 'no pods proposed',
     m.matchRate !== null && m.matchRate > 0 && m.matchRate <= 1 ? null : `match rate out of range: ${m.matchRate}`,
     perWeek.length === result.config.weeks ? null : 'missing weeks',
+    // First-timers first (§6.2): in week 1 everyone is a first-timer, so they must hold seats.
+    m.firstTimers.seatShare !== null && m.firstTimers.seatShare > 0 ? null : `first-timers got no seats: ${m.firstTimers.seatShare}`,
   ].filter((p): p is string => p !== null);
   if (problems.length > 0) {
     console.error(`sim smoke failed: ${problems.join('; ')}`);

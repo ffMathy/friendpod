@@ -29,5 +29,5 @@ export {
   withdrawArt9Consent,
 } from './callables';
 export { dailyMaintenance, dropOrchestrator, hourlySweeper } from './scheduled';
-export { backfillPod, buildExport, deleteExport, interestsBatch, matchComponent, purgeUser, releaseDrop } from './tasks';
+export { backfillPod, buildExport, deleteExport, interestsBatch, matchComponent, openArea, purgeUser, releaseDrop } from './tasks';
 export { onBudgetAlert, onPhotoUploaded } from './triggers';

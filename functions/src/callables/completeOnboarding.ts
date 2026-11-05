@@ -26,12 +26,15 @@ import {
   type CallableInput,
   type CallableOutput,
   type LaunchArea,
+  type LaunchAreaStatus,
   type MatchProfileDoc,
   type Prefs,
   type UserDoc,
 } from '@grouper/core';
 import { AppError, grpcCode } from '../lib/errors';
-import { docs, ts, UNDERAGE_MARKER_TTL_MS } from '../lib/firestore';
+import { areaStage, readAreas, writeAreaDeltas } from '../lib/areas';
+import { docs, PATHS, ts, UNDERAGE_MARKER_TTL_MS } from '../lib/firestore';
+import { claimMilestones, FunnelIncrements } from '../lib/funnel';
 import type { DecodedIdToken, UserRecord } from 'firebase-admin/auth';
 import type { CallContext } from '../lib/handler';
 import type { AppDeps } from '../lib/runtime';
@@ -79,7 +82,9 @@ export async function completeOnboarding(deps: AppDeps, call: CallContext, input
     // An earlier call wrote the profile but did not finish the Auth steps (e.g. it timed out): finish them.
     await finishAuthUser(deps, record);
     const areaId = existing.data()!.area.areaId;
-    return { areaStatus: (areaId === null ? null : getLaunchArea(areaId))?.status ?? 'outside' };
+    const doc = areaId === null ? undefined : (await deps.db.doc(PATHS.area(areaId)).get()).data();
+    const current = areaId === null ? null : ((doc?.status as LaunchAreaStatus | undefined) ?? getLaunchArea(areaId)?.status ?? null);
+    return { areaStatus: current ?? 'outside' };
   }
 
   const age = ageOn(input.dob, now);
@@ -89,12 +94,31 @@ export async function completeOnboarding(deps: AppDeps, call: CallContext, input
   const area = resolveLaunchArea(input.area.gh5);
   const prefs = initialPrefs(age, area, input);
   const { user, profile } = initialDocs(input, prefs, area, now);
+  const signupAt = authCreatedAt(record, now);
 
-  const batch = deps.db.batch();
-  batch.create(userRef, user);
-  batch.create(refs.matchProfile(uid), profile);
+  // One transaction: the profile, the area's exact waitlistCount and the funnel (each stage once per user, §6.8).
+  const result: { areaStatus: LaunchAreaStatus | null } = { areaStatus: null };
   try {
-    await batch.commit();
+    await deps.db.runTransaction(async (tx) => {
+      const [userSnap, areas] = await Promise.all([tx.get(userRef), readAreas(tx, deps.db, [area?.id ?? null])]);
+      if (userSnap.exists) throw new AppError('ALREADY_EXISTS');
+      result.areaStatus = area ? (areas.get(area.id)?.status ?? area.status) : null;
+      const stage = areaStage(result.areaStatus);
+      const funnel = new FunnelIncrements();
+      const areaId = area?.id ?? null;
+      const { milestones } = claimMilestones({}, ['signup', 'onboarded', ...(stage ? [stage] : [])], now);
+      // The sign-up is counted in the week the Auth user was created, the rest in this one.
+      milestones.signupAt = ts(signupAt);
+      funnel.stage(areaId, signupAt, 'signup').stage(areaId, now, 'onboarded');
+      if (stage) funnel.stage(areaId, now, stage);
+      // "Where did you hear about Grouper?": an aggregate counter only, never stored on the user.
+      if (input.heardFrom) funnel.source(areaId, now, input.heardFrom);
+
+      tx.create(userRef, user);
+      tx.create(refs.matchProfile(uid), { ...profile, milestones });
+      writeAreaDeltas(tx, deps.db, areas, new Map([[areaId, 1]]));
+      funnel.write(deps.db, tx);
+    });
   } catch (err) {
     if (grpcCode(err) === GRPC_ALREADY_EXISTS) throw new AppError('ALREADY_EXISTS');
     throw err;
@@ -105,13 +129,24 @@ export async function completeOnboarding(deps: AppDeps, call: CallContext, input
     if (!isUserNotFound(err)) throw err;
     // A concurrent under-18 call from the same token deleted the user after the check above: the profile
     // must not outlive it, and nothing else would ever reach it (no Auth user, so no deletion request).
-    const cleanup = deps.db.batch();
-    cleanup.delete(userRef);
-    cleanup.delete(refs.matchProfile(uid));
-    await cleanup.commit();
+    // The waitlistCount goes back down with the profile; the funnel counters hold no uid and stay.
+    await deps.db.runTransaction(async (tx) => {
+      const snap = await tx.get(userRef);
+      if (!snap.exists) return;
+      const areas = await readAreas(tx, deps.db, [area?.id ?? null]);
+      writeAreaDeltas(tx, deps.db, areas, new Map([[area?.id ?? null, -1]]));
+      tx.delete(userRef);
+      tx.delete(refs.matchProfile(uid));
+    });
     throw new AppError('UNAUTHENTICATED');
   }
-  return { areaStatus: area?.status ?? 'outside' };
+  return { areaStatus: result.areaStatus ?? 'outside' };
+}
+
+/** When the Auth user was created (the funnel's sign-up week); `now` if the record has no usable time. */
+function authCreatedAt(record: UserRecord, now: number): number {
+  const ms = Date.parse(record.metadata?.creationTime ?? '');
+  return Number.isFinite(ms) && ms <= now ? ms : now;
 }
 
 /** One marker per sign-in key in the token: the email, if any, and each federated identity (provider uid). */
@@ -229,6 +264,7 @@ function initialDocs(input: Input, prefs: Prefs, area: LaunchArea | null, now: n
     priority: false,
     openToAnyone: prefs.openToAnyone,
     participation: { mode: 'auto', skipWeekId: null, optInWeekId: null, pausedUntil: null },
+    milestones: {},
     createdAt: at,
     updatedAt: at,
   };

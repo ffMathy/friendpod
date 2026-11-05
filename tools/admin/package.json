@@ -9,6 +9,9 @@
     "test": "vitest run",
     "admin": "tsx src/cli.ts"
   },
+  "dependencies": {
+    "@grouper/core": "*"
+  },
   "devDependencies": {
     "@types/node": "24.19.2",
     "tsx": "4.23.15",

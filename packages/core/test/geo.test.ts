@@ -144,4 +144,3 @@ describe('in-app waitlist (§3.1 step 12)', () => {
     }
   });
 });
-});

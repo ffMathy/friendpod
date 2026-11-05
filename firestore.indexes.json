@@ -83,6 +83,7 @@
     { "collectionGroup": "pairSignals", "fieldPath": "expiresAt", "ttl": true, "indexes": [] },
     { "collectionGroup": "rateLimits", "fieldPath": "expiresAt", "ttl": true, "indexes": [] },
     { "collectionGroup": "erasureLedger", "fieldPath": "expiresAt", "ttl": true, "indexes": [] },
-    { "collectionGroup": "underageMarkers", "fieldPath": "expiresAt", "ttl": true, "indexes": [] }
+    { "collectionGroup": "underageMarkers", "fieldPath": "expiresAt", "ttl": true, "indexes": [] },
+    { "collectionGroup": "funnel", "fieldPath": "expiresAt", "ttl": true, "indexes": [] }
   ]
 }
