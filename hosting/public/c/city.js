@@ -1,6 +1,7 @@
 // The city page (/c/{areaId}, DESIGN.md §3.1 step 12). Reads the area id from the path and shows the city's name.
 // Static, no requests, no cookies, no storage. Keep CITIES in step with packages/core/src/geo/areas.json
 // (packages/core/test/geo.test.ts checks it).
+/* global document, window */
 'use strict';
 var CITIES = {
   aarhus: { da: 'Aarhus', en: 'Aarhus' },
