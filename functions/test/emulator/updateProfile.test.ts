@@ -95,7 +95,8 @@ describeEmulator('updateProfile (emulator)', () => {
     const user = (await deps.db.doc(PATHS.user(uid)).get()).data()!;
     expect(user).toMatchObject({ firstName: 'Bodil', locale: 'da', area: { gh5: COPENHAGEN.cells[0], areaId: 'copenhagen', label: COPENHAGEN.label.da } });
     expect((await deps.db.doc(PATHS.matchProfile(uid)).get()).data()).toMatchObject({ areaId: 'copenhagen', gh5: COPENHAGEN.cells[0], maxKm: 5, languages: ['da', 'en'] });
-    expect(await errorCode(update(uid, { prefs: { ageMin: 40 } }))).toBe('VALIDATION');
+    // Default ageMax is 49 (alpha ±13 around 36), so ageMin 45 leaves a range narrower than 5 years.
+    expect(await errorCode(update(uid, { prefs: { ageMin: 45 } }))).toBe('VALIDATION');
   });
 
   it('stores "about me" on the user doc only, normalised, and clears it with an empty string', async () => {

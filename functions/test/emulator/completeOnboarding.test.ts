@@ -49,8 +49,8 @@ describeEmulator('completeOnboarding (emulator)', () => {
       locale: 'da',
       birthYear: 1990,
       area: { gh5: AARHUS_CELL, label: AARHUS.label.da, areaId: 'aarhus' },
-      // Aarhus uses the alpha profile: own age ±10, "open to anyone" on by default (§6.10).
-      prefs: { ageMin: 26, ageMax: 46, maxKm: 15, languages: ['da'], availability: 63, sameGenderOnly: false, openToAnyone: true },
+      // Aarhus uses the alpha profile: own age ±13 (Q19 c), "open to anyone" on by default (§6.10).
+      prefs: { ageMin: 23, ageMax: 49, maxKm: 15, languages: ['da'], availability: 63, sameGenderOnly: false, openToAnyone: true },
       gender: null,
       participation: { mode: 'auto' },
       status: 'active',
@@ -65,8 +65,8 @@ describeEmulator('completeOnboarding (emulator)', () => {
       areaId: 'aarhus',
       gh5: AARHUS_CELL,
       birthYear: 1990,
-      ageMin: 26,
-      ageMax: 46,
+      ageMin: 23,
+      ageMax: 49,
       maxKm: 15,
       themes: [],
       secondary: [],
@@ -191,8 +191,8 @@ describeEmulator('completeOnboarding (emulator)', () => {
     const uid = await authUser(email);
     expect(await errorCode(onboard(uid, input({ dob: '2027-01-01' }), email))).toBe('VALIDATION');
     expect(await errorCode(onboard(uid, input({ dob: '1900-01-01' }), email))).toBe('VALIDATION');
-    // Default ageMin is 26 here, so ageMax 30 leaves a range narrower than 5 years.
-    expect(await errorCode(onboard(uid, input({ prefs: { ageMax: 30 } }), email))).toBe('VALIDATION');
+    // Default ageMin is 23 here (alpha ±13), so ageMax 27 leaves a range narrower than 5 years.
+    expect(await errorCode(onboard(uid, input({ prefs: { ageMax: 27 } }), email))).toBe('VALIDATION');
     expect(await errorCode(onboard(uid, input({ prefs: { sameGenderOnly: true } }), email))).toBe('VALIDATION');
     expect((await deps.db.doc(PATHS.user(uid)).get()).exists).toBe(false);
     expect((await deps.auth.getUser(uid)).customClaims ?? {}).toEqual({});
