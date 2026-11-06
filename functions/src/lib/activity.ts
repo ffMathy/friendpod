@@ -1,7 +1,7 @@
 /**
  * `users.lastActiveAt` (DESIGN.md §8.1; PRIVACY.md §5 inactivity): the one place that records activity. Every
  * onboarded callable goes through `withActivity` (callables/index.ts), so any use of the app that reaches the server
- * (registerPushToken at app start, the pod callables, …) keeps the account out of the 12-month inactivity deletion.
+ * (appOpened at every app start and foreground, the pod callables, …) keeps the account out of the 12-month inactivity deletion.
  * Throttled to one write per account per day [A]: a plain read, and an update only when the stored value is older.
  * A failure is logged and never fails the call.
  */

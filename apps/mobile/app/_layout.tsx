@@ -11,6 +11,7 @@ import { useDeviceCacheHygiene } from '@/features/account/useDeviceCacheHygiene'
 import { useNotificationRouting } from '@/features/notifications/useNotificationRouting';
 import { usePushTokenSync } from '@/features/notifications/usePushTokenSync';
 import { SessionProvider, useSession } from '@/features/session/SessionProvider';
+import { useAppOpened } from '@/features/session/useAppOpened';
 import { i18n, initI18n } from '@/i18n';
 
 initFirebase();
@@ -26,6 +27,7 @@ function ProfileEffects({ uid }: { uid: string }) {
   }, [locale]);
   useDeviceCacheHygiene(uid);
   usePushTokenSync();
+  useAppOpened();
   useNotificationRouting(uid);
   return null;
 }

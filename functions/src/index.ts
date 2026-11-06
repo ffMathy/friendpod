@@ -4,6 +4,7 @@
  */
 export {
   addInterests,
+  appOpened,
   blockUser,
   completeOnboarding,
   confirmAttendance,

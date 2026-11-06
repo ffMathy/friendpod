@@ -148,6 +148,7 @@ through the typed callables (`src/firebase/callables.ts`, `useCallable`); nothin
 | Photo upload, change and delete | `(onboarding)/photo`, Me → `PhotoCard` | Storage `uploads/{uid}/pending*.jpg` (`onPhotoUploaded`), `deletePhoto` |
 | Messages from Grouper (statements of reasons, report receipts, export ready) | `settings/notices`, `NoticeCard` | `users/{uid}/notices` |
 | Push token and taps | `usePushTokenSync`, `useNotificationRouting` | `registerPushToken` |
+| Activity on app open | `useAppOpened` (start and foreground, at most every 6 h) | `appOpened` |
 
 - **Authenticated downloads** (`src/firebase/storageRest.ts`): photos and the data export are fetched over the Storage
   REST API with `Authorization: Firebase <ID token>` and `X-Firebase-AppCheck`, never `getDownloadURL()`. The export
