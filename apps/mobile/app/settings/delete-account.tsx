@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert } from 'react-native';
-import { AppText, Body, Button, Card, ErrorText, Screen, ScreenHeader, Spacer } from '@/components/ui';
+import { Alert, StyleSheet, View } from 'react-native';
+import { Spacing } from '@/components/theme';
+import { AppText, Body, Button, Card, ErrorText, Screen, ScreenHeader } from '@/components/ui';
 import { deleteAccount } from '@/features/account/account';
 import { ExportRequestMessage, ExportStatus, useExportRequest } from '@/features/account/ExportStatus';
 import { AuthCancelled } from '@/features/auth/errors';
@@ -16,7 +17,8 @@ const WHAT_HAPPENS = ['profile', 'pods', 'backups', 'signIn', 'kept'] as const;
 /**
  * §3.10 (storyboard 5.4): explains what is deleted and the backup / Auth windows, offers the export first (§3.9),
  * asks once more, re-authenticates (Apple: a fresh authorization code, revoked before deletion), deletes, then signs
- * out and clears the device caches.
+ * out and clears the device caches. The re-auth note, the delete button and Cancel stay pinned at the bottom, so the
+ * safe way out is always fully on screen; on a short phone the explanation scrolls above them.
  */
 export default function DeleteAccount() {
   const { t } = useTranslation();
@@ -43,8 +45,20 @@ export default function DeleteAccount() {
       { text: t('settings.delete.confirm'), style: 'destructive', onPress: () => void run() },
     ]);
 
+  const footer = (
+    <View style={styles.footer}>
+      <AppText variant="caption" tone="muted" align="center">
+        {t('settings.delete.reauthNote')}
+      </AppText>
+      <Button testID="delete-account" label={t('settings.delete.submit')} variant="danger" busy={state === 'working'} onPress={confirm} />
+      {state === 'linkSent' ? <Body size="sm">{t('settings.reauthLinkSent')}</Body> : null}
+      {typeof state === 'object' ? <ErrorText>{state.error}</ErrorText> : null}
+      <Button label={t('common.cancel')} variant="ghost" size="md" disabled={state === 'working'} onPress={back} />
+    </View>
+  );
+
   return (
-    <Screen>
+    <Screen footer={footer}>
       <ScreenHeader title={t('settings.delete.confirmTitle')} backLabel={t('common.back')} onBack={back} />
       <AppText variant="bodyMd" tone="soft">
         {t('settings.delete.lead')}
@@ -68,15 +82,11 @@ export default function DeleteAccount() {
       />
       <ExportRequestMessage state={exportRequest.state} />
       <ExportStatus uid={uid} hidePending={exportRequest.state === 'requested'} />
-
-      <Spacer />
-      <AppText variant="caption" tone="muted" align="center">
-        {t('settings.delete.reauthNote')}
-      </AppText>
-      <Button testID="delete-account" label={t('settings.delete.submit')} variant="danger" busy={state === 'working'} onPress={confirm} />
-      {state === 'linkSent' ? <Body size="sm">{t('settings.reauthLinkSent')}</Body> : null}
-      {typeof state === 'object' ? <ErrorText>{state.error}</ErrorText> : null}
-      <Button label={t('common.cancel')} variant="ghost" size="md" disabled={state === 'working'} onPress={back} />
     </Screen>
   );
 }
+
+const styles = StyleSheet.create({
+  // Storyboard 5.4 spaces the note, the delete button and Cancel 16 apart.
+  footer: { gap: Spacing.md },
+});

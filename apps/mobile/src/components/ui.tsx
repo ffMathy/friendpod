@@ -17,13 +17,14 @@
  * Inside a dark card (`Card tone="night" | "forest"`, `StatCard`) text and icons switch to the card's light colours
  * by themselves; tones "ink", "soft" and "muted" are remapped.
  */
-import { Children, createContext, Fragment, useContext, useRef, useState, type ReactNode } from 'react';
+import { Children, createContext, Fragment, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   Pressable,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Switch,
   Text,
@@ -36,16 +37,20 @@ import {
   type TextStyle,
   type ViewStyle,
 } from 'react-native';
+import { BottomTabBarHeightContext } from 'expo-router/js-tabs';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Icon, type IconName } from './icons';
 import {
   avatarFill,
   Fonts,
+  FontSize,
   Radius,
   Sizes,
   Spacing,
   Type,
   usePalette,
+  useStatusBarStyle,
+  type AvatarFill,
   type ColorName,
   type Palette,
   type TypeVariant,
@@ -130,14 +135,47 @@ export interface ScreenProps {
 }
 
 const EDGES = ['top', 'bottom', 'left', 'right'] as const;
+/** Inside the tabs the tab bar already clears the system navigation bar, so the screen's own bottom inset would repeat it. */
+const EDGES_IN_TABS = ['top', 'left', 'right'] as const;
+
+/**
+ * When a mounted screen applies its status-bar entry again. On Android 12+ the splash screen restores the native
+ * theme's (white) status-bar icons as it exits, a moment after the first screen draws and after that screen's entry
+ * has been applied; re-applying the entry then puts the scheme's icons back. For later screens it is a no-op.
+ */
+const STATUS_BAR_SETTLE_MS = [400, 1500] as const;
+
+/**
+ * Holds the scheme's status-bar style (dark icons on the light ground, light ones on the dark) while the screen is
+ * mounted, as an entry on React Native's StatusBar stack: the newest entry wins and unmounting restores the one below.
+ */
+function useStatusBarEntry() {
+  const barStyle = useStatusBarStyle();
+  useEffect(() => {
+    const props = { barStyle, animated: true };
+    let entry = StatusBar.pushStackEntry(props);
+    const timers = STATUS_BAR_SETTLE_MS.map((ms) =>
+      setTimeout(() => {
+        entry = StatusBar.replaceStackEntry(entry, props);
+      }, ms),
+    );
+    return () => {
+      timers.forEach(clearTimeout);
+      StatusBar.popStackEntry(entry);
+    };
+  }, [barStyle]);
+}
 
 /**
  * A screen on the ground colour with the storyboard gutters. The safe area applies only where the screen meets it, so
  * under a native header the top inset is 0, and with `headerShown: false` the content clears the status bar.
- * `<Spacer />` between content and the end pushes the rest down on short screens.
+ * `<Spacer />` between content and the end pushes the rest down on short screens. Inside the tabs it leaves the bottom
+ * inset to the tab bar. The status bar's icons follow the scheme (dark on the light ground) while the screen is mounted.
  */
 export function Screen({ children, scroll = true, footer, wide = false, gap = Spacing.md, background = 'ground', contentStyle, testID }: ScreenProps) {
   const p = usePalette();
+  useStatusBarEntry();
+  const inTabs = useContext(BottomTabBarHeightContext) !== undefined;
   const gutter = wide ? Spacing.gutterWide : Spacing.gutter;
   const content = [styles.content, { paddingHorizontal: gutter, gap }, contentStyle];
   const body = scroll ? (
@@ -153,7 +191,7 @@ export function Screen({ children, scroll = true, footer, wide = false, gap = Sp
     <View style={[styles.flex, content]}>{children}</View>
   );
   return (
-    <SafeAreaView testID={testID} style={[styles.flex, { backgroundColor: p[background] }]} edges={EDGES}>
+    <SafeAreaView testID={testID} style={[styles.flex, { backgroundColor: p[background] }]} edges={inTabs ? EDGES_IN_TABS : EDGES}>
       {footer ? (
         <KeyboardAware>
           {body}
@@ -969,7 +1007,8 @@ export function ChoiceRow({ label, selected, onPress, description, testID, role 
         { backgroundColor: pressed ? p.subtle : p.surface, borderColor: selected ? p.primary : p.border, borderWidth: selected ? 2 : 1, paddingHorizontal: selected ? 13 : 14 },
       ]}
     >
-      <View style={[styles.radio, { borderColor: selected ? p.primary : p.borderStrong }]}>
+      {/* The unselected ring is muted, not the hairline grey, so it keeps 3:1 against the card (WCAG 1.4.11). */}
+      <View style={[styles.radio, { borderColor: selected ? p.primary : p.muted }]}>
         {selected ? <View style={[styles.radioDot, { backgroundColor: p.primary }]} /> : null}
       </View>
       <View style={styles.flex}>
@@ -1046,7 +1085,7 @@ export interface FieldProps extends Omit<TextInputProps, 'style'> {
   readonly counter?: string;
   /** Keep the label for screen readers only (the inline "Add an interest" field). */
   readonly hideLabel?: boolean;
-  /** Minimum height: 'lg' 54 (default) · 'md' 50. Multiline fields grow from 96. */
+  /** 'lg' 54 high, 17-pt text (default) · 'md' 50 high, 15-pt text. Multiline fields grow from 96. */
   readonly size?: 'lg' | 'md';
   /** Icon inside the input on the left ("search"). */
   readonly leadingIcon?: IconName;
@@ -1074,6 +1113,8 @@ export function Field({
   const [focused, setFocused] = useState(false);
   const border = error ? p.coralStrong : focused ? p.primary : p.borderStrong;
   const height = size === 'lg' ? Sizes.input : Sizes.inputMd;
+  // Storyboard 1.7: the 50-pt 'md' input has 15-pt text and 14-pt side padding (the 54-pt 'lg' one 17 and 16).
+  const side = size === 'lg' ? Spacing.md : 14;
   return (
     <View style={[styles.field, containerStyle]}>
       {hideLabel ? null : (
@@ -1105,13 +1146,14 @@ export function Field({
           style={[
             styles.input,
             multiline ? styles.inputMultiline : { minHeight: height },
+            size === 'md' && !multiline && { fontSize: FontSize.base },
             {
               color: p.ink,
               backgroundColor: p.surface,
               borderColor: border,
               borderWidth: focused || error ? 2 : 1,
-              paddingLeft: (leadingIcon ? 44 : Spacing.md) - (focused || error ? 1 : 0),
-              paddingRight: Spacing.md - (focused || error ? 1 : 0),
+              paddingLeft: (leadingIcon ? 44 : side) - (focused || error ? 1 : 0),
+              paddingRight: side - (focused || error ? 1 : 0),
             },
           ]}
           {...input}
@@ -1595,6 +1637,8 @@ export function SegmentBar({ total, filled, accessibilityLabel }: { total: numbe
 
 export function Loading({ label }: { label: string }) {
   const p = usePalette();
+  // Often the first thing drawn after the splash screen, before any Screen.
+  useStatusBarEntry();
   return (
     <View style={[styles.center, { backgroundColor: p.ground }]}>
       <ActivityIndicator accessibilityLabel={label} color={p.primary} />
@@ -1610,6 +1654,11 @@ export interface AvatarProps {
   readonly name: string;
   /** Seeds the fill so a member keeps one colour everywhere. */
   readonly uid?: string;
+  /**
+   * The member's colour where the caller knows it: on pod screens their pod colour (`memberFills` in
+   * features/pods/memberFill), so the avatar matches the pod page. Without it the fill is hashed from `uid` (or `name`).
+   */
+  readonly fill?: AvatarFill;
   /** Diameter (default 32; storyboards use 28, 32, 44, 52, 64). */
   readonly size?: number;
   /** The viewer: ink fill with `label` (e.g. t('chat.you')) instead of an initial. */
@@ -1628,9 +1677,9 @@ export interface AvatarProps {
 }
 
 /** A coloured circle with the member's initial, or their photo. */
-export function Avatar({ name, uid, size = 32, you = false, label, children, ring, placeholder = false, accessibilityLabel, testID }: AvatarProps) {
+export function Avatar({ name, uid, fill: fillProp, size = 32, you = false, label, children, ring, placeholder = false, accessibilityLabel, testID }: AvatarProps) {
   const p = usePalette();
-  const fill = avatarFill(uid ?? name);
+  const fill = fillProp ?? avatarFill(uid ?? name);
   const bg = placeholder ? p.subtle : you ? p.ink : fill.bg;
   const fg = you ? p.onInk : fill.fg;
   const text = label ?? Array.from(name.trim())[0]?.toLocaleUpperCase() ?? '';
@@ -1665,6 +1714,8 @@ export interface AvatarStackMember {
   readonly key: string;
   readonly name: string;
   readonly uid?: string;
+  /** The member's pod colour (see `AvatarProps.fill`); hashed from `uid` or `name` without it. */
+  readonly fill?: AvatarFill;
   readonly you?: boolean;
   readonly label?: string;
   readonly photo?: ReactNode;
@@ -1693,7 +1744,7 @@ export function AvatarStack({ members, size = 32, max, ringColor, accessibilityL
     >
       {shown.map((m, i) => (
         <View key={m.key} style={i > 0 ? { marginLeft: -Math.round(size * 0.3) } : null}>
-          <Avatar name={m.name} uid={m.uid} you={m.you} label={m.label} size={size} ring={ringColor ?? true}>
+          <Avatar name={m.name} uid={m.uid} fill={m.fill} you={m.you} label={m.label} size={size} ring={ringColor ?? true}>
             {m.photo}
           </Avatar>
         </View>

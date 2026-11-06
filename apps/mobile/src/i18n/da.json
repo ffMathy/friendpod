@@ -21,9 +21,7 @@
     "start": "Kom i gang",
     "headline": "Små grupper.\nRigtige møder.",
     "body": "Hver torsdag sætter vi en pod sammen med 4–6 personer i nærheden af dig, som deler noget, du går op i. I mødes ansigt til ansigt.",
-    "adultsOnly": "Kun 18+",
-    "terms": "Vilkår",
-    "privacy": "Privatlivserklæring"
+    "adultsOnly": "Kun 18+"
   },
   "languages": {
     "da": "Dansk",
@@ -34,10 +32,10 @@
       "title": "Log ind",
       "intro": "Log ind for at være med i denne uges drop. Vi spørger aldrig om dit telefonnummer.",
       "failed": "Login virkede ikke. Prøv igen.",
-      "legalHint": "Bagefter ser du vores vilkår og privatlivserklæring.",
       "continueApple": "Fortsæt med Apple",
       "continueGoogle": "Fortsæt med Google",
-      "continueEmail": "Fortsæt med e-mail"
+      "continueEmail": "Fortsæt med e-mail",
+      "legalNote": "Bagefter beder vi dig acceptere <terms>vilkårene</terms>. Læs, hvordan vi behandler dine data, i <privacy>privatlivserklæringen</privacy>."
     },
     "email": {
       "title": "Link på e-mail",
@@ -94,7 +92,12 @@
       "heading": "Hvor bor du?",
       "lead": "Pods mødes tæt på, hvor man bor. Din telefon laver det om til et område på cirka 5 km, før noget bliver sendt.",
       "useApproxLocation": "Brug min omtrentlige placering",
-      "stored": "Vi gemmer kun dette område, aldrig din adresse eller præcise placering. Ingen får nogensinde vist, hvor langt væk du bor."
+      "stored": "Vi gemmer kun dette område, aldrig din adresse eller præcise placering. Ingen får nogensinde vist, hvor langt væk du bor.",
+      "status": {
+        "live": "{{city}} er åben",
+        "beta": "{{city}} er i beta",
+        "waitlist": "{{city}} åbner snart"
+      }
     },
     "interests": {
       "title": "Dine interesser",
@@ -160,11 +163,6 @@
       "pledgeAgree": "Jeg mødes på offentlige steder, behandler folk med respekt og bruger Anmeld, hvis noget føles forkert.",
       "finish": "Færdig"
     }
-  },
-  "areaStatus": {
-    "waitlist": "På venteliste",
-    "beta": "I beta",
-    "live": "Åben"
   },
   "interests": {
     "fieldLabel": "Tilføj en interesse med dine egne ord",
@@ -418,7 +416,8 @@
     "waitingBody": "Vi giver besked, så snart poden er bekræftet. Hvis nogen siger nej, inviterer vi måske en anden, der passer.",
     "whyThisPodLink": "Hvorfor denne pod?",
     "howPrivateProtected": "Sådan beskytter vi private interesser",
-    "leaveProposed": "Fortrudt? Forlad denne pod"
+    "leaveProposed": "Fortrudt? Forlad denne pod",
+    "okay": "Okay"
   },
   "podState": {
     "proposed": "Foreslået",
@@ -470,7 +469,11 @@
     "mapFailed": "Kortet kunne ikke åbnes.",
     "confirmed": "Bekræftet",
     "alsoLikes": "Flere af jer kan også lide",
-    "meetingSafely": "Mød hinanden trygt"
+    "meetingSafely": "Mød hinanden trygt",
+    "chatUnread_one": "{{count}} ny",
+    "chatUnread_other": "{{count}} nye",
+    "chatUnreadLabel_one": "{{count}} ny besked",
+    "chatUnreadLabel_other": "{{count}} nye beskeder"
   },
   "plan": {
     "title": "Planlægger",
@@ -516,7 +519,9 @@
     "placeHelp": "Caféer, barer, biblioteker, parker og andre offentlige steder i nærheden.",
     "rules": "Forslaget med flest ja-stemmer (mindst {{min}}) vinder, når afstemningen lukker, og dit ja tæller som »Jeg kommer«. Siger alle ja til det samme forslag, er det afgjort med det samme.",
     "rulesExtension": "Får intet forslag {{min}} ja-stemmer, får I én dag ekstra til at tilføje et nyt forslag.",
-    "doneVoting": "Færdig med at stemme"
+    "doneVoting": "Færdig med at stemme",
+    "dayPick": "Vælg dag",
+    "timePick": "Vælg tidspunkt"
   },
   "chat": {
     "title": "Mødechat",
@@ -565,7 +570,10 @@
     "ratingTitle": "Hvordan var det alt i alt?",
     "ratingValue": "{{value}} ud af 5",
     "keepTitle": "Vil du mødes med poden igen?",
-    "keepBody": "Hvis mindst 3 af jer vælger »Behold poden«, planlægger poden det næste møde med kun dem."
+    "keepBody": "Hvis mindst 3 af jer vælger »Behold poden«, planlægger poden det næste møde med kun dem.",
+    "didNotMeet": "Vi mødtes ikke",
+    "didNotMeetNote": "Du har svaret, at I ikke mødtes, så du bliver ikke spurgt, hvem der var der, eller hvordan det gik.",
+    "didMeet": "Jo, vi mødtes"
   },
   "member": {
     "title": "Medlem",
@@ -587,7 +595,7 @@
     "replanTitle": "Planlæg mødet igen?",
     "blockKeepPlan": "Bloker, behold planen",
     "blockAndReplan": "Bloker og planlæg igen",
-    "leaveNote": "Vil du hellere gå? Du kan altid forlade poden fra podens side. De andre ser kun »Et medlem er gået«."
+    "leaveNote": "Vil du hellere gå? Du kan altid forlade poden fra dens menu. De andre ser kun »Et medlem er gået«."
   },
   "report": {
     "title": "Anmeld",
@@ -646,8 +654,7 @@
       "OPEN_TO_ANYONE": "Du er åben for at møde hvem som helst i nærheden."
     },
     "neverTitle": "Det bruger vi aldrig",
-    "neverBody": "Billeder, udseende eller noget, du ikke har fortalt os. Køn kun, hvis du har valgt pods med samme køn. Private interesser kun som tema for en pod om dem.",
-    "automatic": "Pods dannes automatisk."
+    "neverBody": "Billeder, udseende eller noget, du ikke har fortalt os. Køn kun, hvis du har valgt pods med samme køn. Private interesser kun som tema for en pod om dem."
   },
   "me": {
     "participation": "Ugentlige drops",
@@ -705,8 +712,6 @@
       "deletePhotoBody": "Dit billede slettes, og medlemmerne af dine pods kan ikke længere se det.",
       "pausedUntil": "Matchning er sat på pause indtil {{when}}.",
       "paused": "Matchning er sat på pause.",
-      "skipping": "Du springer droppet over i uge {{week}}.",
-      "skipNext": "Spring næste drop over",
       "agreedTo": "Det har du sagt ja til",
       "privateInterests": "Private interesser",
       "privateOn_one": "{{count}} interesse, samtykke givet",
@@ -720,7 +725,6 @@
       "dataAndMatching": "Dine data og matchning",
       "pauseTitle": "Sæt matchning på pause",
       "pauseHint": "Spring drops over, til du vender tilbage",
-      "skipHint": "Stå over én uge",
       "exportHint": "En fil, du kan gemme, klar inden for få minutter",
       "blockedNone": "Ingen",
       "blockedCount_one": "{{count}} person",

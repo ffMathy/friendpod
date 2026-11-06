@@ -7,13 +7,32 @@
  *   ground (no shadow, 17/700 title, green back chevron). Screens that follow a storyboard set `headerShown: false`
  *   and draw `ScreenHeader` (back chevron + big title) themselves.
  * - `useTabScreenOptions()` is for the bottom tabs: white bar with a hairline, green active label and icon.
+ * - `useSystemBarStyle()` sets the status bar's default content for the scheme (dark icons on the light ground). The
+ *   root layout gets it through `useNavigationTheme()`; each `Screen` (./ui) also holds the style while it is mounted.
  */
 import type { NativeStackNavigationOptions, Theme } from 'expo-router';
 import type { BottomTabNavigationOptions } from 'expo-router/js-tabs';
-import { useColorScheme } from 'react-native';
-import { Fonts, usePalette } from './theme';
+import { useEffect } from 'react';
+import { StatusBar, useColorScheme } from 'react-native';
+import { Fonts, usePalette, useStatusBarStyle } from './theme';
 
+/**
+ * Makes the scheme's status-bar style the app-wide default: dark icons and clock on the light ground, light ones in
+ * dark mode. Without it Android keeps the native theme's white icons, which vanish on the sage ground. This is the
+ * fallback for screens that do not use `Screen`; `setBarStyle` also sets the default every StatusBar entry inherits.
+ * (The native stack's `statusBarStyle` option is not used: on iOS it needs view-controller-based status bar
+ * appearance, which Expo turns off.)
+ */
+export function useSystemBarStyle(): void {
+  const barStyle = useStatusBarStyle();
+  useEffect(() => {
+    StatusBar.setBarStyle(barStyle, true);
+  }, [barStyle]);
+}
+
+/** The root ThemeProvider's theme; also applies the status-bar style for the scheme (`useSystemBarStyle`). */
 export function useNavigationTheme(): Theme {
+  useSystemBarStyle();
   const p = usePalette();
   return {
     dark: useColorScheme() === 'dark',

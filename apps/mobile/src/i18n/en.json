@@ -21,9 +21,7 @@
     "start": "Get started",
     "headline": "Small groups.\nReal meetups.",
     "body": "Every Thursday we put together a pod of 4–6 people near you who share something you care about. You meet in person.",
-    "adultsOnly": "18+ only",
-    "terms": "Terms",
-    "privacy": "Privacy notice"
+    "adultsOnly": "18+ only"
   },
   "languages": {
     "da": "Dansk",
@@ -34,10 +32,10 @@
       "title": "Sign in",
       "intro": "Sign in to join this week's drop. We never ask for a phone number.",
       "failed": "Sign-in did not work. Please try again.",
-      "legalHint": "Next you will see our Terms and privacy notice.",
       "continueApple": "Continue with Apple",
       "continueGoogle": "Continue with Google",
-      "continueEmail": "Continue with email"
+      "continueEmail": "Continue with email",
+      "legalNote": "Next, we'll ask you to accept the <terms>Terms</terms>. Read how we handle your data in the <privacy>privacy notice</privacy>."
     },
     "email": {
       "title": "Email link",
@@ -94,7 +92,12 @@
       "heading": "Where do you live?",
       "lead": "Pods meet near home. Your phone turns this into an area of about 5 km before anything is sent.",
       "useApproxLocation": "Use my approximate location",
-      "stored": "We store only this area, never your address or exact location. Nobody is ever shown how far away you live."
+      "stored": "We store only this area, never your address or exact location. Nobody is ever shown how far away you live.",
+      "status": {
+        "live": "{{city}} is live",
+        "beta": "{{city}} is in beta",
+        "waitlist": "{{city}} opens soon"
+      }
     },
     "interests": {
       "title": "Your interests",
@@ -160,11 +163,6 @@
       "pledgeAgree": "I'll meet in public places, treat people with respect, and use Report if something feels wrong.",
       "finish": "Finish"
     }
-  },
-  "areaStatus": {
-    "waitlist": "On the waitlist",
-    "beta": "In beta",
-    "live": "Live"
   },
   "interests": {
     "fieldLabel": "Add an interest in your own words",
@@ -418,7 +416,8 @@
     "waitingBody": "We'll let you know the moment the pod is confirmed. If someone says no, we may invite someone else who fits.",
     "whyThisPodLink": "Why this pod?",
     "howPrivateProtected": "How private interests are protected",
-    "leaveProposed": "Changed your mind? Leave this pod"
+    "leaveProposed": "Changed your mind? Leave this pod",
+    "okay": "Okay"
   },
   "podState": {
     "proposed": "Proposed",
@@ -470,7 +469,11 @@
     "mapFailed": "The map didn't open.",
     "confirmed": "Confirmed",
     "alsoLikes": "More than one of you also likes",
-    "meetingSafely": "Meeting safely"
+    "meetingSafely": "Meeting safely",
+    "chatUnread_one": "{{count}} new",
+    "chatUnread_other": "{{count}} new",
+    "chatUnreadLabel_one": "{{count}} new message",
+    "chatUnreadLabel_other": "{{count}} new messages"
   },
   "plan": {
     "title": "Planner",
@@ -516,7 +519,9 @@
     "placeHelp": "Cafés, bars, libraries, parks and other public places nearby.",
     "rules": "The option with the most yes votes (at least {{min}}) wins when voting closes, and your yes counts as “I'm coming”. If everyone says yes to one, it's settled right away.",
     "rulesExtension": "If nothing gets {{min}} yes votes, you get one extra day to add another option.",
-    "doneVoting": "Done voting"
+    "doneVoting": "Done voting",
+    "dayPick": "Pick a day",
+    "timePick": "Pick a time"
   },
   "chat": {
     "title": "Meetup chat",
@@ -565,7 +570,10 @@
     "ratingTitle": "How was it overall?",
     "ratingValue": "{{value}} of 5",
     "keepTitle": "Meet this pod again?",
-    "keepBody": "If at least 3 of you choose Keep, the pod plans its next meetup with just those people."
+    "keepBody": "If at least 3 of you choose Keep, the pod plans its next meetup with just those people.",
+    "didNotMeet": "We didn't meet",
+    "didNotMeetNote": "You said you didn't meet, so you won't be asked who was there or how it went.",
+    "didMeet": "We did meet"
   },
   "member": {
     "title": "Member",
@@ -587,7 +595,7 @@
     "replanTitle": "Re-plan the meetup?",
     "blockKeepPlan": "Block, keep the plan",
     "blockAndReplan": "Block and re-plan",
-    "leaveNote": "Want to leave instead? You can leave from the pod page at any time. The others only see “A member left”."
+    "leaveNote": "Want to leave instead? You can leave the pod from its menu at any time. The others only see “A member left”."
   },
   "report": {
     "title": "Report",
@@ -646,8 +654,7 @@
       "OPEN_TO_ANYONE": "You're open to meeting anyone nearby."
     },
     "neverTitle": "What we never use",
-    "neverBody": "Photos, looks, or anything you haven't told us. Gender only if you chose same-gender pods. Private interests only as the theme of a pod about them.",
-    "automatic": "Pods are formed automatically."
+    "neverBody": "Photos, looks, or anything you haven't told us. Gender only if you chose same-gender pods. Private interests only as the theme of a pod about them."
   },
   "me": {
     "participation": "Weekly drops",
@@ -705,8 +712,6 @@
       "deletePhotoBody": "Your photo is deleted and members of your pods stop seeing it.",
       "pausedUntil": "Matching is paused until {{when}}.",
       "paused": "Matching is paused.",
-      "skipping": "You're skipping the drop in week {{week}}.",
-      "skipNext": "Skip the next drop",
       "agreedTo": "What you've agreed to",
       "privateInterests": "Private interests",
       "privateOn_one": "{{count}} interest, consent given",
@@ -720,7 +725,6 @@
       "dataAndMatching": "Your data and matching",
       "pauseTitle": "Pause matching",
       "pauseHint": "Skip drops until you come back",
-      "skipHint": "Sit out one week",
       "exportHint": "A file you can keep, ready within minutes",
       "blockedNone": "No one",
       "blockedCount_one": "{{count}} person",

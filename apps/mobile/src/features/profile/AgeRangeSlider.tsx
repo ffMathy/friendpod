@@ -25,6 +25,20 @@ const TRACK = 4;
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
 /**
+ * The track's scale: a gentle curve instead of a straight line. On a linear 18–99 track the ages people pick bunch at
+ * the far left (21–47 fills only 4–36 % of it); with fraction^0.6 the 20s to 50s get most of the room and a typical
+ * span sits mid-track as in storyboard 1.6 (21–47 at about 14–54 %), while every age up to `max` stays reachable
+ * (60–99 still take a third of the track). Values, steps and the screen-reader actions are unchanged.
+ */
+const CURVE = 0.6;
+
+/** Where `v` sits along the track, 0–1. */
+const fractionOf = (v: number, min: number, max: number) => clamp((v - min) / Math.max(1, max - min), 0, 1) ** CURVE;
+
+/** The (unrounded) value at fraction `f` of the track. */
+const valueAt = (f: number, min: number, max: number) => min + clamp(f, 0, 1) ** (1 / CURVE) * (max - min);
+
+/**
  * The two-thumb age range of storyboard 1.6: a 4-pt track, the chosen span in green and two white 24-pt thumbs.
  * One responder covers the whole 44-pt row, so a touch anywhere moves the nearer thumb and a drag carries it; the
  * thumbs never come closer than `minGap`. Each thumb is an adjustable element for screen readers (swipe up/down).
@@ -37,9 +51,8 @@ export function AgeRangeSlider({ min, max, low, high, minGap, onChange, lowLabel
   latest.current = { min, max, low, high, minGap, onChange, width };
   const drag = useRef<{ thumb: Thumb; startX: number } | null>(null);
 
-  const span = Math.max(1, max - min);
   const usable = Math.max(0, width - THUMB);
-  const xOf = (v: number) => THUMB / 2 + ((v - min) / span) * usable;
+  const xOf = (v: number) => THUMB / 2 + fractionOf(v, min, max) * usable;
 
   const responder = useRef(
     PanResponder.create({
@@ -49,7 +62,7 @@ export function AgeRangeSlider({ min, max, low, high, minGap, onChange, lowLabel
       onPanResponderGrant: (e) => {
         const s = latest.current;
         const w = Math.max(1, s.width - THUMB);
-        const at = (v: number) => THUMB / 2 + ((v - s.min) / Math.max(1, s.max - s.min)) * w;
+        const at = (v: number) => THUMB / 2 + fractionOf(v, s.min, s.max) * w;
         const x = e.nativeEvent.locationX;
         const dLow = Math.abs(x - at(s.low));
         const dHigh = Math.abs(x - at(s.high));
@@ -84,7 +97,7 @@ export function AgeRangeSlider({ min, max, low, high, minGap, onChange, lowLabel
   function moveTo(thumb: Thumb, x: number) {
     const s = latest.current;
     const w = Math.max(1, s.width - THUMB);
-    setThumb(thumb, Math.round(s.min + clamp((x - THUMB / 2) / w, 0, 1) * (s.max - s.min)));
+    setThumb(thumb, Math.round(valueAt((x - THUMB / 2) / w, s.min, s.max)));
   }
 
   const onAction = (thumb: Thumb) => (e: AccessibilityActionEvent) => {

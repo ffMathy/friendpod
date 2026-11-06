@@ -5,7 +5,8 @@ import { Alert, type AlertButton } from 'react-native';
 import Welcome from '../app/(auth)/index';
 import DeleteAccount from '../app/settings/delete-account';
 import Notices from '../app/settings/notices';
-import Privacy from '../app/settings/privacy';
+import PhotoSettings from '../app/settings/photo';
+import Privacy from '../app/(tabs)/(me)/settings/privacy';
 
 const mockRouter = { push: jest.fn(), back: jest.fn() };
 jest.mock('expo-router', () => ({ useRouter: () => mockRouter, useLocalSearchParams: () => ({}) }));
@@ -36,6 +37,9 @@ jest.mock('@/features/account/exportDownload', () => ({
 }));
 const mockClearImageCaches = jest.fn(async () => undefined);
 jest.mock('@/features/account/clearDeviceData', () => ({ clearImageCaches: () => mockClearImageCaches() }));
+// The photo page's picker and authenticated image need native modules; the delete flow does not.
+jest.mock('@/features/photos/upload', () => ({ usePhotoUpload: () => ({ state: 'idle', choose: jest.fn() }) }));
+jest.mock('@/features/photos/AuthenticatedPhoto', () => ({ AuthenticatedPhoto: () => null }));
 
 const ts = (ms: number) => ({ toMillis: () => ms });
 const live = (data: unknown) => ({ data, error: null, isLoading: false });
@@ -110,19 +114,24 @@ describe('Settings → Privacy (PRIVACY.md §6)', () => {
     expect(mockRouter.push).toHaveBeenCalledWith('/settings/sensitive-consent');
   });
 
-  it('pauses or skips the next drop, and shows from which week', async () => {
+  it('pauses matching, and shows from which week (skipping one drop is on Me, storyboard 5.3)', async () => {
     mockCall.mockResolvedValue({ effectiveWeekId: '2026-W46' });
     await renderWith(<Privacy />);
-    await fireEvent.press(screen.getByTestId('skip-next'));
-    expect(mockCall).toHaveBeenCalledWith('setParticipation', { mode: 'skipNext' });
+    expect(screen.queryByTestId('skip-next')).toBeNull();
     await fireEvent.press(screen.getByTestId('pause'));
     expect(mockCall).toHaveBeenCalledWith('setParticipation', { mode: 'pause' });
     expect(screen.getByText(/2026-W46/)).toBeOnTheScreen();
   });
 
-  it('deletes the photo after a confirmation and clears the image caches', async () => {
+  it('links the photo to its page, which deletes it after a confirmation and clears the image caches', async () => {
     await renderWith(<Privacy />);
-    await fireEvent.press(screen.getByTestId('delete-photo'));
+    expect(screen.getByText('Shown to confirmed pods')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByTestId('photo-settings'));
+    expect(mockRouter.push).toHaveBeenCalledWith('/settings/photo');
+    client.clear();
+
+    await renderWith(<PhotoSettings />);
+    await fireEvent.press(screen.getByTestId('photo-delete'));
     expect(mockCall).not.toHaveBeenCalled();
     await confirmAlert(alert);
     expect(mockCall).toHaveBeenCalledWith('deletePhoto', {});
@@ -164,13 +173,15 @@ describe('Settings → Privacy (PRIVACY.md §6)', () => {
     expect(screen.getByText("The download didn't work. Try again.")).toBeOnTheScreen();
   });
 
-  it('links to blocked people (with how many), messages from Grouper and Delete account', async () => {
+  it('links to blocked people (with how many), how matching works and Delete account', async () => {
     mockBlocks = [{ id: 'anna', data: { firstName: 'Anna', podId: 'abcdefghijklmnopqrst', since: ts(0) } }];
     await renderWith(<Privacy />);
     await fireEvent.press(screen.getByRole('link', { name: 'Blocked people 1 person' }));
     expect(mockRouter.push).toHaveBeenCalledWith('/settings/blocked');
-    await fireEvent.press(screen.getByRole('link', { name: 'Messages from Grouper' }));
-    expect(mockRouter.push).toHaveBeenCalledWith('/settings/notices');
+    await fireEvent.press(screen.getByRole('link', { name: 'How matching works' }));
+    expect(mockRouter.push).toHaveBeenCalledWith('/info/how-matching-works');
+    // Messages from Grouper are on Me and Settings (meSettings.test), not among the storyboard's four rows.
+    expect(screen.queryByRole('link', { name: 'Messages from Grouper' })).toBeNull();
     await fireEvent.press(screen.getByRole('button', { name: 'Delete account' }));
     expect(mockRouter.push).toHaveBeenCalledWith('/settings/delete-account');
   });

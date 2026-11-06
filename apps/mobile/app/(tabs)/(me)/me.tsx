@@ -95,6 +95,7 @@ export default function Me() {
 
       <ListGroup>
         <SettingsRow icon="people" title={t('me.preferences')} role="link" onPress={() => router.push('/settings/preferences')} />
+        {/* Privacy opens in the Me tab's own stack, so the tab bar stays (storyboard 5.3). */}
         <SettingsRow icon="lock" title={t('settings.privacy.title')} subtitle={t('me.privacyHint')} role="link" onPress={() => router.push('/settings/privacy')} />
         <SettingsRow icon="bell" title={t('settings.notifications.title')} role="link" onPress={() => router.push('/settings/notifications')} />
         <SettingsRow icon="chat" title={t('notices.title')} role="link" onPress={() => router.push('/settings/notices')} />

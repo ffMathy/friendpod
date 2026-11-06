@@ -180,7 +180,7 @@ export default function Area() {
   );
 }
 
-/** "Your area" (storyboard 1.3): the launch area the cell falls in and its status, or "not in your area yet". */
+/** "Your area" (storyboard 1.3): the launch area the cell falls in and the city's status, or "not in your area yet". */
 function AreaCard({ gh5, locale }: { gh5: Gh5; locale: Locale }) {
   const { t } = useTranslation();
   const area = resolveLaunchArea(gh5);
@@ -197,7 +197,10 @@ function AreaCard({ gh5, locale }: { gh5: Gh5; locale: Locale }) {
               {area ? area.label[locale] : t('onboarding.area.outside')}
             </AppText>
           </View>
-          {area ? <Pill label={t(`areaStatus.${area.status}`)} tone={area.status === 'live' ? 'mint' : 'amber'} /> : null}
+          {area ? (
+            // A sentence about the city ("Aarhus is live", "Aarhus opens soon"), not about the user, who is not on any list yet.
+            <Pill label={t(`onboarding.area.status.${area.status}`, { city: area.label[locale] })} tone={area.status === 'live' ? 'mint' : 'amber'} />
+          ) : null}
         </View>
         {area ? null : (
           <AppText variant="bodySm" tone="soft">
@@ -227,8 +230,10 @@ function AreaMap() {
 
 const styles = StyleSheet.create({
   stack: { gap: Spacing.sm },
-  cardHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.ms },
-  cardTitle: { flex: 1, gap: Spacing.xxs },
+  // The status pill names the city, so with a long name ("Copenhagen opens soon") it moves under the name rather than
+  // squeezing it.
+  cardHead: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', columnGap: Spacing.ms, rowGap: Spacing.sm },
+  cardTitle: { flexGrow: 1, flexShrink: 1, gap: Spacing.xxs },
   areaName: { fontSize: FontSize.h5, lineHeight: 26 },
   map: { height: 110, borderRadius: Radius.md, overflow: 'hidden' },
   // Positions from the storyboard's 304-pt-wide map, as fractions so it scales with the card.

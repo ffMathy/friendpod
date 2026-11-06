@@ -55,8 +55,14 @@ describe('welcome 1.1', () => {
     expect(screen.getByRole('switch', { name: 'English' })).toBeChecked();
     await fireEvent.press(screen.getByRole('button', { name: 'Continue with email' }));
     expect(mockRouter.push).toHaveBeenCalledWith('/email');
+    // One caption with the Terms and the privacy notice as inline links (storyboard 1.1); they are accepted in the next step.
+    expect(screen.getByText(/^Next, we'll ask you to accept the Terms\. Read how we handle your data in the privacy notice\.$/)).toBeOnTheScreen();
+    expect(screen.getByRole('link', { name: 'Terms' })).toHaveStyle({ textDecorationLine: 'underline' });
+    expect(screen.queryByText('Privacy notice')).toBeNull();
     await fireEvent.press(screen.getByRole('link', { name: 'Terms' }));
     expect(mockRouter.push).toHaveBeenCalledWith({ pathname: '/info/legal/[doc]', params: { doc: 'terms' } });
+    await fireEvent.press(screen.getByRole('link', { name: 'privacy notice' }));
+    expect(mockRouter.push).toHaveBeenCalledWith({ pathname: '/info/legal/[doc]', params: { doc: 'privacy' } });
     expect(screen.getByRole('image', { name: 'Grouper' })).toBeOnTheScreen();
     mockDeleted = false;
   });
@@ -143,7 +149,9 @@ describe('area 1.3', () => {
       </QueryClientProvider>,
     );
     expect(screen.getByText('Vejle')).toBeOnTheScreen();
-    expect(screen.getByText('On the waitlist')).toBeOnTheScreen();
+    // The pill is a sentence about the city, not a list the user is already on.
+    expect(screen.getByText('Vejle opens soon')).toBeOnTheScreen();
+    expect(screen.queryByText('On the waitlist')).toBeNull();
     await fireEvent.changeText(screen.getByLabelText('Postcode'), '0001');
     expect(mockUpdate).toHaveBeenLastCalledWith({ gh5: null });
     expect(screen.getByText("We don't know that postcode.")).toBeOnTheScreen();

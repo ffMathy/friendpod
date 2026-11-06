@@ -2,6 +2,7 @@ import * as SecureStore from 'expo-secure-store';
 import { useEffect } from 'react';
 import { usePodCards } from '@/data/docs';
 import { queryClient } from '@/data/queryClient';
+import { forgetChatRead } from '@/features/chat/lastRead';
 import { clearFirestoreCache, clearImageCaches } from './clearDeviceData';
 
 const ACTIVE_STATES = new Set(['proposed', 'planning', 'scheduled', 'happened']);
@@ -81,6 +82,7 @@ export async function forgetPods(podIds: readonly string[]): Promise<void> {
   });
 }
 
+/** Sign-out and account deletion: the pod list, the chat-cache record and how far each pod's chat was read. */
 export async function forgetActivePods(uid: string): Promise<void> {
-  await Promise.all([SecureStore.deleteItemAsync(key(uid)), SecureStore.deleteItemAsync(chatKey(uid))]);
+  await Promise.all([SecureStore.deleteItemAsync(key(uid)), SecureStore.deleteItemAsync(chatKey(uid)), forgetChatRead(uid)]);
 }

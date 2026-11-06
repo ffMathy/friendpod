@@ -14,11 +14,12 @@ import {
   Screen,
   ScreenHeader,
   SectionTitle,
-  Segmented,
+  TextLink,
   Toggle,
 } from '@/components/ui';
 import { usePod, usePodCard } from '@/data/docs';
 import { useCallable } from '@/data/useCallable';
+import { memberFills } from '@/features/pods/memberFill';
 import { isConfirmedMember } from '@/features/pods/membership';
 import { MemberFace } from '@/features/safety/MemberFace';
 import { useUid } from '@/features/session/SessionProvider';
@@ -32,7 +33,9 @@ const RATINGS = [1, 2, 3, 4, 5] as const;
  * "How did it go?" (§3.6, storyboard 4.1): "Who was there?" with everyone pre-ticked, so the user only unticks whoever
  * was missing (D15); a private "meet again" per person who was there, answered yes or no or left open (D9: an open
  * answer sends no signal); a 1–5 rating; and Keep pod / Not for me, which sends the answers. None of it is shown to the
- * others.
+ * others. The storyboard has no "Did you meet?" question, so `met` is a quiet "We didn't meet" link under the card:
+ * it hides the attendance and the rating (an empty `notThere` then counts nobody as there, D15), and "We did meet"
+ * brings them back.
  */
 export default function Feedback() {
   const { t } = useTranslation();
@@ -64,6 +67,8 @@ export default function Feedback() {
   if (!pod.data) return <Loading label={t('common.loading')} />;
   const others = pod.data.memberUids.filter((m) => m !== uid);
   const roster = pod.data.roster;
+  // Each member's pod colour, as on the pod page (storyboard 4.1 draws the four pastels).
+  const fillOf = memberFills(pod.data.memberUids, uid);
 
   // Keep pod / Not for me is the last answer and sends the form (storyboard 4.1).
   const send = (keep: boolean) =>
@@ -85,78 +90,91 @@ export default function Feedback() {
     <Screen>
       <ScreenHeader title={t('feedback.howDidItGo')} subtitle={t('feedback.subtitle')} backLabel={t('common.back')} onBack={router.back} />
 
-      <View style={styles.section}>
-        <SectionTitle title={t('feedback.didYouMeet')} />
-        <Segmented
-          options={[
-            { value: 'yes', label: t('feedback.yes'), accessibilityLabel: `${t('feedback.didYouMeet')} ${t('feedback.yes')}`, testID: 'met-yes' },
-            { value: 'no', label: t('feedback.no'), accessibilityLabel: `${t('feedback.didYouMeet')} ${t('feedback.no')}`, testID: 'met-no' },
-          ]}
-          value={met ? 'yes' : 'no'}
-          onChange={(v) => setMet(v === 'yes')}
-        />
-      </View>
-
-      {met && others.length > 0 ? (
-        <Card gap={Spacing.xs}>
-          <View style={styles.gridRow}>
-            <View style={styles.nameCol}>
-              <SectionTitle title={t('feedback.whoWasThere')} />
-            </View>
-            <AppText variant="micro" tone="muted" align="center" style={[Fonts.bold, styles.thereCol]}>
-              {t('feedback.wasThere')}
-            </AppText>
-            <AppText variant="micro" tone="muted" align="center" style={[Fonts.bold, styles.againCol]}>
-              {t('feedback.meetAgainColumn')}
-            </AppText>
-          </View>
-          {others.map((m) => {
-            const entry = roster[m];
-            const name = entry?.firstName ?? '';
-            const there = !notThere.has(m);
-            const question = t('feedback.meetAgain', { name });
-            return (
-              <View key={m} style={[styles.gridRow, styles.memberRow]}>
-                <View style={[styles.nameCol, styles.person]}>
-                  <MemberFace uid={m} name={name} size={32} photoV={entry?.photoV} />
-                  <AppText variant="bodyMd" tone={there ? 'ink' : 'muted'} style={[Fonts.semibold, styles.shrink]}>
-                    {name}
-                  </AppText>
+      {met ? (
+        <View style={styles.attendance}>
+          {others.length > 0 ? (
+            <Card gap={Spacing.xs}>
+              <View style={styles.gridRow}>
+                <View style={styles.nameCol}>
+                  <SectionTitle title={t('feedback.whoWasThere')} />
                 </View>
-                <View style={styles.thereCol}>
-                  <Checkbox testID={`there-${m}`} label={t('feedback.wasThereLabel', { name })} hideLabel checked={there} onChange={(on) => setThere(m, on)} />
-                </View>
-                <View style={[styles.againCol, styles.againChoices]}>
-                  {there ? (
-                    <>
-                      <Toggle
-                        testID={`again-yes-${m}`}
-                        label={t('feedback.yes')}
-                        accessibilityLabel={`${question} ${t('feedback.yes')}`}
-                        tone="accent"
-                        grow
-                        value={meetAgain[m] === 'yes'}
-                        onChange={(on) => answerMeetAgain(m, on ? 'yes' : null)}
-                      />
-                      <Toggle
-                        testID={`again-no-${m}`}
-                        label={t('feedback.no')}
-                        accessibilityLabel={`${question} ${t('feedback.no')}`}
-                        grow
-                        value={meetAgain[m] === 'no'}
-                        onChange={(on) => answerMeetAgain(m, on ? 'no' : null)}
-                      />
-                    </>
-                  ) : null}
-                </View>
+                <AppText variant="micro" tone="muted" align="center" style={[Fonts.bold, styles.thereCol]}>
+                  {t('feedback.wasThere')}
+                </AppText>
+                <AppText variant="micro" tone="muted" align="center" style={[Fonts.bold, styles.againCol]}>
+                  {t('feedback.meetAgainColumn')}
+                </AppText>
               </View>
-            );
-          })}
-          <AppText variant="micro" tone="muted" style={styles.gridNote}>
-            {`${t('feedback.whoWasThereHint')} ${t('feedback.meetAgainEffect')}`}
+              {others.map((m) => {
+                const entry = roster[m];
+                const name = entry?.firstName ?? '';
+                const there = !notThere.has(m);
+                const question = t('feedback.meetAgain', { name });
+                return (
+                  <View key={m} style={[styles.gridRow, styles.memberRow]}>
+                    <View style={[styles.nameCol, styles.person]}>
+                      <MemberFace uid={m} name={name} size={32} fill={fillOf(m)} photoV={entry?.photoV} />
+                      <AppText variant="bodyMd" tone={there ? 'ink' : 'muted'} style={[Fonts.semibold, styles.shrink]}>
+                        {name}
+                      </AppText>
+                    </View>
+                    <View style={styles.thereCol}>
+                      <Checkbox testID={`there-${m}`} label={t('feedback.wasThereLabel', { name })} hideLabel checked={there} onChange={(on) => setThere(m, on)} />
+                    </View>
+                    <View style={[styles.againCol, styles.againChoices]}>
+                      {there ? (
+                        <>
+                          <Toggle
+                            testID={`again-yes-${m}`}
+                            label={t('feedback.yes')}
+                            accessibilityLabel={`${question} ${t('feedback.yes')}`}
+                            tone="accent"
+                            grow
+                            value={meetAgain[m] === 'yes'}
+                            onChange={(on) => answerMeetAgain(m, on ? 'yes' : null)}
+                          />
+                          <Toggle
+                            testID={`again-no-${m}`}
+                            label={t('feedback.no')}
+                            accessibilityLabel={`${question} ${t('feedback.no')}`}
+                            grow
+                            value={meetAgain[m] === 'no'}
+                            onChange={(on) => answerMeetAgain(m, on ? 'no' : null)}
+                          />
+                        </>
+                      ) : null}
+                    </View>
+                  </View>
+                );
+              })}
+              <AppText variant="micro" tone="muted" style={styles.gridNote}>
+                {`${t('feedback.whoWasThereHint')} ${t('feedback.meetAgainEffect')}`}
+              </AppText>
+            </Card>
+          ) : null}
+          <TextLink
+            testID="met-no"
+            label={t('feedback.didNotMeet')}
+            role="button"
+            size="sm"
+            tone="muted"
+            onPress={() => setMet(false)}
+          />
+        </View>
+      ) : (
+        <Card tone="inset" gap={Spacing.sm}>
+          <AppText variant="bodySm" tone="muted">
+            {t('feedback.didNotMeetNote')}
           </AppText>
+          <TextLink
+            testID="met-yes"
+            label={t('feedback.didMeet')}
+            role="button"
+            size="sm"
+            onPress={() => setMet(true)}
+          />
         </Card>
-      ) : null}
+      )}
 
       {met ? (
         <View style={styles.section}>
@@ -214,8 +232,11 @@ export default function Feedback() {
 
 const styles = StyleSheet.create({
   section: { gap: 10 },
+  // The card and its quiet "We didn't meet" link read as one block.
+  attendance: { gap: Spacing.sm },
   gridRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  memberRow: { minHeight: 48 },
+  // 44 like the storyboard's rows: the Yes / No chips are 44 tall, so the rows are as tall as their touch targets.
+  memberRow: { minHeight: 44 },
   nameCol: { flex: 1, minWidth: 0 },
   person: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   shrink: { flexShrink: 1 },

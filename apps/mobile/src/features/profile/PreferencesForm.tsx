@@ -12,26 +12,15 @@ import {
 import { useState, type ReactNode } from 'react';
 import { Controller, useController, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
-import { Alert, StyleSheet, View } from 'react-native';
-import { Fonts, Spacing } from '@/components/theme';
-import {
-  AppText,
-  Button,
-  Card,
-  Checkbox,
-  ErrorText,
-  Screen,
-  SectionTitle,
-  Segmented,
-  SwitchRow,
-  Toggle,
-  type ButtonVariant,
-} from '@/components/ui';
+import { Alert, Pressable, StyleSheet, View } from 'react-native';
+import { Fonts, Radius, Sizes, Spacing, usePalette } from '@/components/theme';
+import { AppText, Button, Card, ErrorText, Screen, SectionTitle, Segmented, SwitchRow, type ButtonVariant } from '@/components/ui';
 import { useCallable } from '@/data/useCallable';
 import { errorMessageKey } from '@/lib/errors';
 import { zodResolver } from '@/lib/zodResolver';
 import { AgeRangeSlider } from './AgeRangeSlider';
 import { GenderConsentSheet } from './GenderConsentSheet';
+import { InlineCheckbox } from './InlineCheckbox';
 
 type AvailabilitySlot = keyof typeof AVAILABILITY;
 
@@ -58,6 +47,11 @@ export interface PreferencesFormProps {
   readonly ageHalfWidth?: number;
   /** Default 'primary' (ink); onboarding's Continue is 'accent' (green). */
   readonly submitVariant?: ButtonVariant;
+  /**
+   * Show the "Open to meet anyone" switch (Q12; default true). Onboarding leaves it out, as storyboard 1.6 does: the
+   * value `completeOnboarding` set is saved unchanged and stays changeable in Me → Pod preferences and on the no-pod card.
+   */
+  readonly showOpenToAnyone?: boolean;
 }
 
 /**
@@ -73,6 +67,7 @@ export function PreferencesForm({
   header,
   ageHalfWidth,
   submitVariant = 'primary',
+  showOpenToAnyone = true,
 }: PreferencesFormProps) {
   const { t } = useTranslation();
   const update = useCallable('updateProfile');
@@ -162,16 +157,16 @@ export function PreferencesForm({
           control={control}
           name="languages"
           render={({ field }) => (
+            // Side by side, each only as wide as its label (storyboard 1.6: "[x] Dansk  [x] English").
             <View style={styles.languages}>
               {LANGUAGES.map((lang) => (
-                <View key={lang} style={styles.language}>
-                  <Checkbox
-                    testID={`prefs-language-${lang}`}
-                    label={t(`languages.${lang}`)}
-                    checked={field.value.includes(lang)}
-                    onChange={(on) => field.onChange(on ? [...field.value, lang] : field.value.filter((l) => l !== lang))}
-                  />
-                </View>
+                <InlineCheckbox
+                  key={lang}
+                  testID={`prefs-language-${lang}`}
+                  label={t(`languages.${lang}`)}
+                  checked={field.value.includes(lang)}
+                  onChange={(on) => field.onChange(on ? [...field.value, lang] : field.value.filter((l) => l !== lang))}
+                />
               ))}
             </View>
           )}
@@ -209,14 +204,10 @@ export function PreferencesForm({
                   {row.slots.map((slot) => {
                     const bit = AVAILABILITY[slot];
                     return (
-                      <Toggle
+                      <SlotCell
                         key={slot}
                         testID={`prefs-slot-${slot}`}
                         label={t(`availability.${slot}`)}
-                        hideLabel
-                        tone="accent"
-                        shape="rounded"
-                        grow
                         value={(field.value & bit) !== 0}
                         onChange={(on) => field.onChange(on ? field.value | bit : field.value & ~bit)}
                       />
@@ -230,19 +221,21 @@ export function PreferencesForm({
         {formState.errors.availability ? <ErrorText>{t('prefs.pickAvailability')}</ErrorText> : null}
       </View>
 
-      <Controller
-        control={control}
-        name="openToAnyone"
-        render={({ field }) => (
-          <SwitchRow
-            testID="prefs-open-to-anyone"
-            label={t('prefs.openToAnyone')}
-            description={t('prefs.openToAnyoneHint')}
-            value={field.value}
-            onChange={field.onChange}
-          />
-        )}
-      />
+      {showOpenToAnyone ? (
+        <Controller
+          control={control}
+          name="openToAnyone"
+          render={({ field }) => (
+            <SwitchRow
+              testID="prefs-open-to-anyone"
+              label={t('prefs.openToAnyone')}
+              description={t('prefs.openToAnyoneHint')}
+              value={field.value}
+              onChange={field.onChange}
+            />
+          )}
+        />
+      ) : null}
 
       <SwitchRow
         testID="prefs-same-gender"
@@ -291,14 +284,42 @@ export function PreferencesForm({
   );
 }
 
+/** Grid cells are 36 pt tall and 6 apart; the slop gives each a 44-pt touch target without changing the layout. */
+const SLOT_HEIGHT = 36;
+const SLOT_SLOP = { top: (Sizes.touch - SLOT_HEIGHT) / 2, bottom: (Sizes.touch - SLOT_HEIGHT) / 2, left: 3, right: 3 } as const;
+
+/**
+ * One cell of the availability grid (storyboard 1.6): a flat 36-pt tile with 10-pt corners, green when on, white with a
+ * border when off. A switch named "Weekdays, daytime" etc.
+ */
+function SlotCell({ label, value, onChange, testID }: { label: string; value: boolean; onChange: (on: boolean) => void; testID: string }) {
+  const p = usePalette();
+  return (
+    <Pressable
+      testID={testID}
+      accessibilityRole="switch"
+      accessibilityLabel={label}
+      accessibilityState={{ checked: value }}
+      onPress={() => onChange(!value)}
+      hitSlop={SLOT_SLOP}
+      style={({ pressed }) => [
+        styles.slot,
+        { backgroundColor: value ? p.primary : p.surface, borderColor: value ? p.primary : p.borderStrong },
+        pressed && styles.pressed,
+      ]}
+    />
+  );
+}
+
 const styles = StyleSheet.create({
   inline: { gap: 18 },
   section: { gap: 10 },
   agesHead: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: Spacing.sm },
-  languages: { flexDirection: 'row', gap: 18 },
-  language: { flex: 1 },
+  languages: { flexDirection: 'row', flexWrap: 'wrap', columnGap: 18 },
   grid: { gap: 6 },
   gridRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   gridLabel: { width: 76 },
   gridCell: { flex: 1 },
+  slot: { flex: 1, height: SLOT_HEIGHT, borderRadius: Radius.sm, borderWidth: 1 },
+  pressed: { opacity: 0.75 },
 });

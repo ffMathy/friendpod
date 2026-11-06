@@ -7,6 +7,7 @@ import { Fonts, Radius, Spacing, Type, usePalette } from '@/components/theme';
 import { AppText, Banner, Body, Button, ErrorText, Icon, IconButton, Loading, Screen, ScreenHeader } from '@/components/ui';
 import { usePod, usePodCard } from '@/data/docs';
 import { Composer } from '@/features/chat/Composer';
+import { useMarkChatRead } from '@/features/chat/lastRead';
 import { MessageBubble } from '@/features/chat/MessageBubble';
 import { useChatMessages } from '@/features/chat/useChatMessages';
 import { useSendMessage } from '@/features/chat/useSendMessage';
@@ -38,6 +39,8 @@ export default function Chat() {
   const member = isConfirmedMember(card.data);
   const pod = usePod(podId, member);
   const messages = useChatMessages(uid, podId, member);
+  // What this screen shows counts as read: the pod page's Chat row drops its "new" badge.
+  useMarkChatRead(uid, podId, member ? messages.data : undefined);
   const status = useChatStatus(pod.data);
   const { send, pending } = useSendMessage();
   const locale = currentLocale();
@@ -51,7 +54,7 @@ export default function Chat() {
   // KeyboardAvoidingView measures itself against its parent only, so it needs its own offset in the window.
   const frameRef = useRef<HostInstance>(null);
   const [keyboardOffset, setKeyboardOffset] = useState(0);
-  const back = () => (router.canGoBack() ? router.back() : router.replace({ pathname: '/pod/[podId]', params: { podId } }));
+  const back = () => (router.canGoBack() ? router.back() : router.replace({ pathname: '/pod/[podId]', params: { podId } }, { withAnchor: true }));
 
   if (card.isLoading || (member && (pod.isLoading || messages.isLoading))) return <Loading label={t('common.loading')} />;
   const plain = (body: ReactNode) => (
@@ -84,6 +87,10 @@ export default function Chat() {
           ? t('chat.closedOff')
           : t('chat.notScheduled');
   const warning = warnedText !== null && warnedText === draft;
+  // One gentle paragraph with only its first sentence ("You haven't met yet.") in bold, as in the storyboard; the
+  // reason (contact details found) is the screen reader's hint.
+  const warningText = t('chat.contactWarning');
+  const [, warningLead = warningText, warningRest = ''] = /^(.+?[.!?])\s+(.+)$/.exec(warningText) ?? [];
   // The other members in pod order, each in the colour they have on every pod screen.
   const fillOf = memberFills(pod.data.memberUids, uid);
   const others = pod.data.memberUids.flatMap((memberUid) => {
@@ -206,12 +213,15 @@ export default function Chat() {
             )}
             {warning ? (
               <View style={[styles.warning, { backgroundColor: p.amberBg, borderColor: p.amberBorder }]}>
-                <Text accessibilityRole="alert" style={[Type.bodySm, Fonts.bold, { color: p.amberInk }]}>
-                  {t('chat.contactWarning')}
+                <Text
+                  accessibilityRole="alert"
+                  accessibilityLabel={warningText}
+                  accessibilityHint={t('chat.contactWarningDetail')}
+                  style={[Type.bodySm, { color: p.amberInk }]}
+                >
+                  <Text style={Fonts.bold}>{warningLead}</Text>
+                  {warningRest ? ` ${warningRest}` : null}
                 </Text>
-                <AppText variant="caption" color={p.amberInk}>
-                  {t('chat.contactWarningDetail')}
-                </AppText>
                 <View style={styles.warningActions}>
                   <Button label={t('chat.sendAnyway')} size="xs" inline busy={pending} disabled={!open} onPress={() => void sendDraft(true)} />
                   <Button label={t('chat.edit')} variant="secondary" size="xs" inline onPress={editWarned} />

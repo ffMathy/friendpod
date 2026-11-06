@@ -1,6 +1,8 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import type { ReactNode } from 'react';
+import { StyleSheet } from 'react-native';
+import { Fonts, Radius } from '@/components/theme';
 import AlmostDone from '../app/(onboarding)/done';
 import PodPreferences from '../app/(onboarding)/pod-preferences';
 
@@ -64,6 +66,23 @@ describe('1.6 Who would you like to meet', () => {
     expect(mockRouter.push).toHaveBeenCalledWith('/done');
   });
 
+  it('leaves "Open to meet anyone" out, sets the languages as plain checkboxes and the grid as 36-pt tiles', async () => {
+    await render(wrap(<PodPreferences />));
+    expect(screen.queryByTestId('prefs-open-to-anyone')).toBeNull();
+    expect(screen.getByRole('checkbox', { name: 'Dansk' })).toBeChecked();
+    expect(screen.getByText('English')).toHaveStyle({ fontFamily: Fonts.regular.fontFamily });
+    expect(screen.getByRole('switch', { name: 'Weekdays, daytime' })).toHaveStyle({ height: 36, borderRadius: Radius.sm });
+  });
+
+  it('puts the age span mid-track: the track is curved, so 28–42 sits at about 28–48 %', async () => {
+    await render(wrap(<PodPreferences />));
+    // 324 wide: the thumbs (24) travel 300.
+    await fireEvent(screen.getByTestId('prefs-ages'), 'layout', { nativeEvent: { layout: { width: 324 } } });
+    const at = (label: string) => (StyleSheet.flatten(screen.getByLabelText(label).props.style).left as number) / 300;
+    expect(at('Youngest age')).toBeCloseTo(0.285, 2);
+    expect(at('Oldest age')).toBeCloseTo(0.482, 2);
+  });
+
   it('turning on same-gender pods opens the gender sheet instead of saving', async () => {
     await render(wrap(<PodPreferences />));
     await fireEvent(screen.getByTestId('prefs-same-gender'), 'valueChange', true);
@@ -104,6 +123,13 @@ describe('1.7 Almost done', () => {
     await fireEvent.press(screen.getByTestId('onboarding-finish'));
     await flush();
     expect(mockFinish).not.toHaveBeenCalled();
+  });
+
+  it('sets the pledge sentence in regular type', async () => {
+    await render(wrap(<AlmostDone />));
+    const sentence = "I'll meet in public places, treat people with respect, and use Report if something feels wrong.";
+    expect(screen.getByRole('checkbox', { name: sentence })).not.toBeChecked();
+    expect(screen.getByText(sentence)).toHaveStyle({ fontFamily: Fonts.regular.fontFamily, fontSize: 14, lineHeight: 21 });
   });
 
   it('turns on notifications in place', async () => {

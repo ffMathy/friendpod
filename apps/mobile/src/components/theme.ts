@@ -48,6 +48,8 @@ const light = {
   amberBorder: '#F2D9A0',
   amberText: '#7A5200',
   amberInk: '#4A3A12',
+  /** The darker edge round an amber-filled star (a starred interest, storyboard 5.2). Decorative. */
+  amberStroke: '#C88A12',
   /** An amber mark on an ink-filled control (the star on a starred chip): needs 3:1 against `ink` (WCAG 1.4.11). */
   starOnInk: '#F2B544',
   // Coral: danger, report, block, delete
@@ -111,6 +113,7 @@ const dark: Record<keyof typeof light, string> = {
   amberBorder: '#5A4720',
   amberText: '#F4C873',
   amberInk: '#F1DDB0',
+  amberStroke: '#C88A12',
   /** Ink is near-white here, so the star turns deep amber (5.8:1). */
   starOnInk: '#7A5200',
   coralBg: '#2F1A15',
@@ -143,6 +146,12 @@ export const Colors = { light, dark } as const;
 
 export type Palette = { readonly [K in keyof typeof Colors.light]: string };
 export type ColorName = keyof Palette;
+
+/** An avatar's colours: the circle and the initial on it. */
+export interface AvatarFill {
+  readonly bg: string;
+  readonly fg: string;
+}
 
 /** The brand-green avatar fill (white initial). */
 export const AvatarFillGreen = { bg: '#1E6B58', fg: '#FFFFFF' } as const;
@@ -339,6 +348,19 @@ export type TypeVariant = keyof typeof Type;
 
 export function usePalette(): Palette {
   return Colors[useColorScheme() === 'dark' ? 'dark' : 'light'];
+}
+
+/**
+ * The status bar's icons and clock per scheme: dark on the light ground, light on the dark one. Every screen meets the
+ * status bar with the ground, white or a dimmed sheet backdrop (the dark and green cards sit below the header), so one
+ * style per scheme holds everywhere.
+ */
+export const StatusBarStyles = { light: 'dark-content', dark: 'light-content' } as const;
+
+export type StatusBarContent = (typeof StatusBarStyles)[keyof typeof StatusBarStyles];
+
+export function useStatusBarStyle(): StatusBarContent {
+  return StatusBarStyles[useColorScheme() === 'dark' ? 'dark' : 'light'];
 }
 
 /** Picks a stable avatar fill for a uid or name (the same person keeps the same colour everywhere). */

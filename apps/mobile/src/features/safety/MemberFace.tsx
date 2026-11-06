@@ -1,12 +1,17 @@
 import { StyleSheet, View } from 'react-native';
 import { Avatar } from '@/components/ui';
 import { AuthenticatedPhoto } from '@/features/photos/AuthenticatedPhoto';
+import type { MemberFill } from '@/features/pods/memberFill';
 
 export interface MemberFaceProps {
   readonly uid: string;
   readonly name: string;
   /** Diameter: 32 in the feedback grid (storyboard 4.1), 64 in the member sheet (4.2). */
   readonly size: number;
+  /** The member's pod colour (`memberFills`), so they look as they do on the pod page; hashed from `uid` without it. */
+  readonly fill?: MemberFill;
+  /** The viewer: the ink circle the pod page draws for "You". */
+  readonly you?: boolean;
   /** The roster's photo version; null or absent draws the initial only (also pass null for a blocked member). */
   readonly photoV?: number | null;
   /** Accessible name of the photo ("Photo of Anna"); without it the photo is hidden from screen readers, as for an
@@ -20,11 +25,11 @@ export interface MemberFaceProps {
  * A pod member's face for the safety screens: the coloured initial, with the photo laid over it where the roster lists
  * one. The initial stays underneath, so a photo that cannot be fetched (no grant, offline) still shows the initial.
  */
-export function MemberFace({ uid, name, size, photoV, photoLabel, placeholder = false }: MemberFaceProps) {
+export function MemberFace({ uid, name, size, fill, you = false, photoV, photoLabel, placeholder = false }: MemberFaceProps) {
   const photo = !placeholder && photoV !== null && photoV !== undefined;
   return (
     <View style={{ width: size, height: size }}>
-      <Avatar name={name} uid={uid} size={size} placeholder={placeholder} />
+      <Avatar name={name} uid={uid} fill={fill} you={you} size={size} placeholder={placeholder} />
       {photo ? (
         <View
           pointerEvents="none"

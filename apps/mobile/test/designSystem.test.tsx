@@ -3,18 +3,23 @@ import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import type { ConfigContext } from 'expo/config';
+import { BottomTabBarHeightContext } from 'expo-router/js-tabs';
+import { StyleSheet, Text } from 'react-native';
 import appConfig from '../app.config';
 import { ANDROID_FONT_FAMILY, AvatarFills, Colors, IOS_FONT_FAMILY, avatarFill, type Palette } from '@/components/theme';
 import {
   Avatar,
   Button,
   Checkbox,
+  ChoiceRow,
+  Field,
   Icon,
   ICON_NAMES,
   LinkRow,
   ListGroup,
   Logo,
   HeroCircles,
+  Screen,
   ScreenHeader,
   Segmented,
   StatCard,
@@ -241,5 +246,51 @@ describe('design foundation: components', () => {
     expect(screen.queryByText('M')).toBeNull();
     expect(screen.getByText('M', { includeHiddenElements: true })).toBeOnTheScreen();
     expect(screen.getByText('You', { includeHiddenElements: true })).toBeOnTheScreen();
+  });
+});
+
+describe('design foundation: integration seams', () => {
+  const light = Colors.light;
+
+  it('leaves the bottom inset to the tab bar inside the tabs, and keeps it elsewhere', async () => {
+    // The safe-area view gets its edges as { top: 'additive', bottom: 'off', … }.
+    const edgesOf = (id: string): Record<string, string> => screen.getByTestId(id).props.edges as Record<string, string>;
+    await render(
+      <>
+        <Screen testID="outside">
+          <Text>Settings</Text>
+        </Screen>
+        <BottomTabBarHeightContext.Provider value={80}>
+          <Screen testID="inside">
+            <Text>This week</Text>
+          </Screen>
+        </BottomTabBarHeightContext.Provider>
+      </>,
+    );
+    expect(edgesOf('outside')).toMatchObject({ top: 'additive', bottom: 'additive' });
+    expect(edgesOf('inside')).toMatchObject({ top: 'additive', bottom: 'off' });
+  });
+
+  it("draws an unselected radio ring that keeps 3:1 against the card (WCAG 1.4.11)", async () => {
+    await render(<ChoiceRow testID="reason" label="Spam" selected={false} onPress={() => undefined} />);
+    type Node = { props: { style?: unknown }; children?: readonly (Node | string)[] };
+    const styled = (n: Node): Node[] => [n, ...(n.children ?? []).flatMap((c) => (typeof c === 'string' ? [] : styled(c)))];
+    const ring = styled(screen.getByTestId('reason') as unknown as Node).find((n) => {
+      const st = StyleSheet.flatten(n.props.style as never) as { width?: number; borderRadius?: number } | undefined;
+      return st?.width === 20 && st.borderRadius === 10;
+    });
+    expect(StyleSheet.flatten(ring?.props.style as never)).toMatchObject({ borderColor: light.muted });
+    expect(contrast(light.muted, light.surface)).toBeGreaterThanOrEqual(3);
+  });
+
+  it("sizes the 'md' field's text to 15 pt (storyboard 1.7) and the default one to 17 pt", async () => {
+    await render(
+      <>
+        <Field label="About me" size="md" testID="md" value="" onChangeText={() => undefined} />
+        <Field label="First name" testID="lg" value="" onChangeText={() => undefined} />
+      </>,
+    );
+    expect(StyleSheet.flatten(screen.getByTestId('md').props.style)).toMatchObject({ fontSize: 15, paddingLeft: 14, paddingRight: 14 });
+    expect(StyleSheet.flatten(screen.getByTestId('lg').props.style)).toMatchObject({ fontSize: 17, paddingLeft: 16, paddingRight: 16 });
   });
 });

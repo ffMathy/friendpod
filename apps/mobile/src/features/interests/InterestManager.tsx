@@ -199,7 +199,8 @@ export function InterestManager({ uid, locale, mode }: Props) {
         label={t('interests.add')}
         height={mode === 'onboarding' ? Sizes.input : Sizes.inputMd}
         busy={pending}
-        disabled={!ready || text.trim().length === 0}
+        ready={ready}
+        empty={text.trim().length === 0}
         onPress={() => void submit(text)}
       />
     </View>
@@ -246,13 +247,21 @@ export function InterestManager({ uid, locale, mode }: Props) {
     </>
   );
 
-  // The standing notice at the interest field (PRIVACY.md §3.2), verbatim.
+  const readMore = (size: 'md' | 'sm') => (
+    <TextLink label={t('interests.readMoreSensitive')} size={size} onPress={() => router.push('/info/sensitive-interests')} />
+  );
+
+  // The standing notice at the interest field (PRIVACY.md §3.2), verbatim. On the Interests tab (5.2, which draws no
+  // link of its own) "Read more about sensitive interests" sits in it as a small link.
   const noticeBox = (
     <View style={[styles.notice, { backgroundColor: p.surface, borderColor: p.border }]}>
       <Icon name="info" size={20} color={p.primary} style={styles.noticeIcon} />
-      <AppText variant="caption" tone="soft" style={styles.flex}>
-        {notice.kind === 'interestNotice' ? notice.content.text : ''}
-      </AppText>
+      <View style={styles.noticeText}>
+        <AppText variant="caption" tone="soft">
+          {notice.kind === 'interestNotice' ? notice.content.text : ''}
+        </AppText>
+        {mode === 'full' ? readMore('sm') : null}
+      </View>
     </View>
   );
 
@@ -321,8 +330,6 @@ export function InterestManager({ uid, locale, mode }: Props) {
         {t('interests.nudge', { min: MIN_INTERESTS, nudge: NUDGE_INTERESTS })}
       </AppText>
     ) : null;
-
-  const readMore = <TextLink label={t('interests.readMoreSensitive')} onPress={() => router.push('/info/sensitive-interests')} />;
 
   if (mode === 'onboarding') {
     const openRow = rows.find((r) => r.id === openId) ?? null;
@@ -398,7 +405,7 @@ export function InterestManager({ uid, locale, mode }: Props) {
 
         {suggestionBox}
         {popular}
-        {readMore}
+        {readMore('md')}
       </View>
     );
   }
@@ -505,29 +512,34 @@ export function InterestManager({ uid, locale, mode }: Props) {
       ) : null}
 
       {popular}
-      {readMore}
     </View>
   );
 }
 
-/** The green "Add" next to the field: 14-pt corners, the field's height (storyboards 1.5, 5.2). */
+/**
+ * The green "Add" next to the field: 14-pt corners, the field's height (storyboards 1.5, 5.2). It turns grey only while
+ * the on-device model is not ready. With an empty field it stays green, as the storyboards draw it, but does nothing
+ * and reads as disabled to screen readers.
+ */
 function AddButton({
   label,
   onPress,
   height,
-  disabled,
+  ready,
+  empty,
   busy,
   testID,
 }: {
   label: string;
   onPress: () => void;
   height: number;
-  disabled: boolean;
+  ready: boolean;
+  empty: boolean;
   busy: boolean;
   testID?: string;
 }) {
   const p = usePalette();
-  const inactive = disabled || busy;
+  const inactive = !ready || empty || busy;
   return (
     <Pressable
       testID={testID}
@@ -536,9 +548,9 @@ function AddButton({
       accessibilityState={{ disabled: inactive, busy }}
       disabled={inactive}
       onPress={onPress}
-      style={({ pressed }) => [styles.addButton, { minHeight: height, backgroundColor: disabled ? p.disabledBg : pressed ? p.primaryPressed : p.primary }]}
+      style={({ pressed }) => [styles.addButton, { minHeight: height, backgroundColor: !ready ? p.disabledBg : pressed ? p.primaryPressed : p.primary }]}
     >
-      {busy ? <ActivityIndicator color={p.onPrimary} /> : <Text style={[Type.button, { color: disabled ? p.disabledText : p.onPrimary }]}>{label}</Text>}
+      {busy ? <ActivityIndicator color={p.onPrimary} /> : <Text style={[Type.button, { color: ready ? p.onPrimary : p.disabledText }]}>{label}</Text>}
     </Pressable>
   );
 }
@@ -596,13 +608,14 @@ function StarButton({ label, starred, onChange }: { label: string; starred: bool
       hitSlop={2}
       style={({ pressed }) => [styles.iconTarget, styles.starTarget, pressed && { backgroundColor: p.subtle }]}
     >
+      {/* Storyboard 5.2: an amber star with a darker amber edge when starred, a light grey outline when not. */}
       {starred ? (
         <View>
           <Icon name="starFilled" size={20} color={p.amber} />
-          <Icon name="star" size={20} strokeWidth={1.5} color={p.amberText} style={StyleSheet.absoluteFill} />
+          <Icon name="star" size={20} strokeWidth={1.5} color={p.amberStroke} style={StyleSheet.absoluteFill} />
         </View>
       ) : (
-        <Icon name="star" size={20} strokeWidth={1.8} color={p.muted} />
+        <Icon name="star" size={20} strokeWidth={1.8} color={p.faint} />
       )}
     </Pressable>
   );
@@ -635,6 +648,7 @@ const styles = StyleSheet.create({
   addButton: { borderRadius: Radius.md, paddingHorizontal: 18, alignItems: 'center', justifyContent: 'center' },
   notice: { flexDirection: 'row', gap: 10, borderWidth: 1, borderRadius: Radius.lg, paddingVertical: Spacing.ms, paddingHorizontal: 14 },
   noticeIcon: { marginTop: 1 },
+  noticeText: { flex: 1, gap: Spacing.xs },
   chip: { flexDirection: 'row', alignItems: 'center', minHeight: 36, borderRadius: 18, borderWidth: 2, paddingLeft: 10, paddingRight: 2 },
   chipBody: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   iconTarget: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },

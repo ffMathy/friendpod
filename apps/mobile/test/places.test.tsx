@@ -92,8 +92,25 @@ describe('places (D8)', () => {
     });
     expect(picked).toHaveLength(1);
     expect(placeSchema.parse(picked[0])).toMatchObject({ name: 'Café Nord', type: 'cafe' });
-    expect(screen.getByText('Café Nord')).toBeOnTheScreen();
-    expect(screen.getByRole('button', { name: 'Change place' })).toBeOnTheScreen();
+    // Storyboard 3.3: the search and its results stay; the pick is marked in the list.
+    expect(screen.getByTestId('place-search')).toHaveDisplayValue('café');
+    expect(screen.getByRole('button', { name: 'Café Nord, Nørregade 1, Aarhus', selected: true })).toBeOnTheScreen();
+    expect(screen.queryByRole('button', { name: 'Change place' })).toBeNull();
+
+    // Another search keeps the pick at the top; a tap on another result switches it.
+    await fireEvent.changeText(screen.getByTestId('place-search'), 'dokk');
+    await act(async () => {
+      jest.advanceTimersByTime(400);
+    });
+    expect(screen.getByRole('button', { name: 'Café Nord, Nørregade 1, Aarhus', selected: true })).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('button', { name: 'Dokk1, Hack Kampmanns Plads 2, Aarhus' }));
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(picked).toHaveLength(2);
+    expect(placeSchema.parse(picked[1])).toMatchObject({ name: 'Dokk1' });
+    expect(screen.getByRole('button', { name: 'Dokk1, Hack Kampmanns Plads 2, Aarhus', selected: true })).toBeOnTheScreen();
+    expect(screen.queryByText('Café Nord')).toBeNull();
     jest.useRealTimers();
   });
 });

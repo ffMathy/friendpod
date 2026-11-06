@@ -12,6 +12,8 @@ export interface LockedPlanProps {
   readonly place: Place;
   /** Shown under the plan after a hairline (the viewer's calm attendance line on the pod page). */
   readonly children?: ReactNode;
+  /** Adds a quiet "Meeting safely" link beside the map link (the safety tips before the meetup, §4.5). */
+  readonly onSafety?: () => void;
 }
 
 /**
@@ -19,7 +21,7 @@ export interface LockedPlanProps {
  * link stored with the option (`mapUrl`, from `googleMapsPlaceUrl`) and "Add to calendar", which opens the system
  * sheet without the theme (D11). The caller supplies the card around it.
  */
-export function LockedPlan({ meetupAt, place, children }: LockedPlanProps) {
+export function LockedPlan({ meetupAt, place, children, onSafety }: LockedPlanProps) {
   const { t } = useTranslation();
   const [calendarFailed, setCalendarFailed] = useState(false);
   const [mapFailed, setMapFailed] = useState(false);
@@ -41,7 +43,10 @@ export function LockedPlan({ meetupAt, place, children }: LockedPlanProps) {
         <AppText variant="caption" tone="muted">
           {place.address}
         </AppText>
-        <TextLink testID="open-map" label={t('pod.openMap')} size="sm" onPress={openMap} />
+        <View style={styles.links}>
+          <TextLink testID="open-map" label={t('pod.openMap')} size="sm" onPress={openMap} />
+          {onSafety ? <TextLink testID="safety-tips" label={t('pod.meetingSafely')} tone="muted" size="sm" onPress={onSafety} /> : null}
+        </View>
         {mapFailed ? <ErrorText>{t('pod.mapFailed')}</ErrorText> : null}
       </View>
       <Button testID="add-to-calendar" label={t('pod.addToCalendar')} icon="calendarPlus" variant="secondary" size="sm" onPress={addToCalendar} />
@@ -59,4 +64,5 @@ export function LockedPlan({ meetupAt, place, children }: LockedPlanProps) {
 const styles = StyleSheet.create({
   plan: { gap: 12 },
   details: { gap: 3 },
+  links: { flexDirection: 'row', flexWrap: 'wrap', columnGap: 18, rowGap: 4 },
 });

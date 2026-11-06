@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { createEventInCalendarAsync } from 'expo-calendar/legacy';
 import { Alert, Linking, type AlertButton } from 'react-native';
-import PodScreen from '../app/pod/[podId]/index';
+import PodScreen from '../app/(tabs)/(pods)/pod/[podId]';
 
 const POD_ID = 'abcdefghijklmnopqrst';
 const HOUR = 3_600_000;

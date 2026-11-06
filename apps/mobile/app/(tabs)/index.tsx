@@ -12,13 +12,14 @@ import {
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
-import { AppText, Loading, Screen, ScreenHeader, SectionTitle, TextLink } from '@/components/ui';
+import { AppText, Loading, Screen, ScreenHeader, SectionTitle } from '@/components/ui';
 import { useAreaDoc, usePodCards, useUserDoc } from '@/data/docs';
 import { formatWeekdayTime, weekNumber } from '@/features/drop/format';
 import { MatchOnCard } from '@/features/drop/MatchOnCard';
 import { NextDropCard } from '@/features/drop/NextDropCard';
 import { NoPodCard } from '@/features/drop/NoPodCard';
 import { PodRow } from '@/features/drop/PodRow';
+import { UnderlineLink } from '@/features/drop/UnderlineLink';
 import { useNow } from '@/features/drop/useNow';
 import { ProposalCard } from '@/features/pods/ProposalCard';
 import { ScreenCaptureGuard } from '@/features/pods/ScreenCaptureGuard';
@@ -83,8 +84,9 @@ export default function ThisWeek() {
       {t('home.nextDrop', { when: formatWeekdayTime(dropSchedule(nextDropWeek(now)).releaseAt, locale, 'long') })}
     </AppText>
   );
+  // The small underlined link closing the screen (2.1), the screen's 16-pt gap below the last card.
   const howMatching = (
-    <TextLink label={t('info.howMatchingWorks.title')} onPress={() => router.push('/info/how-matching-works')} testID="home-how-matching" />
+    <UnderlineLink label={t('info.howMatchingWorks.title')} size="sm" onPress={() => router.push('/info/how-matching-works')} testID="home-how-matching" />
   );
   // "Your pods · 1 of 2 active" and a row per confirmed pod (storyboard 2.1), each opening the pod page.
   const yourPods = (pods: readonly { id: string; data: PodCardDoc }[]) => (
@@ -99,7 +101,8 @@ export default function ThisWeek() {
             uid={uid}
             podId={c.id}
             card={c.data}
-            onPress={() => router.push({ pathname: '/pod/[podId]', params: { podId: c.id } })}
+            // The pod page is in the Pods tab (storyboards 3.1, 3.4): this switches to it, with the Pods list underneath.
+            onPress={() => router.push({ pathname: '/pod/[podId]', params: { podId: c.id } }, { withAnchor: true })}
             testID={`home-open-pod-${c.id}`}
           />
         </View>

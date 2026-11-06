@@ -151,7 +151,8 @@ describe('This week (storyboards 2.1–2.5)', () => {
     expect(screen.getByTestId(`home-pod-${POD_ID}`)).toBeOnTheScreen();
     expect(screen.queryByText('No pod for you this week')).toBeNull();
     await fireEvent.press(screen.getByTestId(`home-open-pod-${POD_ID}`));
-    expect(mockRouter.push).toHaveBeenCalledWith({ pathname: '/pod/[podId]', params: { podId: POD_ID } });
+    // The pod page is in the Pods tab: the push switches to it, with the Pods list underneath.
+    expect(mockRouter.push).toHaveBeenCalledWith({ pathname: '/pod/[podId]', params: { podId: POD_ID } }, { withAnchor: true });
   });
 
   it('unmatched in the latest drop: the reason, what helps, and "Open to meeting anyone" saves the preference', async () => {

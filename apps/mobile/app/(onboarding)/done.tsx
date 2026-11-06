@@ -4,11 +4,12 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import { usePalette } from '@/components/theme';
-import { AppText, Banner, Button, Card, Checkbox, Icon, Loading, Pill, Screen, StepHeader, Title } from '@/components/ui';
+import { AppText, Banner, Button, Card, Icon, Loading, Pill, Screen, Spacer, StepHeader, Title } from '@/components/ui';
 import { useAreaDoc, useUserDoc } from '@/data/docs';
 import { registerPushToken, requestPushPermission } from '@/features/notifications/push';
 import { PhotoCard } from '@/features/photos/PhotoCard';
 import { AboutMeInput, useAboutMe } from '@/features/profile/AboutMeField';
+import { InlineCheckbox } from '@/features/profile/InlineCheckbox';
 import { useSession, useUid } from '@/features/session/SessionProvider';
 import { currentLocale } from '@/i18n';
 
@@ -19,7 +20,8 @@ const STEPS = 6;
  * "Almost done" (storyboard 1.7): §3.1 steps 10–12 on one screen. The optional photo and "about me" (D4), the
  * notification permission (pushes never name a theme or a person, S4), the safety pledge, which Finish needs, and the
  * area's state (live, waitlist progress "N of goal" with "<10" below 10, or not in your area yet). Finish saves a
- * changed "about me" first, then ends onboarding; Home then shows "This week" or the city's waitlist (1.8).
+ * changed "about me" first, then ends onboarding; Home then shows "This week" or the city's waitlist (1.8). Finish
+ * follows the content (storyboard 1.7) rather than being pinned, so it comes after the pledge it needs.
  */
 export default function AlmostDone() {
   const { t } = useTranslation();
@@ -74,20 +76,7 @@ function AlmostDoneForm({
   };
 
   return (
-    <Screen
-      wide
-      gap={18}
-      footer={
-        <Button
-          testID="onboarding-finish"
-          label={t('onboarding.final.finish')}
-          variant="accent"
-          disabled={!pledged || aboutMe.problem !== null}
-          busy={finishing || aboutMe.save.isPending}
-          onPress={() => void finish()}
-        />
-      }
-    >
+    <Screen wide gap={18}>
       <StepHeader
         step={STEP}
         total={STEPS}
@@ -108,6 +97,15 @@ function AlmostDoneForm({
       <NotificationsCard />
       <PledgeCard checked={pledged} onChange={setPledged} />
       <AreaStatus areaId={areaId} />
+      <Spacer />
+      <Button
+        testID="onboarding-finish"
+        label={t('onboarding.final.finish')}
+        variant="accent"
+        disabled={!pledged || aboutMe.problem !== null}
+        busy={finishing || aboutMe.save.isPending}
+        onPress={() => void finish()}
+      />
     </Screen>
   );
 }
@@ -167,7 +165,7 @@ function NotificationsCard() {
   );
 }
 
-/** "Our safety pledge" (§3.1 step 11): one unticked checkbox, required to finish. */
+/** "Our safety pledge" (§3.1 step 11): one unticked checkbox, required to finish; the sentence in regular 14/21. */
 function PledgeCard({ checked, onChange }: { checked: boolean; onChange: (checked: boolean) => void }) {
   const { t } = useTranslation();
   const p = usePalette();
@@ -179,7 +177,13 @@ function PledgeCard({ checked, onChange }: { checked: boolean; onChange: (checke
           {t('onboarding.pledge.title')}
         </AppText>
       </View>
-      <Checkbox testID="pledge-checkbox" label={t('onboarding.final.pledgeAgree')} checked={checked} onChange={onChange} />
+      <InlineCheckbox
+        testID="pledge-checkbox"
+        variant="statement"
+        label={t('onboarding.final.pledgeAgree')}
+        checked={checked}
+        onChange={onChange}
+      />
     </Card>
   );
 }

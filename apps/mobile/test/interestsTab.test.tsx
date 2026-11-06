@@ -2,6 +2,7 @@ import { addInterestsInput } from '@grouper/core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import type * as ReactModule from 'react';
+import { Colors } from '@/components/theme';
 import { InterestManager } from '@/features/interests/InterestManager';
 
 const mockRouter = { push: jest.fn() };
@@ -154,6 +155,17 @@ describe('Interests tab (§11)', () => {
         await fireEvent.press(screen.getByRole('button', { name: 'Remove & withdraw: Gravid' }));
     expect(mockCall).toHaveBeenCalledWith('removeInterest', { interestId: 'pppppppppppppppp' });
     expect(screen.getAllByRole('switch', { name: 'Star' })).toHaveLength(3);
+  });
+
+  it('keeps "Add" green with an empty field, where it does nothing, and links "Read more" from the notice', async () => {
+    await renderTab();
+    const addButton = screen.getByTestId('interest-add');
+    expect(addButton).toBeDisabled();
+    expect(addButton).toHaveStyle({ backgroundColor: Colors.light.primary });
+    await fireEvent.press(addButton);
+    expect(mockCall).not.toHaveBeenCalled();
+    await fireEvent.press(screen.getByRole('link', { name: 'Read more about sensitive interests' }));
+    expect(mockRouter.push).toHaveBeenCalledWith('/info/sensitive-interests');
   });
 
   it('"No, keep it" dismisses the suggestion without a call', async () => {

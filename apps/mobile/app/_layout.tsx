@@ -4,8 +4,9 @@ import * as SplashScreen from 'expo-splash-screen';
 import * as SystemUI from 'expo-system-ui';
 import { useEffect } from 'react';
 import { I18nextProvider, useTranslation } from 'react-i18next';
+import { Platform } from 'react-native';
 import { useNavigationTheme, useStackScreenOptions } from '@/components/navigation';
-import { usePalette } from '@/components/theme';
+import { Radius, usePalette } from '@/components/theme';
 import { useUserDoc } from '@/data/docs';
 import { queryClient } from '@/data/queryClient';
 import { initFirebase } from '@/firebase';
@@ -34,13 +35,33 @@ function ProfileEffects({ uid }: { uid: string }) {
   return null;
 }
 
+/**
+ * The root stack. The tabs (This week, Pods, Me with their own stacks: the pod page and Privacy sit under their tab, so
+ * the tab bar stays, storyboards 3.1, 3.4, 5.3) are its base; everything the storyboards draw without the tab bar opens
+ * over them: the pod's planner, chat and feedback (3.2, 3.5, 4.1), the member sheet (4.2), Settings and Privacy's
+ * sub-pages (5.4), the info pages and the two sheets. The pod's sub-pages have no layout of their own, so each is a
+ * screen of this stack and the member sheet is presented over the pod page. Every screen draws its own in-page header.
+ */
 function Navigator() {
   const { phase, user } = useSession();
   const { t } = useTranslation();
   // Storyboard look for every navigator below (colours, fonts); nested stacks spread useStackScreenOptions() too.
   const theme = useNavigationTheme();
   const stackOptions = useStackScreenOptions();
-  const ground = usePalette().ground;
+  const p = usePalette();
+  const ground = p.ground;
+  // Storyboards 2.3 and 4.2: bottom sheets sized to their content over the dimmed screen below. Each draws its own
+  // grabber and its white surface with the 28-pt top corners. Android before 13 cannot clip the sheet's content to
+  // its corners, so there the native background stays transparent and the screen's rounded surface shows (a square
+  // one painted over them, device run 26b); iOS clips, so it keeps the surface colour behind the content.
+  const fittedSheet = {
+    headerShown: false,
+    presentation: 'formSheet',
+    sheetAllowedDetents: 'fitToContents',
+    sheetGrabberVisible: false,
+    sheetCornerRadius: Radius.heroLg,
+    contentStyle: { backgroundColor: Platform.OS === 'android' ? 'transparent' : p.surface },
+  } as const;
 
   useEffect(() => {
     if (phase !== 'loading') void SplashScreen.hideAsync();
@@ -63,11 +84,15 @@ function Navigator() {
         </Stack.Protected>
         <Stack.Protected guard={phase === 'ready'}>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="pod/[podId]" options={{ headerShown: false }} />
+          <Stack.Screen name="pod/[podId]/plan" options={{ title: t('plan.title'), headerShown: false }} />
+          <Stack.Screen name="pod/[podId]/chat" options={{ title: t('chat.title'), headerShown: false }} />
+          <Stack.Screen name="pod/[podId]/feedback" options={{ title: t('feedback.title'), headerShown: false }} />
+          <Stack.Screen name="pod/[podId]/member/[uid]" options={{ title: t('member.title'), ...fittedSheet }} />
           <Stack.Screen name="settings" options={{ headerShown: false }} />
         </Stack.Protected>
         <Stack.Protected guard={phase !== 'signedOut'}>
-          <Stack.Screen name="sheets" options={{ presentation: 'modal', headerShown: false }} />
+          <Stack.Screen name="sheets/why-this-pod" options={{ title: t('pods.whyThisPod'), ...fittedSheet }} />
+          <Stack.Screen name="sheets/report" options={{ title: t('report.title'), presentation: 'modal', headerShown: false }} />
         </Stack.Protected>
         <Stack.Screen name="auth/complete" options={{ title: t('auth.complete.title'), headerShown: false }} />
         <Stack.Screen name="info" options={{ headerShown: false }} />

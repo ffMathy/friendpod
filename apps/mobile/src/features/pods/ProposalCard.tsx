@@ -15,13 +15,14 @@ import {
   Icon,
   Pill,
   SegmentBar,
-  TextLink,
   Toggle,
   type IconName,
 } from '@/components/ui';
 import { useCallable } from '@/data/useCallable';
 import { boldList, fill, slot } from '@/features/drop/rich';
 import { formatWeekdayTime } from '@/features/drop/format';
+import { UnderlineLink } from '@/features/drop/UnderlineLink';
+import { useWaitingNoteClosed } from '@/features/drop/waitingNote';
 import { errorMessageKey } from '@/lib/errors';
 import { currentLocale } from '@/i18n';
 
@@ -41,8 +42,10 @@ export interface ProposalCardProps {
  * The weekly proposal (§3.2; storyboards 2.2, 2.4, 5.1): theme in the viewer's own wording, size and area, "about N km
  * or less", age span and shared interests for ordinary themes only, and the deadline. Never names, photos, gender or
  * who has accepted; after accepting, only how many said yes. A private-interest pod (5.1) shows less on purpose, in
- * violet, and keeps its lock and the photo note after the viewer accepts (2.4). "Why this pod?" (and, for a private
- * interest, how it is protected) sits under the card.
+ * violet, and keeps its lock and the photo note after the viewer accepts (2.4). While the viewer is invited, "Why this
+ * pod?" sits under the card (2.2); for a private interest, so does how it is protected. After accepting (2.4) the card
+ * explains the wait and ends with "Okay", which folds that note away for the session, and "Changed your mind? Leave
+ * this pod" sits under it.
  */
 export function ProposalCard({ podId, card, confirmationMin }: ProposalCardProps) {
   const { t } = useTranslation();
@@ -52,6 +55,7 @@ export function ProposalCard({ podId, card, confirmationMin }: ProposalCardProps
   const leave = useCallable('leavePod');
   const [declining, setDeclining] = useState(false);
   const [reason, setReason] = useState<DeclineReason | undefined>(undefined);
+  const [noteClosed, closeNote] = useWaitingNoteClosed(podId);
   const near = card.reasons.find((r) => r.code === 'NEAR_YOU');
   const alsoShare = card.reasons.find((r) => r.code === 'ALSO_SHARE');
   const sensitive = card.themeSensitive;
@@ -124,9 +128,11 @@ export function ProposalCard({ podId, card, confirmationMin }: ProposalCardProps
               </View>
               <SegmentBar total={card.sizeTarget} filled={Math.min(card.acceptedCount, card.sizeTarget)} />
             </View>
-            <AppText variant="bodySm" tone="soft">
-              {t('pods.waitingBody')}
-            </AppText>
+            {noteClosed ? null : (
+              <AppText variant="bodySm" tone="soft">
+                {t('pods.waitingBody')}
+              </AppText>
+            )}
             {sensitive ? (
               // Still true while waiting: names only once confirmed, and the photo stays hidden unless shown (5.1).
               <Banner tone="violet" icon={null}>
@@ -183,16 +189,20 @@ export function ProposalCard({ podId, card, confirmationMin }: ProposalCardProps
 
         {error ? <ErrorText>{t(errorMessageKey(error))}</ErrorText> : null}
 
+        {accepted && !noteClosed ? <Button label={t('pods.okay')} variant="primary" onPress={closeNote} /> : null}
         {invited && !declining ? (
           <View style={styles.buttons}>
-            <Button label={t('pods.notThisTime')} variant="secondary" flex={1} onPress={() => setDeclining(true)} />
-            <Button
-              label={t('pods.imIn')}
-              variant={sensitive ? 'violet' : 'accent'}
-              flex={1.4}
-              busy={respond.isPending}
-              onPress={() => respond.mutate({ podId, accept: true })}
-            />
+            <View style={styles.grow}>
+              <Button label={t('pods.notThisTime')} variant="secondary" onPress={() => setDeclining(true)} />
+            </View>
+            <View style={styles.growMore}>
+              <Button
+                label={t('pods.imIn')}
+                variant={sensitive ? 'violet' : 'accent'}
+                busy={respond.isPending}
+                onPress={() => respond.mutate({ podId, accept: true })}
+              />
+            </View>
           </View>
         ) : null}
         {invited && declining ? (
@@ -206,26 +216,31 @@ export function ProposalCard({ podId, card, confirmationMin }: ProposalCardProps
               ))}
             </ChipRow>
             <View style={styles.buttons}>
-              <Button label={t('common.cancel')} variant="ghost" flex={1} onPress={() => setDeclining(false)} />
-              <Button
-                label={t('pods.confirmDecline')}
-                flex={1.4}
-                busy={respond.isPending}
-                onPress={() => respond.mutate({ podId, accept: false, ...(reason ? { reason } : {}) })}
-              />
+              <View style={styles.grow}>
+                <Button label={t('common.cancel')} variant="ghost" onPress={() => setDeclining(false)} />
+              </View>
+              <View style={styles.growMore}>
+                <Button
+                  label={t('pods.confirmDecline')}
+                  busy={respond.isPending}
+                  onPress={() => respond.mutate({ podId, accept: false, ...(reason ? { reason } : {}) })}
+                />
+              </View>
             </View>
           </View>
         ) : null}
       </Card>
 
-      <TextLink
-        label={t('pods.whyThisPodLink')}
-        align="center"
-        onPress={() => router.push({ pathname: '/sheets/why-this-pod', params: { podId } })}
-      />
-      {sensitive ? <TextLink label={t('pods.howPrivateProtected')} align="center" onPress={() => router.push('/info/sensitive-interests')} /> : null}
+      {accepted ? null : (
+        <UnderlineLink
+          label={t('pods.whyThisPodLink')}
+          align="center"
+          onPress={() => router.push({ pathname: '/sheets/why-this-pod', params: { podId } })}
+        />
+      )}
+      {sensitive ? <UnderlineLink label={t('pods.howPrivateProtected')} align="center" onPress={() => router.push('/info/sensitive-interests')} /> : null}
       {accepted && card.state === 'proposed' ? (
-        <TextLink label={t('pods.leaveProposed')} tone="muted" role="button" align="center" onPress={confirmLeave} />
+        <UnderlineLink label={t('pods.leaveProposed')} tone="muted" role="button" align="center" onPress={confirmLeave} />
       ) : null}
     </>
   );
@@ -244,5 +259,9 @@ const styles = StyleSheet.create({
   progress: { gap: 10 },
   progressRow: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 },
   buttons: { flexDirection: 'row', gap: 10 },
+  // As the storyboards' CSS flex-grow: each pill starts at its label's width and takes its share (1 : 1.4) of the
+  // rest, so "Not this time" stays on one line and is the wider pill next to "I'm in" (2.2).
+  grow: { flexGrow: 1, flexShrink: 1 },
+  growMore: { flexGrow: 1.4, flexShrink: 1 },
   decline: { gap: 12 },
 });

@@ -2,8 +2,7 @@ import { OPTIONS_PER_POD, WINNING_YES_VOTES, winningOption, type Place } from '@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, View } from 'react-native';
-import { AddButton, AppText, Banner, Body, Button, Card, ErrorText, Field, Loading, Screen, ScreenHeader } from '@/components/ui';
+import { AddButton, AppText, Banner, Body, Button, Card, ErrorText, Loading, Screen, ScreenHeader } from '@/components/ui';
 import { usePod, usePodCard, usePodOptions, useUserDoc } from '@/data/docs';
 import { useCallable } from '@/data/useCallable';
 import { PlacePicker } from '@/features/places/PlacePicker';
@@ -12,6 +11,7 @@ import type { MemberStackItem } from '@/features/pods/MemberCircle';
 import { memberFills, viewerLast } from '@/features/pods/memberFill';
 import { isConfirmedMember } from '@/features/pods/membership';
 import { validateOptionForm, type OptionFormError } from '@/features/pods/optionForm';
+import { OptionWhen } from '@/features/pods/OptionWhen';
 import { PlanOptionCard } from '@/features/pods/PlanOptionCard';
 import { useUid } from '@/features/session/SessionProvider';
 import { currentLocale } from '@/i18n';
@@ -47,7 +47,7 @@ export default function Plan() {
   /** null: the default (the form while there are no options yet); true/false once the viewer chose. */
   const [composing, setComposing] = useState<boolean | null>(null);
   const [now] = useState(() => Date.now());
-  const back = () => (router.canGoBack() ? router.back() : router.replace({ pathname: '/pod/[podId]', params: { podId } }));
+  const back = () => (router.canGoBack() ? router.back() : router.replace({ pathname: '/pod/[podId]', params: { podId } }, { withAnchor: true }));
 
   if (card.isLoading || (planning && options.isLoading)) return <Loading label={t('common.loading')} />;
   if (!planning) {
@@ -109,30 +109,7 @@ export default function Plan() {
       >
         <ScreenHeader title={t('plan.suggestTitle')} size="md" closeLabel={t('common.close')} onClose={() => setComposing(false)} />
         {extensionBanner}
-        <View style={styles.when}>
-          <Field
-            testID="option-date"
-            label={t('plan.day')}
-            value={date}
-            onChangeText={setDate}
-            placeholder={t('plan.dateHint')}
-            keyboardType="numbers-and-punctuation"
-            autoCorrect={false}
-            size="md"
-            containerStyle={styles.whenField}
-          />
-          <Field
-            testID="option-time"
-            label={t('plan.time')}
-            value={time}
-            onChangeText={setTime}
-            placeholder={t('plan.timeHint')}
-            keyboardType="numbers-and-punctuation"
-            autoCorrect={false}
-            size="md"
-            containerStyle={styles.whenField}
-          />
-        </View>
+        <OptionWhen date={date} time={time} onDate={setDate} onTime={setTime} locale={locale} />
         <PlacePicker language={locale} gh5={user.data?.area.gh5 ?? null} value={place} onChange={setPlace} />
         {formError ? <ErrorText>{t(`plan.errors.${formError}`)}</ErrorText> : null}
         {propose.error ? <ErrorText>{t(errorMessageKey(propose.error))}</ErrorText> : null}
@@ -202,8 +179,3 @@ export default function Plan() {
     </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  when: { flexDirection: 'row', gap: 10 },
-  whenField: { flex: 1 },
-});

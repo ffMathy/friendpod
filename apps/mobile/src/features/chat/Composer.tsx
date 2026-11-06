@@ -21,7 +21,8 @@ const SEND_SIZE = 46;
 
 /**
  * The meetup-chat composer (storyboard 3.5): a rounded field and a round green Send button, with the 500-character
- * counter (A28) under them.
+ * counter (A28) under them. Send stays green while the chat is open, as drawn; with nothing to send it does nothing
+ * and is announced as disabled. It turns grey only when the chat is closed.
  */
 export function Composer({ value, onChangeText, onSend, enabled, busy, hideSend = false, inputRef }: ComposerProps) {
   const { t } = useTranslation();
@@ -58,13 +59,13 @@ export function Composer({ value, onChangeText, onSend, enabled, busy, hideSend 
             onPress={onSend}
             style={({ pressed }) => [
               styles.send,
-              { backgroundColor: !canSend && !busy ? p.disabledBg : pressed ? p.primaryPressed : p.primary },
+              { backgroundColor: !enabled ? p.disabledBg : pressed && canSend ? p.primaryPressed : p.primary },
             ]}
           >
             {busy ? (
               <ActivityIndicator color={p.onPrimary} />
             ) : (
-              <Icon name="send" size={20} strokeWidth={2.2} color={canSend ? p.onPrimary : p.disabledText} />
+              <Icon name="send" size={20} strokeWidth={2.2} color={enabled ? p.onPrimary : p.disabledText} />
             )}
           </Pressable>
         )}

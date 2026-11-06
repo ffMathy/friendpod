@@ -1,10 +1,10 @@
 import type { Locale } from '@grouper/core';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { type LayoutChangeEvent, ScrollView, StyleSheet, View } from 'react-native';
-import { Spacing } from '@/components/theme';
-import { AppText, Banner, Body, HeroCircles, Logo, Pill, Screen, Segmented, TextLink, Title } from '@/components/ui';
+import { type ReactNode, useState } from 'react';
+import { Trans, useTranslation } from 'react-i18next';
+import { type LayoutChangeEvent, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Spacing, usePalette } from '@/components/theme';
+import { AppText, Banner, Body, HeroCircles, Logo, Pill, Screen, Segmented, Title } from '@/components/ui';
 import { consumeAccountDeleted } from '@/features/account/account';
 import { SignInOptions } from '@/features/auth/SignInOptions';
 import { currentLocale, initI18n } from '@/i18n';
@@ -24,7 +24,7 @@ type Heights = { viewport: number; top: number; banner: number; copy: number };
 /**
  * Storyboard 1.1, §3.1 steps 1–2: welcome and sign-in on one screen. The UI language follows the device and can be
  * switched here; confirms an account deletion (§3.10). The Terms are accepted in the next step (onboarding/terms), so
- * the footer only points to them.
+ * the footer only points to them: one centred caption with the Terms and the privacy notice as inline links.
  */
 export default function Welcome() {
   const { t } = useTranslation();
@@ -50,18 +50,16 @@ export default function Welcome() {
       footer={
         <View style={styles.actions}>
           <SignInOptions onEmail={() => router.push('/email')} />
-          <View style={styles.legal}>
-            <AppText variant="caption" tone="muted" align="center">
-              {t('auth.signIn.legalHint')}
-            </AppText>
-            <View style={styles.legalLinks}>
-              <TextLink label={t('welcome.terms')} size="sm" onPress={() => openLegal('terms')} />
-              <AppText variant="caption" tone="muted" accessibilityElementsHidden importantForAccessibility="no">
-                ·
-              </AppText>
-              <TextLink label={t('welcome.privacy')} size="sm" onPress={() => openLegal('privacy')} />
-            </View>
-          </View>
+          <AppText variant="caption" tone="muted" align="center" style={styles.legal}>
+            <Trans
+              t={t}
+              i18nKey="auth.signIn.legalNote"
+              components={{
+                terms: <InlineLink onPress={() => openLegal('terms')} />,
+                privacy: <InlineLink onPress={() => openLegal('privacy')} />,
+              }}
+            />
+          </AppText>
         </View>
       }
     >
@@ -103,6 +101,16 @@ export default function Welcome() {
   );
 }
 
+/** A link inside a caption, as on storyboard 1.1: the caption's regular weight, primary green and underlined. */
+function InlineLink({ onPress, children }: { onPress: () => void; children?: ReactNode }) {
+  const p = usePalette();
+  return (
+    <Text accessibilityRole="link" onPress={onPress} style={[styles.inlineLink, { color: p.primary }]}>
+      {children}
+    </Text>
+  );
+}
+
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   // Screen's own padding is replaced by the scroll view's, which needs the whole body to measure what is free.
@@ -112,6 +120,6 @@ const styles = StyleSheet.create({
   story: { flexGrow: 1, justifyContent: 'center', gap: STORY_GAP },
   copy: { gap: STORY_GAP },
   actions: { gap: Spacing.ms },
-  legal: { marginTop: Spacing.xs, gap: Spacing.xxs },
-  legalLinks: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', columnGap: Spacing.sm },
+  legal: { marginTop: Spacing.xs },
+  inlineLink: { textDecorationLine: 'underline' },
 });

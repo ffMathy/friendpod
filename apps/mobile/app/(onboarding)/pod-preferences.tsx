@@ -12,7 +12,8 @@ const STEPS = 6;
 
 /**
  * §3.1 step 9 (storyboard 1.6): defaults come from completeOnboarding (own age ± the area profile's half-width: 7 at
- * launch, wider in the alpha profile, §6.10).
+ * launch, wider in the alpha profile, §6.10). "Open to meet anyone" is not asked here (1.6 has no such switch); its
+ * default from completeOnboarding is saved as it is.
  */
 export default function PodPreferences() {
   const { t } = useTranslation();
@@ -41,6 +42,7 @@ export default function PodPreferences() {
       ageHalfWidth={profile.defaults.ageHalfWidth}
       submitLabel={t('common.continue')}
       submitVariant="accent"
+      showOpenToAnyone={false}
       onSaved={() => router.push('/done')}
     />
   );

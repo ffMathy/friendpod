@@ -2,12 +2,16 @@ import type { PodCardDoc } from '@grouper/core';
 import { useTranslation } from 'react-i18next';
 import type { AvatarStackMember } from '@/components/ui';
 import { usePod } from '@/data/docs';
+import { memberFills } from '@/features/pods/memberFill';
 import { isConfirmedMember } from '@/features/pods/membership';
 import { currentLocale } from '@/i18n';
 import { formatDateTime } from '@/lib/format';
 
 export interface PodSummary {
-  /** The members' initials, the viewer last; empty before confirmation or while the pod doc loads. */
+  /**
+   * The members' initials, the viewer last, each other member in their pod colour (`memberFills`, as on the pod page);
+   * empty before confirmation or while the pod doc loads.
+   */
   readonly members: readonly AvatarStackMember[];
   /** "Pick a time by Tue 11 Nov, 18:00" · "Sat 15 Nov, 14:00 · Café Nord" · "Met · Sat 15 Nov, 14:00" · the state. */
   readonly detail: string;
@@ -26,10 +30,11 @@ export function usePodSummary(uid: string, podId: string, card: PodCardDoc): Pod
 
   const others = pod.memberUids.filter((m) => m !== uid);
   const ordered = pod.memberUids.includes(uid) ? [...others, uid] : others;
-  const members = ordered.flatMap((m) => {
+  const fillOf = memberFills(pod.memberUids, uid);
+  const members = ordered.flatMap((m): AvatarStackMember[] => {
     const entry = pod.roster[m];
     if (!entry) return [];
-    return [{ key: m, uid: m, name: entry.firstName, ...(m === uid ? { you: true, label: t('chat.you') } : {}) }];
+    return [{ key: m, uid: m, name: entry.firstName, ...(m === uid ? { you: true, label: t('chat.you') } : { fill: fillOf(m) }) }];
   });
   const meetupAt = pod.planning.meetupAt?.toMillis();
   const place = pod.planning.place?.name;

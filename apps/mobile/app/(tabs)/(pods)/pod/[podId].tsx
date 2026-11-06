@@ -2,10 +2,11 @@ import { feedbackClosesAt, firstAttendanceAsk, HOUR_MS, meetupTimers, podNextSte
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, StyleSheet } from 'react-native';
-import { AppText, Banner, Body, Button, Card, ErrorText, IconButton, Loading, Pill, Screen, SectionTitle } from '@/components/ui';
+import { Alert, StyleSheet, View } from 'react-native';
+import { AppText, Banner, Body, Button, Card, ErrorText, IconButton, Loading, Pill, Screen, SectionTitle, SwitchRow } from '@/components/ui';
 import { usePod, usePodCard, usePodOptions } from '@/data/docs';
 import { useCallable } from '@/data/useCallable';
+import { countUnread, useChatLastRead } from '@/features/chat/lastRead';
 import { useChatMessages } from '@/features/chat/useChatMessages';
 import { useChatStatus } from '@/features/chat/window';
 import { AttendanceCard } from '@/features/pods/AttendanceCard';
@@ -32,10 +33,12 @@ function attendanceAskedAt(pod: PodDoc): number | null {
 
 /**
  * A confirmed pod (§3.4, D13). While the pod plans its meetup it is storyboard 3.1: the green "Confirmed" hero with the
- * members, then the pod interests, Members and "Meeting safely", with "Plan the meetup" pinned at the bottom as the next
- * step. Once a plan exists it is storyboard 3.4: one dark "next step" card driven by state (confirm attendance → chat
- * during the window → give feedback), then calm Plan, Chat and Members sections. Block and report live in each
- * member's sheet. Before confirmation the proposal card is shown instead.
+ * members (each opens their sheet), then the pod interests and "Meeting safely", with "Plan the meetup" pinned at the
+ * bottom as the next step. Once a plan exists it is storyboard 3.4: one dark "next step" card driven by state (confirm
+ * attendance → chat during the window → give feedback), then calm Plan, Chat and Members sections. Block and report
+ * live in each member's sheet; "Leave pod" is the pod menu (⋯) by the back button (§3.8). Before confirmation the
+ * proposal card is shown instead. The page is in the Pods tab's stack, so the tab bar stays under it with Pods active;
+ * its planner, chat, feedback and member sheet open over the tabs.
  */
 export default function PodScreen() {
   const { t } = useTranslation();
@@ -47,9 +50,10 @@ export default function PodScreen() {
   const pod = usePod(podId, member);
   const options = usePodOptions(podId, member && card.data?.state === 'planning');
   const chat = useChatStatus(pod.data);
-  // Outside the window the chat row stays only while messages exist; inside it there is no need to read them here.
+  // Inside the window the messages give the Chat row its unread badge; outside it the row stays only while they exist.
   const chatClosed = chat?.kind === 'ended' || chat?.kind === 'off';
-  const messages = useChatMessages(uid, podId, member && chatClosed);
+  const messages = useChatMessages(uid, podId, member && (chatClosed || chat?.kind === 'open'));
+  const lastRead = useChatLastRead(uid, podId);
   const feedbackSent = useFeedbackSent(podId);
   const confirmationMin = useConfirmationMin(uid);
   const leave = useCallable('leavePod');
@@ -69,6 +73,7 @@ export default function PodScreen() {
   }
   const c = card.data;
   if (!member) {
+    // The proposal card of This week (storyboards 2.2 and 2.4), for a proposal opened from the Pods list.
     return (
       <Screen>
         {c.themeSensitive ? <ScreenCaptureGuard /> : null}
@@ -121,25 +126,20 @@ export default function PodScreen() {
     ]);
 
   const planning = p?.state === 'planning';
-  const members = p ? (
-    <PodMembers
-      uid={uid}
-      pod={p}
-      onOpen={openMember}
-      {...(sensitive
-        ? { photoShare: { value: c.photoShared === true, disabled: sharePhoto.isPending, onChange: (share: boolean) => sharePhoto.mutate({ podId, share }) } }
-        : {})}
-    />
+  // The pod menu: its one entry, "Leave pod", asks for confirmation straight away (§3.8).
+  const podMenu =
+    c.state !== 'archived' ? (
+      <IconButton icon="more" label={t('pod.leave')} onPress={confirmLeave} disabled={leave.isPending} style={styles.menu} testID="pod-menu" />
+    ) : null;
+  const photoShare = sensitive
+    ? { value: c.photoShared === true, disabled: sharePhoto.isPending, onChange: (share: boolean) => sharePhoto.mutate({ podId, share }) }
+    : undefined;
+  const chatEntry = chatDetail ? (
+    <ChatEntry detail={chatDetail} unread={countUnread(messages.data, uid, lastRead)} onPress={() => go('/pod/[podId]/chat')} />
   ) : null;
-  const interests = p ? <PodInterests interests={p.podInterests[locale]} /> : null;
-  const chatEntry = chatDetail ? <ChatEntry detail={chatDetail} onPress={() => go('/pod/[podId]/chat')} /> : null;
-  const tail = (
+  const errors = (
     <>
       {sharePhoto.error ? <ErrorText>{t(errorMessageKey(sharePhoto.error))}</ErrorText> : null}
-      <MeetingSafely />
-      {c.state !== 'archived' ? (
-        <Button label={t('pod.leave')} variant="dangerSoft" size="md" busy={leave.isPending} onPress={confirmLeave} />
-      ) : null}
       {leave.error ? <ErrorText>{t(errorMessageKey(leave.error))}</ErrorText> : null}
     </>
   );
@@ -159,18 +159,30 @@ export default function PodScreen() {
         }
       >
         {sensitive ? <ScreenCaptureGuard /> : null}
-        <IconButton icon="chevronLeft" label={t('common.back')} onPress={back} style={styles.back} />
-        <PodHero uid={uid} pod={p} theme={theme} sensitive={sensitive} subtitle={sizeLine ?? ''} />
+        <View style={styles.topRow}>
+          <IconButton icon="chevronLeft" label={t('common.back')} onPress={back} style={styles.back} />
+          {podMenu}
+        </View>
+        <PodHero uid={uid} pod={p} theme={theme} sensitive={sensitive} subtitle={sizeLine ?? ''} onOpen={openMember} />
         {pod.error ? <ErrorText>{t('common.loadFailed')}</ErrorText> : null}
         {p.planning.extended ? (
           <Banner tone="amber" icon="clock" title={t('plan.extendedTitle')}>
             {t('plan.extendedBody', { when: deadline })}
           </Banner>
         ) : null}
-        {interests}
-        {members}
+        <PodInterests interests={p.podInterests[locale]} />
+        {photoShare ? (
+          <SwitchRow
+            label={t('pod.showMyPhoto')}
+            value={photoShare.value}
+            disabled={photoShare.disabled}
+            onChange={photoShare.onChange}
+            testID="show-my-photo"
+          />
+        ) : null}
         {chatEntry}
-        {tail}
+        <MeetingSafely />
+        {errors}
       </Screen>
     );
   }
@@ -185,7 +197,12 @@ export default function PodScreen() {
         subtitle={sizeLine}
         backLabel={t('common.back')}
         onBack={back}
-        right={!p || state === 'scheduled' ? undefined : <Pill tone="neutral" size="sm" label={t(`podState.${state}`)} />}
+        right={
+          <>
+            {!p || state === 'scheduled' ? null : <Pill tone="neutral" size="sm" label={t(`podState.${state}`)} />}
+            {podMenu}
+          </>
+        }
       />
       {pod.error ? <ErrorText>{t('common.loadFailed')}</ErrorText> : null}
 
@@ -209,19 +226,25 @@ export default function PodScreen() {
       {p && meetupAt !== null && place ? (
         <Card radius="lg" gap={12}>
           <SectionTitle title={t('pod.sections.plan')} variant="overline" />
-          <LockedPlan meetupAt={meetupAt} place={place}>
+          <LockedPlan
+            meetupAt={meetupAt}
+            place={place}
+            // The safety tips stay one tap away until the meetup (shown at confirmation and T−24 h, §4.5).
+            onSafety={p.state === 'scheduled' ? () => router.push('/info/safety') : undefined}
+          >
             {p.state === 'scheduled' && step !== 'confirmAttendance' ? <AttendanceCard podId={podId} when={when} mine={mine} ask={false} /> : null}
           </LockedPlan>
         </Card>
       ) : null}
       {chatEntry}
-      {members}
-      {interests}
-      {tail}
+      {p ? <PodMembers uid={uid} pod={p} onOpen={openMember} {...(photoShare ? { photoShare } : {})} /> : null}
+      {errors}
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
+  topRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   back: { marginLeft: -10 },
+  menu: { marginRight: -10 },
 });

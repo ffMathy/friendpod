@@ -6,7 +6,7 @@
 import type { AttendanceStatus, PodDoc } from '@grouper/core';
 import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { Fonts, Radius, Spacing, Type, usePalette } from '@/components/theme';
 import { AppText, Card, ChipRow, Icon, IconButton, ListGroup, Pill, Row, SwitchRow } from '@/components/ui';
 import { MemberAvatar } from './MemberAvatar';
@@ -66,15 +66,17 @@ export interface PodHeroProps {
   readonly theme: string;
   readonly sensitive: boolean;
   readonly subtitle: string;
+  /** Opens another member's sheet. */
+  readonly onOpen: (memberUid: string) => void;
 }
 
 /**
  * Storyboard 3.1: the green hero right after confirmation, with an amber "Confirmed" badge, the theme, size and area,
  * and every member's avatar and first name, the viewer last as "You". Each member has their pod colour, with the
- * green fill swapped for its mint tint on the green card. The avatar row is decorative: the Members list below names
- * the same people for screen readers and opens their sheets.
+ * green fill swapped for its mint tint on the green card. 3.1 has no Members list, so each other member's avatar is
+ * the way to their sheet ("about me", block and report, §3.7); the viewer's own circle is plain text.
  */
-export function PodHero({ uid, pod, theme, sensitive, subtitle }: PodHeroProps) {
+export function PodHero({ uid, pod, theme, sensitive, subtitle, onOpen }: PodHeroProps) {
   const { t } = useTranslation();
   const p = usePalette();
   const { width } = useWindowDimensions();
@@ -103,25 +105,48 @@ export function PodHero({ uid, pod, theme, sensitive, subtitle }: PodHeroProps) 
       <AppText variant="bodySm" tone="muted">
         {subtitle}
       </AppText>
-      <View accessible={false} accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={styles.heroMembers}>
-        {members.map(({ memberUid, entry }) => (
-          <View key={memberUid} style={styles.heroMember}>
-            <MemberAvatar
-              uid={memberUid}
-              name={entry.firstName}
-              size={avatar}
-              fill={fillOf(memberUid)}
-              photoV={entry.photoV}
-              you={memberUid === uid}
-              youLabel={t('chat.you')}
-              // The viewer's ink circle has a light ring on the green card, as in the storyboard.
-              ring={memberUid === uid ? p.onForest : undefined}
-            />
-            <AppText variant="caption" numberOfLines={1} style={Fonts.bold}>
-              {entry.firstName}
-            </AppText>
-          </View>
-        ))}
+      <View accessibilityRole="list" accessibilityLabel={t('pod.sections.members')} style={styles.heroMembers}>
+        {members.map(({ memberUid, entry }) => {
+          const self = memberUid === uid;
+          const face = (
+            <>
+              <MemberAvatar
+                uid={memberUid}
+                name={entry.firstName}
+                size={avatar}
+                fill={fillOf(memberUid)}
+                photoV={entry.photoV}
+                photoLabel={t('pod.photoOf', { name: entry.firstName })}
+                you={self}
+                youLabel={t('chat.you')}
+                // The viewer's ink circle has a light ring on the green card, as in the storyboard.
+                ring={self ? p.onForest : undefined}
+              />
+              <AppText variant="caption" numberOfLines={1} style={Fonts.bold}>
+                {entry.firstName}
+              </AppText>
+            </>
+          );
+          if (self) {
+            return (
+              <View key={memberUid} accessible accessibilityLabel={t('pod.you', { name: entry.firstName })} style={styles.heroMember}>
+                {face}
+              </View>
+            );
+          }
+          return (
+            <Pressable
+              key={memberUid}
+              accessibilityRole="link"
+              accessibilityLabel={[entry.firstName, entry.aboutMe].filter(Boolean).join(', ')}
+              onPress={() => onOpen(memberUid)}
+              style={({ pressed }) => [styles.heroMember, pressed && styles.pressed]}
+              testID={`member-${memberUid}`}
+            >
+              {face}
+            </Pressable>
+          );
+        })}
       </View>
     </Card>
   );
@@ -138,9 +163,10 @@ export interface PodMembersProps {
 }
 
 /**
- * Storyboard 3.4 "Members": a white list with each member's avatar (their pod colour, or their photo where the roster
- * has one), first name, "about me" sentence (F19) and, while the meetup is scheduled, whether they are coming
- * ("Hasn't confirmed" for `unconfirmed`, D5). Each row opens the member's sheet, where block and report live (§3.7).
+ * Storyboard 3.4 "Members": a white list of the other members (the viewer's own answer is on the Plan card), each with
+ * their avatar (their pod colour, or their photo where the roster has one), first name, "about me" sentence (F19) and,
+ * while the meetup is scheduled, whether they are coming ("Hasn't confirmed" for `unconfirmed`, D5). Each row opens
+ * the member's sheet, where block and report live (§3.7).
  */
 export function PodMembers({ uid, pod, onOpen, photoShare }: PodMembersProps) {
   const { t } = useTranslation();
@@ -164,11 +190,10 @@ export function PodMembers({ uid, pod, onOpen, photoShare }: PodMembersProps) {
     <ListGroup title={t('pod.sections.members')}>
       {pod.memberUids.flatMap((memberUid) => {
         const entry = pod.roster[memberUid];
-        if (!entry) return [];
-        const self = memberUid === uid;
+        if (!entry || memberUid === uid) return [];
         const attendance = pod.state === 'scheduled' ? pod.attendance?.[memberUid] : undefined;
-        const status = self || attendance === undefined ? null : statusLook(attendance);
-        const label = self ? t('pod.you', { name: entry.firstName }) : entry.firstName;
+        const status = attendance === undefined ? null : statusLook(attendance);
+        const label = entry.firstName;
         return [
           <Row
             key={memberUid}
@@ -182,8 +207,6 @@ export function PodMembers({ uid, pod, onOpen, photoShare }: PodMembersProps) {
                 fill={fillOf(memberUid)}
                 photoV={entry.photoV}
                 photoLabel={t('pod.photoOf', { name: entry.firstName })}
-                you={self}
-                youLabel={t('chat.you')}
               />
             }
             trailing={
@@ -243,16 +266,22 @@ export function PodInterests({ interests }: { interests: readonly string[] }) {
 export interface ChatEntryProps {
   /** "Open until Sun 16 Nov, 14:00", "Opens …", "Closed". */
   readonly detail: string;
+  /** Other members' messages the viewer has not seen yet (`countUnread`). */
+  readonly unread?: number;
   readonly onPress: () => void;
 }
 
-/** Storyboard 3.4's Chat row: the meetup chat's state, opening the chat. */
-export function ChatEntry({ detail, onPress }: ChatEntryProps) {
+/**
+ * Storyboard 3.4's Chat row: the meetup chat's state, opening the chat. Unread messages show as the amber "3 new"
+ * badge in place of the chevron.
+ */
+export function ChatEntry({ detail, unread = 0, onPress }: ChatEntryProps) {
   const { t } = useTranslation();
   const p = usePalette();
   const title = t('pod.sections.chat');
+  const label = [title, detail, unread > 0 ? t('pod.chatUnreadLabel', { count: unread }) : null].filter(Boolean).join(', ');
   return (
-    <Card onPress={onPress} accessibilityRole="link" accessibilityLabel={`${title}, ${detail}`} radius="lg" padding={0} testID="pod-chat">
+    <Card onPress={onPress} accessibilityRole="link" accessibilityLabel={label} radius="lg" padding={0} testID="pod-chat">
       <View style={styles.chatRow}>
         <Icon name="chat" size={22} color={p.primary} />
         <View style={styles.chatText}>
@@ -263,7 +292,13 @@ export function ChatEntry({ detail, onPress }: ChatEntryProps) {
             {detail}
           </AppText>
         </View>
-        <Icon name="chevronRight" size={20} color={p.muted} />
+        {unread > 0 ? (
+          <View testID="pod-chat-unread" style={[styles.badge, { backgroundColor: p.amber }]}>
+            <Text style={[Type.micro, Fonts.extrabold, { color: p.onAmber }]}>{t('pod.chatUnread', { count: unread })}</Text>
+          </View>
+        ) : (
+          <Icon name="chevronRight" size={20} color={p.muted} />
+        )}
       </View>
     </Card>
   );
@@ -314,9 +349,11 @@ const styles = StyleSheet.create({
   heroTheme: { ...Type.hero, fontSize: 34, lineHeight: 37, letterSpacing: -1 },
   heroMembers: { flexDirection: 'row', gap: 6 },
   heroMember: { flex: 1, alignItems: 'center', gap: 6, minWidth: 0 },
+  pressed: { opacity: 0.75 },
   // Chat entry (3.4)
   chatRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 14, paddingHorizontal: Spacing.md, minHeight: 64 },
   chatText: { flex: 1, gap: 2 },
+  badge: { minHeight: 24, borderRadius: 12, paddingHorizontal: Spacing.sm, alignItems: 'center', justifyContent: 'center' },
   // Meeting safely (3.1)
   disclosure: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 52, paddingHorizontal: Spacing.md, borderRadius: Radius.xl },
   disclosureBody: { paddingHorizontal: Spacing.md, paddingBottom: 14 },

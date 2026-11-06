@@ -3,12 +3,13 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, type AlertButton, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Fonts, Spacing, usePalette } from '@/components/theme';
+import { Fonts, Radius, Spacing, usePalette } from '@/components/theme';
 import { AppText, Body, Button, Card, ErrorText, Grabber, Icon, IconButton } from '@/components/ui';
 import { useBlocks, usePod, usePodCard } from '@/data/docs';
 import { useCallable } from '@/data/useCallable';
 import { clearImageCaches } from '@/features/account/clearDeviceData';
 import { useChatStatus } from '@/features/chat/window';
+import { memberFills } from '@/features/pods/memberFill';
 import { isConfirmedMember } from '@/features/pods/membership';
 import { MemberFace } from '@/features/safety/MemberFace';
 import { useUid } from '@/features/session/SessionProvider';
@@ -27,7 +28,8 @@ const REMOVING_STATES: ReadonlySet<PodState> = new Set(['proposed', 'planning', 
  * Member sheet (§3.7, F28, storyboard 4.2): a bottom sheet with the first name, photo and "about me"; a single Block row
  * (two-way, immediate) whose confirmation offers leaving instead and, once the meetup is scheduled (the blocked person
  * knows the plan), re-planning it; unblock; report. The sheet sizes to its content (no `flex: 1`), so it suits a
- * fit-to-contents form sheet.
+ * fit-to-contents form sheet. Its white surface has the storyboard's 28-pt top corners itself: on Android before 13 the
+ * native sheet cannot clip its content to them, so a square background here would paint over them.
  */
 export default function MemberSheet() {
   const { t } = useTranslation();
@@ -44,7 +46,7 @@ export default function MemberSheet() {
 
   if (!pod.data) {
     return (
-      <View style={[styles.loading, { backgroundColor: p.surface }]}>
+      <View style={[styles.surface, styles.loading, { backgroundColor: p.surface }]}>
         <ActivityIndicator accessibilityLabel={t('common.loading')} color={p.primary} />
       </View>
     );
@@ -93,9 +95,11 @@ export default function MemberSheet() {
   const blockBody = !entry ? t('member.blockExplainer') : removes ? t('member.blockRowBodyActive', { name }) : t('member.blockBody');
   const reportLabel = entry ? t('member.reportName', { name }) : t('member.report');
   const reportBody = entry ? t('report.anonymousName', { name }) : t('report.intro');
+  // Their colour on the pod page (Members list, hero, chat), not a hash of the uid; the viewer is the ink "You" circle.
+  const fill = memberFills(pod.data.memberUids, uid)(memberUid);
 
   return (
-    <SafeAreaView edges={['bottom']} style={{ backgroundColor: p.surface }}>
+    <SafeAreaView edges={['bottom']} style={[styles.surface, { backgroundColor: p.surface }]}>
       <ScrollView style={styles.scroll} contentContainerStyle={styles.sheet} bounces={false} keyboardShouldPersistTaps="handled">
         <Grabber />
         <View style={styles.header}>
@@ -103,6 +107,8 @@ export default function MemberSheet() {
             uid={memberUid}
             name={name}
             size={64}
+            fill={fill}
+            you={isSelf}
             photoV={entry && !blocked ? entry.photoV : null}
             photoLabel={t('pod.photoOf', { name })}
             placeholder={!entry}
@@ -213,6 +219,8 @@ export default function MemberSheet() {
 }
 
 const styles = StyleSheet.create({
+  // The sheet's rounded top (storyboard 4.2: 28 28 0 0), matching the native `sheetCornerRadius`.
+  surface: { borderTopLeftRadius: Radius.heroLg, borderTopRightRadius: Radius.heroLg, overflow: 'hidden' },
   loading: { minHeight: 200, alignItems: 'center', justifyContent: 'center' },
   // Sizes to its content and scrolls only when the sheet is shorter than it (large text).
   scroll: { flexGrow: 0 },

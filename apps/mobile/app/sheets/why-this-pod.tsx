@@ -3,12 +3,13 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import type { TFunction } from 'i18next';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Fonts, Radius, usePalette } from '@/components/theme';
-import { AppText, Grabber, Icon, ScreenHeader, TextLink } from '@/components/ui';
+import { AppText, Grabber, Icon, ScreenHeader } from '@/components/ui';
 import { usePodCard } from '@/data/docs';
 import { Bold, boldList, fill, slot } from '@/features/drop/rich';
+import { UnderlineLink } from '@/features/drop/UnderlineLink';
 import { useUid } from '@/features/session/SessionProvider';
 
 interface Item {
@@ -66,9 +67,12 @@ function reasonItems(t: TFunction, reasons: readonly PodReason[]): Item[] {
 }
 
 /**
- * "Why this pod" (storyboard 2.3): a bottom sheet over the proposal that fits its content, with 28-pt top corners, a
- * grabber and padding 10/24/32. It lays itself out at its content height (no flex), so a form sheet sized to its
- * contents can wrap it; under a full-height modal it sits at the top and scrolls if the text is very large.
+ * "Why this pod" (storyboard 2.3): a bottom sheet over the dimmed This week screen (or pod page), sized to its content:
+ * the root stack presents it as a form sheet fitted to its contents (app/_layout.tsx), which draws the dimmed backdrop
+ * and closes on a tap on it, a drag down or the system back. The sheet draws its own grabber, its white surface with
+ * the 28-pt top corners (on Android before 13 the native sheet cannot clip its content to them) and padding 10/24/32.
+ * It lays itself out at its content height (no flex); very long text scrolls inside it. The status bar turns light
+ * over the dark backdrop while it is open.
  */
 export default function WhyThisPod() {
   const { t } = useTranslation();
@@ -76,17 +80,19 @@ export default function WhyThisPod() {
   const p = usePalette();
   const { podId } = useLocalSearchParams<{ podId: string }>();
   const card = usePodCard(useUid(), podId);
+  const close = () => router.back();
   const openHowMatching = () => {
-    // Leave the sheet first so the page opens on the main stack, not under the modal.
+    // Leave the sheet first so the page opens on the main stack, not under the sheet.
     router.back();
     router.push('/info/how-matching-works');
   };
 
   return (
     <SafeAreaView edges={EDGES} style={[styles.sheet, { backgroundColor: p.surface }]}>
+      <StatusBar barStyle="light-content" animated />
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content} bounces={false} alwaysBounceVertical={false}>
         <Grabber />
-        <ScreenHeader title={t('pods.whyThisPod')} size="sm" closeLabel={t('common.close')} onClose={() => router.back()} />
+        <ScreenHeader title={t('pods.whyThisPod')} size="sm" closeLabel={t('common.close')} onClose={close} />
 
         {card.data ? (
           <>
@@ -116,12 +122,7 @@ export default function WhyThisPod() {
               </AppText>
             </View>
 
-            <View style={styles.footer}>
-              <AppText variant="caption" tone="muted">
-                {t('reasons.automatic')}
-              </AppText>
-              <TextLink label={t('info.howMatchingWorks.title')} onPress={openHowMatching} />
-            </View>
+            <UnderlineLink label={t('info.howMatchingWorks.title')} onPress={openHowMatching} />
           </>
         ) : (
           <View style={styles.loading}>
@@ -134,18 +135,18 @@ export default function WhyThisPod() {
 }
 
 /** The bottom inset is at least the sheet's 32-pt bottom padding (home indicator, gesture bar). */
-const EDGES = { top: 'additive', bottom: 'maximum', left: 'additive', right: 'additive' } as const;
+const EDGES = { bottom: 'maximum', left: 'additive', right: 'additive' } as const;
 
 const styles = StyleSheet.create({
-  // Content height, capped at the screen's: no flex, so a sheet that fits its contents can measure it.
+  // The storyboard's sheet: 28 28 0 0 corners, padding 10/24/32, 18-pt gaps. Content height, capped at the screen's.
   sheet: { maxHeight: '100%', borderTopLeftRadius: Radius.heroLg, borderTopRightRadius: Radius.heroLg, paddingBottom: 32, overflow: 'hidden' },
-  scroll: { flexGrow: 0 },
+  // Sizes to its content and scrolls only when the sheet is shorter than it (large text).
+  scroll: { flexGrow: 0, flexShrink: 1 },
   content: { paddingTop: 10, paddingHorizontal: 24, gap: 18 },
   list: { gap: 14 },
   item: { flexDirection: 'row', gap: 12 },
   badge: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   itemText: { flex: 1, lineHeight: 22 },
   never: { borderRadius: Radius.lg, paddingVertical: 14, paddingHorizontal: 16, gap: 6 },
-  footer: { gap: 2 },
   loading: { minHeight: 240, alignItems: 'center', justifyContent: 'center' },
 });

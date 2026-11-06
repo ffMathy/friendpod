@@ -15,8 +15,9 @@ export interface PodRowProps {
 }
 
 /**
- * A pod in a list (storyboard 2.1 "Your pods" row, on This week and the Pods tab): the other members' initials, the
- * theme (a lock for a private interest) and the plan or state, opening the pod page.
+ * A pod in a list (storyboard 2.1 "Your pods" row, on This week and the Pods tab): the other members' initials in their
+ * pod colours (the same as on the pod page), the theme (a lock for a private interest) and the plan or state, opening
+ * the pod page.
  */
 export function PodRow({ uid, podId, card, onPress, testID }: PodRowProps) {
   const { t } = useTranslation();

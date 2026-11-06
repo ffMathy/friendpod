@@ -18,7 +18,8 @@ export default function Settings() {
 
       <ListGroup>
         <SettingsRow icon="people" title={t('me.preferences')} role="link" onPress={() => router.push('/settings/preferences')} />
-        <SettingsRow icon="lock" title={t('settings.privacy.title')} role="link" onPress={() => router.push('/settings/privacy')} />
+        {/* Privacy is a page of the Me tab (storyboard 5.3): close Settings and show it there, with the tab bar. */}
+        <SettingsRow icon="lock" title={t('settings.privacy.title')} role="link" onPress={() => router.dismissTo('/settings/privacy', { withAnchor: true })} />
         <SettingsRow icon="block" title={t('settings.blocked.title')} role="link" onPress={() => router.push('/settings/blocked')} />
         <SettingsRow icon="bell" title={t('settings.notifications.title')} role="link" onPress={() => router.push('/settings/notifications')} />
         <SettingsRow icon="chat" title={t('notices.title')} role="link" onPress={() => router.push('/settings/notices')} />

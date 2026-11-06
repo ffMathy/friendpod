@@ -1,5 +1,5 @@
 import type { PodCardDoc } from '@grouper/core';
-import type { Href } from 'expo-router';
+import type { Href, router as appRouter } from 'expo-router';
 
 /**
  * Push kinds the server sends (functions/src/lib/push.ts). The payload carries only `data.kind` (S4, A14): never a
@@ -55,4 +55,37 @@ export function routeForPush(kind: PushKind, cards: readonly CardRow[]): Href {
   return kind === 'chatOpen' || kind === 'chatMessage'
     ? { pathname: '/pod/[podId]/chat', params: { podId } }
     : { pathname: '/pod/[podId]', params: { podId } };
+}
+
+/** The tab a push destination is a page of: This week (`index`), or the Pods tab's list and pod page. */
+type PushTab = 'index' | '(pods)';
+
+/**
+ * Which tab a destination of `routeForPush` belongs to, or null for the screens shown over the tabs (the meetup chat,
+ * the notices list).
+ */
+export function tabForRoute(href: Href): PushTab | null {
+  const path = typeof href === 'string' ? href : href.pathname;
+  if (path === '/') return 'index';
+  if (path === '/pods' || path === '/pod/[podId]') return '(pods)';
+  return null;
+}
+
+/**
+ * Opens a push destination from wherever the user is (`segments`, from `useSegments()`). A screen over the tabs is opened
+ * on top. A page of a tab is shown in its tab, with the tab's first page underneath (the Pods list under a pod), and
+ * without a second copy of the tabs: from a screen over the tabs, or within the same tab, everything above it is
+ * dismissed first; from another tab it is a switch of tabs.
+ */
+export function openPushRoute(router: Pick<typeof appRouter, 'navigate' | 'dismissTo'>, href: Href, segments: readonly string[]): void {
+  const tab = tabForRoute(href);
+  if (tab === null) {
+    router.navigate(href);
+    return;
+  }
+  // "/" is also where sign-in and onboarding start; This week is named by its group so it resolves from anywhere.
+  const target: Href = tab === 'index' ? '/(tabs)' : href;
+  const currentTab = segments[0] === '(tabs)' ? (segments[1] ?? 'index') : null;
+  if (currentTab === null || currentTab === tab) router.dismissTo(target, { withAnchor: true });
+  else router.navigate(target, { withAnchor: true });
 }

@@ -71,10 +71,12 @@ app/                 expo-router routes, exactly the §11 screens table
   (auth)/            welcome (§3.1 step 1), sign-in, email link
   auth/complete      email-link completion (+native-intent.tsx rewrites /__/auth/links here)
   (onboarding)/      §3.1 steps 3–11
-  (tabs)/            this week, pods, interests, me
-  pod/[podId]/       pod, plan, chat (meetup chat, §3.6), feedback, member/[uid]
-  sheets/            why-this-pod, report
-  settings/, info/   privacy, blocked, notifications, notices, preferences; transparency pages
+  (tabs)/            this week, interests, and two tab stacks that keep the tab bar:
+    (pods)/          pods (/pods), pod/[podId] (the pod page, /pod/<id>)
+    (me)/            me (/me), settings/privacy (/settings/privacy)
+  pod/[podId]/       plan, chat (meetup chat, §3.6), feedback, member/[uid]: over the tabs
+  sheets/            why-this-pod (fitted form sheet), report (modal)
+  settings/, info/   settings, privacy's sub-pages, blocked, notifications, notices, preferences; transparency pages
 src/
   firebase/          RNFirebase init, App Check, emulators, typed callables (core zod schemas)
   data/              TanStack Query client, callable mutations, onSnapshot bridges, typed doc hooks
@@ -136,7 +138,7 @@ through the typed callables (`src/firebase/callables.ts`, `useCallable`); nothin
 | Journey | Where | Callables / reads |
 |---|---|---|
 | Proposal, accept/decline, "Why this pod" | `(tabs)/index`, `ProposalCard`, `sheets/why-this-pod` | `respondToPod`; `users/{uid}/pods` |
-| Confirmed pod: next step, plan, chat, members (with "about me") | `pod/[podId]/index`, `LockedPlan` | `pods/{podId}`, `options`; `setPhotoSharing` |
+| Confirmed pod: next step, plan, chat, members (with "about me") | `(tabs)/(pods)/pod/[podId]`, `LockedPlan` | `pods/{podId}`, `options`; `setPhotoSharing` |
 | Propose and vote, extension round, report an option | `pod/[podId]/plan`, `PlacePicker` | `proposeOption`, `voteOption` |
 | Attendance ("Still coming?", "Can't make it", "hasn't confirmed") | `AttendanceCard` | `confirmAttendance` |
 | Add to calendar, open in Maps | `LockedPlan` | system sheet (`expo-calendar/legacy`), `place.mapUrl` |
@@ -144,7 +146,7 @@ through the typed callables (`src/firebase/callables.ts`, `useCallable`); nothin
 | Leave pod | pod screen | `leavePod` |
 | Block (remove them / leave instead / re-plan when scheduled), unblock, report a member, option or message | `pod/[podId]/member/[uid]`, `sheets/report`, `settings/blocked` | `blockUser`, `unblockUser`, `report`; `users/{uid}/blocks` |
 | Interests (remove, star, did-you-mean, keep private, not sensitive for me, rescan holds) | `InterestManager` | `addInterests`, `removeInterest`, `updateInterest`, `confirmSuggestion` |
-| Privacy: Art. 9 and gender consent, pause / skip, photo, export, blocked, notices, delete | `settings/privacy`, `settings/delete-account` | `setArt9Consent`, `withdrawArt9Consent`, `updateProfile`, `setParticipation`, `deletePhoto`, `exportData`, `deleteAccount`; `users/{uid}/exports` |
+| Privacy: Art. 9 and gender consent, pause / skip, photo, export, blocked, notices, delete | `(tabs)/(me)/settings/privacy`, `settings/photo`, `settings/delete-account` | `setArt9Consent`, `withdrawArt9Consent`, `updateProfile`, `setParticipation`, `deletePhoto`, `exportData`, `deleteAccount`; `users/{uid}/exports` |
 | Photo upload, change and delete | `(onboarding)/photo`, Me → `PhotoCard` | Storage `uploads/{uid}/pending*.jpg` (`onPhotoUploaded`), `deletePhoto` |
 | Messages from Grouper (statements of reasons, report receipts, export ready) | `settings/notices`, `NoticeCard` | `users/{uid}/notices` |
 | Push token and taps | `usePushTokenSync`, `useNotificationRouting` | `registerPushToken` |

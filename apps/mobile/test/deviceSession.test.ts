@@ -102,7 +102,9 @@ describe('cached meetup-chat messages after they expire (PRIVACY.md §5 "Device 
 
   it('forgets the records with the pod list at sign-out', async () => {
     await rememberCachedMessages('uidA', 'podA', 1000);
+    mockStore.set('chatRead.uidA', '{"podA":1000}');
     await forgetActivePods('uidA');
     expect(mockStore.has('chatCaches.uidA')).toBe(false);
+    expect(mockStore.has('chatRead.uidA')).toBe(false);
   });
 });

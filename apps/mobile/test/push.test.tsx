@@ -2,7 +2,7 @@ import { registerPushTokenInput } from '@grouper/core';
 import { act, render } from '@testing-library/react-native';
 import { Platform } from 'react-native';
 import { registerPushToken } from '@/features/notifications/push';
-import { routeForPush, PUSH_KINDS, type CardRow } from '@/features/notifications/routing';
+import { openPushRoute, routeForPush, tabForRoute, PUSH_KINDS, type CardRow } from '@/features/notifications/routing';
 import { resetInitialNotificationForTests, useNotificationRouting } from '@/features/notifications/useNotificationRouting';
 import { usePushTokenSync } from '@/features/notifications/usePushTokenSync';
 
@@ -41,8 +41,10 @@ jest.mock('@/firebase', () => ({ messaging: () => ({}) }));
 const mockCall = jest.fn(async () => ({ ok: true }));
 jest.mock('@/firebase/callables', () => ({ callFunction: (...a: unknown[]) => mockCall(...(a as [])) }));
 
-const mockRouter = { push: jest.fn() };
-jest.mock('expo-router', () => ({ useRouter: () => mockRouter }));
+const mockRouter = { navigate: jest.fn(), dismissTo: jest.fn() };
+// Where the user is when the push is tapped (`useSegments`): This week by default.
+let mockSegments: string[] = ['(tabs)'];
+jest.mock('expo-router', () => ({ useRouter: () => mockRouter, useSegments: () => mockSegments }));
 let mockCards: CardRow[] | undefined = [];
 jest.mock('@/data/docs', () => ({ usePodCards: () => ({ data: mockCards, error: null, isLoading: mockCards === undefined }) }));
 
@@ -57,6 +59,7 @@ beforeEach(() => {
   jest.clearAllMocks();
   Object.assign(mockMessaging, { status: 1, token: 'fcm-token-1', refresh: null, opened: null, initial: null });
   mockCards = [];
+  mockSegments = ['(tabs)'];
   resetInitialNotificationForTests();
   Object.defineProperty(Platform, 'OS', { value: 'ios', configurable: true });
 });
@@ -118,6 +121,38 @@ describe('notification taps (S4: the payload is only data.kind)', () => {
     expect(routeForPush('feedback', one)).toBe('/pods');
   });
 
+  it('knows which destinations are pages of a tab and which open over the tabs', () => {
+    expect(tabForRoute('/')).toBe('index');
+    expect(tabForRoute('/pods')).toBe('(pods)');
+    expect(tabForRoute({ pathname: '/pod/[podId]', params: { podId: 'p1' } })).toBe('(pods)');
+    expect(tabForRoute({ pathname: '/pod/[podId]/chat', params: { podId: 'p1' } })).toBeNull();
+    expect(tabForRoute('/settings/notices')).toBeNull();
+  });
+
+  it('shows a pod in the Pods tab without a second copy of the tabs, wherever the user is', () => {
+    const pod = { pathname: '/pod/[podId]', params: { podId: 'p1' } } as const;
+    const router = { navigate: jest.fn(), dismissTo: jest.fn() };
+    // From another tab: a switch of tabs, with the Pods list underneath.
+    openPushRoute(router, pod, ['(tabs)', '(me)', 'me']);
+    expect(router.navigate).toHaveBeenLastCalledWith(pod, { withAnchor: true });
+    // From a screen over the tabs (a chat, Settings): it is dismissed.
+    openPushRoute(router, pod, ['pod', '[podId]', 'chat']);
+    expect(router.dismissTo).toHaveBeenLastCalledWith(pod, { withAnchor: true });
+    // Within the Pods tab: whatever is above the list makes way.
+    openPushRoute(router, '/pods', ['(tabs)', '(pods)', 'pod', '[podId]']);
+    expect(router.dismissTo).toHaveBeenLastCalledWith('/pods', { withAnchor: true });
+    // This week is named by its group ("/" is also sign-in's start).
+    openPushRoute(router, '/', ['settings', 'notices']);
+    expect(router.dismissTo).toHaveBeenLastCalledWith('/(tabs)', { withAnchor: true });
+    openPushRoute(router, '/', ['(tabs)', 'interests']);
+    expect(router.navigate).toHaveBeenLastCalledWith('/(tabs)', { withAnchor: true });
+    // The chat and the notices open over the tabs.
+    openPushRoute(router, '/settings/notices', ['(tabs)']);
+    expect(router.navigate).toHaveBeenLastCalledWith('/settings/notices');
+    expect(router.navigate).toHaveBeenCalledTimes(3);
+    expect(router.dismissTo).toHaveBeenCalledTimes(3);
+  });
+
   function Harness() {
     useNotificationRouting('me');
     return null;
@@ -128,11 +163,12 @@ describe('notification taps (S4: the payload is only data.kind)', () => {
     mockMessaging.initial = { data: { kind: 'chatOpen' } };
     const view = await render(<Harness />);
     await flush();
-    expect(mockRouter.push).toHaveBeenCalledWith({ pathname: '/pod/[podId]/chat', params: { podId: 'p1' } });
+    expect(mockRouter.navigate).toHaveBeenCalledWith({ pathname: '/pod/[podId]/chat', params: { podId: 'p1' } });
     await view.unmount();
     await render(<Harness />);
     await flush();
-    expect(mockRouter.push).toHaveBeenCalledTimes(1);
+    expect(mockRouter.navigate).toHaveBeenCalledTimes(1);
+    expect(mockRouter.dismissTo).not.toHaveBeenCalled();
   });
 
   it('routes a tap from the background, waiting for the pod cards', async () => {
@@ -142,11 +178,27 @@ describe('notification taps (S4: the payload is only data.kind)', () => {
     await act(async () => {
       mockMessaging.opened?.({ data: { kind: 'feedback' } });
     });
-    expect(mockRouter.push).not.toHaveBeenCalled();
+    expect(mockRouter.navigate).not.toHaveBeenCalled();
+    expect(mockRouter.dismissTo).not.toHaveBeenCalled();
     mockCards = [{ id: 'p9', data: { state: 'happened', myStatus: 'accepted' } as CardRow['data'] }];
     await view.rerender(<Harness />);
     await flush();
-    expect(mockRouter.push).toHaveBeenCalledWith({ pathname: '/pod/[podId]', params: { podId: 'p9' } });
+    // From This week, the pod opens in the Pods tab.
+    expect(mockRouter.navigate).toHaveBeenCalledWith({ pathname: '/pod/[podId]', params: { podId: 'p9' } }, { withAnchor: true });
+    expect(mockRouter.navigate).toHaveBeenCalledTimes(1);
+  });
+
+  it('routes a tap over the tabs into the Pods tab by dismissing what is open', async () => {
+    mockSegments = ['settings', 'notices'];
+    mockCards = [{ id: 'p9', data: { state: 'scheduled', myStatus: 'accepted' } as CardRow['data'] }];
+    await render(<Harness />);
+    await flush();
+    await act(async () => {
+      mockMessaging.opened?.({ data: { kind: 'meetupReminder' } });
+    });
+    await flush();
+    expect(mockRouter.dismissTo).toHaveBeenCalledWith({ pathname: '/pod/[podId]', params: { podId: 'p9' } }, { withAnchor: true });
+    expect(mockRouter.navigate).not.toHaveBeenCalled();
   });
 
   it('ignores a push without a known kind', async () => {
@@ -156,6 +208,7 @@ describe('notification taps (S4: the payload is only data.kind)', () => {
       mockMessaging.opened?.({ data: { kind: 'somethingElse' } });
       mockMessaging.opened?.({});
     });
-    expect(mockRouter.push).not.toHaveBeenCalled();
+    expect(mockRouter.navigate).not.toHaveBeenCalled();
+    expect(mockRouter.dismissTo).not.toHaveBeenCalled();
   });
 });

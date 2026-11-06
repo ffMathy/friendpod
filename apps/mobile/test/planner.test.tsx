@@ -99,8 +99,12 @@ describe('planner (§3.5)', () => {
     await renderPlan();
     const day = toLocal(Date.now() + 2 * DAY_MS);
     const ymd = `${day.year}-${String(day.month).padStart(2, '0')}-${String(day.day).padStart(2, '0')}`;
-    await fireEvent.changeText(screen.getByTestId('option-date'), ymd);
-    await fireEvent.changeText(screen.getByTestId('option-time'), '18:30');
+    // Day and Time are pickers (storyboard 3.3): nothing is typed.
+    await fireEvent.press(screen.getByTestId('option-date'));
+    await fireEvent.press(screen.getByTestId(`day-${ymd}`));
+    await fireEvent.press(screen.getByTestId('option-time'));
+    await fireEvent.press(screen.getByTestId('time-18:30'));
+    expect(screen.getByTestId('option-time')).toHaveAccessibilityValue({ text: '18:30' });
 
     // Without a place the form says so and sends nothing.
     await fireEvent.press(screen.getByTestId('option-propose'));
@@ -125,18 +129,24 @@ describe('planner (§3.5)', () => {
     jest.useRealTimers();
   });
 
-  it('refuses a time outside 08:00–22:00 before sending', async () => {
+  it('offers only days within 14 days and quarter hours from 08:00 to 22:00', async () => {
     planning();
     await renderPlan();
-    const day = toLocal(Date.now() + 2 * DAY_MS);
-    await fireEvent.changeText(
-      screen.getByTestId('option-date'),
-      `${day.year}-${String(day.month).padStart(2, '0')}-${String(day.day).padStart(2, '0')}`,
-    );
-    await fireEvent.changeText(screen.getByTestId('option-time'), '23:00');
-    await fireEvent.press(screen.getByTestId('option-propose'));
-    expect(screen.getByText('Pick a time within 14 days, between 08:00 and 22:00.')).toBeOnTheScreen();
-    expect(mockCall).not.toHaveBeenCalled();
+    expect(screen.getByTestId('option-date')).toHaveAccessibilityValue({ text: 'Pick a day' });
+    await fireEvent.press(screen.getByTestId('option-date'));
+    const days = screen.getAllByTestId(/^day-/);
+    expect(days.length).toBeGreaterThanOrEqual(14);
+    expect(days.length).toBeLessThanOrEqual(15);
+    const later = toLocal(Date.now() + 2 * DAY_MS);
+    const ymd = `${later.year}-${String(later.month).padStart(2, '0')}-${String(later.day).padStart(2, '0')}`;
+    await fireEvent.press(screen.getByTestId(`day-${ymd}`));
+    await fireEvent.press(screen.getByTestId('option-time'));
+    const times = screen.getAllByTestId(/^time-/).map((el) => String(el.props.testID).slice(5));
+    expect(times[0]).toBe('08:00');
+    expect(times[times.length - 1]).toBe('22:00');
+    expect(times).toHaveLength(57);
+    expect(screen.queryByTestId('time-07:45')).toBeNull();
+    expect(screen.queryByTestId('time-22:15')).toBeNull();
   });
 
   it("reports another member's option, but not one's own", async () => {

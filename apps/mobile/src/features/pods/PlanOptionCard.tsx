@@ -24,12 +24,24 @@ export interface PlanOptionCardProps {
 }
 
 /**
- * One meetup option in the planner (§3.5; storyboard 3.2): time, place and map link, who said yes, and the viewer's
- * Yes / No. A second tap on the chosen answer takes the vote back.
+ * The town part of a short Places address ("Hack Kampmanns Plads 2, Aarhus" → "Aarhus", "Åboulevarden 1, 8000 Aarhus
+ * C" → "Aarhus C"): its last part without the postcode. Empty when the address has no separate town.
+ */
+export function placeArea(address: string): string {
+  const parts = address.split(',').map((part) => part.trim());
+  if (parts.length < 2) return '';
+  return parts[parts.length - 1]!.replace(/^\d{4}\s+/, '');
+}
+
+/**
+ * One meetup option in the planner (§3.5; storyboard 3.2): time, the place on one line as "name, area" (the full
+ * address is in the map link's label and on the locked plan), the map link, who said yes, and the viewer's Yes / No.
+ * A second tap on the chosen answer takes the vote back.
  */
 export function PlanOptionCard({ id, when, place, yes, voters, leading, mine, onVote, onReport }: PlanOptionCardProps) {
   const { t } = useTranslation();
   const [mapFailed, setMapFailed] = useState(false);
+  const area = placeArea(place.address);
   const openMap = () => {
     setMapFailed(false);
     Linking.openURL(place.mapUrl).catch(() => setMapFailed(true));
@@ -40,13 +52,16 @@ export function PlanOptionCard({ id, when, place, yes, voters, leading, mine, on
         <View style={styles.details}>
           <AppText variant="heading">{when}</AppText>
           <AppText variant="bodySm" tone="soft">
-            {place.name}
-          </AppText>
-          <AppText variant="caption" tone="muted">
-            {place.address}
+            {area && area !== place.name ? `${place.name}, ${area}` : place.name}
           </AppText>
           <View style={styles.links}>
-            <TextLink testID={`open-map-${id}`} label={t('pod.openMap')} size="sm" onPress={openMap} />
+            <TextLink
+              testID={`open-map-${id}`}
+              label={t('pod.openMap')}
+              accessibilityLabel={`${t('pod.openMap')}: ${place.name}, ${place.address}`}
+              size="sm"
+              onPress={openMap}
+            />
             {onReport ? (
               <TextLink
                 label={t('plan.report')}
@@ -86,8 +101,8 @@ export function PlanOptionCard({ id, when, place, yes, voters, leading, mine, on
 
 const styles = StyleSheet.create({
   top: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 },
-  details: { flex: 1, gap: 3 },
-  links: { flexDirection: 'row', flexWrap: 'wrap', columnGap: 18, rowGap: 4, marginTop: 2 },
+  details: { flex: 1, gap: 4 },
+  links: { flexDirection: 'row', flexWrap: 'wrap', columnGap: 18, rowGap: 4 },
   bottom: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 },
   tally: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1 },
   votes: { flexDirection: 'row', gap: 6 },

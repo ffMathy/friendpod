@@ -2,7 +2,7 @@ import { currentLegalText, POSTCODE_ATTRIBUTION } from '@grouper/core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import type { ReactElement } from 'react';
-import Me from '../app/(tabs)/me';
+import Me from '../app/(tabs)/(me)/me';
 import HowMatchingWorks from '../app/info/how-matching-works';
 import LegalDoc from '../app/info/legal/[doc]';
 import Safety from '../app/info/safety';
@@ -11,7 +11,7 @@ import Blocked from '../app/settings/blocked';
 import Settings from '../app/settings/index';
 import NotificationSettings from '../app/settings/notifications';
 
-const mockRouter = { push: jest.fn(), back: jest.fn(), replace: jest.fn(), canGoBack: jest.fn(() => true) };
+const mockRouter = { push: jest.fn(), back: jest.fn(), replace: jest.fn(), dismissTo: jest.fn(), canGoBack: jest.fn(() => true) };
 let mockParams: Record<string, string> = {};
 jest.mock('expo-router', () => ({ useRouter: () => mockRouter, useLocalSearchParams: () => mockParams }));
 jest.mock('@/features/session/SessionProvider', () => ({ useUid: () => 'me' }));
@@ -94,11 +94,16 @@ describe('Settings', () => {
     await renderWith(<Settings />);
     await fireEvent.press(screen.getByRole('link', { name: 'Terms' }));
     expect(mockRouter.push).toHaveBeenCalledWith({ pathname: '/info/legal/[doc]', params: { doc: 'terms' } });
+    // Privacy is a page of the Me tab (storyboard 5.3): Settings closes and shows it there.
+    await fireEvent.press(screen.getByRole('link', { name: 'Privacy' }));
+    expect(mockRouter.dismissTo).toHaveBeenCalledWith('/settings/privacy', { withAnchor: true });
+    await fireEvent.press(screen.getByRole('link', { name: 'Messages from Grouper' }));
+    expect(mockRouter.push).toHaveBeenCalledWith('/settings/notices');
     await fireEvent.press(screen.getByRole('button', { name: 'Back' }));
     expect(mockRouter.back).toHaveBeenCalled();
     mockRouter.canGoBack.mockReturnValueOnce(false);
     await fireEvent.press(screen.getByRole('button', { name: 'Back' }));
-    expect(mockRouter.replace).toHaveBeenCalledWith('/me');
+    expect(mockRouter.replace).toHaveBeenCalledWith('/me', { withAnchor: true });
   });
 
   it('says when nobody is blocked', async () => {
