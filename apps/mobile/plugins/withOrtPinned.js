@@ -7,6 +7,10 @@
  *   so an app-module `resolutionStrategy` would not reach it).
  * - iOS: names the pod version in the Podfile.
  *
+ * - Android, Gradle 9: the library's build.gradle calls `VersionNumber.parse`, a class Gradle 9 no longer exposes, so the
+ *   same block hands that project Gradle's internal `VersionNumber` (otherwise `:onnxruntime-react-native` fails to
+ *   evaluate and no Android build gets past configuration).
+ *
  * Registration of `OnnxruntimePackage` on Android goes through `react-native.config.js` (autolinking) rather than a
  * MainApplication patch, and the package's own `app.plugin.js` is not used: it hard-codes
  * `../node_modules/onnxruntime-react-native`, which does not exist in this hoisted workspace, and autolinking already
@@ -34,6 +38,11 @@ function pinAndroid(buildGradle, version) {
       '  configurations.all {',
       `    resolutionStrategy.force 'com.microsoft.onnxruntime:onnxruntime-android:${version}'`,
       '  }',
+      '}',
+      // The library's build.gradle compares React Native versions with `VersionNumber`, which Gradle 9 removed from
+      // the public API; give that one project Gradle's internal class under the old name so it evaluates.
+      'subprojects { p ->',
+      "  if (p.name == 'onnxruntime-react-native') p.ext.VersionNumber = org.gradle.util.internal.VersionNumber",
       '}',
     ],
     '//',
