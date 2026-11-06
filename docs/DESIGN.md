@@ -1152,16 +1152,17 @@ There is no `auth.user().onDelete` trigger. That trigger exists only in 1st gen,
 | `(auth)/*`, `auth/complete` | Sign-in, email-link completion |
 | `(onboarding)/*` | Onboarding steps (§3.1), including `sensitive-consent` (the blanket Art. 9 consent screen) before `add-interests` |
 | `(tabs)/index` | "This week": drop status, proposal card or no-pod reason, countdown |
-| `(tabs)/pods` | Active and past pods |
+| `(tabs)/(pods)/pods` | Active and past pods (`/pods`). The Pods tab's own stack, which also holds the pod page; it returns to this list when another tab is chosen |
 | `(tabs)/interests` | Add/remove/star interests; "Keep this private"; lock icon on private holdings, with "This isn't sensitive for me" on locked ones; without the blanket consent, sensitive tags are refused with a link to Settings → Privacy; the "can't run on this device" state; notices for rescan hits (`pendingConsent`) |
-| `(tabs)/me` | Profile, preferences, participation, reliability record, and the setting that blocks matching, if any (§6.7) |
-| `pod/[podId]/index` | Proposal → the confirmed pod screen (F28): one primary next-step card from `podNextStep()` (vote / attendance card with "I'm coming" and "Can't make it" / chat / feedback), then Plan, Chat and Members sections; theme (own wording), pod interests, "about me", "<firstName> hasn't confirmed", the extension banner, safety tips; "Show my photo to this pod" in sensitive-themed pods (S6) |
+| `(tabs)/(me)/me` | Profile, preferences, participation, reliability record, and the setting that blocks matching, if any (§6.7) (`/me`). The Me tab's own stack, which also holds Privacy |
+| `(tabs)/(me)/settings/privacy` | Privacy (`/settings/privacy`, storyboard 5.3) in the Me tab, with the tab bar: give or withdraw the blanket Art. 9 consent via `settings/sensitive-consent`, gender consent, photo, pause, export, blocked people, delete |
+| `(tabs)/(pods)/pod/[podId]` | The pod page (`/pod/<id>`) in the Pods tab, with the tab bar (storyboards 3.1, 3.4). Proposal → the confirmed pod screen (F28): one primary next-step card from `podNextStep()` (vote / attendance card with "I'm coming" and "Can't make it" / chat / feedback), then Plan, Chat and Members sections; theme (own wording), pod interests, "about me", "<firstName> hasn't confirmed", the extension banner, safety tips; "Show my photo to this pod" in sensitive-themed pods (S6) |
 | `pod/[podId]/plan` | Options, votes, propose-option form with the place picker; the locked plan with map link and "Add to calendar" |
 | `pod/[podId]/chat` | Meetup chat (§3.6): messages, text field (no quick replies), the "You haven't met yet" warning, Report on each message; read-only outside the window while messages exist |
 | `pod/[podId]/feedback` | "Who was there?" (everyone pre-ticked), "Would you meet them again?", rating, Keep pod |
-| `pod/[podId]/member/[uid]` | Member sheet: first name, photo, "about me"; block, report |
-| `sheets/why-this-pod`, `sheets/report` | Explanations; reporting (a member, an option or a chat message) |
-| `settings/*` | Privacy (give or withdraw the blanket Art. 9 consent via `settings/sensitive-consent`, gender consent, export, pause, delete), preferences and "about me", blocked users, notifications |
+| `pod/[podId]/member/[uid]` | Member sheet: first name, photo, "about me"; block, report. The pod's planner, chat, feedback and member sheet are screens of the root stack, over the tabs |
+| `sheets/why-this-pod`, `sheets/report` | Explanations, as a form sheet fitted to its content (storyboard 2.3); reporting (a member, an option or a chat message), as a modal |
+| `settings/*` | Over the tabs: Settings, Privacy's sub-pages (`sensitive-consent`, `photo`, `blocked`, `delete-account`), preferences, notifications, messages from Grouper |
 | `info/how-matching-works`, `info/safety`, `info/sensitive-interests`, `info/legal/[doc]` | Transparency pages (Art. 13/22). "How matching works" lists the inputs, every automated pause with its length, and what has no human review (§3.7, §4.4) |
 
 ---
