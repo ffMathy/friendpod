@@ -3,26 +3,22 @@
  * normalize → moderation → tag cache by tagKey → trust the client vector for a new text → sensitivity per holding →
  * consent gate → concept assignment in the holding's partition → persist in one transaction.
  *
- * The server repeats everything that does not need the model (normalization, PII, blocklist, third-party kinship,
- * the lexicon) and recomputes the detector margin from the client's vector when it has the prototypes. A holding
+ * The server repeats everything that does not need the model (normalization, PII, blocklist, third-party kinship).
+ * Sensitivity is the on-device model's decision (F35): the server uses the detector margin the phone sent and never
+ * recomputes it. A holding
  * that is refused (no blanket consent, someone else's Art. 9 data, sensitive holdings switched off) leaves nothing
  * behind: no document, no log line.
  */
 import {
   EMBEDDING_MODEL,
   decideSensitivity,
-  detectorMargin,
   interestId as interestIdOf,
-  isKnownOrdinary,
-  lexiconCheck,
   newConceptId,
   normalizeTag,
-  reconcileDetectorMargin,
   renormalize,
   type CallableInput,
   type HmacSha256,
   type Partition,
-  type Prototypes,
   type SensitivityDecision,
 } from '@grouper/core';
 import { sha256Hex } from '@grouper/core/node';
@@ -33,7 +29,6 @@ import { planAssignment, type ConceptIndex } from './assign';
 import { LIMITS } from './config';
 import { moderateTag } from './moderation';
 import { persist, StalePlanError, type AddInterestResult, type Assignment, type PersistItem } from './persist';
-import type { PrototypeSource } from './prototypes';
 import { ownPartition, slotFor, slotOfConcept, tagKeyFor, tagStateFromDoc, type Slot, type TagState } from './tags';
 
 export type AddInterestsInput = CallableInput<'addInterests'>;
@@ -43,7 +38,6 @@ export type { AddInterestResult } from './persist';
 export interface PipelineDeps {
   readonly db: Firestore;
   readonly conceptIndex: ConceptIndex;
-  readonly prototypes: PrototypeSource;
   /** HMAC with UID_HMAC_KEY, for `interestId` and new concept ids (§8.1). */
   readonly hmac: HmacSha256;
   /** ART9_HOLDINGS_ENABLED in production; tests of the sensitive path switch it on. */
@@ -69,7 +63,6 @@ interface Candidate {
   readonly display: string;
   readonly tagKey: string;
   readonly interestId: string;
-  readonly lexiconHit: boolean;
   readonly thirdParty: boolean;
   readonly existing: Existing | null;
 }
@@ -150,8 +143,6 @@ async function screen(deps: PipelineDeps, req: AddInterestsRequest, results: Res
       display: n.display,
       tagKey: tagKeyFor(n.norm, EMBEDDING_MODEL.modelKey),
       interestId,
-      // The client's lexicon OR ours: either can only add sensitivity.
-      lexiconHit: input.detector.lexiconHit || lexiconCheck(n.norm).hit,
       thirdParty: mod.thirdParty,
       existing: held,
     });
@@ -166,16 +157,13 @@ async function planItems(deps: PipelineDeps, candidates: readonly Candidate[], r
   snaps.forEach((snap, k) => {
     if (snap.exists) stored.set(candidates[k]!.tagKey, tagStateFromDoc(snap, EMBEDDING_MODEL.dim));
   });
-  const prototypes = await deps.prototypes();
 
   const plan: PersistItem[] = [];
   for (const c of candidates) {
     const known = stored.get(c.tagKey);
-    const state = known ?? newTagState(c, prototypes);
+    const state = known ?? newTagState(c);
     const decision = decideSensitivity({
-      lexiconHit: c.lexiconHit || state.sens.lexiconHit,
-      detectorMargin: known ? holdingMargin(c, known, prototypes) : state.sens.margin,
-      knownOrdinary: state.sens.knownOrdinary,
+      detectorMargin: known ? holdingMargin(c, known) : state.sens.margin,
       selfFlagPrivate: c.input.selfFlagPrivate === true,
       notSensitiveForMe: c.input.notSensitiveForMe === true,
       thirdParty: c.thirdParty,
@@ -194,7 +182,7 @@ async function planItems(deps: PipelineDeps, candidates: readonly Candidate[], r
       // The holding points at no slot of its tag: inconsistent data, never something to guess at.
       if (from === null) throw new Error('addInterests: holding without a tag slot');
     }
-    // A tag's own partition is fixed when it is first stored; a newer lexicon only moves new holdings aside.
+    // A tag's own partition is fixed when it is first stored; a holder whose phone flags it uses the private slot.
     const slot = slotFor(partition, ownPartition(state.sens));
     plan.push({
       index: c.index,
@@ -215,26 +203,30 @@ async function planItems(deps: PipelineDeps, candidates: readonly Candidate[], r
   return plan;
 }
 
-/**
- * The margin a holding of an already stored text is decided with. The stored margin came from the first writer's
- * vector, which may have been crafted (D1), so this request's own client margin can still raise it: sensitivity only
- * ratchets upward per holding. The tag's own partition stays as first stored; such a holding uses the private slot.
- */
-function holdingMargin(c: Candidate, known: TagState, prototypes: Prototypes | null): number | null {
-  if (known.sens.margin === null || !Number.isFinite(known.sens.margin)) return null;
-  const server = prototypes ? Math.max(known.sens.margin, detectorMargin(known.vec, prototypes)) : known.sens.margin;
-  return reconcileDetectorMargin(c.input.detector.margin, server);
+/** The phone's margin; a non-finite one (the schema refuses it) is treated as missing, which fails closed. */
+function clientMargin(c: Candidate): number | null {
+  return Number.isFinite(c.input.detector.margin) ? c.input.detector.margin : null;
 }
 
-/** A text first seen now: the client's vector (trusted, D1) and the tag-level signals at this moment. */
-function newTagState(c: Candidate, prototypes: Prototypes | null): TagState {
+/**
+ * The margin a holding of an already stored text is decided with: the higher of the stored margin (the first
+ * writer's phone) and this holder's own phone margin. The first writer's vector and margin may have been crafted (D1),
+ * so a later holder's own on-device result can still raise sensitivity for their holding, never lower it. The tag's
+ * own partition stays as first stored; such a holding uses the private slot. A missing margin on either side fails
+ * closed.
+ */
+function holdingMargin(c: Candidate, known: TagState): number | null {
+  const own = clientMargin(c);
+  if (known.sens.margin === null || !Number.isFinite(known.sens.margin) || own === null) return null;
+  return Math.max(known.sens.margin, own);
+}
+
+/** A text first seen now: the client's vector and margin (trusted, D1, F35). */
+function newTagState(c: Candidate): TagState {
   const vec = renormalize(c.input.vector);
-  const margin = reconcileDetectorMargin(c.input.detector.margin, prototypes ? detectorMargin(vec, prototypes) : null);
-  const knownOrdinary = isKnownOrdinary(c.norm);
+  const margin = clientMargin(c);
   const tag = decideSensitivity({
-    lexiconHit: c.lexiconHit,
     detectorMargin: margin,
-    knownOrdinary,
     selfFlagPrivate: false,
     notSensitiveForMe: false,
     thirdParty: false,
@@ -243,7 +235,7 @@ function newTagState(c: Candidate, prototypes: Prototypes | null): TagState {
   return {
     exists: false,
     vec,
-    sens: { sensitive: tag === 'sensitive', margin, lexiconHit: c.lexiconHit, knownOrdinary, rulesVersion: '' },
+    sens: { sensitive: tag === 'sensitive', margin },
     slots: { own: null, private: null, ordinary: null },
   };
 }
