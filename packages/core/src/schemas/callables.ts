@@ -207,6 +207,10 @@ export const reportOutput = z.object({ reportId: docIdSchema });
 export const registerPushTokenInput = z.strictObject({ token: z.string().min(1).max(4096), platform: z.enum(PLATFORMS) });
 export const registerPushTokenOutput = ok;
 
+/** Sent when the app opens or comes to the foreground; the onboarded-callable wrapper records the activity (§8.1). */
+export const appOpenedInput = emptyInput;
+export const appOpenedOutput = ok;
+
 export const deletePhotoInput = emptyInput;
 export const deletePhotoOutput = ok;
 export const exportDataInput = emptyInput;
@@ -315,6 +319,7 @@ export const CALLABLES = {
   unblockUser: spec(unblockUserInput, unblockUserOutput),
   report: spec(reportInput, reportOutput, { replayProtected: true }),
   registerPushToken: spec(registerPushTokenInput, registerPushTokenOutput),
+  appOpened: spec(appOpenedInput, appOpenedOutput),
   deletePhoto: spec(deletePhotoInput, deletePhotoOutput),
   exportData: spec(exportDataInput, exportDataOutput, { replayProtected: true, requiresRecentLogin: true }),
   deleteAccount: spec(deleteAccountInput, deleteAccountOutput, { replayProtected: true, requiresRecentLogin: true }),

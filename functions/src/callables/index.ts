@@ -47,6 +47,7 @@ export const unblockUser = define('unblockUser', safety.unblockUser);
 export const report = define('report', safety.report);
 // Account and data (§3.9, §3.10, §9), see callables/account.ts.
 export const registerPushToken = define('registerPushToken', account.registerPushToken);
+export const appOpened = define('appOpened', account.appOpened);
 export const deletePhoto = define('deletePhoto', (d, c) => account.deletePhoto(d, c));
 export const exportData = define('exportData', (d, c) => account.exportData(d, c));
 export const deleteAccount = define('deleteAccount', (d, c) => account.deleteAccount(d, c));

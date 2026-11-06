@@ -28,7 +28,7 @@ export const HOT_OPTIONS = { cpu: 1, memory: '512MiB', concurrency: 40, maxInsta
 /** Drop compute and release: 1 vCPU / 1 GiB, 1,800 s (§10.3). */
 export const HEAVY_OPTIONS = { cpu: 1, memory: '1GiB', concurrency: 1, timeoutSeconds: LONG_TASK_DISPATCH_DEADLINE_SECONDS } as const satisfies GlobalOptions;
 
-export const HOT_CALLABLES: ReadonlySet<CallableName> = new Set<CallableName>(['respondToPod', 'voteOption', 'registerPushToken', 'confirmAttendance']);
+export const HOT_CALLABLES: ReadonlySet<CallableName> = new Set<CallableName>(['respondToPod', 'voteOption', 'registerPushToken', 'confirmAttendance', 'appOpened']);
 
 export function callableOptions(name: CallableName): CallableOptions {
   const spec = CALLABLES[name];

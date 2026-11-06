@@ -145,3 +145,12 @@ export async function deleteAccount(deps: AppDeps, call: CallContext): Promise<C
   await startAccountDeletion(deps, call.uid, call.now);
   return { ok: true };
 }
+
+/**
+ * `appOpened` (§8.1): the app calls it at start and when it returns to the foreground. The work is done by the
+ * onboarded-callable wrapper (withActivity), which moves `lastActiveAt` at most once a day, so an app with
+ * notifications off (no registerPushToken) still keeps its account out of the inactivity deletion.
+ */
+export async function appOpened(): Promise<CallableOutput<'appOpened'>> {
+  return { ok: true };
+}

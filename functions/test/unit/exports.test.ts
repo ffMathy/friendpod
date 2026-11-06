@@ -50,13 +50,13 @@ describe('codebase "default" exports', () => {
     expect(DEFAULT_CALLABLES.filter((n) => CALLABLES[n].replayProtected).sort()).toEqual(['deleteAccount', 'exportData', 'report']);
   });
 
-  it('uses the gcf_gen1 defaults, and the hot profile for the four burst callables (§7)', () => {
+  it('uses the gcf_gen1 defaults, and the hot profile for the five burst callables (§7)', () => {
     for (const name of DEFAULT_CALLABLES) {
       const e = endpoint(name);
       if (HOT_CALLABLES.has(name)) expect(e, name).toMatchObject({ cpu: 1, availableMemoryMb: 512, concurrency: 40, maxInstances: 20 });
       else expect(e, name).toMatchObject({ cpu: 'gcf_gen1', availableMemoryMb: 256, concurrency: 1, maxInstances: 10 });
     }
-    expect([...HOT_CALLABLES].sort()).toEqual(['confirmAttendance', 'registerPushToken', 'respondToPod', 'voteOption']);
+    expect([...HOT_CALLABLES].sort()).toEqual(['appOpened', 'confirmAttendance', 'registerPushToken', 'respondToPod', 'voteOption']);
   });
 
   it('schedules the three jobs in Europe/Copenhagen (§10.3)', () => {

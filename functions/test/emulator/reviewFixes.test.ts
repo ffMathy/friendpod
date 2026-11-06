@@ -10,7 +10,7 @@ import type { Auth } from 'firebase-admin/auth';
 import { FieldValue, type Firestore } from 'firebase-admin/firestore';
 import { expect, it } from 'vitest';
 import { completeOnboarding } from '../../src/callables/completeOnboarding';
-import { registerPushToken } from '../../src/callables/account';
+import { appOpened, registerPushToken } from '../../src/callables/account';
 import { markArt9Withdrawal, withdrawBlanketConsent } from '../../src/callables/art9Consent';
 import * as pods from '../../src/callables/pods';
 import { blockUser, report } from '../../src/callables/safety';
@@ -86,6 +86,20 @@ describeEmulator('review fixes (emulator)', () => {
     await inactivity(deps, t1 + 31 * DAY_MS, { only: (u) => u === idle });
     expect((await read.user(deps, idle))!.status).toBe('active');
     expect((await read.user(deps, idle))!.inactivityWarnedAt).toBeUndefined();
+
+    // Notifications off: no registerPushToken, only appOpened at start. It keeps the account too (throttled).
+    const quiet = await makeUser(deps);
+    const opened = withActivity('appOpened', appOpened);
+    const t2 = deps.clock.now + 400 * DAY_MS;
+    await inactivity(deps, t2, { only: (u) => u === quiet });
+    expect((await read.user(deps, quiet))!.inactivityWarnedAt).toBeDefined();
+    expect(await flow.call('appOpened', opened, quiet, {}, t2 + DAY_MS)).toEqual({ ok: true });
+    expect(await lastActive(quiet)).toBe(t2 + DAY_MS);
+    await flow.call('appOpened', opened, quiet, {}, t2 + DAY_MS + HOUR);
+    expect(await lastActive(quiet)).toBe(t2 + DAY_MS);
+    await inactivity(deps, t2 + 31 * DAY_MS, { only: (u) => u === quiet });
+    expect((await read.user(deps, quiet))!.status).toBe('active');
+    expect((await read.user(deps, quiet))!.inactivityWarnedAt).toBeUndefined();
   });
 
   // ------------------------------------------------------------------ 2. blocks in `happened` pods
