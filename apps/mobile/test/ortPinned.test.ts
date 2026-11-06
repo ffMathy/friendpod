@@ -37,6 +37,8 @@ describe('on-device runtime pins (D1)', () => {
   it('forces onnxruntime-android for every Gradle project, once', () => {
     const out = pinAndroid(BUILD_GRADLE, '1.30.0');
     expect(out).toContain("resolutionStrategy.force 'com.microsoft.onnxruntime:onnxruntime-android:1.30.0'");
+    // Gradle 9 removed VersionNumber, which the library's build.gradle still calls.
+    expect(out).toContain("if (p.name == 'onnxruntime-react-native') p.ext.VersionNumber = org.gradle.util.internal.VersionNumber");
     expect(pinAndroid(out, '1.30.0')).toBe(out);
     expect(pinAndroid(out, '1.31.0')).not.toContain('1.30.0');
   });
