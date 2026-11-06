@@ -1,11 +1,13 @@
 import { blockUserInput, reportInput } from '@grouper/core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen, within } from '@testing-library/react-native';
 import type { ReactElement } from 'react';
 import { Alert, type AlertButton } from 'react-native';
 import MemberSheet from '../app/pod/[podId]/member/[uid]';
 import Blocked from '../app/settings/blocked';
 import Report from '../app/sheets/report';
+import da from '@/i18n/da.json';
+import en from '@/i18n/en.json';
 
 const POD_ID = 'abcdefghijklmnopqrst';
 const mockRouter = { push: jest.fn(), back: jest.fn() };
@@ -155,6 +157,20 @@ describe('member sheet (§3.7)', () => {
     expect(screen.getByText("You've blocked Anna.")).toBeOnTheScreen();
     await fireEvent.press(screen.getByTestId('member-unblock'));
     expect(mockCall).toHaveBeenCalledWith('unblockUser', { uid: 'anna' });
+  });
+
+  it('says on the Report row only what is true: the reporter stays anonymous, and no person reviews reports (F17)', async () => {
+    await renderWith(<MemberSheet />);
+    const row = screen.getByTestId('member-report');
+    expect(within(row).getByText("Anna won't know who reported.")).toBeOnTheScreen();
+    expect(screen.getByRole('button', { name: 'Report Anna' }).props.accessibilityHint).toBe("Anna won't know who reported.");
+    // Storyboard 4.2 adds "A person on our team reviews it."; nobody reads reports (DESIGN.md §3.7, PRIVACY.md §13), so
+    // neither the row nor any report wording may promise a human review, in either language.
+    expect(within(row).queryByText(/review|our team/i)).toBeNull();
+    const strings = (node: unknown): string[] => (typeof node === 'string' ? [node] : Object.values(node as object).flatMap(strings));
+    const reportCopy = [en, da].flatMap((lang) => [...strings(lang.report), lang.member.report, lang.member.reportName]);
+    expect(reportCopy).toContain("{{name}} won't know who reported.");
+    for (const line of reportCopy) expect(line).not.toMatch(/review|our team|gennemg|vores team/i);
   });
 
   it('opens the report sheet for the member; there is no block or report on oneself', async () => {

@@ -4,9 +4,8 @@ import * as SplashScreen from 'expo-splash-screen';
 import * as SystemUI from 'expo-system-ui';
 import { useEffect } from 'react';
 import { I18nextProvider, useTranslation } from 'react-i18next';
-import { Platform } from 'react-native';
 import { useNavigationTheme, useStackScreenOptions } from '@/components/navigation';
-import { Radius, usePalette } from '@/components/theme';
+import { usePalette } from '@/components/theme';
 import { useUserDoc } from '@/data/docs';
 import { queryClient } from '@/data/queryClient';
 import { initFirebase } from '@/firebase';
@@ -50,18 +49,12 @@ function Navigator() {
   const stackOptions = useStackScreenOptions();
   const p = usePalette();
   const ground = p.ground;
-  // Storyboards 2.3 and 4.2: bottom sheets sized to their content over the dimmed screen below. Each draws its own
-  // grabber and its white surface with the 28-pt top corners. Android before 13 cannot clip the sheet's content to
-  // its corners, so there the native background stays transparent and the screen's rounded surface shows (a square
-  // one painted over them, device run 26b); iOS clips, so it keeps the surface colour behind the content.
-  const fittedSheet = {
-    headerShown: false,
-    presentation: 'formSheet',
-    sheetAllowedDetents: 'fitToContents',
-    sheetGrabberVisible: false,
-    sheetCornerRadius: Radius.heroLg,
-    contentStyle: { backgroundColor: Platform.OS === 'android' ? 'transparent' : p.surface },
-  } as const;
+  // Storyboards 2.3 and 4.2: bottom sheets sized to their content over the screen below, dimmed to the storyboards'
+  // dark backdrop. The route is a transparent modal that fades in; the screen draws the backdrop, the sheet and its
+  // gestures with SheetScreen (src/components/sheet.tsx), so the sheet's height follows its content by layout. Not a
+  // native form sheet: on Android its fit-to-contents height was measured once and clipped what loaded after (the
+  // last reasons, "What we never use" and "How matching works"), and its light grey dimming cannot be themed.
+  const bottomSheet = { headerShown: false, presentation: 'transparentModal', animation: 'fade' } as const;
 
   useEffect(() => {
     if (phase !== 'loading') void SplashScreen.hideAsync();
@@ -87,11 +80,11 @@ function Navigator() {
           <Stack.Screen name="pod/[podId]/plan" options={{ title: t('plan.title'), headerShown: false }} />
           <Stack.Screen name="pod/[podId]/chat" options={{ title: t('chat.title'), headerShown: false }} />
           <Stack.Screen name="pod/[podId]/feedback" options={{ title: t('feedback.title'), headerShown: false }} />
-          <Stack.Screen name="pod/[podId]/member/[uid]" options={{ title: t('member.title'), ...fittedSheet }} />
+          <Stack.Screen name="pod/[podId]/member/[uid]" options={{ title: t('member.title'), ...bottomSheet }} />
           <Stack.Screen name="settings" options={{ headerShown: false }} />
         </Stack.Protected>
         <Stack.Protected guard={phase !== 'signedOut'}>
-          <Stack.Screen name="sheets/why-this-pod" options={{ title: t('pods.whyThisPod'), ...fittedSheet }} />
+          <Stack.Screen name="sheets/why-this-pod" options={{ title: t('pods.whyThisPod'), ...bottomSheet }} />
           <Stack.Screen name="sheets/report" options={{ title: t('report.title'), presentation: 'modal', headerShown: false }} />
         </Stack.Protected>
         <Stack.Screen name="auth/complete" options={{ title: t('auth.complete.title'), headerShown: false }} />

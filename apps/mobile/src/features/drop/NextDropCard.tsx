@@ -2,7 +2,7 @@ import { dropSchedule, nextDropWeek, type SetParticipationMode, type UserDoc } f
 import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
-import { Radius, Type, usePalette } from '@/components/theme';
+import { Radius, Type, tightLine, usePalette } from '@/components/theme';
 import { AppText, Button, Card, ErrorText, Icon, Pill, type IconName } from '@/components/ui';
 import { useCallable } from '@/data/useCallable';
 import { currentLocale } from '@/i18n';
@@ -102,7 +102,8 @@ const styles = StyleSheet.create({
   block: { gap: 12 },
   hero: { borderRadius: Radius.hero },
   when: { gap: 4 },
-  time: { ...Type.title, fontSize: 32, lineHeight: 37 },
+  // Storyboard 2.1's 32/37 time: its own glyph room, since Type.title's is sized for 30/35.
+  time: { ...Type.title, ...tightLine(32, 37) },
   status: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   flex: { flex: 1 },
   actions: { flexDirection: 'row', gap: 8 },

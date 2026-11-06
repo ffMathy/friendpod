@@ -82,6 +82,11 @@ const light = {
   disabledBg: '#DCE2DC',
   disabledText: '#55605A',
   scrim: 'rgba(24, 33, 29, 0.55)',
+  /**
+   * The backdrop behind a bottom sheet route (storyboards 2.3, 4.2 draw the screen below as a flat #59615C): ink at
+   * 70 %, which turns the ground into #5A615D and a white card into #5D6461.
+   */
+  sheetBackdrop: 'rgba(24, 33, 29, 0.7)',
 };
 
 /** Same hues on a deep green-black ground; every text pair is WCAG AA (≥ 4.5:1), most are AAA. */
@@ -140,6 +145,7 @@ const dark: Record<keyof typeof light, string> = {
   disabledBg: '#26302B',
   disabledText: '#97A39B',
   scrim: 'rgba(0, 0, 0, 0.6)',
+  sheetBackdrop: 'rgba(0, 0, 0, 0.7)',
 };
 
 export const Colors = { light, dark } as const;
@@ -294,22 +300,63 @@ export function font(weight: 400 | 500 | 600 | 700 | 800): FontFace {
 const em = (size: number, value: number) => Math.round(size * value * 100) / 100;
 
 /**
+ * Plus Jakarta Sans' vertical metrics in em, the same in all five weights (hhea = OS/2 typo, USE_TYPO_METRICS). A
+ * `normal` line is ascent + descent = 1.26 em tall. The ink goes a little further: over Latin-1 and Latin Extended-A in
+ * every weight, Å and Ů reach 1.044 em above the baseline, and the cedillas (ç, ŗ) reach 0.263 em below it (g, j and y
+ * reach 0.222). test/glyphRoom.test.tsx reads these numbers from the embedded font files.
+ */
+export const FontMetrics = { ascent: 1.038, descent: 0.222, inkTop: 1.044, inkBottom: 0.263 } as const;
+
+/** The padding a tight title draws its overflowing glyphs in, and the negative margins that cancel it. */
+export interface GlyphRoom {
+  readonly paddingTop?: number;
+  readonly paddingBottom?: number;
+  readonly marginTop?: number;
+  readonly marginBottom?: number;
+}
+
+/**
+ * The room a text needs outside its line box so no glyph is cut, for a `lineHeight` below the font's 1.26 em. The
+ * storyboards set titles at 1.05 to 1.15. Like CSS, React Native takes the shortfall half above the first line and half
+ * below the last (Android's CustomLineHeightSpan). A browser still draws the overflow, but a text view clips to its box,
+ * so "baking bread" (40/42) lost the bottom 4 dp of its g on Android, and Å would lose its ring.
+ *
+ * The text is padded by the overflow plus 1 for the whole-pixel rounding of font metrics, and equal negative margins
+ * pull the padding back out of the layout. Lines are spaced and placed as in the storyboard, and the ink draws inside
+ * the view. Space these texts with the parent's `gap` or padding, because a vertical margin or padding set on the text
+ * itself replaces this compensation. A style that changes the size of a preset recomputes the room:
+ * `{ ...Type.title, ...tightLine(32, 37) }`.
+ */
+export function glyphRoom(fontSize: number, lineHeight: number): GlyphRoom {
+  const halfLeading = (lineHeight - fontSize * (FontMetrics.ascent + FontMetrics.descent)) / 2;
+  if (halfLeading >= 0) return {};
+  const top = Math.ceil(fontSize * (FontMetrics.inkTop - FontMetrics.ascent) - halfLeading + 1);
+  const bottom = Math.ceil(fontSize * (FontMetrics.inkBottom - FontMetrics.descent) - halfLeading + 1);
+  return { paddingTop: top, paddingBottom: bottom, marginTop: -top, marginBottom: -bottom };
+}
+
+/** A size and line height plus the glyph room it needs (see `glyphRoom`). */
+export function tightLine(fontSize: number, lineHeight: number): { readonly fontSize: number; readonly lineHeight: number } & GlyphRoom {
+  return { fontSize, lineHeight, ...glyphRoom(fontSize, lineHeight) };
+}
+
+/**
  * Text presets (no colour; add `{ color: p.ink }` etc.). Line heights follow the storyboards: 1.5 for paragraphs,
- * about 1.15 for titles.
+ * about 1.15 for titles. Titles tighter than the font's own line take their glyph room from `tightLine`.
  */
 export const Type = {
   /** Welcome hero, 36/800. */
-  hero: { ...Fonts.extrabold, fontSize: FontSize.hero, lineHeight: 40, letterSpacing: em(FontSize.hero, -0.03) },
-  /** A pod's theme on the proposal card, 40/800. */
-  theme: { ...Fonts.extrabold, fontSize: FontSize.theme, lineHeight: 42, letterSpacing: em(FontSize.theme, -0.03) },
+  hero: { ...Fonts.extrabold, ...tightLine(FontSize.hero, 40), letterSpacing: em(FontSize.hero, -0.03) },
+  /** A pod's theme on the proposal card, 40/800 (storyboards 2.2, 2.4: line-height 1.05). */
+  theme: { ...Fonts.extrabold, ...tightLine(FontSize.theme, 42), letterSpacing: em(FontSize.theme, -0.03) },
   /** Screen titles, 30/800. */
-  title: { ...Fonts.extrabold, fontSize: FontSize.h1, lineHeight: 35, letterSpacing: em(FontSize.h1, -0.02) },
+  title: { ...Fonts.extrabold, ...tightLine(FontSize.h1, 35), letterSpacing: em(FontSize.h1, -0.02) },
   /** Modal screen titles ("Suggest a time", "Report Jonas"), 26/800. */
-  titleMd: { ...Fonts.extrabold, fontSize: FontSize.h2, lineHeight: 31, letterSpacing: em(FontSize.h2, -0.02) },
+  titleMd: { ...Fonts.extrabold, ...tightLine(FontSize.h2, 31), letterSpacing: em(FontSize.h2, -0.02) },
   /** Sheet titles and in-card headlines ("No pod for you this week"), 24/800. */
-  titleSm: { ...Fonts.extrabold, fontSize: FontSize.h3, lineHeight: 29, letterSpacing: em(FontSize.h3, -0.02) },
+  titleSm: { ...Fonts.extrabold, ...tightLine(FontSize.h3, 29), letterSpacing: em(FontSize.h3, -0.02) },
   /** Card headlines ("Still coming tomorrow at 14:00?"), 22/800. */
-  headline: { ...Fonts.extrabold, fontSize: FontSize.h4, lineHeight: 27 },
+  headline: { ...Fonts.extrabold, ...tightLine(FontSize.h4, 27) },
   /** Card titles ("Saturday 15 Nov, 14:00"), 18/800. */
   heading: { ...Fonts.extrabold, fontSize: FontSize.xxl, lineHeight: 24 },
   /** Small card titles ("Help Odense open sooner"), 17/800. */
@@ -341,7 +388,7 @@ export const Type = {
   /** Text inputs, 17/400. */
   input: { ...Fonts.regular, fontSize: FontSize.xl },
   /** Big counters (waitlist), 48/800. */
-  counter: { ...Fonts.extrabold, fontSize: FontSize.counter, lineHeight: 54, letterSpacing: em(FontSize.counter, -0.03) },
+  counter: { ...Fonts.extrabold, ...tightLine(FontSize.counter, 54), letterSpacing: em(FontSize.counter, -0.03) },
 } as const satisfies Record<string, TextStyle>;
 
 export type TypeVariant = keyof typeof Type;

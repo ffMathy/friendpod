@@ -14,11 +14,11 @@ import {
   Screen,
   ScreenHeader,
   SectionTitle,
-  TextLink,
   Toggle,
 } from '@/components/ui';
 import { usePod, usePodCard } from '@/data/docs';
 import { useCallable } from '@/data/useCallable';
+import { UnderlineLink } from '@/features/drop/UnderlineLink';
 import { memberFills } from '@/features/pods/memberFill';
 import { isConfirmedMember } from '@/features/pods/membership';
 import { MemberFace } from '@/features/safety/MemberFace';
@@ -33,9 +33,17 @@ const RATINGS = [1, 2, 3, 4, 5] as const;
  * "How did it go?" (§3.6, storyboard 4.1): "Who was there?" with everyone pre-ticked, so the user only unticks whoever
  * was missing (D15); a private "meet again" per person who was there, answered yes or no or left open (D9: an open
  * answer sends no signal); a 1–5 rating; and Keep pod / Not for me, which sends the answers. None of it is shown to the
- * others. The storyboard has no "Did you meet?" question, so `met` is a quiet "We didn't meet" link under the card:
- * it hides the attendance and the rating (an empty `notThere` then counts nobody as there, D15), and "We did meet"
- * brings them back.
+ * others.
+ *
+ * "Meet again" is a Yes / No pair, not the storyboard's single checkbox, on purpose: §3.6 asks yes / no / skip, and the
+ * server tells them apart (`submitFeedback` → `meetAgainOutcome`: `false` is "never again", NEVER_WEEK_ID at once; a
+ * missing key is no signal). A checkbox has two states, so it would either turn every row left alone into an invisible,
+ * permanent soft block (the storyboard footnote's "leaves it unticked") or lose the "no".
+ *
+ * The storyboard has no "Did you meet?" question, so `met` is a quiet underlined "We didn't meet" button at the foot of
+ * the screen, under Keep pod / Not for me: the place the storyboards give a quiet way out (2.4 "Changed your mind?
+ * Leave this pod"), so the card, the rating and the Keep card stay together as drawn. It hides the attendance and the
+ * rating (an empty `notThere` then counts nobody as there, D15), and "We did meet", in the same spot, brings them back.
  */
 export default function Feedback() {
   const { t } = useTranslation();
@@ -90,89 +98,71 @@ export default function Feedback() {
     <Screen>
       <ScreenHeader title={t('feedback.howDidItGo')} subtitle={t('feedback.subtitle')} backLabel={t('common.back')} onBack={router.back} />
 
-      {met ? (
-        <View style={styles.attendance}>
-          {others.length > 0 ? (
-            <Card gap={Spacing.xs}>
-              <View style={styles.gridRow}>
-                <View style={styles.nameCol}>
-                  <SectionTitle title={t('feedback.whoWasThere')} />
+      {met && others.length > 0 ? (
+        <Card gap={Spacing.xs}>
+          <View style={styles.gridRow}>
+            <View style={styles.nameCol}>
+              <SectionTitle title={t('feedback.whoWasThere')} />
+            </View>
+            <AppText variant="micro" tone="muted" align="center" style={[Fonts.bold, styles.thereCol]}>
+              {t('feedback.wasThere')}
+            </AppText>
+            <AppText variant="micro" tone="muted" align="center" style={[Fonts.bold, styles.againCol]}>
+              {t('feedback.meetAgainColumn')}
+            </AppText>
+          </View>
+          {others.map((m) => {
+            const entry = roster[m];
+            const name = entry?.firstName ?? '';
+            const there = !notThere.has(m);
+            const question = t('feedback.meetAgain', { name });
+            return (
+              <View key={m} style={[styles.gridRow, styles.memberRow]}>
+                <View style={[styles.nameCol, styles.person]}>
+                  <MemberFace uid={m} name={name} size={32} fill={fillOf(m)} photoV={entry?.photoV} />
+                  <AppText variant="bodyMd" tone={there ? 'ink' : 'muted'} style={[Fonts.semibold, styles.shrink]}>
+                    {name}
+                  </AppText>
                 </View>
-                <AppText variant="micro" tone="muted" align="center" style={[Fonts.bold, styles.thereCol]}>
-                  {t('feedback.wasThere')}
-                </AppText>
-                <AppText variant="micro" tone="muted" align="center" style={[Fonts.bold, styles.againCol]}>
-                  {t('feedback.meetAgainColumn')}
-                </AppText>
+                <View style={styles.thereCol}>
+                  <Checkbox testID={`there-${m}`} label={t('feedback.wasThereLabel', { name })} hideLabel checked={there} onChange={(on) => setThere(m, on)} />
+                </View>
+                <View style={[styles.againCol, styles.againChoices]}>
+                  {there ? (
+                    <>
+                      <Toggle
+                        testID={`again-yes-${m}`}
+                        label={t('feedback.yes')}
+                        accessibilityLabel={`${question} ${t('feedback.yes')}`}
+                        tone="accent"
+                        grow
+                        value={meetAgain[m] === 'yes'}
+                        onChange={(on) => answerMeetAgain(m, on ? 'yes' : null)}
+                      />
+                      <Toggle
+                        testID={`again-no-${m}`}
+                        label={t('feedback.no')}
+                        accessibilityLabel={`${question} ${t('feedback.no')}`}
+                        grow
+                        value={meetAgain[m] === 'no'}
+                        onChange={(on) => answerMeetAgain(m, on ? 'no' : null)}
+                      />
+                    </>
+                  ) : null}
+                </View>
               </View>
-              {others.map((m) => {
-                const entry = roster[m];
-                const name = entry?.firstName ?? '';
-                const there = !notThere.has(m);
-                const question = t('feedback.meetAgain', { name });
-                return (
-                  <View key={m} style={[styles.gridRow, styles.memberRow]}>
-                    <View style={[styles.nameCol, styles.person]}>
-                      <MemberFace uid={m} name={name} size={32} fill={fillOf(m)} photoV={entry?.photoV} />
-                      <AppText variant="bodyMd" tone={there ? 'ink' : 'muted'} style={[Fonts.semibold, styles.shrink]}>
-                        {name}
-                      </AppText>
-                    </View>
-                    <View style={styles.thereCol}>
-                      <Checkbox testID={`there-${m}`} label={t('feedback.wasThereLabel', { name })} hideLabel checked={there} onChange={(on) => setThere(m, on)} />
-                    </View>
-                    <View style={[styles.againCol, styles.againChoices]}>
-                      {there ? (
-                        <>
-                          <Toggle
-                            testID={`again-yes-${m}`}
-                            label={t('feedback.yes')}
-                            accessibilityLabel={`${question} ${t('feedback.yes')}`}
-                            tone="accent"
-                            grow
-                            value={meetAgain[m] === 'yes'}
-                            onChange={(on) => answerMeetAgain(m, on ? 'yes' : null)}
-                          />
-                          <Toggle
-                            testID={`again-no-${m}`}
-                            label={t('feedback.no')}
-                            accessibilityLabel={`${question} ${t('feedback.no')}`}
-                            grow
-                            value={meetAgain[m] === 'no'}
-                            onChange={(on) => answerMeetAgain(m, on ? 'no' : null)}
-                          />
-                        </>
-                      ) : null}
-                    </View>
-                  </View>
-                );
-              })}
-              <AppText variant="micro" tone="muted" style={styles.gridNote}>
-                {`${t('feedback.whoWasThereHint')} ${t('feedback.meetAgainEffect')}`}
-              </AppText>
-            </Card>
-          ) : null}
-          <TextLink
-            testID="met-no"
-            label={t('feedback.didNotMeet')}
-            role="button"
-            size="sm"
-            tone="muted"
-            onPress={() => setMet(false)}
-          />
-        </View>
-      ) : (
-        <Card tone="inset" gap={Spacing.sm}>
+            );
+          })}
+          <AppText variant="micro" tone="muted" style={styles.gridNote}>
+            {`${t('feedback.whoWasThereHint')} ${t('feedback.meetAgainEffect')}`}
+          </AppText>
+        </Card>
+      ) : null}
+      {met ? null : (
+        <Card tone="inset">
           <AppText variant="bodySm" tone="muted">
             {t('feedback.didNotMeetNote')}
           </AppText>
-          <TextLink
-            testID="met-yes"
-            label={t('feedback.didMeet')}
-            role="button"
-            size="sm"
-            onPress={() => setMet(true)}
-          />
         </Card>
       )}
 
@@ -226,14 +216,18 @@ export default function Feedback() {
         </View>
       </Card>
       {submit.error ? <ErrorText>{t(errorMessageKey(submit.error))}</ErrorText> : null}
+      {/* Storyboard 2.4's quiet way out: centred, 15/700, underlined, a 44-pt row, role button; one spot for both answers. */}
+      {met ? (
+        <UnderlineLink testID="met-no" label={t('feedback.didNotMeet')} tone="muted" role="button" align="center" onPress={() => setMet(false)} />
+      ) : (
+        <UnderlineLink testID="met-yes" label={t('feedback.didMeet')} tone="muted" role="button" align="center" onPress={() => setMet(true)} />
+      )}
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
   section: { gap: 10 },
-  // The card and its quiet "We didn't meet" link read as one block.
-  attendance: { gap: Spacing.sm },
   gridRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   // 44 like the storyboard's rows: the Yes / No chips are 44 tall, so the rows are as tall as their touch targets.
   memberRow: { minHeight: 44 },
@@ -241,7 +235,8 @@ const styles = StyleSheet.create({
   person: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   shrink: { flexShrink: 1 },
   thereCol: { width: 56, alignItems: 'center' },
-  // Two Yes / No chips: "meet again" can also be left open (D9), which a single checkbox could not say.
+  // Two Yes / No chips, not the storyboard's checkbox: "meet again" can also be left open (D9, §3.6), and a missing
+  // answer must not count as "no" (see the note on Feedback).
   againCol: { width: 116 },
   againChoices: { flexDirection: 'row', gap: Spacing.xs },
   gridNote: { marginTop: 6 },

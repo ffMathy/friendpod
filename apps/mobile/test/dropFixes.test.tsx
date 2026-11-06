@@ -95,7 +95,7 @@ describe('proposal card (2.2, 2.4)', () => {
 });
 
 describe('Why this pod sheet (2.3)', () => {
-  // The fitted form sheet and its dimmed backdrop (a tap on it closes the sheet) are native (app/_layout.tsx).
+  // The backdrop, the sheet's layout and its gestures (SheetScreen) are covered in test/sheets.test.tsx.
   it('a bottom sheet that closes from its × button, with light status-bar icons and no extra caption', async () => {
     const push = jest.spyOn(StatusBar, 'pushStackEntry');
     mockCard = card();

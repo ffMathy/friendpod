@@ -2,7 +2,8 @@ import type { PodState } from '@grouper/core';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, type AlertButton, Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SheetScreen } from '@/components/sheet';
 import { Fonts, Radius, Spacing, usePalette } from '@/components/theme';
 import { AppText, Body, Button, Card, ErrorText, Grabber, Icon, IconButton } from '@/components/ui';
 import { useBlocks, usePod, usePodCard } from '@/data/docs';
@@ -27,14 +28,18 @@ const REMOVING_STATES: ReadonlySet<PodState> = new Set(['proposed', 'planning', 
 /**
  * Member sheet (§3.7, F28, storyboard 4.2): a bottom sheet with the first name, photo and "about me"; a single Block row
  * (two-way, immediate) whose confirmation offers leaving instead and, once the meetup is scheduled (the blocked person
- * knows the plan), re-planning it; unblock; report. The sheet sizes to its content (no `flex: 1`), so it suits a
- * fit-to-contents form sheet. Its white surface has the storyboard's 28-pt top corners itself: on Android before 13 the
- * native sheet cannot clip its content to them, so a square background here would paint over them.
+ * knows the plan), re-planning it; unblock; report. SheetScreen puts it over the pod page behind the storyboard's dark
+ * backdrop and closes it on a tap there or a drag down (the root stack presents it as a transparent modal). The sheet
+ * is as tall as its content (no `flex: 1`) and draws its white surface with the storyboard's 28-pt top corners itself;
+ * when the screen is too short for it (large text), it shrinks and its body scrolls.
  */
 export default function MemberSheet() {
   const { t } = useTranslation();
   const router = useRouter();
   const p = usePalette();
+  // The sheet always meets the screen's bottom edge; the inset is known at the first layout (a SafeAreaView measures
+  // its own position, which is off screen while the sheet slides in).
+  const insets = useSafeAreaInsets();
   const { podId, uid: memberUid } = useLocalSearchParams<{ podId: string; uid: string }>();
   const uid = useUid();
   const card = usePodCard(uid, podId);
@@ -46,9 +51,11 @@ export default function MemberSheet() {
 
   if (!pod.data) {
     return (
-      <View style={[styles.surface, styles.loading, { backgroundColor: p.surface }]}>
-        <ActivityIndicator accessibilityLabel={t('common.loading')} color={p.primary} />
-      </View>
+      <SheetScreen onClose={router.back}>
+        <View style={[styles.surface, styles.loading, { backgroundColor: p.surface }]}>
+          <ActivityIndicator accessibilityLabel={t('common.loading')} color={p.primary} />
+        </View>
+      </SheetScreen>
     );
   }
   const entry = pod.data.roster[memberUid];
@@ -99,131 +106,133 @@ export default function MemberSheet() {
   const fill = memberFills(pod.data.memberUids, uid)(memberUid);
 
   return (
-    <SafeAreaView edges={['bottom']} style={[styles.surface, { backgroundColor: p.surface }]}>
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.sheet} bounces={false} keyboardShouldPersistTaps="handled">
-        <Grabber />
-        <View style={styles.header}>
-          <MemberFace
-            uid={memberUid}
-            name={name}
-            size={64}
-            fill={fill}
-            you={isSelf}
-            photoV={entry && !blocked ? entry.photoV : null}
-            photoLabel={t('pod.photoOf', { name })}
-            placeholder={!entry}
-          />
-          <View style={styles.headerText}>
-            <AppText accessibilityRole="header" variant="titleSm">
-              {entry?.firstName ?? t('member.formerMember')}
-            </AppText>
-            {entry ? (
-              <AppText variant="bodySm" tone="muted">
-                {theme ? t('member.inPod', { theme }) : t('member.inYourPod')}
+    <SheetScreen onClose={router.back}>
+      <View style={[styles.surface, { backgroundColor: p.surface, paddingBottom: insets.bottom }]}>
+        <ScrollView style={styles.scroll} contentContainerStyle={styles.sheet} bounces={false} keyboardShouldPersistTaps="handled">
+          <Grabber />
+          <View style={styles.header}>
+            <MemberFace
+              uid={memberUid}
+              name={name}
+              size={64}
+              fill={fill}
+              you={isSelf}
+              photoV={entry && !blocked ? entry.photoV : null}
+              photoLabel={t('pod.photoOf', { name })}
+              placeholder={!entry}
+            />
+            <View style={styles.headerText}>
+              <AppText accessibilityRole="header" variant="titleSm">
+                {entry?.firstName ?? t('member.formerMember')}
               </AppText>
-            ) : null}
+              {entry ? (
+                <AppText variant="bodySm" tone="muted">
+                  {theme ? t('member.inPod', { theme }) : t('member.inYourPod')}
+                </AppText>
+              ) : null}
+            </View>
+            <IconButton icon="close" label={t('common.close')} onPress={router.back} iconSize={22} style={styles.close} />
           </View>
-          <IconButton icon="close" label={t('common.close')} onPress={router.back} iconSize={22} style={styles.close} />
-        </View>
 
-        {entry?.aboutMe ? (
-          <Card tone="inset" gap={Spacing.xs}>
-            <AppText variant="overline" tone="muted">
-              {t('aboutMe.label')}
-            </AppText>
-            <Body size="md">{entry.aboutMe}</Body>
-          </Card>
-        ) : null}
+          {entry?.aboutMe ? (
+            <Card tone="inset" gap={Spacing.xs}>
+              <AppText variant="overline" tone="muted">
+                {t('aboutMe.label')}
+              </AppText>
+              <Body size="md">{entry.aboutMe}</Body>
+            </Card>
+          ) : null}
 
-        {isSelf ? null : (
-          <View style={styles.actions}>
-            {blocked ? (
-              <View style={[styles.actionCard, { backgroundColor: p.surface, borderColor: p.borderStrong }]}>
-                <View style={styles.actionHead}>
+          {isSelf ? null : (
+            <View style={styles.actions}>
+              {blocked ? (
+                <View style={[styles.actionCard, { backgroundColor: p.surface, borderColor: p.borderStrong }]}>
+                  <View style={styles.actionHead}>
+                    <Icon name="block" size={22} color={p.ink} />
+                    <AppText variant="body" style={[Fonts.bold, styles.actionText]}>
+                      {t('member.blockedAlready', { name })}
+                    </AppText>
+                  </View>
+                  <View style={styles.actionFoot}>
+                    <Button
+                      testID="member-unblock"
+                      label={t('settings.blocked.unblock')}
+                      variant="secondary"
+                      size="sm"
+                      inline
+                      busy={unblock.isPending}
+                      onPress={() => unblock.mutate({ uid: memberUid })}
+                    />
+                  </View>
+                </View>
+              ) : (
+                <Pressable
+                  testID="member-block"
+                  accessibilityRole="button"
+                  accessibilityLabel={blockLabel}
+                  accessibilityHint={blockBody}
+                  accessibilityState={{ disabled: block.isPending, busy: block.isPending }}
+                  disabled={block.isPending}
+                  onPress={confirmBlock}
+                  style={({ pressed }) => [
+                    styles.actionCard,
+                    styles.actionHead,
+                    { backgroundColor: pressed ? p.subtle : p.surface, borderColor: p.borderStrong },
+                  ]}
+                >
                   <Icon name="block" size={22} color={p.ink} />
-                  <AppText variant="body" style={[Fonts.bold, styles.actionText]}>
-                    {t('member.blockedAlready', { name })}
-                  </AppText>
-                </View>
-                <View style={styles.actionFoot}>
-                  <Button
-                    testID="member-unblock"
-                    label={t('settings.blocked.unblock')}
-                    variant="secondary"
-                    size="sm"
-                    inline
-                    busy={unblock.isPending}
-                    onPress={() => unblock.mutate({ uid: memberUid })}
-                  />
-                </View>
-              </View>
-            ) : (
+                  <View style={styles.actionText}>
+                    <AppText variant="body" style={Fonts.bold}>
+                      {blockLabel}
+                    </AppText>
+                    <AppText variant="caption" tone="muted">
+                      {blockBody}
+                    </AppText>
+                  </View>
+                  {block.isPending ? <ActivityIndicator color={p.ink} /> : null}
+                </Pressable>
+              )}
+              {block.error ? <ErrorText>{t(errorMessageKey(block.error))}</ErrorText> : null}
+              {unblock.error ? <ErrorText>{t(errorMessageKey(unblock.error))}</ErrorText> : null}
+
               <Pressable
-                testID="member-block"
+                testID="member-report"
                 accessibilityRole="button"
-                accessibilityLabel={blockLabel}
-                accessibilityHint={blockBody}
-                accessibilityState={{ disabled: block.isPending, busy: block.isPending }}
-                disabled={block.isPending}
-                onPress={confirmBlock}
-                style={({ pressed }) => [
-                  styles.actionCard,
-                  styles.actionHead,
-                  { backgroundColor: pressed ? p.subtle : p.surface, borderColor: p.borderStrong },
-                ]}
+                accessibilityLabel={reportLabel}
+                accessibilityHint={reportBody}
+                onPress={() => router.push({ pathname: '/sheets/report', params: { podId, uid: memberUid } })}
+                style={({ pressed }) => [styles.actionCard, styles.actionHead, { backgroundColor: p.coralBg, borderColor: p.coralBorder }, pressed && styles.pressed]}
               >
-                <Icon name="block" size={22} color={p.ink} />
+                <Icon name="flag" size={22} color={p.coralText} />
                 <View style={styles.actionText}>
-                  <AppText variant="body" style={Fonts.bold}>
-                    {blockLabel}
+                  <AppText variant="body" tone="coral" style={Fonts.bold}>
+                    {reportLabel}
                   </AppText>
-                  <AppText variant="caption" tone="muted">
-                    {blockBody}
+                  <AppText variant="caption" color={p.coralTextSoft}>
+                    {reportBody}
                   </AppText>
                 </View>
-                {block.isPending ? <ActivityIndicator color={p.ink} /> : null}
               </Pressable>
-            )}
-            {block.error ? <ErrorText>{t(errorMessageKey(block.error))}</ErrorText> : null}
-            {unblock.error ? <ErrorText>{t(errorMessageKey(unblock.error))}</ErrorText> : null}
+            </View>
+          )}
 
-            <Pressable
-              testID="member-report"
-              accessibilityRole="button"
-              accessibilityLabel={reportLabel}
-              accessibilityHint={reportBody}
-              onPress={() => router.push({ pathname: '/sheets/report', params: { podId, uid: memberUid } })}
-              style={({ pressed }) => [styles.actionCard, styles.actionHead, { backgroundColor: p.coralBg, borderColor: p.coralBorder }, pressed && styles.pressed]}
-            >
-              <Icon name="flag" size={22} color={p.coralText} />
-              <View style={styles.actionText}>
-                <AppText variant="body" tone="coral" style={Fonts.bold}>
-                  {reportLabel}
-                </AppText>
-                <AppText variant="caption" color={p.coralTextSoft}>
-                  {reportBody}
-                </AppText>
-              </View>
-            </Pressable>
-          </View>
-        )}
-
-        {!isSelf && canLeave ? (
-          <AppText testID="member-leave-note" variant="caption" tone="muted">
-            {t('member.leaveNote')}
-          </AppText>
-        ) : null}
-      </ScrollView>
-    </SafeAreaView>
+          {!isSelf && canLeave ? (
+            <AppText testID="member-leave-note" variant="caption" tone="muted">
+              {t('member.leaveNote')}
+            </AppText>
+          ) : null}
+        </ScrollView>
+      </View>
+    </SheetScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  // The sheet's rounded top (storyboard 4.2: 28 28 0 0), matching the native `sheetCornerRadius`.
-  surface: { borderTopLeftRadius: Radius.heroLg, borderTopRightRadius: Radius.heroLg, overflow: 'hidden' },
+  // The sheet's rounded top (storyboard 4.2: 28 28 0 0). Shrinks to the room SheetScreen leaves it when that is less.
+  surface: { flexShrink: 1, borderTopLeftRadius: Radius.heroLg, borderTopRightRadius: Radius.heroLg, overflow: 'hidden' },
   loading: { minHeight: 200, alignItems: 'center', justifyContent: 'center' },
   // Sizes to its content and scrolls only when the sheet is shorter than it (large text).
-  scroll: { flexGrow: 0 },
+  scroll: { flexGrow: 0, flexShrink: 1 },
   sheet: { paddingTop: 10, paddingHorizontal: Spacing.lg, paddingBottom: Spacing.xl, gap: 18 },
   header: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   headerText: { flex: 1, gap: Spacing.xxs },
