@@ -25,6 +25,8 @@ jest.mock('@/data/docs', () => ({
   usePod: () => live(mockPod),
   usePodOptions: () => live(mockOptions),
   usePodMessages: () => live([]),
+  useUserDoc: () => live({ area: { areaId: 'vejle' } }),
+  useAreaDoc: () => live(null),
 }));
 
 const mockCall = jest.fn();
@@ -107,8 +109,8 @@ describe('pod screen (D13)', () => {
   it('shows "<firstName> hasn\'t confirmed" for unconfirmed members only', async () => {
     scheduled(2 * HOUR, { me: 'coming', anna: 'unconfirmed', bo: 'notComing' });
     await renderPod();
-    expect(screen.getByText("Anna hasn't confirmed")).toBeOnTheScreen();
-    expect(screen.queryByText("Bo hasn't confirmed")).toBeNull();
+    expect(screen.getByRole('link', { name: "Anna, Hasn't confirmed" })).toBeOnTheScreen();
+    expect(screen.getAllByText("Hasn't confirmed")).toHaveLength(1);
     // Bo's status line, plus the viewer's own "Can't make it" on the attendance line.
     expect(screen.getAllByText("Can't make it")).toHaveLength(2);
     expect(screen.getByTestId('attendance-cant')).toBeOnTheScreen();
@@ -163,13 +165,13 @@ describe('pod screen (D13)', () => {
     mockOptions = [{ id: 'opt1', data: { votes: { me: 'no', anna: 'yes' } } }];
     await renderPod();
     expect(screen.getByText('No time works yet — add another option')).toBeOnTheScreen();
-    expect(screen.getByText('Add an option')).toBeOnTheScreen();
+    expect(screen.getByTestId('next-step')).toHaveTextContent('Plan the meetup');
     client.clear();
 
     mockPod = planning(false);
     mockOptions = [];
     await renderPod();
-    expect(screen.getByText('Suggest a time and place')).toBeOnTheScreen();
+    expect(screen.getByText(/^Pick a time by /)).toBeOnTheScreen();
     await fireEvent.press(screen.getByTestId('next-step'));
     expect(mockRouter.push).toHaveBeenCalledWith({ pathname: '/pod/[podId]/plan', params: { podId: POD_ID } });
   });
@@ -216,7 +218,7 @@ describe('pod screen (D13)', () => {
       areaLabel: 'Aarhus C',
     };
     await renderPod();
-    expect(screen.getByRole('button', { name: 'Accept' })).toBeOnTheScreen();
+    expect(screen.getByRole('button', { name: "I'm in" })).toBeOnTheScreen();
     expect(screen.queryByText('Members')).toBeNull();
   });
 

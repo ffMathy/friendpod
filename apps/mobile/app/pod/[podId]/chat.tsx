@@ -1,24 +1,18 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useRef, useState } from 'react';
+import { useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  FlatList,
-  KeyboardAvoidingView,
-  StyleSheet,
-  Text,
-  View,
-  type HostInstance,
-  type TextInputInstance,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Body, Button, ErrorText, Heading, Loading, Screen } from '@/components/ui';
-import { Spacing, usePalette } from '@/components/theme';
+import { FlatList, KeyboardAvoidingView, StyleSheet, Text, View, type HostInstance, type TextInputInstance } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Fonts, Radius, Spacing, Type, usePalette } from '@/components/theme';
+import { AppText, Banner, Body, Button, ErrorText, Icon, IconButton, Loading, Screen, ScreenHeader } from '@/components/ui';
 import { usePod, usePodCard } from '@/data/docs';
 import { Composer } from '@/features/chat/Composer';
 import { MessageBubble } from '@/features/chat/MessageBubble';
 import { useChatMessages } from '@/features/chat/useChatMessages';
 import { useSendMessage } from '@/features/chat/useSendMessage';
 import { useChatStatus } from '@/features/chat/window';
+import { MemberStack } from '@/features/pods/MemberCircle';
+import { memberFills } from '@/features/pods/memberFill';
 import { isConfirmedMember } from '@/features/pods/membership';
 import { ScreenCaptureGuard } from '@/features/pods/ScreenCaptureGuard';
 import { useUid } from '@/features/session/SessionProvider';
@@ -29,14 +23,15 @@ import { formatDateTime, formatMessageTime } from '@/lib/format';
 type NoticeKey = ReturnType<typeof errorMessageKey>;
 
 /**
- * Meetup chat (§3.6): current members only, writable from 24 h before until 24 h after the meetup, read-only
- * while messages exist outside it. Text only (D14): "Can't make it" is on the pod's attendance card. Contact details
- * before the meetup need "Send anyway"; every other member's message can be reported.
+ * Meetup chat (§3.6; storyboard 3.5): current members only, writable from 24 h before until 24 h after the meetup,
+ * read-only while messages exist outside it. Text only (D14): "Can't make it" is on the pod's attendance card. Contact
+ * details before the meetup need "Send anyway"; every other member's message can be reported (press and hold).
  */
 export default function Chat() {
   const { t } = useTranslation();
   const router = useRouter();
   const p = usePalette();
+  const insets = useSafeAreaInsets();
   const { podId } = useLocalSearchParams<{ podId: string }>();
   const uid = useUid();
   const card = usePodCard(uid, podId);
@@ -53,32 +48,21 @@ export default function Chat() {
   const [notice, setNotice] = useState<NoticeKey | null>(null);
   const inputRef = useRef<TextInputInstance>(null);
   const listRef = useRef<FlatList>(null);
-  // KeyboardAvoidingView measures itself against its parent only, so it needs the stack header's height.
+  // KeyboardAvoidingView measures itself against its parent only, so it needs its own offset in the window.
   const frameRef = useRef<HostInstance>(null);
   const [keyboardOffset, setKeyboardOffset] = useState(0);
+  const back = () => (router.canGoBack() ? router.back() : router.replace({ pathname: '/pod/[podId]', params: { podId } }));
 
   if (card.isLoading || (member && (pod.isLoading || messages.isLoading))) return <Loading label={t('common.loading')} />;
-  if (!card.data || pod.data === null) {
-    return (
-      <Screen>
-        <Body>{t('pod.gone')}</Body>
-      </Screen>
-    );
-  }
-  if (!member) {
-    return (
-      <Screen>
-        <Body>{t('chat.membersOnly')}</Body>
-      </Screen>
-    );
-  }
-  if (!pod.data || !status) {
-    return (
-      <Screen>
-        <ErrorText>{t('common.loadFailed')}</ErrorText>
-      </Screen>
-    );
-  }
+  const plain = (body: ReactNode) => (
+    <Screen>
+      <ScreenHeader title={t('chat.title')} size="sm" backLabel={t('common.back')} onBack={back} />
+      {body}
+    </Screen>
+  );
+  if (!card.data || pod.data === null) return plain(<Body>{t('pod.gone')}</Body>);
+  if (!member) return plain(<Body>{t('chat.membersOnly')}</Body>);
+  if (!pod.data || !status) return plain(<ErrorText>{t('common.loadFailed')}</ErrorText>);
 
   const c = card.data;
   const roster = pod.data.roster;
@@ -100,6 +84,12 @@ export default function Chat() {
           ? t('chat.closedOff')
           : t('chat.notScheduled');
   const warning = warnedText !== null && warnedText === draft;
+  // The other members in pod order, each in the colour they have on every pod screen.
+  const fillOf = memberFills(pod.data.memberUids, uid);
+  const others = pod.data.memberUids.flatMap((memberUid) => {
+    const entry = roster[memberUid];
+    return memberUid !== uid && entry ? [{ uid: memberUid, name: entry.firstName, fill: fillOf(memberUid) }] : [];
+  });
 
   const authorName = (authorUid: string) =>
     authorUid === uid ? t('chat.you') : (roster[authorUid]?.firstName ?? t('member.formerMember'));
@@ -139,26 +129,58 @@ export default function Chat() {
   const report = (messageId: string) => router.push({ pathname: '/sheets/report', params: { podId, messageId } });
 
   return (
-    <SafeAreaView style={[styles.flex, { backgroundColor: p.background }]} edges={['bottom', 'left', 'right']}>
+    <View style={[styles.flex, { backgroundColor: p.ground }]}>
       {c.themeSensitive ? <ScreenCaptureGuard /> : null}
-      <View
-        ref={frameRef}
-        style={styles.flex}
-        onLayout={() => frameRef.current?.measureInWindow((_x, y) => setKeyboardOffset(y))}
-      >
+      <View ref={frameRef} style={styles.flex} onLayout={() => frameRef.current?.measureInWindow((_x, y) => setKeyboardOffset(y))}>
         <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={keyboardOffset} style={styles.flex}>
-          <View style={[styles.header, { borderColor: p.border }]}>
-            <Heading>{c.themeSensitive ? `🔒 ${theme}` : theme}</Heading>
-            <Body muted>{statusLine}</Body>
+          <View
+            style={[
+              styles.header,
+              { paddingTop: insets.top + Spacing.sm, paddingLeft: insets.left + Spacing.ms, paddingRight: insets.right + Spacing.ms },
+              { backgroundColor: p.surface, borderBottomColor: p.border },
+            ]}
+          >
+            <IconButton icon="chevronLeft" label={t('common.back')} onPress={back} />
+            <View style={styles.headerText}>
+              <View style={styles.titleRow}>
+                {c.themeSensitive ? <Icon name="lock" size={16} color={p.violet} /> : null}
+                <AppText
+                  accessibilityRole="header"
+                  accessibilityLabel={c.themeSensitive ? t('interests.privateLabel', { name: theme }) : undefined}
+                  variant="heading"
+                  numberOfLines={1}
+                  style={styles.flexShrink}
+                >
+                  {theme}
+                </AppText>
+              </View>
+              <AppText variant="caption" tone="muted" numberOfLines={1}>
+                {statusLine}
+              </AppText>
+            </View>
+            {others.length > 0 ? (
+              <View style={styles.avatars}>
+                <MemberStack members={others} size={30} max={5} youLabel={t('chat.you')} />
+              </View>
+            ) : null}
           </View>
           <FlatList
             ref={listRef}
             style={styles.flex}
-            contentContainerStyle={styles.list}
+            contentContainerStyle={[styles.list, { paddingLeft: insets.left + Spacing.md, paddingRight: insets.right + Spacing.md }]}
             data={rows}
             keyExtractor={(row) => row.id}
             onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: false })}
-            ListEmptyComponent={open ? <Body muted>{t('chat.empty')}</Body> : undefined}
+            ListHeaderComponent={
+              <Text style={[Type.micro, styles.notice, { color: p.muted, backgroundColor: p.subtle }]}>{t('chat.notice')}</Text>
+            }
+            ListEmptyComponent={
+              open ? (
+                <Body size="sm" muted align="center">
+                  {t('chat.empty')}
+                </Body>
+              ) : undefined
+            }
             renderItem={({ item }) => (
               <MessageBubble
                 message={item.data}
@@ -169,22 +191,30 @@ export default function Chat() {
               />
             )}
           />
-          <View style={[styles.footer, { borderColor: p.border }]}>
+          <View
+            style={[
+              styles.footer,
+              { paddingBottom: insets.bottom + Spacing.ms, paddingLeft: insets.left + Spacing.ms, paddingRight: insets.right + Spacing.ms },
+              { backgroundColor: p.surface, borderTopColor: p.border },
+            ]}
+          >
             {messages.error ? <ErrorText>{t('common.loadFailed')}</ErrorText> : null}
-            {open ? null : <Body muted>{closedNote}</Body>}
+            {open ? null : (
+              <Banner tone="subtle" icon="clock">
+                {closedNote}
+              </Banner>
+            )}
             {warning ? (
-              <View style={[styles.warning, { backgroundColor: p.surface }]}>
-                <Text accessibilityRole="alert" style={[styles.warningTitle, { color: p.text }]}>
+              <View style={[styles.warning, { backgroundColor: p.amberBg, borderColor: p.amberBorder }]}>
+                <Text accessibilityRole="alert" style={[Type.bodySm, Fonts.bold, { color: p.amberInk }]}>
                   {t('chat.contactWarning')}
                 </Text>
-                <Body muted>{t('chat.contactWarningDetail')}</Body>
+                <AppText variant="caption" color={p.amberInk}>
+                  {t('chat.contactWarningDetail')}
+                </AppText>
                 <View style={styles.warningActions}>
-                  <View style={styles.flex}>
-                    <Button label={t('chat.edit')} variant="secondary" onPress={editWarned} />
-                  </View>
-                  <View style={styles.flex}>
-                    <Button label={t('chat.sendAnyway')} busy={pending} disabled={!open} onPress={() => void sendDraft(true)} />
-                  </View>
+                  <Button label={t('chat.sendAnyway')} size="xs" inline busy={pending} disabled={!open} onPress={() => void sendDraft(true)} />
+                  <Button label={t('chat.edit')} variant="secondary" size="xs" inline onPress={editWarned} />
                 </View>
               </View>
             ) : null}
@@ -201,16 +231,20 @@ export default function Chat() {
           </View>
         </KeyboardAvoidingView>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  header: { paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, gap: Spacing.xs, borderBottomWidth: StyleSheet.hairlineWidth },
-  list: { padding: Spacing.md, gap: Spacing.sm },
-  footer: { padding: Spacing.md, gap: Spacing.sm, borderTopWidth: StyleSheet.hairlineWidth },
-  warning: { borderRadius: 12, padding: Spacing.md, gap: Spacing.sm },
-  warningTitle: { fontSize: 16, lineHeight: 22, fontWeight: '600' },
-  warningActions: { flexDirection: 'row', gap: Spacing.sm },
+  flexShrink: { flexShrink: 1 },
+  header: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingBottom: Spacing.ms, borderBottomWidth: 1 },
+  headerText: { flex: 1, minWidth: 0, gap: 2 },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  avatars: { paddingRight: Spacing.sm },
+  list: { paddingVertical: 14, gap: 10 },
+  notice: { alignSelf: 'center', maxWidth: 300, textAlign: 'center', borderRadius: Radius.sm + 2, paddingVertical: Spacing.sm, paddingHorizontal: Spacing.ms, marginBottom: Spacing.xs, overflow: 'hidden' },
+  footer: { paddingTop: 10, gap: 10, borderTopWidth: 1 },
+  warning: { borderWidth: 1, borderRadius: Radius.lg, padding: Spacing.ms, gap: 10 },
+  warningActions: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
 });

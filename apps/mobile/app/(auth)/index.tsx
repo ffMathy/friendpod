@@ -2,31 +2,116 @@ import type { Locale } from '@grouper/core';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Body, Button, Card, ChipRow, Screen, Title, Toggle } from '@/components/ui';
+import { type LayoutChangeEvent, ScrollView, StyleSheet, View } from 'react-native';
+import { Spacing } from '@/components/theme';
+import { AppText, Banner, Body, HeroCircles, Logo, Pill, Screen, Segmented, TextLink, Title } from '@/components/ui';
 import { consumeAccountDeleted } from '@/features/account/account';
+import { SignInOptions } from '@/features/auth/SignInOptions';
 import { currentLocale, initI18n } from '@/i18n';
 
-/** §3.1 step 1: the UI language follows the device and can be switched here; confirms an account deletion (§3.10). */
+/** Storyboard 1.1: 8 pt under the status bar (56 on the 844-pt canvas), 28 between the logo row, the story and the buttons. */
+const PAD_TOP = Spacing.sm;
+/** With the footer's own 12 pt on top this makes the storyboard's 28 between the "18+ only" chip and the first button. */
+const PAD_BOTTOM = Spacing.md;
+const SECTION_GAP = 28;
+const STORY_GAP = Spacing.ml;
+/** The storyboard's hero is 220 pt; on shorter screens it gives way so everything fits without scrolling. */
+const HERO_MAX = 220;
+const HERO_MIN = 120;
+
+type Heights = { viewport: number; top: number; banner: number; copy: number };
+
+/**
+ * Storyboard 1.1, §3.1 steps 1–2: welcome and sign-in on one screen. The UI language follows the device and can be
+ * switched here; confirms an account deletion (§3.10). The Terms are accepted in the next step (onboarding/terms), so
+ * the footer only points to them.
+ */
 export default function Welcome() {
   const { t } = useTranslation();
   const router = useRouter();
   const locale = currentLocale();
   const [deleted] = useState(consumeAccountDeleted);
-  const choose = (l: Locale) => initI18n(l);
+  const [h, setH] = useState<Heights>({ viewport: 0, top: 0, banner: 0, copy: 0 });
+  const measure = (key: keyof Heights) => (e: LayoutChangeEvent) => {
+    const value = e.nativeEvent.layout.height;
+    setH((prev) => (prev[key] === value ? prev : { ...prev, [key]: value }));
+  };
+  // The hero takes what the space above the pinned buttons leaves once everything else is laid out, so the chip ends
+  // above the first button in both languages. Below HERO_MIN (large text sizes, very small phones) the page scrolls.
+  const free = h.viewport - PAD_TOP - PAD_BOTTOM - h.top - SECTION_GAP - (deleted ? h.banner + STORY_GAP : 0) - STORY_GAP - h.copy;
+  const heroHeight = h.viewport > 0 && h.copy > 0 ? Math.min(HERO_MAX, Math.max(HERO_MIN, Math.floor(free))) : HERO_MAX;
+  const openLegal = (doc: 'terms' | 'privacy') => router.push({ pathname: '/info/legal/[doc]', params: { doc } });
+
   return (
-    <Screen>
-      {deleted ? (
-        <Card>
-          <Body bold>{t('settings.delete.done')}</Body>
-        </Card>
-      ) : null}
-      <Title>{t('welcome.title')}</Title>
-      <Body>{t('welcome.tagline')}</Body>
-      <ChipRow>
-        <Toggle label={t('languages.da')} value={locale === 'da'} onChange={() => choose('da')} />
-        <Toggle label={t('languages.en')} value={locale === 'en'} onChange={() => choose('en')} />
-      </ChipRow>
-      <Button label={t('welcome.start')} onPress={() => router.push('/sign-in')} />
+    <Screen
+      wide
+      scroll={false}
+      contentStyle={styles.frame}
+      footer={
+        <View style={styles.actions}>
+          <SignInOptions onEmail={() => router.push('/email')} />
+          <View style={styles.legal}>
+            <AppText variant="caption" tone="muted" align="center">
+              {t('auth.signIn.legalHint')}
+            </AppText>
+            <View style={styles.legalLinks}>
+              <TextLink label={t('welcome.terms')} size="sm" onPress={() => openLegal('terms')} />
+              <AppText variant="caption" tone="muted" accessibilityElementsHidden importantForAccessibility="no">
+                ·
+              </AppText>
+              <TextLink label={t('welcome.privacy')} size="sm" onPress={() => openLegal('privacy')} />
+            </View>
+          </View>
+        </View>
+      }
+    >
+      <ScrollView
+        style={styles.flex}
+        contentContainerStyle={styles.content}
+        alwaysBounceVertical={false}
+        onLayout={measure('viewport')}
+      >
+        <View style={styles.top} onLayout={measure('top')}>
+          <Logo />
+          <Segmented<Locale>
+            variant="track"
+            options={[
+              { value: 'da', label: t('languages.da') },
+              { value: 'en', label: t('languages.en') },
+            ]}
+            value={locale}
+            onChange={(l) => initI18n(l)}
+          />
+        </View>
+        <View style={styles.story}>
+          {deleted ? (
+            <View onLayout={measure('banner')}>
+              <Banner tone="mint" icon="check">
+                {t('settings.delete.done')}
+              </Banner>
+            </View>
+          ) : null}
+          <HeroCircles height={heroHeight} />
+          <View style={styles.copy} onLayout={measure('copy')}>
+            <Title size="hero">{t('welcome.headline')}</Title>
+            <Body muted>{t('welcome.body')}</Body>
+            <Pill label={t('welcome.adultsOnly')} />
+          </View>
+        </View>
+      </ScrollView>
     </Screen>
   );
 }
+
+const styles = StyleSheet.create({
+  flex: { flex: 1 },
+  // Screen's own padding is replaced by the scroll view's, which needs the whole body to measure what is free.
+  frame: { paddingTop: 0, paddingBottom: 0, paddingHorizontal: 0 },
+  content: { flexGrow: 1, paddingTop: PAD_TOP, paddingBottom: PAD_BOTTOM, paddingHorizontal: Spacing.gutterWide, gap: SECTION_GAP },
+  top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.ms },
+  story: { flexGrow: 1, justifyContent: 'center', gap: STORY_GAP },
+  copy: { gap: STORY_GAP },
+  actions: { gap: Spacing.ms },
+  legal: { marginTop: Spacing.xs, gap: Spacing.xxs },
+  legalLinks: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', columnGap: Spacing.sm },
+});

@@ -1,7 +1,7 @@
 import type { PodMessageDoc } from '@grouper/core';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, View, type AccessibilityActionEvent } from 'react-native';
-import { Spacing, usePalette } from '@/components/theme';
+import { Fonts, Spacing, Type, usePalette } from '@/components/theme';
 
 export interface MessageBubbleProps {
   readonly message: PodMessageDoc;
@@ -13,7 +13,10 @@ export interface MessageBubbleProps {
   readonly onReport?: () => void;
 }
 
-/** One meetup-chat message: own text right-aligned, others' with the author's first name. */
+/**
+ * One meetup-chat message (storyboard 3.5): "Name · time" above a bubble; the viewer's own in green on the right,
+ * others' in white on the left.
+ */
 export function MessageBubble({ message, authorName, own, time, onReport }: MessageBubbleProps) {
   const { t } = useTranslation();
   const p = usePalette();
@@ -27,24 +30,38 @@ export function MessageBubble({ message, authorName, own, time, onReport }: Mess
     },
     onLongPress: onReport,
   };
+  const meta = [styles.meta, { color: p.inkSoft }];
 
   return (
     <Pressable {...a11y} style={[styles.row, own ? styles.own : styles.other]}>
-      {own ? null : <Text style={[styles.name, { color: p.textSecondary }]}>{authorName}</Text>}
-      <View style={[styles.bubble, { backgroundColor: own ? p.primary : p.surface }]}>
-        <Text style={[styles.text, { color: own ? p.onPrimary : p.text }]}>{body}</Text>
+      <View style={[styles.metaRow, own ? styles.metaOwn : styles.metaOther]}>
+        <Text style={meta}>{authorName}</Text>
+        <Text style={meta}>{` · ${time}`}</Text>
       </View>
-      <Text style={[styles.time, { color: p.textSecondary }]}>{time}</Text>
+      <View
+        style={[
+          styles.bubble,
+          own
+            ? [styles.bubbleOwn, { backgroundColor: p.primary }]
+            : [styles.bubbleOther, { backgroundColor: p.surface, borderColor: p.border }],
+        ]}
+      >
+        <Text style={[styles.text, { color: own ? p.onPrimary : p.ink }]}>{body}</Text>
+      </View>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  row: { maxWidth: '85%', gap: 2 },
+  row: { maxWidth: '80%', gap: 3 },
   own: { alignSelf: 'flex-end', alignItems: 'flex-end' },
   other: { alignSelf: 'flex-start', alignItems: 'flex-start' },
-  name: { fontSize: 13, fontWeight: '600' },
-  bubble: { borderRadius: 16, paddingVertical: Spacing.sm, paddingHorizontal: 12 },
-  text: { fontSize: 16, lineHeight: 22 },
-  time: { fontSize: 11 },
+  metaRow: { flexDirection: 'row', flexWrap: 'wrap' },
+  metaOwn: { paddingRight: Spacing.xs },
+  metaOther: { paddingLeft: Spacing.xs },
+  meta: { ...Fonts.bold, fontSize: 12, lineHeight: 16 },
+  bubble: { borderRadius: 18, paddingVertical: 10, paddingHorizontal: 14 },
+  bubbleOwn: { borderBottomRightRadius: 6 },
+  bubbleOther: { borderBottomLeftRadius: 6, borderWidth: 1 },
+  text: { ...Type.bodyMd },
 });

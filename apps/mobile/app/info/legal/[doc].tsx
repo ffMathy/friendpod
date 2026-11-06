@@ -1,7 +1,8 @@
 import { POSTCODE_ATTRIBUTION } from '@grouper/core';
 import { useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Body, Heading, Screen } from '@/components/ui';
+import { AppText, Card, Screen, ScreenHeader } from '@/components/ui';
+import { useBack } from '@/features/settings/useBack';
 import { LEGAL_DOC_VERSIONS } from '@/lib/legal';
 
 const DOCS = ['terms', 'privacy', 'licences'] as const;
@@ -14,19 +15,25 @@ const isDoc = (v: string | undefined): v is Doc => (DOCS as readonly string[]).i
  */
 export default function LegalDoc() {
   const { t } = useTranslation();
+  const back = useBack('/');
   const { doc } = useLocalSearchParams<{ doc: string }>();
   if (!isDoc(doc)) {
     return (
       <Screen>
-        <Body>{t('info.legalUnknown')}</Body>
+        <ScreenHeader title={t('info.legalTitle')} backLabel={t('common.back')} onBack={back} />
+        <AppText variant="bodyMd">{t('info.legalUnknown')}</AppText>
       </Screen>
     );
   }
   return (
     <Screen>
-      <Heading>{t(`info.legal.${doc}.title`)}</Heading>
-      <Body>{t(`info.legal.${doc}.body`)}</Body>
-      {doc === 'licences' ? <Body muted>{POSTCODE_ATTRIBUTION}</Body> : <Body muted>{t('info.legalVersion', { version: LEGAL_DOC_VERSIONS[doc] })}</Body>}
+      <ScreenHeader eyebrow={t('info.legalTitle')} title={t(`info.legal.${doc}.title`)} backLabel={t('common.back')} onBack={back} />
+      <Card>
+        <AppText variant="bodyMd">{t(`info.legal.${doc}.body`)}</AppText>
+        <AppText variant="caption" tone="muted">
+          {doc === 'licences' ? POSTCODE_ATTRIBUTION : t('info.legalVersion', { version: LEGAL_DOC_VERSIONS[doc] })}
+        </AppText>
+      </Card>
     </Screen>
   );
 }

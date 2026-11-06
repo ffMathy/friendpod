@@ -17,11 +17,20 @@ const live = (data: unknown) => ({ data, error: null, isLoading: false });
 const ts = (ms: number) => ({ toMillis: () => ms });
 const VEJLE = getLaunchArea('vejle')!;
 let mockArea: Record<string, unknown> | null = null;
-const mockUser = { area: { gh5: VEJLE.cells[0], label: 'Vejle', areaId: 'vejle' }, lastDrop: null };
+const mockUser = {
+  area: { gh5: VEJLE.cells[0], label: 'Vejle', areaId: 'vejle' },
+  prefs: { ageMin: 28, ageMax: 42, maxKm: 10, languages: ['da'], availability: [], sameGenderOnly: false, openToAnyone: false },
+  participation: { mode: 'auto' },
+  status: 'active',
+  lastDrop: null,
+};
 jest.mock('@/data/docs', () => ({
   useUserDoc: () => live(mockUser),
   usePodCards: () => live([]),
   useAreaDoc: () => live(mockArea),
+  useInterests: () => live([]),
+  useSensitiveInterests: () => live([]),
+  usePod: () => live(null),
 }));
 
 const mockCall = jest.fn();
@@ -55,17 +64,19 @@ describe('in-app waitlist (§3.1 step 12)', () => {
   it('shows the city, the live counter "N of goal" with a progress bar, and what happens next', async () => {
     mockArea = areaDoc('waitlist', 137);
     await renderWith(<ThisWeek />);
-    expect(screen.getByText('Grouper is coming to Vejle')).toBeTruthy();
-    expect(screen.getByText('137 of 250 signed up')).toBeTruthy();
+    expect(screen.getByText('Vejle opens soon')).toBeTruthy();
+    expect(screen.getByText('137')).toBeTruthy();
+    expect(screen.getByText(/of 250/)).toBeTruthy();
     expect(screen.getByTestId('waitlist-progress').props.accessibilityValue).toEqual({ min: 0, max: 250, now: 137 });
-    expect(screen.getByText("We'll notify you when Vejle opens; your first drop will be the Thursday after.")).toBeTruthy();
-    expect(screen.queryByText('No pod this week')).toBeNull();
+    expect(screen.getByLabelText('People on the Vejle waitlist')).toBeTruthy();
+    expect(screen.getByText(/We open Vejle once enough people nearby have joined\. Your first drop is the Thursday after/)).toBeTruthy();
+    expect(screen.queryByText('No pod for you this week')).toBeNull();
   });
 
   it('shows "<10" below 10', async () => {
     mockArea = areaDoc('waitlist', 4);
     await renderWith(<ThisWeek />);
-    expect(screen.getByText('<10 of 250 signed up')).toBeTruthy();
+    expect(screen.getByText('<10')).toBeTruthy();
   });
 
   it('shares the city link with the native share sheet and copies it, with no personal data', async () => {
@@ -89,12 +100,12 @@ describe('in-app waitlist (§3.1 step 12)', () => {
   it('keeps showing on every open while waitlisted, and gives way to Home when the city goes live', async () => {
     mockArea = areaDoc('waitlist', 12);
     const first = await renderWith(<ThisWeek />);
-    expect(screen.getByText('12 of 250 signed up')).toBeTruthy();
+    expect(screen.getByText('12')).toBeTruthy();
     await first.unmount();
     // The next app open: still waitlisted, with a newer count from the live area doc.
     mockArea = areaDoc('waitlist', 13);
     const second = await renderWith(<ThisWeek />);
-    expect(screen.getByText('13 of 250 signed up')).toBeTruthy();
+    expect(screen.getByText('13')).toBeTruthy();
     // Beta areas are not matched either.
     mockArea = areaDoc('beta', 13);
     await second.rerender(
@@ -102,21 +113,22 @@ describe('in-app waitlist (§3.1 step 12)', () => {
         <ThisWeek />
       </QueryClientProvider>,
     );
-    expect(screen.getByText('Grouper is coming to Vejle')).toBeTruthy();
+    expect(screen.getByText('Vejle opens soon')).toBeTruthy();
     mockArea = areaDoc('live', 260);
     await second.rerender(
       <QueryClientProvider client={client}>
         <ThisWeek />
       </QueryClientProvider>,
     );
-    expect(screen.queryByText('Grouper is coming to Vejle')).toBeNull();
-    expect(screen.getByText('No pod this week')).toBeTruthy();
+    expect(screen.queryByText('Vejle opens soon')).toBeNull();
+    expect(screen.getByText('Next drop')).toBeTruthy();
+    expect(screen.getByText("You're in this week")).toBeTruthy();
   });
 
   it('falls back to areas.json when the area doc has not been synced yet', async () => {
     mockArea = null;
     await renderWith(<ThisWeek />);
-    expect(screen.getByText('<10 of 250 signed up')).toBeTruthy();
+    expect(screen.getByText('<10')).toBeTruthy();
   });
 });
 

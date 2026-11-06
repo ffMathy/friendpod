@@ -1,9 +1,9 @@
 import { CHAT_MESSAGE_MAX } from '@grouper/core';
 import type { Ref } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, Text, TextInput, View, type TextInputInstance } from 'react-native';
-import { Button, styles as ui } from '@/components/ui';
-import { Spacing, usePalette } from '@/components/theme';
+import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View, type TextInputInstance } from 'react-native';
+import { Spacing, Type, usePalette } from '@/components/theme';
+import { Icon } from '@/components/ui';
 
 export interface ComposerProps {
   readonly value: string;
@@ -17,49 +17,84 @@ export interface ComposerProps {
   readonly inputRef?: Ref<TextInputInstance>;
 }
 
-/** The meetup-chat text field with its 500-character counter (A28). */
+const SEND_SIZE = 46;
+
+/**
+ * The meetup-chat composer (storyboard 3.5): a rounded field and a round green Send button, with the 500-character
+ * counter (A28) under them.
+ */
 export function Composer({ value, onChangeText, onSend, enabled, busy, hideSend = false, inputRef }: ComposerProps) {
   const { t } = useTranslation();
   const p = usePalette();
   const length = value.length;
   const trimmed = value.trim().length;
   const canSend = enabled && trimmed > 0 && trimmed <= CHAT_MESSAGE_MAX;
+  const sendDisabled = !canSend || busy;
   return (
     <View style={styles.composer}>
-      <TextInput
-        ref={inputRef}
-        accessibilityLabel={t('chat.inputLabel')}
-        accessibilityState={{ disabled: !enabled }}
-        editable={enabled}
-        placeholder={t('chat.placeholder')}
-        placeholderTextColor={p.textSecondary}
-        value={value}
-        onChangeText={onChangeText}
-        multiline
-        maxLength={CHAT_MESSAGE_MAX}
-        style={[ui.input, styles.input, { color: p.text, borderColor: p.border, opacity: enabled ? 1 : 0.5 }]}
-      />
-      <View style={styles.actions}>
-        <Text
-          accessibilityLabel={t('chat.counterLabel', { length, max: CHAT_MESSAGE_MAX })}
-          style={[styles.counter, { color: length >= CHAT_MESSAGE_MAX ? p.danger : p.textSecondary }]}
-        >
-          {t('chat.counter', { length, max: CHAT_MESSAGE_MAX })}
-        </Text>
+      <View style={styles.row}>
+        <TextInput
+          ref={inputRef}
+          accessibilityLabel={t('chat.inputLabel')}
+          accessibilityState={{ disabled: !enabled }}
+          editable={enabled}
+          placeholder={t('chat.placeholder')}
+          placeholderTextColor={p.muted}
+          selectionColor={p.primary}
+          cursorColor={p.primary}
+          value={value}
+          onChangeText={onChangeText}
+          multiline
+          maxLength={CHAT_MESSAGE_MAX}
+          style={[styles.input, { color: p.ink, backgroundColor: p.ground, borderColor: p.borderStrong, opacity: enabled ? 1 : 0.5 }]}
+        />
         {hideSend ? null : (
-          <View style={styles.send}>
-            <Button testID="chat-send" label={t('chat.send')} disabled={!canSend} busy={busy} onPress={onSend} />
-          </View>
+          <Pressable
+            testID="chat-send"
+            accessibilityRole="button"
+            accessibilityLabel={t('chat.send')}
+            accessibilityState={{ disabled: sendDisabled, busy }}
+            disabled={sendDisabled}
+            onPress={onSend}
+            style={({ pressed }) => [
+              styles.send,
+              { backgroundColor: !canSend && !busy ? p.disabledBg : pressed ? p.primaryPressed : p.primary },
+            ]}
+          >
+            {busy ? (
+              <ActivityIndicator color={p.onPrimary} />
+            ) : (
+              <Icon name="send" size={20} strokeWidth={2.2} color={canSend ? p.onPrimary : p.disabledText} />
+            )}
+          </Pressable>
         )}
       </View>
+      <Text
+        accessibilityLabel={t('chat.counterLabel', { length, max: CHAT_MESSAGE_MAX })}
+        style={[Type.micro, styles.counter, { color: length >= CHAT_MESSAGE_MAX ? p.coralStrong : p.muted }]}
+      >
+        {t('chat.counter', { length, max: CHAT_MESSAGE_MAX })}
+      </Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   composer: { gap: Spacing.xs },
-  input: { maxHeight: 140 },
-  actions: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.sm },
-  counter: { fontSize: 13 },
-  send: { minWidth: 96 },
+  row: { flexDirection: 'row', alignItems: 'flex-end', gap: Spacing.sm },
+  input: {
+    ...Type.bodyMd,
+    flex: 1,
+    minWidth: 0,
+    minHeight: SEND_SIZE,
+    maxHeight: 140,
+    borderWidth: 1,
+    borderRadius: SEND_SIZE / 2,
+    paddingHorizontal: Spacing.md,
+    paddingTop: 12,
+    paddingBottom: 12,
+    textAlignVertical: 'center',
+  },
+  send: { width: SEND_SIZE, height: SEND_SIZE, borderRadius: SEND_SIZE / 2, alignItems: 'center', justifyContent: 'center' },
+  counter: { textAlign: 'right', paddingHorizontal: Spacing.xs },
 });

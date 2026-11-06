@@ -24,14 +24,14 @@ async function renderOn(os: 'ios' | 'android') {
 describe('sign-in (D10)', () => {
   it('offers Apple on iOS', async () => {
     await renderOn('ios');
-    expect(screen.getByRole('button', { name: 'Sign in with Apple' })).toBeOnTheScreen();
-    expect(screen.getByRole('button', { name: 'Sign in with Google' })).toBeOnTheScreen();
+    expect(screen.getByRole('button', { name: 'Continue with Apple' })).toBeOnTheScreen();
+    expect(screen.getByRole('button', { name: 'Continue with Google' })).toBeOnTheScreen();
   });
 
   it('hides Apple on Android, leaving Google and the email link', async () => {
     await renderOn('android');
-    expect(screen.queryByRole('button', { name: 'Sign in with Apple' })).toBeNull();
-    expect(screen.getByRole('button', { name: 'Sign in with Google' })).toBeOnTheScreen();
-    expect(screen.getByRole('button', { name: 'Sign in with an email link' })).toBeOnTheScreen();
+    expect(screen.queryByRole('button', { name: 'Continue with Apple' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Continue with Google' })).toBeOnTheScreen();
+    expect(screen.getByRole('button', { name: 'Continue with email' })).toBeOnTheScreen();
   });
 });

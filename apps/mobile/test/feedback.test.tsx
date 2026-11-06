@@ -4,8 +4,10 @@ import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import Feedback from '../app/pod/[podId]/feedback';
 
 const POD_ID = 'abcdefghijklmnopqrst';
-jest.mock('expo-router', () => ({ useRouter: () => ({ back: jest.fn() }), useLocalSearchParams: () => ({ podId: 'abcdefghijklmnopqrst' }) }));
+const mockBack = jest.fn();
+jest.mock('expo-router', () => ({ useRouter: () => ({ back: mockBack }), useLocalSearchParams: () => ({ podId: 'abcdefghijklmnopqrst' }) }));
 jest.mock('@/features/session/SessionProvider', () => ({ useUid: () => 'me' }));
+jest.mock('@/features/photos/AuthenticatedPhoto', () => ({ AuthenticatedPhoto: () => null }));
 
 const live = (data: unknown) => ({ data, error: null, isLoading: false });
 jest.mock('@/data/docs', () => ({
@@ -37,63 +39,71 @@ async function renderFeedback() {
     </QueryClientProvider>,
   );
 }
+const sent = () => submitFeedbackInput.parse(mockCall.mock.calls[0]?.[1]);
+beforeEach(() => {
+  mockCall.mockReset();
+  mockCall.mockResolvedValue({ ok: true });
+  mockBack.mockClear();
+});
 afterEach(() => client.clear());
 
 describe('feedback (D9, D15)', () => {
-  it('"Who was there?" starts with every other member ticked', async () => {
+  it('"Who was there?" starts with every other member ticked, and nothing is answered for them yet', async () => {
     await renderFeedback();
+    expect(screen.getByText('How did it go?')).toBeOnTheScreen();
     expect(screen.getByText('Who was there?')).toBeOnTheScreen();
-    for (const uid of ['anna', 'bo', 'carl']) expect(screen.getByTestId(`there-${uid}`)).toBeChecked();
+    for (const uid of ['anna', 'bo', 'carl']) {
+      expect(screen.getByTestId(`there-${uid}`)).toBeChecked();
+      expect(screen.getByTestId(`again-yes-${uid}`)).not.toBeChecked();
+      expect(screen.getByTestId(`again-no-${uid}`)).not.toBeChecked();
+    }
+    expect(screen.getByRole('checkbox', { name: 'Anna was there' })).toBeChecked();
     expect(screen.queryByTestId('there-me')).toBeNull();
   });
 
   it('sends only the unticked members as notThere, and meet-again answers for people who were there', async () => {
-    mockCall.mockResolvedValue({ ok: true });
     await renderFeedback();
     expect(screen.getByText(/after 4 weeks instead of 6 months/)).toBeOnTheScreen();
     await fireEvent.press(screen.getByTestId('there-bo'));
     expect(screen.getByTestId('there-bo')).not.toBeChecked();
-    expect(screen.queryByText('Meet Bo again?')).toBeNull();
+    expect(screen.queryByTestId('again-yes-bo')).toBeNull();
 
-    const yes = screen.getAllByRole('switch', { name: 'Yes' });
-    const no = screen.getAllByRole('switch', { name: 'No' });
-    // [0] is "Did you meet?"; then Anna's and Carl's meet-again answers.
-    await fireEvent.press(yes[1]!);
-    await fireEvent.press(no[2]!);
-    await fireEvent.press(screen.getByRole('switch', { name: 'Keep pod' }));
-    await fireEvent.press(screen.getByRole('button', { name: 'Send' }));
+    await fireEvent.press(screen.getByRole('switch', { name: 'Meet Anna again? Yes' }));
+    await fireEvent.press(screen.getByTestId('again-no-carl'));
+    // Keep pod is the last answer and sends the form.
+    await fireEvent.press(screen.getByRole('button', { name: 'Keep pod' }));
     await act(async () => {
       await Promise.resolve();
     });
-    const [name, input] = mockCall.mock.calls[0] as [string, unknown];
-    expect(name).toBe('submitFeedback');
-    expect(submitFeedbackInput.parse(input)).toEqual({
-      podId: POD_ID,
-      met: true,
-      notThere: ['bo'],
-      meetAgain: { anna: true, carl: false },
-      keep: true,
-    });
+    expect(mockCall.mock.calls[0]?.[0]).toBe('submitFeedback');
+    expect(sent()).toEqual({ podId: POD_ID, met: true, notThere: ['bo'], meetAgain: { anna: true, carl: false }, keep: true });
+    expect(mockBack).toHaveBeenCalled();
+  });
+
+  it('a second tap clears a meet-again answer, which then sends no signal', async () => {
+    await renderFeedback();
+    await fireEvent.press(screen.getByTestId('again-yes-anna'));
+    await fireEvent.press(screen.getByTestId('again-yes-anna'));
+    await fireEvent.press(screen.getByTestId('again-no-bo'));
+    await fireEvent.press(screen.getByTestId('again-yes-bo'));
+    await fireEvent.press(screen.getByRole('button', { name: 'Keep pod' }));
+    expect(sent()).toEqual({ podId: POD_ID, met: true, notThere: [], meetAgain: { bo: true }, keep: true });
   });
 
   it('sends a rating with Keep pod, and "Not for me" when they did not meet', async () => {
-    mockCall.mockReset();
-    mockCall.mockResolvedValue({ ok: true });
     await renderFeedback();
-    expect(screen.getByRole('button', { name: 'Send' })).toBeDisabled();
-    await fireEvent.press(screen.getByRole('switch', { name: '4' }));
-    await fireEvent.press(screen.getByRole('switch', { name: 'Keep pod' }));
-    await fireEvent.press(screen.getByRole('button', { name: 'Send' }));
-    expect(submitFeedbackInput.parse(mockCall.mock.calls[0]?.[1])).toEqual({ podId: POD_ID, met: true, notThere: [], meetAgain: {}, rating: 4, keep: true });
+    await fireEvent.press(screen.getByRole('switch', { name: '4 of 5' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Keep pod' }));
+    expect(sent()).toEqual({ podId: POD_ID, met: true, notThere: [], meetAgain: {}, rating: 4, keep: true });
     client.clear();
     mockCall.mockClear();
 
     await renderFeedback();
-    // [0] "Yes", [1] "No" of "Did you meet?"
-    await fireEvent.press(screen.getAllByRole('switch', { name: 'No' })[0]!);
+    await fireEvent.press(screen.getByTestId('met-no'));
     expect(screen.queryByText('Who was there?')).toBeNull();
-    await fireEvent.press(screen.getByRole('switch', { name: 'Not for me' }));
-    await fireEvent.press(screen.getByRole('button', { name: 'Send' }));
-    expect(submitFeedbackInput.parse(mockCall.mock.calls[0]?.[1])).toEqual({ podId: POD_ID, met: false, notThere: [], meetAgain: {}, keep: false });
+    expect(screen.queryByTestId('rating-4')).toBeNull();
+    expect(screen.getByText('Meet this pod again?')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('button', { name: 'Not for me' }));
+    expect(sent()).toEqual({ podId: POD_ID, met: false, notThere: [], meetAgain: {}, keep: false });
   });
 });

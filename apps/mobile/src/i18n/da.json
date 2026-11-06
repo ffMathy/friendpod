@@ -8,12 +8,22 @@
     "ok": "OK",
     "loading": "Indlæser",
     "loadFailed": "Det kunne ikke indlæses. Prøv igen senere.",
-    "retry": "Prøv igen"
+    "retry": "Prøv igen",
+    "back": "Tilbage",
+    "close": "Luk",
+    "or": "eller",
+    "optional": "(valgfrit)",
+    "more": "Mere"
   },
   "welcome": {
     "title": "Grouper",
     "tagline": "Små grupper. Rigtige møder. 18+.",
-    "start": "Kom i gang"
+    "start": "Kom i gang",
+    "headline": "Små grupper.\nRigtige møder.",
+    "body": "Hver torsdag sætter vi en pod sammen med 4–6 personer i nærheden af dig, som deler noget, du går op i. I mødes ansigt til ansigt.",
+    "adultsOnly": "Kun 18+",
+    "terms": "Vilkår",
+    "privacy": "Privatlivserklæring"
   },
   "languages": {
     "da": "Dansk",
@@ -23,11 +33,11 @@
     "signIn": {
       "title": "Log ind",
       "intro": "Log ind for at være med i denne uges drop. Vi spørger aldrig om dit telefonnummer.",
-      "apple": "Log ind med Apple",
-      "google": "Log ind med Google",
-      "email": "Log ind med et link på e-mail",
       "failed": "Login virkede ikke. Prøv igen.",
-      "legalHint": "Bagefter ser du vores vilkår og privatlivserklæring."
+      "legalHint": "Bagefter ser du vores vilkår og privatlivserklæring.",
+      "continueApple": "Fortsæt med Apple",
+      "continueGoogle": "Fortsæt med Google",
+      "continueEmail": "Fortsæt med e-mail"
     },
     "email": {
       "title": "Link på e-mail",
@@ -80,14 +90,21 @@
       "locationFailed": "Vi kunne ikke finde din omtrentlige placering. Brug dit postnummer i stedet.",
       "outside": "Grouper er ikke i dit område endnu",
       "outsideHint": "Du kan stadig tilmelde dig; vi siger til, når vi åbner i nærheden af dig.",
-      "underage": "Grouper er kun for personer på 18 år og derover. Vi har slettet dit login og gemmer intet andet om dig."
+      "underage": "Grouper er kun for personer på 18 år og derover. Vi har slettet dit login og gemmer intet andet om dig.",
+      "heading": "Hvor bor du?",
+      "lead": "Pods mødes tæt på, hvor man bor. Din telefon laver det om til et område på cirka 5 km, før noget bliver sendt.",
+      "useApproxLocation": "Brug min omtrentlige placering",
+      "stored": "Vi gemmer kun dette område, aldrig din adresse eller præcise placering. Ingen får nogensinde vist, hvor langt væk du bor."
     },
     "interests": {
-      "title": "Dine interesser"
+      "title": "Dine interesser",
+      "question": "Hvad er du til?",
+      "subtitle": "Med dine egne ord, på dansk eller engelsk. Pods samles om én ting, I alle deler."
     },
     "prefs": {
       "title": "Ønsker til pods",
-      "body": "De afgør, hvem du kan blive matchet med. Du kan altid ændre dem."
+      "body": "De afgør, hvem du kan blive matchet med. Du kan altid ændre dem.",
+      "question": "Hvem vil du gerne møde?"
     },
     "photo": {
       "title": "Billede (valgfrit)",
@@ -124,6 +141,24 @@
       "socialMedia": "Sociale medier",
       "press": "Nyheder eller presse",
       "other": "Et andet sted"
+    },
+    "stepOf": "Trin {{step}} af {{total}}",
+    "about": {
+      "title": "Om dig",
+      "lead": "Kun det mest nødvendige. Ingen ser det, før I er i en bekræftet pod sammen.",
+      "dob": "Fødselsdato",
+      "dobHint": "Vi tjekker, at du er fyldt 18, og gemmer derefter kun dit fødselsår, så vi kan matche dig med folk på nogenlunde din alder."
+    },
+    "final": {
+      "title": "Næsten færdig",
+      "photoTitle": "Et billede, så din pod kan genkende dig",
+      "photoBody": "Kun personer i en bekræftet pod med dig kan se det. I pods om en privat interesse vælger du for hver pod.",
+      "notificationsTitle": "Få besked, når dit drop kommer",
+      "notificationsBody": "Notifikationer siger kun ting som »Dit ugentlige drop er her«. Aldrig hvem der er i en pod, eller hvad den handler om.",
+      "notificationsOn": "Notifikationer er slået til",
+      "notificationsOff": "Notifikationer er slået fra. Du kan slå dem til senere i Indstillinger.",
+      "pledgeAgree": "Jeg mødes på offentlige steder, behandler folk med respekt og bruger Anmeld, hvis noget føles forkert.",
+      "finish": "Færdig"
     }
   },
   "areaStatus": {
@@ -165,7 +200,28 @@
       "notPinned": "Du kan ikke tilføje interesser i denne version endnu."
     },
     "pendingConsent": "Denne interesse kan være følsom, så den er sat i bero. Medmindre du siger ja til følsomme interesser, fjernes den {{when}}.",
-    "pendingConsentNoDate": "Denne interesse kan være følsom, så den er sat i bero, indtil du siger ja til følsomme interesser."
+    "pendingConsentNoDate": "Denne interesse kan være følsom, så den er sat i bero, indtil du siger ja til følsomme interesser.",
+    "privateTitle": "Private interesser",
+    "ordinaryTitle": "Interesser",
+    "addPlaceholder": "Tilføj en interesse",
+    "addedCount_one": "{{count}} tilføjet",
+    "addedCount_other": "{{count}} tilføjet",
+    "nudge": "Tilføj mindst {{min}}; {{nudge}} eller flere giver bedre pods.",
+    "tapHint": "Tryk på en interesse for at ændre, om den er privat.",
+    "popularIn": "Populært i {{area}}",
+    "addNamed": "Tilføj {{name}}",
+    "removeNamed": "Fjern {{name}}",
+    "starredLabel": "{{name}}, stjernemarkeret",
+    "moreFor": "Flere valg for {{name}}",
+    "removeWithdraw": "Fjern og træk tilbage",
+    "removeWithdrawFor": "Fjern og træk tilbage: {{name}}",
+    "consentGiven": "Samtykke givet {{date}}",
+    "privateNote": "Bruges kun til at danne pods om denne interesse. Aldrig på en profil, aldrig i en notifikation.",
+    "didYouMeanBy": "Mente du {{label}} med »{{text}}«?",
+    "didYouMeanWhy": "Siger du ja, kommer du sammen med flere.",
+    "sameThing": "Ja, det samme",
+    "keepIt": "Nej, behold den",
+    "ofMax": "{{count}} af {{max}}"
   },
   "moderation": {
     "TAG_TOO_SHORT": "En interesse skal have mindst 2 tegn.",
@@ -187,7 +243,8 @@
       "nonbinary": "Nonbinær"
     },
     "englishOnly": "Denne tekst findes indtil videre kun på engelsk.",
-    "confirm": "Slå pods med samme køn til"
+    "confirm": "Slå pods med samme køn til",
+    "yourGender": "Dit køn"
   },
   "prefs": {
     "ageRange": "Aldersinterval",
@@ -208,7 +265,24 @@
     "sameGenderOffBody": "Vi sletter dit køn alle steder.",
     "turnOff": "Slå fra",
     "decrease": "Sænk {{label}}",
-    "increase": "Hæv {{label}}"
+    "increase": "Hæv {{label}}",
+    "ages": "Alder",
+    "agesDefault": "Starter ved din alder ±{{n}}.",
+    "agesMutual": "Alle i en pod passer ind i hinandens interval.",
+    "youngest": "Yngste alder",
+    "oldest": "Ældste alder",
+    "travel": "Hvor langt vil du gerne rejse?",
+    "km": "{{km}} km",
+    "radiusApprox": "Cirka: Vi ved kun nogenlunde, hvor du bor.",
+    "whenFree": "Hvornår har du som regel tid?",
+    "grid": {
+      "weekdays": "Hverdage",
+      "saturday": "Lørdag",
+      "sunday": "Søndag",
+      "day": "Dag",
+      "evening": "Aften"
+    },
+    "sameGenderAsk": "Vi spørger om dit køn og dit samtykke og bruger det kun til dette."
   },
   "availability": {
     "weekdayDay": "Hverdage, dag",
@@ -229,7 +303,48 @@
     "noPodYet": "Dit første drop kommer snart.",
     "tip": "Tip: tilføj et par interesser mere, eller prøv en større afstand.",
     "openPreferences": "Skift ønsker",
-    "nextDrop": "Næste drop: {{when}}"
+    "nextDrop": "Næste drop: {{when}}",
+    "dropTitle": "Dit ugentlige drop",
+    "week": "Uge {{week}}",
+    "nextDropPill": "Næste drop",
+    "countdown": {
+      "in": "om {{time}}",
+      "daysHours": "{{days}} og {{hours}}",
+      "days_one": "{{count}} dag",
+      "days_other": "{{count}} dage",
+      "hours_one": "{{count}} time",
+      "hours_other": "{{count}} timer",
+      "minutes_one": "{{count}} minut",
+      "minutes_other": "{{count}} minutter"
+    },
+    "participation": {
+      "in": "Du er med i denne uge",
+      "skipping": "Du springer denne uges drop over",
+      "notJoined": "Du har ikke meldt dig til denne uges drop",
+      "paused": "Matchning er sat på pause"
+    },
+    "skipWeek": "Spring ugen over",
+    "undoSkip": "Jeg er med alligevel",
+    "joinWeek": "Meld mig til",
+    "pause": "Sæt på pause",
+    "resume": "Genoptag matchning",
+    "matchOn": "Det matcher vi på",
+    "edit": "Rediger",
+    "ages": "{{min}}–{{max}} år",
+    "privateCount_one": "{{count}} privat",
+    "privateCount_other": "{{count}} private",
+    "moreInterests_one": "+{{count}} til",
+    "moreInterests_other": "+{{count}} til",
+    "yourPods": "Dine pods",
+    "activeOf_one": "{{count}} af {{max}} aktive",
+    "activeOf_other": "{{count}} af {{max}} aktive",
+    "noPodTitle": "Ingen pod til dig i denne uge",
+    "noPodGeneric": "Denne gang var der ikke nok i nærheden, som delte en af dine interesser og passede til alles indstillinger.",
+    "helps": "Det hjælper tit",
+    "addInterests": "Tilføj et par interesser mere",
+    "tryKm": "Prøv ca. {{km}} km",
+    "openToAnyone": "Åben for at møde hvem som helst",
+    "openToAnyoneHint": "En pod uden et fælles tema"
   },
   "unmatched": {
     "NO_THEME_BUCKET": "Der er endnu ikke nok i nærheden, som deler en af dine interesser.",
@@ -277,7 +392,33 @@
     "active": "Aktive",
     "past": "Tidligere",
     "noneActive": "Ingen aktive pods.",
-    "nonePast": "Ingen tidligere pods."
+    "nonePast": "Ingen tidligere pods.",
+    "newPod": "Ny pod",
+    "youreIn": "Du er med",
+    "privateInterest": "Privat interesse",
+    "openUntil": "Åben indtil {{when}}",
+    "around": "En pod om",
+    "aroundAnyone": "En pod nær dig uden fast tema",
+    "people": "{{size}} personer",
+    "peopleAges": "{{size}} personer, {{min}}–{{max}} år",
+    "near": "Nær {{area}}",
+    "nearWithin": "Nær {{area}} · alle bor inden for ca. {{km}} km fra dig",
+    "someShare": "Nogle af jer deler også {{list}}",
+    "and": "og",
+    "namesAppear_one": "Navne og billeder vises, når {{count}} har sagt ja.",
+    "namesAppear_other": "Navne og billeder vises, når {{count}} har sagt ja.",
+    "namesAppearConfirmed": "Navne og billeder vises, når poden er bekræftet.",
+    "sensitiveNoteWho": "Alle inviterede har selv tilføjet denne interesse og givet samtykke. Vi viser med vilje mindre her, så de, der siger nej, ikke kan regne ud, hvem du er.",
+    "sensitiveNotePhoto": "Når poden er bekræftet, ser medlemmerne hinandens fornavne. Dit billede forbliver skjult, medmindre du vælger at vise det i denne pod.",
+    "notThisTime": "Ikke denne gang",
+    "imIn": "Jeg er med",
+    "saidYes": "{{accepted}} af {{size}} har sagt ja",
+    "needed_one": "{{count}} skal sige ja",
+    "needed_other": "{{count}} skal sige ja",
+    "waitingBody": "Vi giver besked, så snart poden er bekræftet. Hvis nogen siger nej, inviterer vi måske en anden, der passer.",
+    "whyThisPodLink": "Hvorfor denne pod?",
+    "howPrivateProtected": "Sådan beskytter vi private interesser",
+    "leaveProposed": "Fortrudt? Forlad denne pod"
   },
   "podState": {
     "proposed": "Foreslået",
@@ -318,13 +459,18 @@
       "addOptionAction": "Tilføj et forslag",
       "chat": "Mødechatten er åben",
       "chatAction": "Åbn chatten",
-      "feedback": "Hvordan gik det?"
+      "feedback": "Hvordan gik det?",
+      "label": "Næste skridt",
+      "plan": "Planlæg mødet"
     },
     "addToCalendar": "Føj til kalender",
     "calendarTitle": "Pod-møde",
     "calendarFailed": "Kalenderen kunne ikke åbnes.",
     "openMap": "Åbn i Kort",
-    "mapFailed": "Kortet kunne ikke åbnes."
+    "mapFailed": "Kortet kunne ikke åbnes.",
+    "confirmed": "Bekræftet",
+    "alsoLikes": "Flere af jer kan også lide",
+    "meetingSafely": "Mød hinanden trygt"
   },
   "plan": {
     "title": "Planlægger",
@@ -357,7 +503,20 @@
     "placeAttribution": "Steder fra Google Maps.",
     "changePlace": "Skift sted",
     "report": "Anmeld",
-    "reportOption": "Anmeld forslaget ved {{place}}"
+    "reportOption": "Anmeld forslaget ved {{place}}",
+    "heading": "Planlæg mødet",
+    "votingCloses": "Afstemningen lukker {{when}}",
+    "leading": "Fører",
+    "suggestTitle": "Foreslå et tidspunkt",
+    "suggestAnother": "Foreslå et andet tidspunkt",
+    "suggestSubmit": "Foreslå dette tidspunkt",
+    "spotsLeft_one": "({{count}} plads tilbage)",
+    "spotsLeft_other": "({{count}} pladser tilbage)",
+    "day": "Dag",
+    "placeHelp": "Caféer, barer, biblioteker, parker og andre offentlige steder i nærheden.",
+    "rules": "Forslaget med flest ja-stemmer (mindst {{min}}) vinder, når afstemningen lukker, og dit ja tæller som »Jeg kommer«. Siger alle ja til det samme forslag, er det afgjort med det samme.",
+    "rulesExtension": "Får intet forslag {{min}} ja-stemmer, får I én dag ekstra til at tilføje et nyt forslag.",
+    "doneVoting": "Færdig med at stemme"
   },
   "chat": {
     "title": "Mødechat",
@@ -381,7 +540,8 @@
     "contactWarningDetail": "Din besked indeholder kontaktoplysninger, fx et telefonnummer, en e-mail, et brugernavn eller et link.",
     "sendAnyway": "Send alligevel",
     "edit": "Rediger",
-    "report": "Anmeld besked"
+    "report": "Anmeld besked",
+    "notice": "Kun jeres pod kan læse med her. Beskederne slettes cirka 3 dage efter mødet. Hold fingeren på en besked for at anmelde den."
   },
   "feedback": {
     "title": "Feedback",
@@ -396,7 +556,16 @@
     "send": "Send",
     "whoWasThere": "Hvem var der?",
     "whoWasThereHint": "Alle er krydset af. Fjern krydset ved dem, der ikke kom.",
-    "meetAgainEffect": "Hvis I begge siger ja, kan I komme i pod sammen igen efter 4 uger i stedet for 6 måneder. Hvis en af jer siger nej, kommer I ikke i pod sammen igen. Ingen får at vide, hvad du har svaret."
+    "meetAgainEffect": "Hvis I begge siger ja, kan I komme i pod sammen igen efter 4 uger i stedet for 6 måneder. Hvis en af jer siger nej, kommer I ikke i pod sammen igen. Ingen får at vide, hvad du har svaret.",
+    "howDidItGo": "Hvordan gik det?",
+    "subtitle": "Kun Grouper ser dine svar. Ingen får at vide, hvad du har svaret.",
+    "wasThere": "Var der",
+    "meetAgainColumn": "Ses igen",
+    "wasThereLabel": "{{name}} var der",
+    "ratingTitle": "Hvordan var det alt i alt?",
+    "ratingValue": "{{value}} ud af 5",
+    "keepTitle": "Vil du mødes med poden igen?",
+    "keepBody": "Hvis mindst 3 af jer vælger »Behold poden«, planlægger poden det næste møde med kun dem."
   },
   "member": {
     "title": "Medlem",
@@ -406,11 +575,19 @@
     "blockTitle": "Bloker {{name}}?",
     "blockBody": "I bliver aldrig matchet igen, og billeder skjules begge veje.",
     "blockExplainer": "Blokering sker med det samme. I en aktiv pod fjernes det blokerede medlem; de andre ser kun, at poden har ændret sig.",
-    "leaveInstead": "Forlad hellere selv poden",
-    "blockBodyReplan": "I bliver aldrig matchet igen, billeder skjules begge veje, og poden planlægger et nyt møde inden for 48 timer.",
     "blockedAlready": "Du har blokeret {{name}}.",
-    "replan": "Planlæg mødet igen",
-    "replanExplainer": "Personen ved allerede, hvor og hvornår I mødes. Ny planlægning finder et nyt tidspunkt og sted inden for 48 timer."
+    "replanExplainer": "Personen ved allerede, hvor og hvornår I mødes. Ny planlægning finder et nyt tidspunkt og sted inden for 48 timer.",
+    "inPod": "I din pod om {{theme}}",
+    "inYourPod": "I din pod",
+    "blockName": "Bloker {{name}}",
+    "reportName": "Anmeld {{name}}",
+    "blockRowBodyActive": "I bliver aldrig matchet igen. {{name}} bliver taget ud af poden og ser kun, at poden har ændret sig.",
+    "blockConfirmActive": "I bliver aldrig matchet igen, og billeder skjules begge veje. {{name}} bliver taget ud af poden, medmindre du hellere selv vil forlade den.",
+    "blockAndLeave": "Bloker og forlad selv poden",
+    "replanTitle": "Planlæg mødet igen?",
+    "blockKeepPlan": "Bloker, behold planen",
+    "blockAndReplan": "Bloker og planlæg igen",
+    "leaveNote": "Vil du hellere gå? Du kan altid forlade poden fra podens side. De andre ser kun »Et medlem er gået«."
   },
   "report": {
     "title": "Anmeld",
@@ -427,7 +604,23 @@
     "emergency": "Ring 112 i en nødsituation.",
     "textLabel": "Hvad skete der? (valgfrit)",
     "textWarning": "Skriv ikke følsomme oplysninger om nogen.",
-    "send": "Send anmeldelse"
+    "send": "Send anmeldelse",
+    "titleName": "Anmeld {{name}}",
+    "emergencyNow": "I fare lige nu? Ring 112.",
+    "whatHappened": "Hvad skete der?",
+    "reasons": {
+      "harassment": "Chikane eller respektløs opførsel",
+      "safety": "Jeg følte mig utryg",
+      "noShow": "Dukkede ikke op",
+      "content": "Noget, personen skrev",
+      "underage": "Kan være under 18",
+      "notGenuine": "Ikke et ægte medlem"
+    },
+    "tellUsMore": "Fortæl mere",
+    "placeholder": "Hvad skete der, og hvornår?",
+    "counter": "{{length}} / {{max}}",
+    "textHint": "Skriv ikke om helbred eller andre følsomme oplysninger.",
+    "anonymousName": "{{name}} får ikke at vide, hvem der har anmeldt."
   },
   "reasons": {
     "THEME": "I har begge tilføjet »{{wording}}«",
@@ -439,7 +632,22 @@
     "PRIORITY_other": "Du har ventet {{count}} uger, så du havde forrang",
     "SOFT_THEME": "Din »{{yourTag}}« ligger tæt på podens »{{podTheme}}«",
     "OPEN_TO_ANYONE": "Du er åben for at møde hvem som helst i nærheden",
-    "footer": "Pods dannes automatisk. Læs »Sådan virker matchningen« for at se, hvilke oplysninger der bruges."
+    "footer": "Pods dannes automatisk. Læs »Sådan virker matchningen« for at se, hvilke oplysninger der bruges.",
+    "sheet": {
+      "THEME": "Alle har tilføjet {{wording}} eller noget, der betyder det samme.",
+      "ALSO_SHARE": "Du deler også {{list}} med nogle af dem.",
+      "AREA": "Poden er nær {{label}}.",
+      "NEAR_YOU": "Alle bor ca. {{km}} km eller mindre fra dig.",
+      "NEAR_YOU_AREA": "Alle bor ca. {{km}} km eller mindre fra dig, nær {{label}}.",
+      "AGE_SPAN": "{{min}}–{{max}} år: alle er inden for hinandens aldersintervaller.",
+      "PRIORITY_one": "Du har ventet {{count}} uge, så du fik forrang denne gang.",
+      "PRIORITY_other": "Du har ventet {{count}} uger, så du fik forrang denne gang.",
+      "SOFT_THEME": "Din {{yourTag}} ligger tæt på podens {{podTheme}}.",
+      "OPEN_TO_ANYONE": "Du er åben for at møde hvem som helst i nærheden."
+    },
+    "neverTitle": "Det bruger vi aldrig",
+    "neverBody": "Billeder, udseende eller noget, du ikke har fortalt os. Køn kun, hvis du har valgt pods med samme køn. Private interesser kun som tema for en pod om dem.",
+    "automatic": "Pods dannes automatisk."
   },
   "me": {
     "participation": "Ugentlige drops",
@@ -460,7 +668,9 @@
     "photoWho": "Kun folk i en bekræftet pod med dig kan se det. I pods om en følsom interesse vælger du for hver pod.",
     "yourPhoto": "Dit billede",
     "changePhoto": "Skift billede",
-    "photoFailed": "Upload virkede ikke. Prøv igen."
+    "photoFailed": "Upload virkede ikke. Prøv igen.",
+    "privacyHint": "Samtykker, dine data, slet konto",
+    "addPhoto": "Tilføj et billede"
   },
   "settings": {
     "title": "Indstillinger",
@@ -496,7 +706,25 @@
       "pausedUntil": "Matchning er sat på pause indtil {{when}}.",
       "paused": "Matchning er sat på pause.",
       "skipping": "Du springer droppet over i uge {{week}}.",
-      "skipNext": "Spring næste drop over"
+      "skipNext": "Spring næste drop over",
+      "agreedTo": "Det har du sagt ja til",
+      "privateInterests": "Private interesser",
+      "privateOn_one": "{{count}} interesse, samtykke givet",
+      "privateOn_other": "{{count}} interesser, samtykke givet",
+      "privateOff": "Intet samtykke, så ingen gemmes",
+      "sameGender": "Pods med samme køn",
+      "sameGenderOn": "Til, bruger dit køn",
+      "sameGenderOff": "Fra, intet køn gemt",
+      "photoShown": "Vises for bekræftede pods",
+      "photoNone": "Intet billede",
+      "dataAndMatching": "Dine data og matchning",
+      "pauseTitle": "Sæt matchning på pause",
+      "pauseHint": "Spring drops over, til du vender tilbage",
+      "skipHint": "Stå over én uge",
+      "exportHint": "En fil, du kan gemme, klar inden for få minutter",
+      "blockedNone": "Ingen",
+      "blockedCount_one": "{{count}} person",
+      "blockedCount_other": "{{count}} personer"
     },
     "delete": {
       "title": "Slet konto",
@@ -506,7 +734,19 @@
       "confirm": "Slet min konto",
       "confirmTitle": "Slet din konto?",
       "confirmBody": "Det kan ikke fortrydes. Du skal først bekræfte, at det er dig.",
-      "done": "Din konto er slettet. Tak, fordi du prøvede Grouper."
+      "done": "Din konto er slettet. Tak, fordi du prøvede Grouper.",
+      "lead": "Det kan ikke fortrydes. Har du bare brug for en pause, kan du sætte matchning på pause i stedet.",
+      "whatHappens": "Det sker der",
+      "happens": {
+        "profile": "Din profil, dine interesser, private interesser, dit billede og dine stemmer slettes nu.",
+        "pods": "Du forlader alle pods. De andre ser kun »Et medlem er gået«.",
+        "backups": "Kopier i vores sikkerhedskopier forsvinder inden for 7 dage.",
+        "signIn": "Dit login hos Googles login-tjeneste kan tage op til 180 dage om at blive slettet.",
+        "kept": "Nogle få oplysninger, som vi skal gemme, fx bevis for samtykke og anmeldelser, gemmes uden dit navn."
+      },
+      "exportFirst": "Hent mine data først",
+      "reauthNote": "For at beskytte din konto beder vi dig logge ind igen først.",
+      "submit": "Log ind igen og slet"
     },
     "blocked": {
       "title": "Blokerede personer",
@@ -622,7 +862,9 @@
     "CONTACT_INFO": "Ingen kontaktoplysninger her: I har ikke mødt hinanden endnu. Del dem gerne, når I ses.",
     "BLOCKLIST": "Teksten indeholder ord, der ikke er tilladt på Grouper.",
     "save": "Gem",
-    "saved": "Gemt."
+    "saved": "Gemt.",
+    "counter": "{{count}} / {{max}}",
+    "shownTo": "Vises for medlemmer af bekræftede pods. Bruges ikke til matchning."
   },
   "attendance": {
     "stillComing": "Kommer du stadig {{when}}?",
@@ -640,9 +882,11 @@
     },
     "other": {
       "coming": "Kommer",
-      "notComing": "Kan ikke komme"
+      "notComing": "Kan ikke komme",
+      "unconfirmed": "Har ikke bekræftet"
     },
-    "hasntConfirmed": "{{name}} har ikke bekræftet"
+    "hasntConfirmed": "{{name}} har ikke bekræftet",
+    "yesComing": "Ja, jeg kommer"
   },
   "waitlist": {
     "title": "Grouper kommer til {{city}}",
@@ -654,7 +898,18 @@
     "shareTitle": "Grouper i {{city}}",
     "shareMessage": "Grouper samler små grupper af folk nær dig om en fælles interesse. Skriv dig på ventelisten for {{city}}: {{link}}",
     "copy": "Kopiér link",
-    "copied": "Link kopieret"
+    "copied": "Link kopieret",
+    "eyebrow": "Du er på listen",
+    "titleSoon": "{{city}} åbner snart",
+    "label": "Venteliste i {{city}}",
+    "of": "af {{goal}}",
+    "progressLabel": "Personer på ventelisten i {{city}}",
+    "explain": "Vi åbner {{city}}, når nok i nærheden har tilmeldt sig. Dit første drop er torsdagen efter kl. 18.00. Vi sender dig en notifikation.",
+    "helpTitle": "Hjælp {{city}} med at åbne før",
+    "helpBody": "Kender du nogen, der gerne vil møde nye mennesker? Hver person, der tilmelder sig, bringer din første pod tættere på.",
+    "shareInvite": "Del invitationslink",
+    "copyShort": "Kopiér",
+    "whileYouWait": "Mens du venter"
   },
   "notices": {
     "title": "Beskeder fra Grouper",

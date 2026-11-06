@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Body, ErrorText, Loading, Screen } from '@/components/ui';
+import { Banner, ErrorText, Loading, Screen, ScreenHeader } from '@/components/ui';
 import { useExports, useNotices } from '@/data/docs';
 import { NoticeCard } from '@/features/notices/NoticeCard';
 import { useUid } from '@/features/session/SessionProvider';
+import { useBack } from '@/features/settings/useBack';
 
 /**
  * Messages from Grouper (§8.1 `notices`): statements of reasons for automated pauses and holds, report receipts,
@@ -11,6 +12,7 @@ import { useUid } from '@/features/session/SessionProvider';
  */
 export default function Notices() {
   const { t } = useTranslation();
+  const back = useBack('/me');
   const uid = useUid();
   const notices = useNotices(uid);
   const exports = useExports(uid);
@@ -21,9 +23,14 @@ export default function Notices() {
   );
   const rows = notices.data ?? [];
   return (
-    <Screen>
+    <Screen gap={12}>
+      <ScreenHeader title={t('notices.title')} backLabel={t('common.back')} onBack={back} />
       {notices.error ? <ErrorText>{t('common.loadFailed')}</ErrorText> : null}
-      {rows.length === 0 ? <Body muted>{t('notices.none')}</Body> : null}
+      {rows.length === 0 && !notices.error ? (
+        <Banner tone="subtle" icon="chat">
+          {t('notices.none')}
+        </Banner>
+      ) : null}
       {rows.map(({ id, data }) => (
         <NoticeCard
           key={id}

@@ -89,7 +89,7 @@ describe('planner (§3.5)', () => {
     await renderPlan();
     expect(screen.getByText('No time works yet — add another option')).toBeOnTheScreen();
     expect(screen.getByText(/^You have one more day, until /)).toBeOnTheScreen();
-    expect(screen.getByText('Propose another option')).toBeOnTheScreen();
+    expect(screen.getByRole('button', { name: 'Suggest another time (2 spots left)' })).toBeOnTheScreen();
   });
 
   it('proposes a time and a place picked from Places, in a shape proposeOption accepts', async () => {

@@ -1,19 +1,26 @@
 import type { SetParticipationMode } from '@grouper/core';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Body, Card, ChipRow, ErrorText, Heading, LinkRow, Loading, Screen, Toggle } from '@/components/ui';
+import { StyleSheet, View } from 'react-native';
+import { AppText, Banner, Card, ChipRow, ErrorText, ListGroup, Loading, Screen, ScreenHeader, Segmented, SectionTitle, TextLink, Toggle } from '@/components/ui';
 import { useUserDoc } from '@/data/docs';
 import { useCallable } from '@/data/useCallable';
 import { PhotoCard } from '@/features/photos/PhotoCard';
 import { AboutMeField } from '@/features/profile/AboutMeField';
 import { useUid } from '@/features/session/SessionProvider';
+import { SettingsRow } from '@/features/settings/parts';
 import { currentLocale, initI18n } from '@/i18n';
 import { errorMessageKey } from '@/lib/errors';
 import { isUserSettingReason } from '@/lib/reasons';
 
 const MODES: readonly SetParticipationMode[] = ['auto', 'manual', 'skipNext', 'pause'];
+const LOCALES = ['da', 'en'] as const;
 
-/** Me (§11): profile (photo, "About me", D4), preferences, participation, the user's own reliability record, blocking setting. */
+/**
+ * Me (§11; the hub above storyboard 5.3): profile (photo, "About me", D4), participation, the user's own reliability
+ * record, the setting that blocks matching (if any), language, and the way to preferences, privacy, notifications,
+ * messages from Grouper and the transparency pages.
+ */
 export default function Me() {
   const { t } = useTranslation();
   const router = useRouter();
@@ -33,57 +40,75 @@ export default function Me() {
 
   return (
     <Screen>
-      <Heading>{u.firstName}</Heading>
-      <Body muted>{u.area.label}</Body>
+      <ScreenHeader eyebrow={t('tabs.me')} title={u.firstName} subtitle={u.area.label} subtitleIcon="pin" />
 
       <PhotoCard uid={uid} version={u.photo?.v ?? null} />
 
       <Card>
-        <Body muted>{t('aboutMe.intro')}</Body>
         <AboutMeField initial={u.aboutMe ?? ''} />
       </Card>
 
       <Card>
-        <Body bold>{t('me.participation')}</Body>
+        <SectionTitle title={t('me.participation')} />
         <ChipRow>
           {MODES.map((mode) => (
             <Toggle key={mode} label={t(`me.modes.${mode}`)} value={activeMode === mode} onChange={() => participation.mutate({ mode })} />
           ))}
         </ChipRow>
-        {participation.data ? <Body muted>{t('me.effectiveFrom', { week: participation.data.effectiveWeekId })}</Body> : null}
+        {participation.data ? (
+          <AppText variant="caption" tone="muted">
+            {t('me.effectiveFrom', { week: participation.data.effectiveWeekId })}
+          </AppText>
+        ) : null}
         {participation.error ? <ErrorText>{t(errorMessageKey(participation.error))}</ErrorText> : null}
       </Card>
 
-      <Card>
-        <Body bold>{t('me.record')}</Body>
-        <Body>{meetups === 0 ? t('me.noMeetupsYet') : t('me.attended', { attended, total: meetups })}</Body>
-      </Card>
-
       {blocking ? (
-        <Card>
-          <Body>{t(`blockingSetting.${blocking}`)}</Body>
-        </Card>
+        <Banner tone="amber" icon="info" actions={<TextLink label={t('me.preferences')} size="sm" onPress={() => router.push('/settings/preferences')} />}>
+          {t(`blockingSetting.${blocking}`)}
+        </Banner>
       ) : null}
 
       <Card>
-        <Body bold>{t('me.language')}</Body>
-        <ChipRow>
-          {(['da', 'en'] as const).map((l) => (
-            <Toggle
-              key={l}
-              label={t(`languages.${l}`)}
-              value={locale === l}
-              onChange={() => updateProfile.mutate({ locale: l }, { onSuccess: () => initI18n(l) })}
-            />
-          ))}
-        </ChipRow>
+        <View style={styles.between}>
+          <SectionTitle title={t('me.record')} />
+          {meetups === 0 ? (
+            <AppText variant="bodySm" tone="muted">
+              {t('me.noMeetupsYet')}
+            </AppText>
+          ) : (
+            <AppText variant="headingSm">{t('me.attended', { attended, total: meetups })}</AppText>
+          )}
+        </View>
       </Card>
 
-      <LinkRow label={t('me.preferences')} onPress={() => router.push('/settings/preferences')} />
-      <LinkRow label={t('me.settings')} onPress={() => router.push('/settings')} />
-      <LinkRow label={t('notices.title')} onPress={() => router.push('/settings/notices')} />
-      <LinkRow label={t('info.howMatchingWorks.title')} onPress={() => router.push('/info/how-matching-works')} />
-      <LinkRow label={t('info.safety.title')} onPress={() => router.push('/info/safety')} />
+      <Card>
+        <SectionTitle title={t('me.language')} />
+        <Segmented
+          variant="track"
+          options={LOCALES.map((l) => ({ value: l, label: t(`languages.${l}`) }))}
+          value={locale}
+          onChange={(l) => updateProfile.mutate({ locale: l }, { onSuccess: () => initI18n(l) })}
+        />
+        {updateProfile.error ? <ErrorText>{t(errorMessageKey(updateProfile.error))}</ErrorText> : null}
+      </Card>
+
+      <ListGroup>
+        <SettingsRow icon="people" title={t('me.preferences')} role="link" onPress={() => router.push('/settings/preferences')} />
+        <SettingsRow icon="lock" title={t('settings.privacy.title')} subtitle={t('me.privacyHint')} role="link" onPress={() => router.push('/settings/privacy')} />
+        <SettingsRow icon="bell" title={t('settings.notifications.title')} role="link" onPress={() => router.push('/settings/notifications')} />
+        <SettingsRow icon="chat" title={t('notices.title')} role="link" onPress={() => router.push('/settings/notices')} />
+        <SettingsRow icon="more" title={t('me.settings')} role="link" onPress={() => router.push('/settings')} />
+      </ListGroup>
+
+      <ListGroup>
+        <SettingsRow icon="info" title={t('info.howMatchingWorks.title')} role="link" onPress={() => router.push('/info/how-matching-works')} />
+        <SettingsRow icon="shield" title={t('info.safety.title')} role="link" onPress={() => router.push('/info/safety')} />
+      </ListGroup>
     </Screen>
   );
 }
+
+const styles = StyleSheet.create({
+  between: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' },
+});

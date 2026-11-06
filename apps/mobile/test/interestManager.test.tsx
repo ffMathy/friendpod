@@ -51,11 +51,15 @@ afterEach(() => client.clear());
 describe('InterestManager (D1, D3)', () => {
   it('shows private holdings with a lock and no theme explanation, ordinary ones without', async () => {
     await renderManager();
-    expect(screen.getByText('🔒 Gravid')).toBeOnTheScreen();
+    expect(screen.getByText('Gravid')).toBeOnTheScreen();
     expect(screen.getByLabelText('Gravid, private')).toBeOnTheScreen();
     expect(screen.getByText('Brætspil')).toBeOnTheScreen();
+    expect(screen.queryByRole('button', { name: "This isn't sensitive for me" })).toBeNull();
+    await fireEvent.press(screen.getByRole('button', { name: 'Gravid, private' }));
     expect(screen.getByRole('button', { name: "This isn't sensitive for me" })).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('button', { name: 'Brætspil' }));
     expect(screen.getByRole('button', { name: 'Keep this private' })).toBeOnTheScreen();
+    expect(screen.getByRole('button', { name: 'Remove Brætspil' })).toBeOnTheScreen();
   });
 
   it('adds a tag with its on-device vector', async () => {
@@ -104,6 +108,7 @@ describe('InterestManager (D1, D3)', () => {
     mockConsent = true;
     mockCall.mockResolvedValue({ results: [{ status: 'madeOrdinary', interestId: 'private0000000001' }] });
     await renderManager();
+    await fireEvent.press(screen.getByRole('button', { name: 'Gravid, private' }));
     await fireEvent.press(screen.getByRole('button', { name: "This isn't sensitive for me" }));
     await act(async () => {
       await Promise.resolve();

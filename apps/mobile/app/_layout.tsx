@@ -1,9 +1,11 @@
 import { QueryClientProvider } from '@tanstack/react-query';
-import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
+import { Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
+import * as SystemUI from 'expo-system-ui';
 import { useEffect } from 'react';
 import { I18nextProvider, useTranslation } from 'react-i18next';
-import { useColorScheme } from 'react-native';
+import { useNavigationTheme, useStackScreenOptions } from '@/components/navigation';
+import { usePalette } from '@/components/theme';
 import { useUserDoc } from '@/data/docs';
 import { queryClient } from '@/data/queryClient';
 import { initFirebase } from '@/firebase';
@@ -35,17 +37,24 @@ function ProfileEffects({ uid }: { uid: string }) {
 function Navigator() {
   const { phase, user } = useSession();
   const { t } = useTranslation();
-  const scheme = useColorScheme();
+  // Storyboard look for every navigator below (colours, fonts); nested stacks spread useStackScreenOptions() too.
+  const theme = useNavigationTheme();
+  const stackOptions = useStackScreenOptions();
+  const ground = usePalette().ground;
 
   useEffect(() => {
     if (phase !== 'loading') void SplashScreen.hideAsync();
   }, [phase]);
+  // The root view shows through during transitions and behind the keyboard.
+  useEffect(() => {
+    void SystemUI.setBackgroundColorAsync(ground);
+  }, [ground]);
   if (phase === 'loading') return null;
 
   return (
-    <ThemeProvider value={scheme === 'dark' ? DarkTheme : DefaultTheme}>
+    <ThemeProvider value={theme}>
       {phase === 'ready' && user ? <ProfileEffects key={user.uid} uid={user.uid} /> : null}
-      <Stack screenOptions={{ headerBackButtonDisplayMode: 'minimal' }}>
+      <Stack screenOptions={stackOptions}>
         <Stack.Protected guard={phase === 'signedOut'}>
           <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         </Stack.Protected>
@@ -60,7 +69,7 @@ function Navigator() {
         <Stack.Protected guard={phase !== 'signedOut'}>
           <Stack.Screen name="sheets" options={{ presentation: 'modal', headerShown: false }} />
         </Stack.Protected>
-        <Stack.Screen name="auth/complete" options={{ title: t('auth.complete.title') }} />
+        <Stack.Screen name="auth/complete" options={{ title: t('auth.complete.title'), headerShown: false }} />
         <Stack.Screen name="info" options={{ headerShown: false }} />
       </Stack>
     </ThemeProvider>

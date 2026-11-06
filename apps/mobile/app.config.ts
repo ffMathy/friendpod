@@ -26,6 +26,12 @@ interface EnvSettings {
   readonly appAttestEnvironment: 'development' | 'production';
 }
 
+/**
+ * Plus Jakarta Sans faces embedded at prebuild by the expo-font plugin (no runtime loading). Android names each face
+ * by its file name, iOS by its PostScript name: src/components/theme.ts `FontFamily` must list the same five.
+ */
+const FONT_FACES = ['400Regular', '500Medium', '600SemiBold', '700Bold', '800ExtraBold'] as const;
+
 /** The native ONNX Runtime the detector thresholds were verified on (core EMBEDDING_MODEL.device.nativeOrt). */
 const ORT_NATIVE_VERSION = '1.30.0';
 const ENVIRONMENTS: Record<AppEnv, EnvSettings> = {
@@ -179,6 +185,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     },
     plugins: [
       ['expo-router', { sitemap: false }],
+      ['expo-font', { fonts: FONT_FACES.map((f) => `@expo-google-fonts/plus-jakarta-sans/${f}/PlusJakartaSans_${f}.ttf`) }],
       [
         'expo-splash-screen',
         { backgroundColor: '#208AEF', image: './assets/images/splash-icon.png', imageWidth: 76 },

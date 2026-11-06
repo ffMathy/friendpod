@@ -1,6 +1,7 @@
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Body, Button, ErrorText, Field, Screen } from '@/components/ui';
+import { Banner, Button, ErrorText, Field, Screen, ScreenHeader } from '@/components/ui';
 import { sendEmailLink } from '@/features/auth/emailLink';
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -8,6 +9,7 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 /** Email magic link (F10); the address is kept in secure storage until the link is opened. */
 export default function EmailSignIn() {
   const { t } = useTranslation();
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [state, setState] = useState<'idle' | 'sending' | 'sent' | 'failed'>('idle');
   const valid = EMAIL.test(email.trim());
@@ -23,7 +25,12 @@ export default function EmailSignIn() {
   };
 
   return (
-    <Screen>
+    <Screen
+      wide
+      gap={24}
+      footer={<Button label={t('auth.email.send')} disabled={!valid} busy={state === 'sending'} onPress={() => void send()} />}
+    >
+      <ScreenHeader title={t('auth.email.title')} backLabel={t('common.back')} onBack={() => router.back()} />
       <Field
         label={t('auth.email.label')}
         value={email}
@@ -33,8 +40,11 @@ export default function EmailSignIn() {
         autoComplete="email"
         textContentType="emailAddress"
       />
-      <Button label={t('auth.email.send')} disabled={!valid} busy={state === 'sending'} onPress={() => void send()} />
-      {state === 'sent' ? <Body>{t('auth.email.sent')}</Body> : null}
+      {state === 'sent' ? (
+        <Banner tone="mint" icon="check">
+          {t('auth.email.sent')}
+        </Banner>
+      ) : null}
       {state === 'failed' ? <ErrorText>{t('auth.email.failed')}</ErrorText> : null}
     </Screen>
   );

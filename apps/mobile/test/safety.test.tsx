@@ -49,6 +49,13 @@ async function confirmAlert(alert: jest.SpyInstance) {
     buttons.find((b) => b.style === 'destructive')?.onPress?.();
   });
 }
+const alertButtons = (alert: jest.SpyInstance) => (alert.mock.calls.at(-1)?.[2] as AlertButton[]).map((b) => b.text);
+async function pressAlertButton(alert: jest.SpyInstance, text: string) {
+  const buttons = alert.mock.calls.at(-1)?.[2] as AlertButton[];
+  await act(async () => {
+    buttons.find((b) => b.text === text)?.onPress?.();
+  });
+}
 
 let alert: jest.SpyInstance;
 beforeEach(() => {
@@ -72,36 +79,72 @@ describe('member sheet (§3.7)', () => {
   it('shows the first name and "about me", and blocks after a confirmation, removing the member by default', async () => {
     await renderWith(<MemberSheet />);
     expect(screen.getByText('Anna')).toBeOnTheScreen();
+    expect(screen.getByText('In your x pod')).toBeOnTheScreen();
     expect(screen.getByText('New in Aarhus, loves long walks.')).toBeOnTheScreen();
-    // Re-planning is offered only once the meetup is scheduled.
-    expect(screen.queryByTestId('block-replan')).toBeNull();
-    await fireEvent.press(screen.getByTestId('member-block'));
+    expect(screen.getByRole('button', { name: 'Report Anna' })).toBeOnTheScreen();
+    // Storyboard 4.2: one Block row, and the footnote about leaving without blocking.
+    expect(screen.getByText("You'll never be matched again. Anna is taken out of this pod and only sees that the pod changed.")).toBeOnTheScreen();
+    expect(screen.getByTestId('member-leave-note')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('button', { name: 'Block Anna' }));
     expect(mockCall).not.toHaveBeenCalled();
+    // Re-planning is offered only once the meetup is scheduled: the destructive button blocks straight away.
+    expect(alertButtons(alert)).toEqual(['Cancel', 'Block and leave the pod myself', 'Block']);
     await confirmAlert(alert);
     expect(mockCall).toHaveBeenCalledWith('blockUser', { podId: POD_ID, uid: 'anna' });
     expect(mockClearImageCaches).toHaveBeenCalled();
     expect(mockRouter.back).toHaveBeenCalled();
   });
 
+  it('leaves a private theme out of the sheet', async () => {
+    mockSensitive = true;
+    await renderWith(<MemberSheet />);
+    expect(screen.getByText('In your pod')).toBeOnTheScreen();
+    expect(screen.queryByText(/In your x pod/)).toBeNull();
+  });
+
   it('can leave instead of removing the blocked member', async () => {
     await renderWith(<MemberSheet />);
-    await fireEvent.press(screen.getByTestId('block-leave'));
     await fireEvent.press(screen.getByTestId('member-block'));
-    await confirmAlert(alert);
+    await pressAlertButton(alert, 'Block and leave the pod myself');
     expect(mockCall).toHaveBeenCalledWith('blockUser', { podId: POD_ID, uid: 'anna', leave: true });
   });
 
-  it('in a scheduled pod, offers "Re-plan the meetup", which excludes leaving', async () => {
+  it('in a scheduled pod, asks whether to re-plan the meetup, which excludes leaving', async () => {
     mockState = 'scheduled';
     await renderWith(<MemberSheet />);
-    await fireEvent.press(screen.getByTestId('block-leave'));
-    await fireEvent.press(screen.getByTestId('block-replan'));
     await fireEvent.press(screen.getByTestId('member-block'));
-    expect(alert.mock.calls.at(-1)?.[1]).toContain('plans a new meetup within 48 hours');
     await confirmAlert(alert);
+    expect(mockCall).not.toHaveBeenCalled();
+    expect(alert.mock.calls.at(-1)?.[0]).toBe('Re-plan the meetup?');
+    expect(alert.mock.calls.at(-1)?.[1]).toContain('within 48 hours');
+    await pressAlertButton(alert, 'Block and re-plan');
     const input = mockCall.mock.calls[0]?.[1];
     expect(input).toEqual({ podId: POD_ID, uid: 'anna', replan: true });
     expect(blockUserInput.safeParse(input).success).toBe(true);
+  });
+
+  it('in a scheduled pod, can keep the plan, and Cancel on the second question drops the block', async () => {
+    mockState = 'scheduled';
+    await renderWith(<MemberSheet />);
+    await fireEvent.press(screen.getByTestId('member-block'));
+    await confirmAlert(alert);
+    await pressAlertButton(alert, 'Cancel');
+    expect(mockCall).not.toHaveBeenCalled();
+    await fireEvent.press(screen.getByTestId('member-block'));
+    await confirmAlert(alert);
+    await pressAlertButton(alert, 'Block, keep the plan');
+    expect(mockCall).toHaveBeenCalledWith('blockUser', { podId: POD_ID, uid: 'anna' });
+  });
+
+  it('outside an active pod, blocking takes nobody out, so there is no leave choice', async () => {
+    mockState = 'archived';
+    await renderWith(<MemberSheet />);
+    expect(screen.getByText('You will never be matched again, and photos are hidden both ways.')).toBeOnTheScreen();
+    expect(screen.queryByTestId('member-leave-note')).toBeNull();
+    await fireEvent.press(screen.getByTestId('member-block'));
+    expect(alertButtons(alert)).toEqual(['Cancel', 'Block']);
+    await confirmAlert(alert);
+    expect(mockCall).toHaveBeenCalledWith('blockUser', { podId: POD_ID, uid: 'anna' });
   });
 
   it('offers Unblock instead of Block for someone already blocked', async () => {
@@ -137,9 +180,15 @@ describe('report sheet (§3.7)', () => {
   it('reports a member with a category and optional text', async () => {
     mockCall.mockResolvedValue({ reportId: 'r1' });
     await renderWith(<Report />);
+    expect(screen.getByText('Report Anna')).toBeOnTheScreen();
+    // 112 comes first on every report, before a category is chosen.
+    expect(screen.getByText('In danger right now? Call 112.')).toBeOnTheScreen();
+    expect(screen.getByText(/Anna won't know who reported\./)).toBeOnTheScreen();
     expect(screen.getByRole('button', { name: 'Send report' })).toBeDisabled();
-    await fireEvent.press(screen.getByText('Harassment'));
-    await fireEvent.changeText(screen.getByLabelText('What happened? (optional)'), '  rude  ');
+    await fireEvent.press(screen.getByRole('radio', { name: 'Harassment or disrespect' }));
+    expect(screen.getByRole('radio', { name: 'Harassment or disrespect' })).toBeChecked();
+    await fireEvent.changeText(screen.getByLabelText('Tell us more (optional)'), '  rude  ');
+    expect(screen.getByText('8 / 500')).toBeOnTheScreen();
     await fireEvent.press(screen.getByRole('button', { name: 'Send report' }));
     expect(sent()).toEqual({ target: { type: 'user', podId: POD_ID, uid: 'anna' }, category: 'harassment', text: 'rude' });
     expect(mockRouter.back).toHaveBeenCalled();
@@ -149,7 +198,7 @@ describe('report sheet (§3.7)', () => {
     mockCall.mockResolvedValue({ reportId: 'r1' });
     mockParams = { podId: POD_ID, optionId: 'opt1' };
     await renderWith(<Report />);
-    await fireEvent.press(screen.getByText('Content'));
+    await fireEvent.press(screen.getByText('Something they wrote'));
     await fireEvent.press(screen.getByRole('button', { name: 'Send report' }));
     expect(sent()).toEqual({ target: { type: 'option', podId: POD_ID, optionId: 'opt1' }, category: 'content' });
   });
@@ -159,8 +208,9 @@ describe('report sheet (§3.7)', () => {
     mockParams = { podId: POD_ID, messageId: 'msg1' };
     await renderWith(<Report />);
     expect(screen.getByText(/We keep a copy of this message/)).toBeOnTheScreen();
-    await fireEvent.press(screen.getByText('Safety'));
-    expect(screen.getByText('In an emergency, call 112.')).toBeOnTheScreen();
+    expect(screen.getByText('Report')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByText('I felt unsafe'));
+    expect(screen.getByText('In danger right now? Call 112.')).toBeOnTheScreen();
     await fireEvent.press(screen.getByRole('button', { name: 'Send report' }));
     expect(sent()).toEqual({ target: { type: 'message', podId: POD_ID, messageId: 'msg1' }, category: 'safety' });
   });

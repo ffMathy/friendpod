@@ -56,23 +56,28 @@ describe('proposal card (§3.2, §3.3)', () => {
   it('shows theme, size, distance, age span and shared interests, never names', async () => {
     await renderWith(<ProposalCard podId={POD_ID} card={card()} />);
     expect(screen.getByText('brætspil')).toBeOnTheScreen();
-    expect(screen.getByText('5 people near Aarhus C')).toBeOnTheScreen();
-    expect(screen.getByText('Everyone lives about 10 km or less from you')).toBeOnTheScreen();
-    expect(screen.getByText('Ages 30–41')).toBeOnTheScreen();
-    expect(screen.getByText('You also share: kaffe, gåture')).toBeOnTheScreen();
+    expect(screen.getByText('New pod')).toBeOnTheScreen();
+    expect(screen.getByText('5 people, ages 30–41')).toBeOnTheScreen();
+    expect(screen.getByText('Near Aarhus C · everyone within about 10 km of you')).toBeOnTheScreen();
+    expect(screen.getByText('Some of you also share kaffe and gåture')).toBeOnTheScreen();
+    expect(screen.getByText('Names and photos appear once the pod is confirmed.')).toBeOnTheScreen();
   });
 
-  it('a sensitive theme shows the lock and neither age span nor shared interests', async () => {
+  it('a sensitive theme is marked private and shows neither age span nor shared interests', async () => {
     await renderWith(<ProposalCard podId={POD_ID} card={card({ themeSensitive: true, ageSpan: undefined, reasons: [{ code: 'NEAR_YOU', km: 5 }] })} />);
-    expect(screen.getByText('🔒 brætspil')).toBeOnTheScreen();
-    expect(screen.queryByText(/^Ages /)).toBeNull();
-    expect(screen.queryByText(/^You also share/)).toBeNull();
+    expect(screen.getByText('Private interest')).toBeOnTheScreen();
+    expect(screen.getByText('brætspil')).toBeOnTheScreen();
+    expect(screen.getByText('5 people')).toBeOnTheScreen();
+    expect(screen.queryByText(/ages/)).toBeNull();
+    expect(screen.queryByText(/also share/)).toBeNull();
+    expect(screen.getByText(/We show less here on purpose/)).toBeOnTheScreen();
+    expect(screen.getByRole('link', { name: 'How private interests are protected' })).toBeOnTheScreen();
   });
 
-  it('Accept calls respondToPod with accept: true', async () => {
+  it('"I\'m in" calls respondToPod with accept: true', async () => {
     mockCall.mockResolvedValue({ state: 'proposed', acceptedCount: 3 });
     await renderWith(<ProposalCard podId={POD_ID} card={card()} />);
-    await fireEvent.press(screen.getByRole('button', { name: 'Accept' }));
+    await fireEvent.press(screen.getByRole('button', { name: "I'm in" }));
     expect(mockCall).toHaveBeenCalledWith('respondToPod', { podId: POD_ID, accept: true });
     expect(respondToPodInput.safeParse(mockCall.mock.calls[0]?.[1]).success).toBe(true);
   });
@@ -80,7 +85,7 @@ describe('proposal card (§3.2, §3.3)', () => {
   it('Decline takes an optional reason chip before confirming', async () => {
     mockCall.mockResolvedValue({ state: 'proposed', acceptedCount: 2 });
     await renderWith(<ProposalCard podId={POD_ID} card={card()} />);
-    await fireEvent.press(screen.getByRole('button', { name: 'Decline' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Not this time' }));
     expect(mockCall).not.toHaveBeenCalled();
     await fireEvent.press(screen.getByText('Too far'));
     await fireEvent.press(screen.getByRole('button', { name: 'Decline this pod' }));
@@ -88,22 +93,28 @@ describe('proposal card (§3.2, §3.3)', () => {
     expect(respondToPodInput.safeParse(mockCall.mock.calls[0]?.[1]).success).toBe(true);
   });
 
-  it('after accepting, shows how many accepted and no answer buttons', async () => {
-    await renderWith(<ProposalCard podId={POD_ID} card={card({ myStatus: 'accepted', acceptedCount: 3 })} />);
-    expect(screen.getByText('3 of 5 accepted')).toBeOnTheScreen();
-    expect(screen.queryByRole('button', { name: 'Accept' })).toBeNull();
+  it('after accepting, shows how many said yes, the threshold, and no answer buttons', async () => {
+    await renderWith(<ProposalCard podId={POD_ID} card={card({ myStatus: 'accepted', acceptedCount: 3 })} confirmationMin={4} />);
+    expect(screen.getByText("You're in")).toBeOnTheScreen();
+    expect(screen.getByText('3 of 5 said yes')).toBeOnTheScreen();
+    expect(screen.getByText('4 needed')).toBeOnTheScreen();
+    expect(screen.queryByRole('button', { name: "I'm in" })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Changed your mind? Leave this pod' })).toBeOnTheScreen();
   });
 
   it('"Why this pod" opens the sheet, which renders the server reason codes in the viewer\'s own words', async () => {
     await renderWith(<ProposalCard podId={POD_ID} card={card()} />);
-    await fireEvent.press(screen.getByRole('button', { name: 'Why this pod' }));
+    await fireEvent.press(screen.getByRole('link', { name: 'Why this pod?' }));
     expect(mockRouter.push).toHaveBeenCalledWith({ pathname: '/sheets/why-this-pod', params: { podId: POD_ID } });
 
     client.clear();
     mockCard = card();
     await renderWith(<WhyThisPod />);
-    expect(screen.getByText('• You both added “brætspil”')).toBeOnTheScreen();
-    expect(screen.getByText('• You have waited 2 weeks, so you had priority')).toBeOnTheScreen();
-    expect(screen.getByText('• You also share: kaffe, gåture')).toBeOnTheScreen();
+    expect(screen.getByText('Why this pod')).toBeOnTheScreen();
+    expect(screen.getByText('Everyone added brætspil, or something that means the same.')).toBeOnTheScreen();
+    expect(screen.getByText('You waited 2 weeks, so you got priority this time.')).toBeOnTheScreen();
+    expect(screen.getByText('You also share kaffe and gåture with some of them.')).toBeOnTheScreen();
+    expect(screen.getByText('Everyone lives about 10 km or less from you.')).toBeOnTheScreen();
+    expect(screen.getByText('What we never use')).toBeOnTheScreen();
   });
 });

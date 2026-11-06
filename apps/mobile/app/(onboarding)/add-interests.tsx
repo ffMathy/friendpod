@@ -1,14 +1,16 @@
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Button, Heading, Screen } from '@/components/ui';
+import { StyleSheet, View } from 'react-native';
+import { AppText, Button, Screen, StepHeader, Title } from '@/components/ui';
 import { useInterests, useSensitiveInterests } from '@/data/docs';
-import { InterestManager } from '@/features/interests/InterestManager';
+import { InterestManager, MIN_INTERESTS } from '@/features/interests/InterestManager';
 import { useUid } from '@/features/session/SessionProvider';
 import { currentLocale } from '@/i18n';
 
-const MIN_INTERESTS = 3;
+const STEP = 4;
+const STEPS = 6;
 
-/** §3.1 step 7: free-text interests, minimum 3 (nudged towards 5). */
+/** §3.1 step 8 (storyboard 1.5): free-text interests, minimum 3 (nudged towards 5). */
 export default function AddInterests() {
   const { t } = useTranslation();
   const router = useRouter();
@@ -17,10 +19,38 @@ export default function AddInterests() {
   const sensitive = useSensitiveInterests(uid).data ?? [];
   const enough = ordinary.length + sensitive.length >= MIN_INTERESTS;
   return (
-    <Screen>
-      <Heading>{t('onboarding.interests.title')}</Heading>
+    <Screen
+      wide
+      gap={18}
+      footer={
+        <Button
+          testID="interests-continue"
+          label={t('common.continue')}
+          variant="accent"
+          disabled={!enough}
+          onPress={() => router.push('/pod-preferences')}
+        />
+      }
+    >
+      <StepHeader
+        step={STEP}
+        total={STEPS}
+        stepLabel={t('onboarding.stepOf', { step: STEP, total: STEPS })}
+        backLabel={t('common.back')}
+        // The consent step replaced itself with this one; going back reopens it (setArt9Consent is idempotent).
+        onBack={() => router.replace('/sensitive-consent')}
+      />
+      <View style={styles.titles}>
+        <Title>{t('onboarding.interests.question')}</Title>
+        <AppText variant="bodyMd" tone="muted">
+          {t('onboarding.interests.subtitle')}
+        </AppText>
+      </View>
       <InterestManager uid={uid} locale={currentLocale()} mode="onboarding" />
-      <Button label={t('common.continue')} disabled={!enough} onPress={() => router.push('/pod-preferences')} />
     </Screen>
   );
 }
+
+const styles = StyleSheet.create({
+  titles: { gap: 6 },
+});

@@ -1,13 +1,8 @@
 import { Stack } from 'expo-router';
-import { useTranslation } from 'react-i18next';
+import { useStackScreenOptions } from '@/components/navigation';
 
+/** Welcome, sign-in and email link. Each screen draws its own header (storyboard 1.1, ScreenHeader), so no native bar. */
 export default function AuthLayout() {
-  const { t } = useTranslation();
-  return (
-    <Stack screenOptions={{ headerBackButtonDisplayMode: 'minimal' }}>
-      <Stack.Screen name="index" options={{ headerShown: false }} />
-      <Stack.Screen name="sign-in" options={{ title: t('auth.signIn.title') }} />
-      <Stack.Screen name="email" options={{ title: t('auth.email.title') }} />
-    </Stack>
-  );
+  const stackOptions = useStackScreenOptions();
+  return <Stack screenOptions={{ ...stackOptions, headerShown: false }} />;
 }
