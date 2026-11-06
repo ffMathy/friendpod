@@ -2,7 +2,8 @@
  * Meetup and deadline times on the pod screens, in Europe/Copenhagen like every drop, deadline and meetup (§4.1):
  * "Saturday 14 Nov, 14:00" / "Lørdag 14. nov. kl. 14.00", "Tuesday 18:00" / "tirsdag kl. 18.00", and "tomorrow at
  * 14:00" / "i morgen kl. 14.00". The words around the parts come from the language files (`plan.when` and friends),
- * so each language orders them its own way.
+ * so each language orders them its own way. The parts that must stay on one line ("14. nov.", "kl. 14.00", "fre. 15.02")
+ * are joined with a no-break space (NBSP), here and in the language files.
  */
 import { DAY_MS, DROP_TIME_ZONE, toLocal, type Locale } from '@grouper/core';
 import type { TFunction } from 'i18next';
@@ -10,6 +11,9 @@ import type { TFunction } from 'i18next';
 const LOCALE_TAG: Record<Locale, string> = { da: 'da-DK', en: 'en-GB' };
 
 const pad = (n: number) => String(n).padStart(2, '0');
+
+/** No-break space: "14.\u00a0nov." and "kl.\u00a014.00" never wrap apart. */
+const NBSP = '\u00a0';
 
 /** Clock time: "14:00" in English, "14.00" in Danish. */
 export function clock(ms: number, locale: Locale): string {
@@ -31,7 +35,7 @@ export function capitalize(s: string): string {
 export function dayDate(ms: number, locale: Locale): string {
   const month = new Intl.DateTimeFormat(LOCALE_TAG[locale], { month: 'short', timeZone: DROP_TIME_ZONE }).format(new Date(ms));
   const { day } = toLocal(ms);
-  return locale === 'da' ? `${weekday(ms, locale)} ${day}. ${month}` : `${weekday(ms, locale)} ${day} ${month}`;
+  return locale === 'da' ? `${weekday(ms, locale)} ${day}.${NBSP}${month}` : `${weekday(ms, locale)} ${day}${NBSP}${month}`;
 }
 
 /** Whole calendar days from `now` to `ms` in Copenhagen: 0 today, 1 tomorrow, -1 yesterday. */
@@ -68,14 +72,14 @@ export function relativeMeetup(t: TFunction, ms: number, now: number, locale: Lo
 /** A chat message's time: "13:41" today, "Fri 15:02" / "fre. 15.02" on another day (the window spans about two days). */
 export function messageTime(ms: number, now: number, locale: Locale): string {
   const time = clock(ms, locale);
-  return daysFromToday(ms, now) === 0 ? time : `${weekday(ms, locale, 'short')} ${time}`;
+  return daysFromToday(ms, now) === 0 ? time : `${weekday(ms, locale, 'short')}${NBSP}${time}`;
 }
 
 /** A day on a picker: "Sun 15 Nov" / "søn. 15. nov.". */
 export function shortDayDate(ms: number, locale: Locale): string {
   const month = new Intl.DateTimeFormat(LOCALE_TAG[locale], { month: 'short', timeZone: DROP_TIME_ZONE }).format(new Date(ms));
   const { day } = toLocal(ms);
-  return locale === 'da' ? `${weekday(ms, locale, 'short')} ${day}. ${month}` : `${weekday(ms, locale, 'short')} ${day} ${month}`;
+  return locale === 'da' ? `${weekday(ms, locale, 'short')} ${day}.${NBSP}${month}` : `${weekday(ms, locale, 'short')} ${day}${NBSP}${month}`;
 }
 
 /** A picker time "HH:MM" as people read it: "15:00" in English, "15.00" in Danish. */

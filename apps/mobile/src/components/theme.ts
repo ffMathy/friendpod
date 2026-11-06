@@ -32,7 +32,7 @@ const light = {
   textBody: '#2C3631',
   /** Helper text, captions, inactive tabs, "Step 2 of 6". */
   textMuted: '#55605A',
-  /** Placeholders, unfilled star outline, dashed empty circles. */
+  /** Unfilled star outline, dashed empty circles. Too light for text (placeholders use `textMuted`). */
   textFaint: '#9AA59D',
 
   /** Card borders, dividers, progress tracks. */
@@ -110,6 +110,8 @@ const light = {
   /** Disabled buttons. */
   disabledBg: '#DCE2DC',
   disabledText: '#55605A',
+  /** The round knob of a switch (on the green track when on, the grey track when off). */
+  switchThumb: '#FFFFFF',
 
   /** Initials avatars (the "You" avatar uses ink). Text on them is `onAvatar`. */
   avatar1: '#F7D58E',
@@ -193,6 +195,7 @@ const dark: Palette = {
   scrim: 'rgba(0, 0, 0, 0.6)',
   disabledBg: '#2C3531',
   disabledText: '#97A29B',
+  switchThumb: '#F4F7F3',
 
   avatar1: '#E9C67D',
   avatar2: '#86B9A8',

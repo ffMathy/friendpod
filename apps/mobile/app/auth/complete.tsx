@@ -2,21 +2,25 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
-import { Banner, Button, Illustration, Logo, Screen, Text, TextField, TextLink, Title } from '@/components/ui';
+import { Banner, Button, Screen, Text, TextField, TextLink, Title } from '@/components/ui';
 import { usePalette } from '@/components/theme';
+import { AuthHeader } from '@/features/auth/AuthHeader';
 import { completeEmailLink, isEmailLink, pendingEmail } from '@/features/auth/emailLink';
+import { useSession } from '@/features/session/SessionProvider';
 import { useEmulators } from '@/lib/env';
 
 /**
  * Email-link completion (§11). Reached through `+native-intent` with the incoming URL in `link`. If the
  * link was opened on another device (no stored address), the user confirms the address. In emulator
  * builds the Auth emulator prints links instead of sending them, so a link can be pasted here.
- * Drawn like the welcome screen (logo, 30/800 title, lede); the native header is hidden.
+ * Drawn like /email, the step before it (the welcome logo, 30/800 title, lede, actions pinned at the bottom); the
+ * native header is hidden.
  */
 export default function CompleteEmailLink() {
   const { t } = useTranslation();
   const router = useRouter();
   const p = usePalette();
+  const { phase } = useSession();
   const params = useLocalSearchParams<{ link?: string }>();
   const [link, setLink] = useState(params.link ?? '');
   const [email, setEmail] = useState('');
@@ -49,11 +53,16 @@ export default function CompleteEmailLink() {
   const manual = useEmulators && !params.link;
   const askEmail = needsEmail || manual;
   const error = state === 'invalid' ? t('auth.complete.invalid') : state === 'failed' ? t('auth.complete.failed') : null;
-  // With a stored address there is nothing to correct: an error ends here, with a way back to the start.
+  // With a stored address there is nothing to correct here: an error ends in a new link (the email step, which starts
+  // with the stored address) or a way back to the start.
   const dead = error !== null && !askEmail;
+  // A signed-in person re-authenticating (export, deletion) gets a new link from the action that asked for it, and
+  // the email step is for signed-out people only.
+  const offerNewLink = dead && phase === 'signedOut';
 
   const title = askEmail ? t('auth.complete.confirmTitle') : dead ? t('auth.complete.errorTitle') : t('auth.complete.title');
   const lede = askEmail ? t('auth.complete.confirmBody') : dead ? error : t('auth.complete.body');
+  const restart = () => router.replace('/');
 
   return (
     <>
@@ -61,11 +70,7 @@ export default function CompleteEmailLink() {
       <Screen
         safeTop
         gap={24}
-        header={
-          <View style={styles.headerRow}>
-            <Logo size="md" />
-          </View>
-        }
+        header={<AuthHeader />}
         footer={
           askEmail ? (
             <>
@@ -76,25 +81,26 @@ export default function CompleteEmailLink() {
                 onPress={() => void complete(link, email.trim())}
               />
               {/* A link opened on the wrong phone, or an address the person no longer remembers: a way out. */}
-              <TextLink label={t('auth.complete.restart')} align="center" onPress={() => router.replace('/')} />
+              <TextLink label={t('auth.complete.restart')} align="center" onPress={restart} />
+            </>
+          ) : offerNewLink ? (
+            <>
+              <Button label={t('auth.complete.newLink')} onPress={() => router.replace('/email')} />
+              <TextLink label={t('auth.complete.restart')} align="center" onPress={restart} />
             </>
           ) : dead ? (
-            <Button variant="outline" label={t('auth.complete.restart')} onPress={() => router.replace('/')} />
+            <Button label={t('auth.complete.restart')} onPress={restart} />
           ) : undefined
         }
       >
-        {/* Progress and the dead end are drawn like the welcome screen: the mint art, then the title, centred. */}
-        <View style={askEmail ? styles.titleBlock : styles.centred}>
-          {askEmail ? null : <Illustration variant="welcome" />}
-          <View style={styles.titleBlock}>
-            <Title>{title}</Title>
-            {/* An error is announced (it replaces the progress line once the link has been tried). */}
-            <Text variant="lede" color="textMuted" accessibilityRole={dead ? 'alert' : undefined}>
-              {lede}
-            </Text>
-          </View>
-          {!askEmail && !dead ? <ActivityIndicator size="large" color={p.primary} accessibilityLabel={t('auth.complete.body')} style={styles.spinner} /> : null}
+        <View style={styles.titleBlock}>
+          <Title>{title}</Title>
+          {/* An error is announced (it replaces the progress line once the link has been tried). */}
+          <Text variant="lede" color="textMuted" accessibilityRole={dead ? 'alert' : undefined}>
+            {lede}
+          </Text>
         </View>
+        {!askEmail && !dead ? <ActivityIndicator size="large" color={p.primary} accessibilityLabel={t('auth.complete.title')} style={styles.spinner} /> : null}
         {manual ? <TextField label={t('auth.complete.pasteLink')} value={link} onChangeText={setLink} autoCapitalize="none" autoCorrect={false} /> : null}
         {askEmail ? (
           <TextField
@@ -120,8 +126,6 @@ export default function CompleteEmailLink() {
 }
 
 const styles = StyleSheet.create({
-  headerRow: { minHeight: 44, flexDirection: 'row', alignItems: 'center' },
   titleBlock: { gap: 8 },
-  centred: { flexGrow: 1, justifyContent: 'center', gap: 20 },
   spinner: { alignSelf: 'flex-start' },
 });

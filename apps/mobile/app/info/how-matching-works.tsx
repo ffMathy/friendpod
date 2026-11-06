@@ -33,9 +33,10 @@ export default function HowMatchingWorks() {
   const meetAgainWeeks = getMatchingProfile('launch').defaults.h5.meetAgainWeeks;
   const pauses = [
     t('info.howMatchingWorks.pauseList.reports', { window: days(REPORT_WINDOW_MS), days: days(REPORT_PAUSE_MS) }),
-    t('info.howMatchingWorks.pauseList.underage', { days: days(UNDERAGE_PAUSE_MS) }),
+    // The report reasons are quoted with the report sheet's own option labels, so the rule names the button pressed.
+    t('info.howMatchingWorks.pauseList.underage', { days: days(UNDERAGE_PAUSE_MS), reason: t('report.categories.underage') }),
     t('info.howMatchingWorks.pauseList.noShow', { window: NO_SHOW_WINDOW_WEEKS, weeks: weeks(NO_SHOW_PAUSE_MS), suspension: weeks(NO_SHOW_SUSPENSION_MS) }),
-    t('info.howMatchingWorks.pauseList.notGenuine', { days: days(SENSITIVE_HOLD_MS) }),
+    t('info.howMatchingWorks.pauseList.notGenuine', { days: days(SENSITIVE_HOLD_MS), reason: t('report.categories.notGenuine') }),
   ];
   return (
     <ShellPage title={t('info.howMatchingWorks.title')} testID="how-matching-works">

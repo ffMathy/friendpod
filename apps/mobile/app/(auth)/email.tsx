@@ -1,16 +1,18 @@
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
-import { BackButton, Banner, Button, Lede, Screen, TextField, Title } from '@/components/ui';
-import { sendEmailLink } from '@/features/auth/emailLink';
+import { Banner, Button, Lede, Screen, TextField, Title } from '@/components/ui';
+import { AuthHeader } from '@/features/auth/AuthHeader';
+import { pendingEmail, sendEmailLink } from '@/features/auth/emailLink';
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
- * Email magic link (F10), reached from "Continue with email" on the welcome screen; laid out like the onboarding
- * steps (back chevron, 30/800 title, lede, field, the action pinned at the bottom). The address is kept in secure
- * storage until the link is opened.
+ * Email magic link (F10), reached from "Continue with email" on the welcome screen, or from "Send a new link" when a
+ * link did not work. Laid out like the onboarding steps (the welcome logo behind a back chevron, 30/800 title, lede,
+ * field, the action pinned at the bottom). The address is kept in secure storage on this phone until the link is
+ * opened; if one is still there (a link was asked for before), the field starts with it.
  */
 export default function EmailSignIn() {
   const { t } = useTranslation();
@@ -19,6 +21,19 @@ export default function EmailSignIn() {
   const [state, setState] = useState<'idle' | 'sending' | 'sent' | 'failed'>('idle');
   const [sentTo, setSentTo] = useState('');
   const valid = EMAIL.test(email.trim());
+
+  useEffect(() => {
+    let live = true;
+    void pendingEmail()
+      .then((stored) => {
+        // Never overwrite what the person has started typing.
+        if (live && stored) setEmail((typed) => (typed === '' ? stored : typed));
+      })
+      .catch(() => undefined);
+    return () => {
+      live = false;
+    };
+  }, []);
 
   const send = async () => {
     setState('sending');
@@ -37,11 +52,7 @@ export default function EmailSignIn() {
     <Screen
       safeTop
       gap={24}
-      header={
-        <View style={styles.headerRow}>
-          <BackButton onPress={back} accessibilityLabel={t('common.back')} />
-        </View>
-      }
+      header={<AuthHeader onBack={back} />}
       footer={
         <Button
           testID="send-email-link"
@@ -87,6 +98,5 @@ export default function EmailSignIn() {
 }
 
 const styles = StyleSheet.create({
-  headerRow: { flexDirection: 'row', alignItems: 'center' },
   titleBlock: { gap: 8 },
 });

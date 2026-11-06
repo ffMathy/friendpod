@@ -144,7 +144,7 @@
       "storyboard": "pod-plan.dc.html",
       "route": "/pod/braetspilpodaarhus46/plan",
       "scenario": "pod-planning",
-      "notes": "Two options: Sat 14 Nov 14:00 (3 yes: Mette, Jonas, you) and Sun 15 Nov 11:00 (2 yes, you have not voted). One spot left."
+      "notes": "Monday 16 Nov, voting closes Tuesday 17 Nov 18:00 (72 h after the pod was confirmed at Saturday's answer deadline; see WEEK46 in scenarios/_pod.ts). Two options: Sat 21 Nov 14:00 (3 yes: Mette, Jonas, you) and Sun 22 Nov 11:00 (2 yes, you have not voted). One spot left. The storyboard's \"Saturday 15 Nov\" comes before both deadlines."
     },
     {
       "id": "pod-propose",
@@ -152,13 +152,13 @@
       "storyboard": "pod-propose.dc.html",
       "route": "/pod/braetspilpodaarhus46/propose",
       "scenario": "pod-planning",
-      "notes": "\"Suggest a time\" opens from the planner's \"Suggest another time\". Steps pick Sunday 15 Nov at 15:00 from the Day and Time sheets (the storyboard's Sunday, see the date note in _kit.ts), type \"café latin\" in the place search, pick the first placeholder place so it shows selected, and focus the search again (the storyboard draws it focused). Place search goes to the scenario's places, named in the preview's language (Google Places is stubbed on the network).",
+      "notes": "\"Suggest a time\" opens from the planner's \"Suggest another time\". Steps pick Sunday 22 Nov at 15:00 from the Day and Time sheets (the storyboard's Sunday, after the planning window: see WEEK46 in scenarios/_pod.ts), type \"café latin\" in the place search, pick the first placeholder place so it shows selected, and focus the search again (the storyboard draws it focused). Place search goes to the scenario's places, named in the preview's language (Google Places is stubbed on the network).",
       "steps": [
         {
           "click": "[data-testid=\"option-date\"]"
         },
         {
-          "click": "[data-testid=\"option-day-2026-11-15\"]"
+          "click": "[data-testid=\"option-day-2026-11-22\"]"
         },
         {
           "click": "[data-testid=\"option-time\"]"
@@ -388,7 +388,31 @@
       "storyboard": null,
       "route": "/pod/braetspilpodaarhus46/plan",
       "scenario": "pod-scheduled",
-      "notes": ""
+      "notes": "\"Your meetup\": voting closed and the Saturday option won with 3 yes votes; the plan with map, safety and calendar; the viewer's answer and who else is coming."
+    },
+    {
+      "id": "app-pod-extended",
+      "title": "Pod route in the extra voting round (\"No time works yet\")",
+      "storyboard": null,
+      "route": "/pod/braetspilpodaarhus46",
+      "scenario": "pod-planning-extended",
+      "notes": "No option had 3 yes votes at Tuesday's deadline: one extra 24 h round until Wednesday 18:00 (D7; the planning sticky note)."
+    },
+    {
+      "id": "app-pod-plan-extended",
+      "title": "Planner in the extra voting round",
+      "storyboard": null,
+      "route": "/pod/braetspilpodaarhus46/plan",
+      "scenario": "pod-planning-extended",
+      "notes": "Two options with 2 yes each, the viewer said no to both; one spot left for another option."
+    },
+    {
+      "id": "app-pod-private-confirmed",
+      "title": "Confirmed pod about a private interest (photos hidden)",
+      "storyboard": null,
+      "route": "/pod/privatepodaarhusweek",
+      "scenario": "pod-private-confirmed",
+      "notes": "The privacy sticky note: photos stay hidden in those pods until each person chooses to show theirs (S6). Only Line has; the viewer's \"Show my photo to this pod\" is off."
     },
     {
       "id": "app-pod-chat-friday",

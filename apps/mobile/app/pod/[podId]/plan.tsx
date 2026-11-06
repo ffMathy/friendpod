@@ -1,16 +1,19 @@
-import { OPTIONS_PER_POD } from '@grouper/core';
+import { OPTIONS_PER_POD, yesVotes } from '@grouper/core';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import { BackButton, Banner, Button, Card, ErrorText, Icon, Loading, Overline, Text, Title } from '@/components/ui';
 import { usePalette } from '@/components/theme';
 import { usePod, usePodCard, usePodOptions } from '@/data/docs';
 import { useCallable } from '@/data/useCallable';
+import { AttendanceCard } from '@/features/pods/AttendanceCard';
 import { LockedPlan } from '@/features/pods/LockedPlan';
 import { isConfirmedMember } from '@/features/pods/membership';
 import { goBack, PodPage } from '@/features/pods/parts';
+import { MembersCard, podMembers } from '@/features/pods/PodMembers';
 import { PlanOptionCard, SuggestTimeButton } from '@/features/pods/PlanOption';
-import { weekdayAt } from '@/features/pods/time';
+import { relativeMeetup, weekdayAt } from '@/features/pods/time';
 import { useUid } from '@/features/session/SessionProvider';
 import { currentLocale } from '@/i18n';
 import { errorMessageKey } from '@/lib/errors';
@@ -19,8 +22,9 @@ import { errorMessageKey } from '@/lib/errors';
  * Plan the meetup (§3.5, pod-plan): 2–3 options of a time and a public place from Google Places (D8), each with the
  * faces of everyone who said yes and the viewer's Yes / No; the option ahead is marked "Leading". Other members'
  * options can be reported by pressing and holding them. "Suggest another time" opens the form (pod-propose). When the deadline passes without 3
- * yes votes on one option, the pod gets one 24 h extension round (D7). Once the plan has locked, the screen shows it
- * with the map link and "Add to calendar".
+ * yes votes on one option, the pod gets one 24 h extension round (D7). Once the plan has locked ("Your meetup"), the
+ * screen says that voting has closed and how many yes votes won it (a yes counts as "I'm coming"), shows the plan with
+ * the map link, "Meeting safely" and "Add to calendar", the viewer's own answer, and who else is coming.
  */
 export default function Plan() {
   const { t } = useTranslation();
@@ -32,30 +36,57 @@ export default function Plan() {
   const member = isConfirmedMember(card.data);
   const pod = usePod(podId, member);
   const planning = member && card.data?.state === 'planning';
-  const options = usePodOptions(podId, planning);
+  // Options stay readable after the plan locks (until a new planning round), so the locked view can count the winner's votes.
+  const options = usePodOptions(podId, member);
   const vote = useCallable('voteOption');
+  const [now] = useState(() => Date.now());
   const locale = currentLocale();
 
   if (card.isLoading || (planning && options.isLoading)) {
     return <Loading label={t('common.loading')} />;
   }
   if (!planning) {
-    const locked = pod.data?.planning;
+    const d = pod.data;
+    const locked = d?.planning;
     const meetupAt = locked?.meetupAt?.toMillis();
-    return (
-      <PodPage top={32} gap={14}>
-        <BackButton onPress={() => goBack(router)} accessibilityLabel={t('common.back')} />
-        <Title>{t('plan.lockedTitle')}</Title>
-        {member && meetupAt !== undefined && locked?.place ? (
-          <Card radius={22} gap={12} testID="pod-plan">
-            <Overline>{t('pod.sections.plan')}</Overline>
-            <LockedPlan meetupAt={meetupAt} place={locked.place} />
-          </Card>
-        ) : (
+    if (!member || !d || meetupAt === undefined || !locked?.place) {
+      return (
+        <PodPage top={32} gap={14}>
+          <BackButton onPress={() => goBack(router)} accessibilityLabel={t('common.back')} />
+          <Title>{t('plan.lockedTitle')}</Title>
           <Text variant="body" color="textSecondary">
             {t('plan.notPlanning')}
           </Text>
-        )}
+        </PodPage>
+      );
+    }
+    const scheduled = d.state === 'scheduled';
+    const past = now >= meetupAt || d.state === 'happened' || d.state === 'archived';
+    const winner = (options.data ?? []).find((o) => o.id === locked.winningOptionId);
+    const won = winner ? yesVotes({ id: winner.id, startsAt: winner.data.startsAt.toMillis(), votes: winner.data.votes }, d.memberUids) : null;
+    const mine = d.attendance?.[uid] ?? null;
+    // "Your yes counts as I'm coming" only while it still does: a later "Can't make it" overrides the vote.
+    const yesCounts = scheduled && !past && winner?.data.votes[uid] === 'yes' && mine === 'coming';
+    const status = [won !== null ? t('plan.lockedWon', { count: won }) : t('plan.lockedClosed'), yesCounts ? t('plan.lockedYourYes') : null].filter(Boolean).join(' ');
+    return (
+      <PodPage top={32} gap={14}>
+        <View style={styles.header}>
+          <BackButton onPress={() => goBack(router)} accessibilityLabel={t('chat.backToPod')} />
+          <Title style={styles.title}>{t('plan.lockedTitle')}</Title>
+          <View style={styles.status} testID="plan-locked-status">
+            <Icon name="check" size={16} color={p.primary} style={styles.statusIcon} />
+            <Text variant="small" color="textMuted" style={[styles.deadlineText, styles.flex]}>
+              {status}
+            </Text>
+          </View>
+        </View>
+        {pod.error ? <ErrorText>{t('common.loadFailed')}</ErrorText> : null}
+        <Card radius={22} gap={12} testID="pod-plan">
+          <Overline style={styles.overline}>{t('pod.sections.plan')}</Overline>
+          <LockedPlan meetupAt={meetupAt} place={locked.place} past={past} {...(scheduled ? { onSafety: () => router.push('/info/safety') } : {})} />
+          {scheduled && !past ? <AttendanceCard podId={podId} when={relativeMeetup(t, meetupAt, now, locale)} mine={mine} ask={false} /> : null}
+        </Card>
+        <MembersCard podId={podId} members={podMembers(d.memberUids, d.roster, uid)} viewer={uid} attendance={scheduled ? (d.attendance ?? null) : null} />
       </PodPage>
     );
   }
@@ -145,4 +176,9 @@ const styles = StyleSheet.create({
   title: { lineHeight: 38 },
   deadline: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   deadlineText: { lineHeight: 18 },
+  flex: { flex: 1 },
+  // The status can run to two lines: the tick stays on the first (centred on its 18 px line).
+  status: { flexDirection: 'row', alignItems: 'flex-start', gap: 6 },
+  statusIcon: { marginTop: 1 },
+  overline: { lineHeight: 16 },
 });

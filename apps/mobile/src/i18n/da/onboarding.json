@@ -49,7 +49,7 @@
       "badge": "Private interesser"
     },
     "interests": {
-      "title": "Hvad er du til?",
+      "title": "Hvad går du op i?",
       "lede": "Med dine egne ord, på dansk eller engelsk. En pod samles om én ting, I alle deler."
     },
     "prefs": {
@@ -77,11 +77,6 @@
       "failed": "Billedet kunne ikke uploades. Du kan tilføje et senere."
     }
   },
-  "areaStatus": {
-    "waitlist": "På venteliste",
-    "beta": "I beta",
-    "live": "Åben"
-  },
   "prefs": {
     "ages": "Alder",
     "agesValue": "Alder {{min}} til {{max}}",
@@ -93,6 +88,14 @@
     "km": "{{km}} km",
     "aboutKm": "ca. {{km}} km",
     "languages": "Sprog til møderne",
+    "language": {
+      "da": "Dansk",
+      "en": "Engelsk"
+    },
+    "languageInText": {
+      "da": "dansk",
+      "en": "engelsk"
+    },
     "pickLanguage": "Vælg mindst ét sprog.",
     "availability": "Hvornår har du typisk tid?",
     "pickAvailability": "Vælg mindst ét tidspunkt.",
@@ -103,7 +106,7 @@
       "daytime": "Dag",
       "evening": "Aften"
     },
-    "openToAnyone": "Åben for at møde hvem som helst",
+    "openToAnyone": "Åben for at møde alle",
     "openToAnyoneHint": "Hvis ingen interesse passer, kan du blive matchet med folk i nærheden uden et fælles tema.",
     "sameGender": "Kun pods med samme køn",
     "sameGenderHint": "Vi spørger om dit køn og dit samtykke og bruger det kun til det her.",

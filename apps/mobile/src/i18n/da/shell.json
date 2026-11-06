@@ -43,23 +43,9 @@
     "reauthLinkSent": "For at bekræfte, at det er dig, har vi sendt et login-link til din e-mail. Åbn det, og prøv igen.",
     "privacy": {
       "title": "Privatliv",
-      "consents": "Dine samtykker",
-      "genderOn": "Pods med samme køn er slået til (bruger dit køn).",
-      "genderOff": "Pods med samme køn er slået fra; vi gemmer ikke dit køn.",
-      "withdrawGender": "Slå fra og slet mit køn",
       "deletePhoto": "Slet mit billede",
-      "yourData": "Dine data",
-      "exportBody": "Vi laver en fil med dine data. Den kan hentes i 24 timer og slettes inden for 48 timer.",
-      "export": "Hent mine data",
       "exportRequested": "Vi laver din fil og giver besked, når den er klar.",
-      "restrict": "Pause eller slet",
-      "pause": "Sæt matchning på pause nu",
-      "complaint": "Du kan klage til Datatilsynet (datatilsynet.dk).",
       "sensitiveTitle": "Følsomme interesser",
-      "sensitiveOn_one": "Du har sagt ja til følsomme interesser. {{count}} af dine interesser er privat.",
-      "sensitiveOn_other": "Du har sagt ja til følsomme interesser. {{count}} af dine interesser er private.",
-      "sensitiveOff": "Du har ikke sagt ja til følsomme interesser, så vi gemmer ikke interesser, der kan være følsomme.",
-      "giveSensitive": "Sig ja til følsomme interesser",
       "withdrawSensitive": "Træk samtykket til følsomme interesser tilbage",
       "exportFileTitle": "Dine Grouper-data",
       "exportDownload": "Hent filen",
@@ -71,12 +57,6 @@
     },
     "delete": {
       "title": "Slet konto",
-      "heading": "Slet din konto",
-      "what": "Vi sletter din profil, dine interesser, dit billede, dine pods og samtykker. Andre medlemmer ser kun, at et medlem er gået.",
-      "windows": "Sikkerhedskopier gemmes i op til 7 dage. Google kan gemme en kopi af dit login i op til 180 dage.",
-      "confirm": "Slet min konto",
-      "confirmTitle": "Slet din konto?",
-      "confirmBody": "Det kan ikke fortrydes. Du skal først bekræfte, at det er dig.",
       "done": "Din konto er slettet. Tak, fordi du prøvede Grouper."
     },
     "blocked": {
@@ -140,8 +120,8 @@
       "pauseList": {
         "reports": "To uafhængige anmeldelser inden for {{window}} dage eller én sikkerhedsanmeldelse: ingen drops i {{days}} dage.",
         "noShow": "To udeblivelser inden for {{window}} uger: {{weeks}} ugers pause. Tre: ingen drops i {{suspension}} uger.",
-        "underage": "En anmeldelse om »mistanke om under 18«: ingen drops i {{days}} dage. En ny anmeldelse fra en anden pod starter pausen forfra.",
-        "notGenuine": "En anmeldelse om »ikke et ægte medlem«: ingen pods om private interesser i {{days}} dage."
+        "underage": "En anmeldelse med begrundelsen »{{reason}}«: ingen drops i {{days}} dage. En ny anmeldelse af samme slags fra en anden pod starter pausen forfra.",
+        "notGenuine": "En anmeldelse med begrundelsen »{{reason}}«: ingen pods om private interesser i {{days}} dage."
       },
       "intro": "Hver torsdag sætter vi pods sammen med 4–6 personer nær dig, som deler en interesse. Her er, hvad der afgør, hvem du møder.",
       "usedTitle": "Det bruger vi",
@@ -189,7 +169,8 @@
         "who": "Hvem der ser dem",
         "withdraw": "Hvis du fortryder"
       },
-      "noticeTitle": "Når du tilføjer en interesse"
+      "noticeTitle": "Når du tilføjer en interesse",
+      "notice": "Siger den noget om dit helbred, din tro, din seksualitet, dine politiske holdninger, din etniske oprindelse eller dit fagforeningsmedlemskab, gemmer vi den kun, hvis du har sagt ja til følsomme interesser. Så holder vi den privat og bruger den kun som tema for en pod. Tilføj kun noget, der handler om dig selv."
     },
     "legalDraft": "Udkast",
     "legalPostcodes": "Postnumre",
@@ -248,7 +229,7 @@
   },
   "errors": {
     "UNAUTHENTICATED": "Log ind igen.",
-    "APP_CHECK": "Denne kopi af appen kunne ikke bekræftes. Opdater den, og prøv igen.",
+    "APP_CHECK": "Denne kopi af appen kunne ikke bekræftes. Opdatér den, og prøv igen.",
     "VALIDATION": "Noget af det, du har indtastet, er ikke gyldigt.",
     "URL": "Det link er ikke tilladt.",
     "CONTACT_INFO": "Kontaktoplysninger er ikke tilladt her.",

@@ -193,6 +193,14 @@ describe('report sheet (§3.7)', () => {
     await renderWith(<Report />);
     expect(screen.getByText('Report a message')).toBeOnTheScreen();
     expect(screen.getByText(/We keep a copy of this message/)).toBeOnTheScreen();
+    // The same categories, with "Something they wrote" first for a message.
+    expect(screen.getAllByRole('radio').map((r) => r.props.accessibilityLabel)).toEqual([
+      'Something they wrote',
+      'Harassment or disrespect',
+      'I felt unsafe',
+      "Didn't show up",
+      'May be under 18',
+    ]);
     await fireEvent.press(screen.getByText('I felt unsafe'));
     expect(screen.getByText('In danger right now? Call 112.')).toBeOnTheScreen();
     await fireEvent.press(screen.getByRole('button', { name: 'Send report' }));

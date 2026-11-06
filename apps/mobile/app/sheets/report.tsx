@@ -37,7 +37,9 @@ export default function Report() {
   const footerNudge = Math.max(insets.bottom, STORYBOARD_BOTTOM) - Math.max(insets.bottom, Layout.bottom);
   const [category, setCategory] = useState<ReportCategory | null>(null);
   const [text, setText] = useState('');
-  const categories = REPORT_CATEGORIES.filter((c) => c !== 'notGenuine' || card.data?.themeSensitive === true);
+  const offered = REPORT_CATEGORIES.filter((c) => c !== 'notGenuine' || card.data?.themeSensitive === true);
+  // A reported message is nearly always about what it says, so "Something they wrote" leads; same categories.
+  const categories = messageId ? [...offered.filter((c) => c === 'content'), ...offered.filter((c) => c !== 'content')] : offered;
   // The reported member's first name as this pod shows it (user reports, and option reports that name the author).
   const name = !messageId && targetUid ? pod.data?.roster[targetUid]?.firstName : undefined;
   const title = messageId

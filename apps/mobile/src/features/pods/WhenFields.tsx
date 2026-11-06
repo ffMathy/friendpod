@@ -124,7 +124,7 @@ function PickerField({ label, value, spokenValue, placeholder, icon, onPress, te
         onPress={onPress}
         style={({ pressed }) => [styles.box, { backgroundColor: pressed ? p.surfaceMuted : p.surface, borderColor: p.borderStrong }]}
       >
-        <Text variant="lede" color={value ? 'text' : 'textFaint'} numberOfLines={1} style={styles.value}>
+        <Text variant="lede" color={value ? 'text' : 'textMuted'} numberOfLines={1} style={styles.value}>
           {value ?? placeholder}
         </Text>
         <Icon name={icon} size={18} color={p.text} />

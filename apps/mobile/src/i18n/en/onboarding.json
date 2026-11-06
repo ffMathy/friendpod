@@ -77,11 +77,6 @@
       "failed": "The upload did not work. You can add a photo later."
     }
   },
-  "areaStatus": {
-    "waitlist": "On the waitlist",
-    "beta": "In beta",
-    "live": "Live"
-  },
   "prefs": {
     "ages": "Ages",
     "agesValue": "Ages {{min}} to {{max}}",
@@ -93,6 +88,14 @@
     "km": "{{km}} km",
     "aboutKm": "about {{km}} km",
     "languages": "Meetup language",
+    "language": {
+      "da": "Danish",
+      "en": "English"
+    },
+    "languageInText": {
+      "da": "Danish",
+      "en": "English"
+    },
     "pickLanguage": "Pick at least one language.",
     "availability": "When are you usually free?",
     "pickAvailability": "Pick at least one time.",

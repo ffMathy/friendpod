@@ -5,11 +5,11 @@
  *
  *   common      shared words and the design system's built-in strings (back, close, "(optional)", "Step n of N")
  *   auth        welcome, auth, languages
- *   onboarding  onboarding, areaStatus, prefs, gender, availability, aboutMe, waitlist
+ *   onboarding  onboarding, prefs, gender, availability, aboutMe, waitlist
  *   drop        home, unmatched, pods, podState
  *   pod         pod, plan, chat, attendance
- *   after       feedback, member, report, reasons
- *   privacy     interests, moderation
+ *   after       feedback, member, report
+ *   privacy     interests, moderation, privacy, sensitiveConsent, deleteAccount
  *   shell       tabs, me, settings, info, notices, blockingSetting, errors
  */
 import daAfter from './da/after.json';

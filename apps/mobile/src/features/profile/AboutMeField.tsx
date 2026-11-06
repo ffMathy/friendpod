@@ -68,7 +68,7 @@ export function AboutMeInput({ state, helper }: { readonly state: AboutMeState; 
         onBlur={() => setFocused(false)}
         maxLength={ABOUT_ME_MAX}
         placeholder={t('aboutMe.placeholder')}
-        placeholderTextColor={p.textFaint}
+        placeholderTextColor={p.textMuted}
         autoCapitalize="sentences"
         style={[
           typeStyle('body'),

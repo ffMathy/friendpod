@@ -157,7 +157,7 @@ export function Switch({ label, value, onChange, description, variant = 'card', 
         ) : null}
       </View>
       <View style={[styles.track, { backgroundColor: value ? p.primary : p.borderStrong }]}>
-        <View style={[styles.thumb, value ? styles.thumbOn : null]} />
+        <View style={[styles.thumb, { backgroundColor: p.switchThumb }, value ? styles.thumbOn : null]} />
       </View>
     </Pressable>
   );
@@ -305,7 +305,7 @@ const styles = StyleSheet.create({
   switchOutline: { borderWidth: BorderWidth.hairline, borderRadius: Radius.lg, paddingVertical: 8, paddingHorizontal: 16 },
   switchText: { flex: 1, gap: 4 },
   track: { width: 44, height: 26, borderRadius: 13, padding: 2, justifyContent: 'center' },
-  thumb: { width: 22, height: 22, borderRadius: 11, backgroundColor: '#FFFFFF' },
+  thumb: { width: 22, height: 22, borderRadius: 11 },
   thumbOn: { alignSelf: 'flex-end' },
   choice: { alignItems: 'center', justifyContent: 'center', paddingHorizontal: 14 },
   segmented: { flexDirection: 'row', borderWidth: BorderWidth.hairline, borderRadius: 20, padding: 3 },

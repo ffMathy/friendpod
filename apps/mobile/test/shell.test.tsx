@@ -328,8 +328,9 @@ describe('info pages', () => {
     await renderWith(<HowMatchingWorks />);
     expect(screen.getByText('Two independent reports within 30 days, or one safety report: no drops for 28 days.')).toBeOnTheScreen();
     expect(screen.getByText('Two missed meetups within 8 weeks: a 2-week pause. Three: no drops for 8 weeks.')).toBeOnTheScreen();
-    expect(screen.getByText(/report: no drops for 28 days\. A new such report/)).toBeOnTheScreen();
-    expect(screen.getByText('A “not a genuine member” report: no pods about private interests for 28 days.')).toBeOnTheScreen();
+    // The reasons are quoted with the report sheet's own option labels.
+    expect(screen.getByText('A report marked “May be under 18”: no drops for 28 days. A new such report from another pod starts it again.')).toBeOnTheScreen();
+    expect(screen.getByText('A report marked “Not a genuine member”: no pods about private interests for 28 days.')).toBeOnTheScreen();
     expect(screen.getByText(/can be matched again after 4 weeks/)).toBeOnTheScreen();
     expect(screen.getByText(/Photos, your “About me”/)).toBeOnTheScreen();
     expect(screen.getByRole('header', { name: 'No person reviews these decisions' })).toBeOnTheScreen();
@@ -357,10 +358,26 @@ describe('info pages', () => {
     expect(screen.queryByTestId('safety-pledge')).toBeNull();
   });
 
-  it('private interests: titled as the storyboards name them, with the interest notice from core verbatim', async () => {
+  it('private interests: titled as the storyboards name them; the box on adding one says it in the page\'s voice, not the field\'s tip', async () => {
     await renderWith(<SensitiveInterests />);
     expect(screen.getByRole('header', { name: 'Private interests' })).toBeOnTheScreen();
-    expect(screen.getByText(/^Tip: interests that say something about your health/)).toBeOnTheScreen();
+    expect(screen.getByText('When you add an interest')).toBeOnTheScreen();
+    expect(screen.getByText(/^If it says something about your health, beliefs, sexuality, politics, ethnic origin or union membership/)).toBeOnTheScreen();
+    expect(screen.queryByText(/^Tip:/)).toBeNull();
+    expect(screen.queryByText(/Settings → Privacy/)).toBeNull();
+  });
+
+  it('how matching works, in Danish: the report reasons are the report sheet\'s own labels', async () => {
+    initI18n('da');
+    try {
+      await renderWith(<HowMatchingWorks />);
+      expect(screen.getByText(/^En anmeldelse med begrundelsen »Kan være under 18«: ingen drops i 28 dage\./)).toBeOnTheScreen();
+      expect(screen.getByText('En anmeldelse med begrundelsen »Ikke et ægte medlem«: ingen pods om private interesser i 28 dage.')).toBeOnTheScreen();
+    } finally {
+      await act(async () => {
+        initI18n('en');
+      });
+    }
   });
 
   it('legal pages are marked as drafts with the month of the draft, never the raw version id; an unknown page says so', async () => {

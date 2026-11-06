@@ -20,6 +20,8 @@ import { BorderWidth, Radius, usePalette } from '@/components/theme';
 import { useAreaDoc, usePod, usePodCard, usePodOptions, useUserDoc } from '@/data/docs';
 import { useCallable } from '@/data/useCallable';
 import { useChatSeenAt, unreadCount } from '@/features/chat/readMarker';
+import { TabTitle } from '@/features/drop/parts';
+import { weekNumber } from '@/features/drop/time';
 import { useChatMessages } from '@/features/chat/useChatMessages';
 import { useChatStatus, type ChatStatus } from '@/features/chat/window';
 import { AttendanceCard } from '@/features/pods/AttendanceCard';
@@ -44,12 +46,14 @@ function attendanceAskedAt(pod: PodDoc): number | null {
 }
 
 /**
- * A pod (§3.4, D13), on the Pods tab (its tab bar at the foot). Before confirmation: the proposal card (drop-proposal,
- * drop-waiting). While planning: the reveal (pod-confirmed): the green card with every member, what more than one of
- * them likes, "Meeting safely", and "Plan the meetup" as the one next step. From the locked plan on (pod-scheduled):
- * one dark "Next step" card driven by state (confirm attendance → chat during the window → give feedback), then calm
- * Plan, Chat and Members cards, the pod interests in their own card after Members. "Leave pod" and the safety tips are in
- * the pod menu (§3.8); block and report live in each member's sheet.
+ * A pod (§3.4, D13), on the Pods tab (its tab bar at the foot). Before confirmation: the proposal card under the drop's
+ * header, "Your weekly drop · Week 46", as on This week (drop-proposal, drop-waiting, priv-sensitive). While planning:
+ * the reveal (pod-confirmed): the green card with every member, what more than one of them likes, "Meeting safely",
+ * and "Plan the meetup" as the one next step. From the locked plan on (pod-scheduled): one dark "Next step" card
+ * driven by state (confirm attendance → chat during the window → give feedback), then calm Plan, Chat and Members
+ * cards and nothing more (the pod interests belong to the reveal). Once the meetup is past, the Plan card is a plain
+ * record of when and where. "Leave pod" and the safety tips are in the pod menu (§3.8); block and report live in each
+ * member's sheet.
  */
 export default function PodScreen() {
   const { t } = useTranslation();
@@ -93,9 +97,11 @@ export default function PodScreen() {
   if (!member) {
     const profileId = area.data?.profile ?? (areaId ? getLaunchArea(areaId)?.profile : undefined);
     return (
-      <PodPage tabBar top={32} gap={12}>
+      <PodPage tabBar top={32} gap={16}>
         {guard}
         <PodTopBar />
+        {/* The drop's header, as This week draws it over the same card; the card itself names the theme. */}
+        <TabTitle title={t('home.titleDrop')} meta={t('home.week', { week: weekNumber(c.acceptBy.toMillis()) })} />
         <ProposalCard podId={podId} card={c} {...(profileId ? { confirmationMin: getMatchingProfile(profileId).defaults.confirmationMin } : {})} />
       </PodPage>
     );
@@ -217,6 +223,8 @@ export default function PodScreen() {
 
   // ------------------------------------------------------------------ from the locked plan on (pod-scheduled)
   const place = d?.planning.place ?? null;
+  // The meetup has started, or the pod has moved on: no map, safety or calendar actions on a plan that has been.
+  const past = (meetupAt !== null && now >= meetupAt) || d?.state === 'happened' || d?.state === 'archived';
   let nextStep = null;
   if (step === 'confirmAttendance' && meetupAt !== null) {
     nextStep = <AttendanceCard podId={podId} when={relativeMeetup(t, meetupAt, now, locale)} mine={mine} ask />;
@@ -252,7 +260,7 @@ export default function PodScreen() {
         <Card radius={22} gap={12} testID="pod-plan">
           <Overline style={styles.overline}>{t('pod.sections.plan')}</Overline>
           {place ? (
-            <LockedPlan meetupAt={meetupAt} place={place} {...(d.state === 'scheduled' ? { onSafety: () => router.push('/info/safety') } : {})} />
+            <LockedPlan meetupAt={meetupAt} place={place} past={past} {...(d.state === 'scheduled' ? { onSafety: () => router.push('/info/safety') } : {})} />
           ) : (
             <Text variant="cardTitle">{meetupWhen(t, meetupAt, locale)}</Text>
           )}
@@ -263,8 +271,8 @@ export default function PodScreen() {
       {chatCard}
 
       {d ? <MembersCard podId={podId} members={members} viewer={uid} attendance={d.state === 'scheduled' ? (d.attendance ?? null) : null} /> : null}
-      {/* §3.4 shows members with their pod interests; the storyboard's Members card ends with the last member, so they follow on their own. */}
-      <PodInterestsCard interests={interests} />
+      {/* The page ends with Members (pod-scheduled, "3.4 is now one next-step card plus Plan, Chat and Members"); the pod
+          interests were shown in the reveal (§3.4). The photo switch stays: it is the member's own privacy control (S6). */}
       {photoSwitch}
       {leaveError}
     </PodPage>

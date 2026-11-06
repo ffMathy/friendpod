@@ -112,6 +112,10 @@ export default function Area() {
       title={t('onboarding.area.title')}
       lede={t('onboarding.area.lede')}
       onBack={back}
+      // onb-area spaces its blocks 24 apart, which pushes the area card's last line (the privacy promise) under the
+      // pinned Continue on a 390×844 phone. 20 between blocks, 12 round "or", the standard button height and a
+      // shorter map keep the whole card above the footer.
+      gap={20}
       footer={
         underage ? (
           // The server has already deleted the Auth user (§3.1); this drops the local session and caches.
@@ -121,36 +125,37 @@ export default function Area() {
         )
       }
     >
-      <View style={styles.field}>
-        {/* The field's label as TextField draws it, at the storyboard's normal (~19 px) line height. */}
-        <Label style={styles.label}>{t('onboarding.area.postcode')}</Label>
-        <TextField
-          testID="postcode"
-          labelHidden
-          label={t('onboarding.area.postcode')}
-          value={postcode}
-          onChangeText={changePostcode}
-          keyboardType="number-pad"
-          autoComplete="postal-code"
-          textContentType="postalCode"
-          maxLength={4}
-          error={unknownPostcode ? t('onboarding.area.unknownPostcode') : null}
-        />
-      </View>
+      <View style={styles.entry}>
+        <View style={styles.field}>
+          {/* The field's label as TextField draws it, at the storyboard's normal (~19 px) line height. */}
+          <Label style={styles.label}>{t('onboarding.area.postcode')}</Label>
+          <TextField
+            testID="postcode"
+            labelHidden
+            label={t('onboarding.area.postcode')}
+            value={postcode}
+            onChangeText={changePostcode}
+            keyboardType="number-pad"
+            autoComplete="postal-code"
+            textContentType="postalCode"
+            maxLength={4}
+            error={unknownPostcode ? t('onboarding.area.unknownPostcode') : null}
+          />
+        </View>
 
-      <OrDivider label={t('common.or')} />
+        <OrDivider label={t('common.or')} />
 
-      <View style={styles.locate}>
-        <Button
-          testID="use-location"
-          label={t('onboarding.area.useLocation')}
-          variant="outline"
-          icon="pin"
-          busy={locating}
-          onPress={() => void locate()}
-          style={styles.locateButton}
-        />
-        {locationFailed ? <ErrorText>{t('onboarding.area.locationFailed')}</ErrorText> : null}
+        <View style={styles.locate}>
+          <Button
+            testID="use-location"
+            label={t('onboarding.area.useLocation')}
+            variant="outline"
+            icon="pin"
+            busy={locating}
+            onPress={() => void locate()}
+          />
+          {locationFailed ? <ErrorText>{t('onboarding.area.locationFailed')}</ErrorText> : null}
+        </View>
       </View>
 
       {gh5 ? (
@@ -186,7 +191,7 @@ export default function Area() {
         <ErrorText>{t(errorMessageKey(complete.error))}</ErrorText>
       ) : null}
 
-      <Text variant="micro" color="textFaint">
+      <Text variant="micro" color="textMuted">
         {t('onboarding.area.attribution', { source: POSTCODE_SOURCE })}
       </Text>
     </OnboardingStep>
@@ -208,13 +213,13 @@ function OrDivider({ label }: { readonly label: string }) {
 }
 
 const styles = StyleSheet.create({
+  // Postcode, "or" and the location button are one choice, so they sit closer together than the step's blocks.
+  entry: { gap: 12 },
   field: { gap: 8 },
   label: { lineHeight: 19 },
   divider: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   line: { flex: 1, height: 1 },
   dividerLabel: { lineHeight: 16 },
   locate: { gap: 8 },
-  // The storyboard's location button is taller than a standard one (64 px, r32).
-  locateButton: { minHeight: 64 },
   section: { gap: 10 },
 });

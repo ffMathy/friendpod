@@ -13,14 +13,19 @@ export interface LockedPlanProps {
   readonly place: Place;
   /** "Meeting safely" beside the map link, on the pod page (the tips come with "Still coming?", §3.6). */
   readonly onSafety?: () => void;
+  /**
+   * The meetup has started or is over (`meetupAt` passed, or the pod has `happened`): the date and place stay as a
+   * plain record, without "Open in Maps", "Meeting safely" or "Add to calendar".
+   */
+  readonly past?: boolean;
 }
 
 /**
  * The locked plan (§3.4 Plan, §3.6; pod-scheduled "PLAN" card): "Saturday 14 Nov, 14:00", place name and address,
  * the map link stored with the option (`mapUrl`, from `googleMapsPlaceUrl`) and "Add to calendar", one tap to the
- * system sheet without the theme (D11).
+ * system sheet without the theme (D11). Once the meetup is past, only the date and the place are left.
  */
-export function LockedPlan({ meetupAt, place, onSafety }: LockedPlanProps) {
+export function LockedPlan({ meetupAt, place, onSafety, past = false }: LockedPlanProps) {
   const { t } = useTranslation();
   const locale = currentLocale();
   const [calendarFailed, setCalendarFailed] = useState(false);
@@ -40,13 +45,15 @@ export function LockedPlan({ meetupAt, place, onSafety }: LockedPlanProps) {
         <Text variant="small" color="textSecondary" style={styles.place}>
           {t('plan.placeLine', { name: place.name, address: place.address })}
         </Text>
-        <View style={styles.links}>
-          <SmallLink testID="open-map" label={t('pod.openMap')} accessibilityLabel={t('pod.openMapAt', { place: place.name })} onPress={openMap} />
-          {onSafety ? <SmallLink testID="safety-tips" icon="shield" underline={false} label={t('pod.safety.title')} onPress={onSafety} /> : null}
-        </View>
+        {past ? null : (
+          <View style={styles.links}>
+            <SmallLink testID="open-map" label={t('pod.openMap')} accessibilityLabel={t('pod.openMapAt', { place: place.name })} onPress={openMap} />
+            {onSafety ? <SmallLink testID="safety-tips" icon="shield" underline={false} label={t('pod.safety.title')} onPress={onSafety} /> : null}
+          </View>
+        )}
       </View>
       {mapFailed ? <ErrorText>{t('pod.mapFailed')}</ErrorText> : null}
-      <Button testID="add-to-calendar" label={t('pod.addToCalendar')} icon="calendarAdd" variant="outline" size="sm" fullWidth onPress={addToCalendar} />
+      {past ? null : <Button testID="add-to-calendar" label={t('pod.addToCalendar')} icon="calendarAdd" variant="outline" size="sm" fullWidth onPress={addToCalendar} />}
       {calendarFailed ? <ErrorText>{t('pod.calendarFailed')}</ErrorText> : null}
     </View>
   );

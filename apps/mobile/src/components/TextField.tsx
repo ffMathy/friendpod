@@ -82,7 +82,8 @@ export function TextField({
           <TextInput
             accessibilityLabel={label}
             accessibilityHint={helper}
-            placeholderTextColor={p.textFaint}
+            // Muted, not faint: every input's hint stays readable (about 6:1; textFaint is 2.5:1 on white).
+            placeholderTextColor={p.textMuted}
             multiline={multiline}
             maxLength={maxLength}
             value={value}

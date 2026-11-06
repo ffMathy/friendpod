@@ -143,7 +143,7 @@ export function PlacePicker({ language, gh5, value, onChange }: PlacePickerProps
               );
             })}
           </View>
-          <Text variant="micro" color="textFaint" align="right">
+          <Text variant="micro" color="textMuted" align="right">
             {t('plan.placeAttribution')}
           </Text>
         </View>

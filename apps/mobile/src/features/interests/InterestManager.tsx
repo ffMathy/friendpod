@@ -4,11 +4,22 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { BorderWidth, Radius, usePalette } from '@/components/theme';
-import { Banner, Button, Chip, ChipButton, ChipRow, ErrorText, Icon, PageHeader, Text, TextLink } from '@/components/ui';
+import { Badge, Banner, Button, Chip, ChipButton, ChipRow, ErrorText, Icon, PageHeader, Text, TextLink } from '@/components/ui';
 import { useAreaDoc, useInterests, useSensitiveInterests, useUserDoc } from '@/data/docs';
 import { useCallable } from '@/data/useCallable';
 import { errorMessageKey } from '@/lib/errors';
-import { AddField, formatDay, ListCard, ListCardTitle, MoreButton, Pill, PrivateHeader, StarButton, SuggestionBanner } from './parts';
+import {
+  AddField,
+  formatDay,
+  ListCard,
+  ListCardTitle,
+  MoreButton,
+  Pill,
+  PrivateHeader,
+  PrivateInfoLink,
+  StarButton,
+  SuggestionBanner,
+} from './parts';
 import { useAddInterest, type AddInterestOutcome, type HoldingChoice } from './useAddInterest';
 import { useEmbedder } from './useEmbedder';
 
@@ -233,13 +244,12 @@ export function InterestManager({ uid, locale, mode }: Props) {
   ) : null;
 
   // The locked notice text (interest-notice-*-v2), verbatim, at the storyboard's 13/1.5 (19.5 px, not the caption's 20).
-  const noticeBanner = (
-    <Banner tone="info">
-      <Text variant="caption" color="textSecondary" style={styles.notice}>
-        {notice.kind === 'interestNotice' ? notice.content.text : ''}
-      </Text>
-    </Banner>
+  const noticeText = (
+    <Text variant="caption" color="textSecondary" style={styles.notice}>
+      {notice.kind === 'interestNotice' ? notice.content.text : ''}
+    </Text>
   );
+  const noticeBanner = <Banner tone="info">{noticeText}</Banner>;
   const nudge =
     rows.length < NUDGE_BELOW && !loading ? (
       <Text variant="caption" color="textMuted">
@@ -311,6 +321,8 @@ export function InterestManager({ uid, locale, mode }: Props) {
     );
   }
 
+  // The private card's "Off" state: no consent, no private interest left, and the user doc has loaded.
+  const consentOff = locked.length === 0 && !hasArt9Consent && Boolean(user.data);
   return (
     <View style={styles.column}>
       <View style={styles.tabHeader}>
@@ -344,6 +356,11 @@ export function InterestManager({ uid, locale, mode }: Props) {
       </ListCard>
       {nudge}
 
+      {/*
+        The standing notice on sensitive interests (interest-notice-*-v2, PRIVACY §3.2) is not on priv-interests. In full
+        it says what happens without the consent, so it stands in the private card while the consent is off, in place of
+        a separate tip card. With the consent given, one line under the lists opens it on the info page instead.
+      */}
       {locked.length > 0 ? (
         <ListCard tone="private" testID="private-interests">
           <PrivateHeader />
@@ -361,20 +378,16 @@ export function InterestManager({ uid, locale, mode }: Props) {
             {t('interests.privateExplainer')}
           </Text>
         </ListCard>
-      ) : !hasArt9Consent && user.data ? (
+      ) : consentOff ? (
         <ListCard tone="private" testID="private-interests-off">
-          <PrivateHeader />
-          <Text variant="caption" color="textMuted" style={styles.explainer}>
-            {t('interests.privateOff')}
-          </Text>
+          <PrivateHeader trailing={<Badge tone="outline" size="sm" label={t('interests.privateOffBadge')} />} />
+          {noticeText}
           <TextLink label={t('interests.giveConsent')} onPress={openConsent} />
         </ListCard>
       ) : null}
-      {/*
-        The standing notice on sensitive interests (interest-notice-*-v2, DESIGN §3.1 step 8) stays on the tab, but
-        under the lists: priv-interests has no notice, and above the lists it pushed the private card below the fold.
-      */}
-      {noticeBanner}
+      {consentOff ? null : (
+        <PrivateInfoLink testID="private-interests-how" label={t('interests.howPrivate')} onPress={() => router.push('/info/sensitive-interests')} />
+      )}
     </View>
   );
 }

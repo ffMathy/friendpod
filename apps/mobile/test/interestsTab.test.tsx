@@ -1,6 +1,6 @@
 import { addInterestsInput } from '@grouper/core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen, within } from '@testing-library/react-native';
 import type * as ReactModule from 'react';
 import { InterestManager } from '@/features/interests/InterestManager';
 
@@ -150,9 +150,19 @@ describe('Interests tab (§11)', () => {
     expect(mockCall).toHaveBeenCalledWith('removeInterest', { interestId: 'aaaaaaaaaaaaaaaa' });
   });
 
-  it('keeps the standing notice on sensitive interests, under the lists', async () => {
+  it('without consent, the private card is "Off" and carries the standing notice in full (PRIVACY §3.2)', async () => {
     await renderTab();
-    expect(screen.getByText(/^Tip: interests that say something about your health/)).toBeOnTheScreen();
+    expect(within(screen.getByTestId('private-interests-off')).getByText('Off')).toBeOnTheScreen();
+    expect(within(screen.getByTestId('private-interests-off')).getByText(/^Tip: interests that say something about your health/)).toBeOnTheScreen();
+    expect(screen.queryByRole('link', { name: 'How private interests work' })).toBeNull();
+  });
+
+  it('with consent, the notice is one line under the lists that opens it on the info page', async () => {
+    mockConsent = true;
+    await renderTab();
+    expect(screen.queryByText(/^Tip: interests that say something about your health/)).toBeNull();
+    await fireEvent.press(screen.getByRole('link', { name: 'How private interests work' }));
+    expect(mockRouter.push).toHaveBeenCalledWith('/info/sensitive-interests');
   });
 
   it('"Keep this private" without consent is refused on the phone and sends nothing', async () => {

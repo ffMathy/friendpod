@@ -227,16 +227,58 @@ describe('planner (§3.5)', () => {
     expect(mockRouter.push).not.toHaveBeenCalled();
   });
 
-  it('after the plan locks, shows it with the map link', async () => {
+  it('after the plan locks, says voting closed and which time won, shows the plan with the map link, and who is coming', async () => {
     const openURL = jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
     const meetupAt = Date.now() + 3 * DAY_MS;
     mockCard = { state: 'scheduled', myStatus: 'accepted', themeLabel: 'Brætspil', themeSensitive: false };
-    mockPod = { state: 'scheduled', planning: { deadline: ts(meetupAt - DAY_MS), meetupAt: ts(meetupAt), place } };
+    mockPod = {
+      state: 'scheduled',
+      memberUids: ['me', 'anna', 'bo', 'cy'],
+      roster: { me: { firstName: 'Mia', photoV: null }, anna: { firstName: 'Anna', photoV: null }, bo: { firstName: 'Bo', photoV: null }, cy: { firstName: 'Cy', photoV: null } },
+      planning: { deadline: ts(meetupAt - DAY_MS), meetupAt: ts(meetupAt), place, winningOptionId: 'opt1', planLockedAt: ts(meetupAt - DAY_MS) },
+      attendance: { me: 'coming', anna: 'coming', bo: 'coming', cy: 'unconfirmed' },
+    };
+    // A vote from someone who has left does not count.
+    mockOptions = [option('opt1', 'anna', { me: 'yes', anna: 'yes', bo: 'yes', gone: 'yes', cy: 'no' })];
     await renderPlan();
+    expect(screen.getByTestId('plan-locked-status')).toHaveTextContent('Voting has closed: this time won with 3 yes votes. Your yes counts as “I\'m coming”.');
     expect(screen.getByText('Dokk1 · Hack Kampmanns Plads 2, Aarhus')).toBeOnTheScreen();
     await fireEvent.press(screen.getByTestId('open-map'));
     expect(openURL).toHaveBeenCalledWith(place.mapUrl);
     expect(screen.getByTestId('add-to-calendar')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByTestId('safety-tips'));
+    expect(mockRouter.push).toHaveBeenLastCalledWith('/info/safety');
+    // The viewer's own answer, and the others with theirs.
+    expect(screen.getByText("You're coming.")).toBeOnTheScreen();
+    expect(screen.getByRole('link', { name: "Cy hasn't confirmed" })).toBeOnTheScreen();
+    expect(screen.getByRole('link', { name: 'Anna, Coming' })).toBeOnTheScreen();
     openURL.mockRestore();
+  });
+
+  it('after the meetup, the locked plan is a record: no map, safety or calendar, and no "your yes" once you cancelled', async () => {
+    const meetupAt = Date.now() - DAY_MS;
+    mockCard = { state: 'happened', myStatus: 'accepted', themeLabel: 'Brætspil', themeSensitive: false };
+    mockPod = {
+      state: 'happened',
+      memberUids: ['me', 'anna'],
+      roster: { me: { firstName: 'Mia', photoV: null }, anna: { firstName: 'Anna', photoV: null } },
+      planning: { deadline: ts(meetupAt - DAY_MS), meetupAt: ts(meetupAt), place, winningOptionId: 'opt1' },
+    };
+    mockOptions = [option('opt1', 'anna', { me: 'yes', anna: 'yes' })];
+    await renderPlan();
+    expect(screen.getByTestId('plan-locked-status')).toHaveTextContent('Voting has closed: this time won with 2 yes votes.');
+    expect(screen.getByText('Dokk1 · Hack Kampmanns Plads 2, Aarhus')).toBeOnTheScreen();
+    expect(screen.queryByTestId('open-map')).toBeNull();
+    expect(screen.queryByTestId('add-to-calendar')).toBeNull();
+    expect(screen.queryByTestId('attendance-cant')).toBeNull();
+    client.clear();
+
+    // Scheduled, but the viewer said "Can't make it" after voting yes: the vote no longer counts as coming.
+    mockCard = { state: 'scheduled', myStatus: 'accepted', themeLabel: 'Brætspil', themeSensitive: false };
+    mockPod = { ...mockPod, state: 'scheduled', planning: { deadline: ts(Date.now()), meetupAt: ts(Date.now() + 2 * DAY_MS), place, winningOptionId: 'opt1' }, attendance: { me: 'notComing', anna: 'coming' } };
+    mockOptions = [option('opt1', 'anna', { me: 'yes', anna: 'yes', bo: 'yes' })];
+    await renderPlan();
+    expect(screen.getByTestId('plan-locked-status')).toHaveTextContent(/^Voting has closed: this time won with 2 yes votes\.$/);
+    expect(screen.getByText('You said you can\'t make it.')).toBeOnTheScreen();
   });
 });

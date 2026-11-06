@@ -38,22 +38,28 @@ export interface ConfirmedHeroProps {
   readonly viewer: string;
 }
 
-/** pod-confirmed: brand-green card, "Confirmed", the theme in 34/800 and a row of members; each opens their sheet. */
+/**
+ * pod-confirmed: brand-green card, "Confirmed", the theme in 34/800 and a row of members; each opens their sheet. A pod
+ * about a private interest is drawn in the private purple with the lock, as its proposal was (priv-sensitive), and its
+ * members show their initials until each of them chooses to show their photo (S6).
+ */
 export function ConfirmedHero({ podId, theme, sensitive, subtitle, members, viewer }: ConfirmedHeroProps) {
   const { t } = useTranslation();
   const router = useRouter();
   const p = usePalette();
   const size = members.length > 5 ? 44 : 52;
+  const on: PaletteKey = sensitive ? 'onPrivate' : 'onBrand';
   return (
-    <Card variant="brand" testID="pod-confirmed">
+    <Card variant="brand" testID="pod-confirmed" style={sensitive ? { backgroundColor: p.private } : null}>
       <Badge tone="accent" label={t('pod.confirmed')} />
       <View style={styles.themeRow}>
-        {sensitive ? <Icon name="lock" size={24} color={p.onBrand} accessibilityLabel={t('pods.privateInterest')} /> : null}
-        <Text accessibilityRole="header" variant="themeCompact" color="onBrand" style={styles.flexShrink}>
+        {sensitive ? <Icon name="lock" size={24} color={p.onPrivate} accessibilityLabel={t('pods.privateInterest')} /> : null}
+        <Text accessibilityRole="header" variant="themeCompact" color={on} style={styles.flexShrink}>
           {theme}
         </Text>
       </View>
-      <Text variant="small" color="onBrandMuted" style={styles.heroLine}>
+      {/* On purple the muted line is full white: the green card's mint-grey has no purple twin in both themes. */}
+      <Text variant="small" color={sensitive ? 'onPrivate' : 'onBrandMuted'} style={styles.heroLine}>
         {subtitle}
       </Text>
       <View style={styles.grid}>
@@ -64,7 +70,7 @@ export function ConfirmedHero({ podId, theme, sensitive, subtitle, members, view
               {you ? (
                 // The viewer: near-black with a 2 px white ring and "You" in 15/800 (smaller faces: 13).
                 <View
-                  style={[styles.you, { width: size, height: size, borderRadius: size / 2, backgroundColor: p.ink, borderColor: p.onBrand }]}
+                  style={[styles.you, { width: size, height: size, borderRadius: size / 2, backgroundColor: p.ink, borderColor: p[on] }]}
                   accessible={false}
                   importantForAccessibility="no-hide-descendants"
                   accessibilityElementsHidden
@@ -76,7 +82,7 @@ export function ConfirmedHero({ podId, theme, sensitive, subtitle, members, view
               ) : (
                 <MemberAvatar uid={m.uid} name={m.firstName} size={size} photoV={m.photoV} />
               )}
-              <Text variant="captionBold" color="onBrand" numberOfLines={1} style={styles.heroName}>
+              <Text variant="captionBold" color={on} numberOfLines={1} style={styles.heroName}>
                 {m.firstName}
               </Text>
             </>
@@ -127,7 +133,8 @@ export function AboutMembersCard({ members, viewer }: { members: readonly Member
 
 /**
  * "More than one of you also likes": pod interests in the viewer's language, never attributed to anyone (§3.4). Its
- * own white card, under the reveal (pod-confirmed) and after the Members card once the plan has locked.
+ * own white card, part of the reveal (pod-confirmed) only: once the plan locks, the page is the next step plus Plan,
+ * Chat and Members (pod-scheduled).
  */
 export function PodInterestsCard({ interests }: { interests: readonly string[] }) {
   const { t } = useTranslation();
@@ -164,8 +171,8 @@ export interface MembersCardProps {
 /**
  * pod-scheduled "MEMBERS": the other members with photo, first name, their "about me" and, while the meetup is
  * scheduled, whether they're coming ("Hasn't confirmed" once unconfirmed). Each row opens the member's sheet, where
- * block and report live. The card ends with the last member, as on the storyboard; the pod interests follow in
- * their own card.
+ * block and report live. The card ends with the last member, as on the storyboard. The locked plan page ("Your
+ * meetup") shows the same card under the plan.
  */
 export function MembersCard({ podId, members, viewer, attendance }: MembersCardProps) {
   const { t } = useTranslation();

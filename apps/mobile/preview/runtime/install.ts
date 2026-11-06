@@ -84,3 +84,10 @@ window.addEventListener('unhandledrejection', (e) => reportIssue({ kind: 'unhand
   issues,
 };
 document.documentElement.lang = locale;
+
+// The app is native-only, where text fields draw no focus ring: their 2 px green border is the focus indicator.
+// Chrome adds its own black `outline: auto` ring to a focused <input>/<textarea>, which no React Native style can turn
+// off (`outlineStyle` has no `none`), so the preview removes it to show the field as a phone does.
+const nativeFocus = document.createElement('style');
+nativeFocus.textContent = 'input:focus, textarea:focus { outline: none; }';
+document.head.appendChild(nativeFocus);

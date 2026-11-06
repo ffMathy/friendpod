@@ -62,6 +62,8 @@ describe('feedback (D9, D15)', () => {
     mockCall.mockResolvedValue({ ok: true });
     await renderFeedback();
     expect(screen.getByText(/can be matched again after 4 weeks/)).toBeOnTheScreen();
+    // One untick is not a strike: a no-show needs most of the others (DESIGN §4.4).
+    expect(screen.getByText(/only counts as a no-show if most of you untick them/)).toBeOnTheScreen();
     // Bo answered first, then unticked: he was not there, so his answer is not sent.
     await fireEvent.press(screen.getByRole('radio', { name: 'Yes, meet Bo again' }));
     await fireEvent.press(screen.getByTestId('there-bo'));

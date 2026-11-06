@@ -131,7 +131,8 @@ export function PreferencesFields({ controller, locale, showOpenToAnyone = true 
                   key={lang}
                   testID={`language-${lang}`}
                   variant="inline"
-                  label={t(`languages.${lang}`)}
+                  // The language's name in the reader's language ("Engelsk"), not the app-language picker's endonym.
+                  label={t(`prefs.language.${lang}`)}
                   checked={field.value.includes(lang)}
                   onChange={(on) => field.onChange(on ? [...field.value, lang] : field.value.filter((l) => l !== lang))}
                 />

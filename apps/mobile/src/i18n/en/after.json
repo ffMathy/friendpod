@@ -11,7 +11,7 @@
     "no": "No",
     "meetAgainYes": "Yes, meet {{name}} again",
     "meetAgainNo": "No, don't meet {{name}} again",
-    "explainer": "Everyone is ticked; untick anyone who wasn't there. Meet again: if you both say yes, you can be matched again after 4 weeks; if either says no, never again. Not sure? Leave it blank. Nobody sees your answers.",
+    "explainer": "Everyone is ticked; untick anyone who wasn't there. Someone only counts as a no-show if most of you untick them. Meet again: if you both say yes, you can be matched again after 4 weeks; if either says no, never again. Not sure? Leave it blank. Nobody sees your answers.",
     "notThereMyself": "I wasn't there myself",
     "notThereMyselfBody": "Then you can skip who came and who to meet again. Just tell us about the pod below.",
     "rating": "How was it overall?",
@@ -70,17 +70,5 @@
     "textWarningName": "Please don't include health or other sensitive details. {{name}} will not know who reported.",
     "textWarning": "Please don't include health or other sensitive details. Nobody is told who reported.",
     "send": "Send report"
-  },
-  "reasons": {
-    "THEME": "You both added “{{wording}}”",
-    "ALSO_SHARE": "You also share: {{list}}",
-    "AREA": "Near {{label}}",
-    "NEAR_YOU": "Everyone lives about {{km}} km or less from you",
-    "AGE_SPAN": "Ages {{min}}–{{max}}",
-    "PRIORITY_one": "You have waited {{count}} week, so you had priority",
-    "PRIORITY_other": "You have waited {{count}} weeks, so you had priority",
-    "SOFT_THEME": "Your “{{yourTag}}” is close to this pod's “{{podTheme}}”",
-    "OPEN_TO_ANYONE": "You are open to meet anyone nearby",
-    "footer": "Pods are formed automatically. Read “How matching works” to see which information is used."
   }
 }

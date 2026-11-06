@@ -11,7 +11,7 @@
     "no": "Nej",
     "meetAgainYes": "Ja, jeg vil gerne ses med {{name}} igen",
     "meetAgainNo": "Nej, jeg vil ikke ses med {{name}} igen",
-    "explainer": "Alle er krydset af – fjern krydset ved dem, der ikke kom. Ses igen: Siger I begge ja, kan I blive matchet igen efter 4 uger. Siger en af jer nej, bliver I aldrig matchet igen. Er du i tvivl, så lad være med at svare. Ingen ser dine svar.",
+    "explainer": "Alle er krydset af – fjern krydset ved dem, der ikke kom. Man regnes kun som udeblevet, hvis de fleste af jer fjerner krydset. Ses igen: Siger I begge ja, kan I blive matchet igen efter 4 uger. Siger en af jer nej, bliver I aldrig matchet igen. Er du i tvivl, så lad være med at svare. Ingen ser dine svar.",
     "notThereMyself": "Jeg var der ikke selv",
     "notThereMyselfBody": "Så kan du springe over, hvem der kom, og hvem du vil ses med igen. Fortæl os bare om poden herunder.",
     "rating": "Hvordan var det alt i alt?",
@@ -70,17 +70,5 @@
     "textWarningName": "Skriv ikke noget om helbred eller andre følsomme ting. {{name}} får ikke at vide, hvem der har anmeldt.",
     "textWarning": "Skriv ikke noget om helbred eller andre følsomme ting. Ingen får at vide, hvem der har anmeldt.",
     "send": "Send anmeldelse"
-  },
-  "reasons": {
-    "THEME": "I har begge tilføjet »{{wording}}«",
-    "ALSO_SHARE": "I deler også: {{list}}",
-    "AREA": "Nær {{label}}",
-    "NEAR_YOU": "Alle bor ca. {{km}} km eller mindre fra dig",
-    "AGE_SPAN": "Alder {{min}}–{{max}}",
-    "PRIORITY_one": "Du har ventet {{count}} uge, så du havde forrang",
-    "PRIORITY_other": "Du har ventet {{count}} uger, så du havde forrang",
-    "SOFT_THEME": "Din »{{yourTag}}« ligger tæt på podens »{{podTheme}}«",
-    "OPEN_TO_ANYONE": "Du er åben for at møde hvem som helst i nærheden",
-    "footer": "Pods dannes automatisk. Læs »Sådan virker matchningen« for at se, hvilke oplysninger der bruges."
   }
 }

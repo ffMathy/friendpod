@@ -1,7 +1,7 @@
 /**
  * The pieces of the interests screens that only this area uses (priv-interests.dc.html, onb-interests.dc.html):
  * the star toggle and the "…" button of a list row, the small pills ("Keep this private", "Remove & withdraw"),
- * the "Did you mean" notice and the purple header of the private-interests card.
+ * the "Did you mean" notice, the purple header of the private-interests card and the "How private interests work" link.
  */
 import { DROP_TIME_ZONE, type Locale } from '@grouper/core';
 import { useState, type ReactNode } from 'react';
@@ -209,17 +209,40 @@ export function SuggestionBanner({ label, typed, onYes, onNo }: { label: string;
   );
 }
 
-/** "🔒 PRIVATE INTERESTS" in purple, the private card's header. */
-export function PrivateHeader() {
+/** "🔒 PRIVATE INTERESTS" in purple, the private card's header; `trailing` sits at its end (the "Off" badge). */
+export function PrivateHeader({ trailing }: { trailing?: ReactNode }) {
   const p = usePalette();
   const { t } = useTranslation();
   return (
     <View style={styles.privateHeader}>
       <Icon name="lock" size={14} color={p.privateText} />
-      <Overline color="privateText" style={styles.overline}>
+      <Overline color="privateText" style={[styles.overline, styles.flex]}>
         {t('interests.privateTitle')}
       </Overline>
+      {trailing}
     </View>
+  );
+}
+
+/**
+ * "🔒 How private interests work": one line under the lists that opens /info/sensitive-interests, where the standing
+ * notice (interest-notice-*-v2) is shown in full. Purple like the private card it follows; 44 px tall.
+ */
+export function PrivateInfoLink({ label, onPress, testID }: { label: string; onPress: () => void; testID?: string }) {
+  const p = usePalette();
+  return (
+    <Pressable
+      testID={testID}
+      accessibilityRole="link"
+      accessibilityLabel={label}
+      onPress={onPress}
+      style={({ pressed }) => [styles.infoLink, { opacity: pressed ? 0.6 : 1 }]}
+    >
+      <Icon name="lock" size={14} color={p.privateText} />
+      <Text variant="smallBold" color="privateText" style={styles.underline}>
+        {label}
+      </Text>
+    </Pressable>
   );
 }
 
@@ -264,6 +287,10 @@ const styles = StyleSheet.create({
   starButton: { marginLeft: -8 },
   suggestion: { lineHeight: Math.round(14 * 1.45) },
   privateHeader: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  flex: { flex: 1 },
+  /** Pulled up 4 px so the 44 px target leaves the storyboard-like 16 px gap between the card and the text. */
+  infoLink: { minHeight: Size.hitTarget, flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', marginTop: -4 },
+  underline: { textDecorationLine: 'underline' },
   listCard: { borderWidth: BorderWidth.hairline, borderRadius: Radius.card, paddingVertical: 6, paddingHorizontal: 16 },
   privateCard: { borderWidth: BorderWidth.hairline, borderRadius: Radius.card, paddingVertical: 14, paddingHorizontal: 16, gap: 10 },
   listTitle: { marginTop: 10, marginBottom: 4 },

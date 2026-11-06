@@ -43,23 +43,9 @@
     "reauthLinkSent": "To confirm it's you, we sent a sign-in link to your email. Open it, then try again.",
     "privacy": {
       "title": "Privacy",
-      "consents": "Your consents",
-      "genderOn": "Same-gender pods are on (uses your gender).",
-      "genderOff": "Same-gender pods are off; we don't store your gender.",
-      "withdrawGender": "Turn off and delete my gender",
       "deletePhoto": "Delete my photo",
-      "yourData": "Your data",
-      "exportBody": "We prepare a file with your data. It is available for 24 hours and deleted within 48 hours.",
-      "export": "Download my data",
       "exportRequested": "We're preparing your file and will let you know when it's ready.",
-      "restrict": "Pause or delete",
-      "pause": "Pause matching now",
-      "complaint": "You can complain to the Danish Data Protection Agency (datatilsynet.dk).",
       "sensitiveTitle": "Sensitive interests",
-      "sensitiveOn_one": "You've agreed to sensitive interests. {{count}} of your interests is private.",
-      "sensitiveOn_other": "You've agreed to sensitive interests. {{count}} of your interests are private.",
-      "sensitiveOff": "You haven't agreed to sensitive interests, so we don't save interests that may be sensitive.",
-      "giveSensitive": "Agree to sensitive interests",
       "withdrawSensitive": "Withdraw consent for sensitive interests",
       "exportFileTitle": "Your Grouper data",
       "exportDownload": "Download the file",
@@ -71,12 +57,6 @@
     },
     "delete": {
       "title": "Delete account",
-      "heading": "Delete your account",
-      "what": "We delete your profile, interests, photo, pods and consents. Other members see only that a member left.",
-      "windows": "Backups are kept for up to 7 days. Google may keep a copy of your sign-in record for up to 180 days.",
-      "confirm": "Delete my account",
-      "confirmTitle": "Delete your account?",
-      "confirmBody": "This can't be undone. You will first confirm that it's you.",
       "done": "Your account has been deleted. Thanks for trying Grouper."
     },
     "blocked": {
@@ -140,8 +120,8 @@
       "pauseList": {
         "reports": "Two independent reports within {{window}} days, or one safety report: no drops for {{days}} days.",
         "noShow": "Two missed meetups within {{window}} weeks: a {{weeks}}-week pause. Three: no drops for {{suspension}} weeks.",
-        "underage": "A “suspected under 18” report: no drops for {{days}} days. A new such report from another pod starts it again.",
-        "notGenuine": "A “not a genuine member” report: no pods about private interests for {{days}} days."
+        "underage": "A report marked “{{reason}}”: no drops for {{days}} days. A new such report from another pod starts it again.",
+        "notGenuine": "A report marked “{{reason}}”: no pods about private interests for {{days}} days."
       },
       "intro": "Every Thursday we put together pods of 4–6 people near you who share an interest. This is what decides who you meet.",
       "usedTitle": "What we use",
@@ -189,7 +169,8 @@
         "who": "Who sees them",
         "withdraw": "If you change your mind"
       },
-      "noticeTitle": "When you add an interest"
+      "noticeTitle": "When you add an interest",
+      "notice": "If it says something about your health, beliefs, sexuality, politics, ethnic origin or union membership, we only save it if you have agreed to sensitive interests. We then keep it private and use it only as the theme of a pod. Only add things that are about you."
     },
     "legalDraft": "Draft",
     "legalPostcodes": "Postcodes",

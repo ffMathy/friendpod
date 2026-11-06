@@ -2,6 +2,8 @@ import { DAY_MS, googleMapsPlaceUrl } from '@grouper/core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen, within } from '@testing-library/react-native';
 import { createEventInCalendarAsync } from 'expo-calendar/legacy';
+import type React from 'react';
+import type * as ReactNative from 'react-native';
 import { Alert, Linking, type AlertButton } from 'react-native';
 import PodScreen from '../app/pod/[podId]/index';
 import { markChatSeen } from '@/features/chat/readMarker';
@@ -14,7 +16,14 @@ jest.mock('expo-router', () => ({ useRouter: () => mockRouter, useLocalSearchPar
 jest.mock('expo-calendar/legacy', () => ({ createEventInCalendarAsync: jest.fn(async () => ({ action: 'saved' })) }));
 jest.mock('@/features/session/SessionProvider', () => ({ useUid: () => 'me' }));
 jest.mock('@/features/pods/ScreenCaptureGuard', () => ({ ScreenCaptureGuard: () => null }));
-jest.mock('@/features/photos/AuthenticatedPhoto', () => ({ AuthenticatedPhoto: () => null }));
+// A photo is drawn only when the roster has a version for it; the stand-in marks where one would be.
+jest.mock('@/features/photos/AuthenticatedPhoto', () => ({
+  AuthenticatedPhoto: ({ owner }: { owner: string }) => {
+    const { createElement } = jest.requireActual<typeof React>('react');
+    const { View } = jest.requireActual<typeof ReactNative>('react-native');
+    return createElement(View, { testID: `photo-${owner}` });
+  },
+}));
 jest.mock('@/features/account/useDeviceCacheHygiene', () => ({ rememberCachedMessages: async () => undefined }));
 
 const live = (data: unknown) => ({ data, error: null, isLoading: false });
@@ -215,16 +224,36 @@ describe('pod screen (D13)', () => {
     expect(mockRouter.dismissTo).toHaveBeenLastCalledWith('/pods');
   });
 
-  it('keeps the scheduled page to next step, Plan, Chat and Members: pod interests follow Members in their own card, safety tips sit by the map link', async () => {
+  it('keeps the scheduled page to next step, Plan, Chat and Members (the pod interests belong to the reveal), safety tips sit by the map link', async () => {
     scheduled(30 * HOUR, { me: 'coming', anna: 'coming', bo: 'coming' });
     mockPod.podInterests = { da: ['surdej'], en: ['sourdough', 'coffee'] };
     await renderPod();
-    // The Members card ends with the last member (pod-scheduled); the interests are a card of their own after it.
+    // The page ends with the Members card (pod-scheduled: "one next-step card plus Plan, Chat and Members").
     expect(screen.getByTestId('pod-members')).not.toHaveTextContent(/also likes/);
-    expect(screen.getByTestId('pod-interests')).toHaveTextContent(/More than one of you also likes.*sourdough.*coffee/);
+    expect(screen.queryByTestId('pod-interests')).toBeNull();
+    expect(screen.queryByText('More than one of you also likes')).toBeNull();
     expect(screen.queryByRole('button', { name: 'Meeting safely' })).toBeNull();
     await fireEvent.press(screen.getByTestId('safety-tips'));
     expect(mockRouter.push).toHaveBeenLastCalledWith('/info/safety');
+  });
+
+  it('once the meetup is over, keeps the plan as a record of when and where: no calendar, map or safety links', async () => {
+    scheduled(-20 * HOUR, { me: 'coming', anna: 'coming', bo: 'coming' });
+    mockCard.state = 'happened';
+    mockPod.state = 'happened';
+    await renderPod();
+    expect(screen.getByText('How did it go?')).toBeOnTheScreen();
+    expect(screen.getByTestId('pod-plan')).toHaveTextContent(/Dokk1 · Hack Kampmanns Plads 2, Aarhus/);
+    expect(screen.queryByTestId('add-to-calendar')).toBeNull();
+    expect(screen.queryByTestId('open-map')).toBeNull();
+    expect(screen.queryByTestId('safety-tips')).toBeNull();
+    client.clear();
+
+    // Still `scheduled` in the two hours after the start: the meetup is under way, so nothing to add or find either.
+    scheduled(-HOUR, { me: 'coming', anna: 'coming', bo: 'coming' });
+    await renderPod();
+    expect(screen.getByTestId('pod-plan')).toHaveTextContent(/Dokk1/);
+    expect(screen.queryByTestId('add-to-calendar')).toBeNull();
   });
 
   it('lists members with their "about me", opens a member sheet, and opens the place in Maps', async () => {
@@ -255,6 +284,9 @@ describe('pod screen (D13)', () => {
     await renderPod();
     expect(screen.getByRole('button', { name: "I'm in" })).toBeOnTheScreen();
     expect(screen.queryByText('Members')).toBeNull();
+    // Under the drop's header, as on This week (opened from the Pods tab or a push, it is not a bare card).
+    expect(screen.getByRole('header', { name: 'Your weekly drop' })).toBeOnTheScreen();
+    expect(screen.getByText(/^Week \d{1,2}$/)).toBeOnTheScreen();
   });
 
   it('"I\'m coming" calls confirmAttendance at once; after "Can\'t make it" it reads "I\'m coming after all"', async () => {
@@ -289,6 +321,30 @@ describe('pod screen (D13)', () => {
     expect(screen.getByTestId('pod-chat-row')).not.toHaveTextContent(/new/);
     await fireEvent.press(screen.getByTestId('pod-chat-row'));
     expect(mockRouter.push).toHaveBeenCalledWith({ pathname: '/pod/[podId]/chat', params: { podId: POD_ID } });
+  });
+
+  it('in a pod about a private interest, photos stay hidden until each member shows theirs, and "Show my photo to this pod" calls setPhotoSharing', async () => {
+    mockCall.mockResolvedValue({ ok: true });
+    mockCard = { state: 'planning', myStatus: 'accepted', themeLabel: 'gravid', themeSensitive: true, acceptedCount: 3, areaLabel: 'Aarhus C', photoShared: false };
+    mockPod = {
+      state: 'planning',
+      areaLabel: 'Aarhus C',
+      memberUids: ['me', 'anna', 'bo'],
+      // S6: the roster carries a photo version only for a member who chose to show theirs (Anna).
+      roster: { me: { firstName: 'Mia', photoV: null }, anna: { firstName: 'Anna', photoV: 2 }, bo: { firstName: 'Bo', photoV: null } },
+      podInterests: { da: [], en: [] },
+      planning: { deadline: ts(Date.now() + 20 * HOUR) },
+      confirmedAt: ts(Date.now() - DAY_MS),
+    };
+    await renderPod();
+    expect(within(screen.getByTestId('pod-confirmed')).getByLabelText('Private interest')).toBeOnTheScreen();
+    // Avatars are decorative (the names sit beside them), so they are hidden from screen readers.
+    expect(screen.getByTestId('photo-anna', { includeHiddenElements: true })).toBeOnTheScreen();
+    expect(screen.queryByTestId('photo-bo', { includeHiddenElements: true })).toBeNull();
+    const toggle = screen.getByRole('switch', { name: 'Show my photo to this pod' });
+    expect(toggle).not.toBeChecked();
+    await fireEvent.press(toggle);
+    expect(mockCall).toHaveBeenCalledWith('setPhotoSharing', { podId: POD_ID, share: true });
   });
 
   it('while planning shows the reveal: every member opens their sheet, "about me" sentences, pod interests', async () => {

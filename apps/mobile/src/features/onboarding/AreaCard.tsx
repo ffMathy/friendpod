@@ -1,8 +1,8 @@
 import type { LaunchAreaStatus } from '@grouper/core';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
-import { BorderWidth, usePalette, type PaletteKey } from '@/components/theme';
-import { Card, Illustration, Small, Text } from '@/components/ui';
+import { BorderWidth, Radius, usePalette, type PaletteKey } from '@/components/theme';
+import { Card, Small, Text } from '@/components/ui';
 
 export interface AreaCardProps {
   /** What the user picked: the postcode's district ("Aarhus C"), the launch area, or "Near you". */
@@ -33,9 +33,27 @@ export function AreaCard({ name, area }: AreaCardProps) {
         </View>
         <StatusPill {...badge} />
       </View>
-      <Illustration variant="area" />
+      <AreaMap />
       <Small>{area ? t('onboarding.area.storedNote') : `${t('onboarding.area.outsideHint')} ${t('onboarding.area.storedNote')}`}</Small>
     </Card>
+  );
+}
+
+/** onb-area's map is 110 px tall; 90 keeps the whole card above the pinned Continue on a 390×844 phone. */
+const MAP_HEIGHT = 90;
+/** The storyboard's drawing, 304 px wide, squeezed to MAP_HEIGHT: the ~5 km cell between two streets. */
+const MAP_WIDTH = 304;
+const pct = (n: number) => `${(n / MAP_WIDTH) * 100}%` as const;
+
+/** The ~5 km cell as onb-area draws it: a sage square with a green edge on a grey map, crossed by two white streets. */
+function AreaMap() {
+  const p = usePalette();
+  return (
+    <View accessible={false} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden style={[styles.map, { backgroundColor: p.surfaceMuted }]}>
+      <View style={[styles.abs, styles.cell, { left: pct(120), width: pct(100), backgroundColor: p.sage, borderColor: p.primary }]} />
+      <View style={[styles.abs, styles.street, { left: pct(20), width: pct(300), backgroundColor: p.surface }]} />
+      <View style={[styles.abs, styles.avenue, { left: pct(190), backgroundColor: p.surface }]} />
+    </View>
   );
 }
 
@@ -59,6 +77,12 @@ function StatusPill({ label, bg, fg, border }: StatusPillProps) {
 }
 
 const styles = StyleSheet.create({
+  map: { height: MAP_HEIGHT, borderRadius: Radius.md, overflow: 'hidden', alignSelf: 'stretch' },
+  abs: { position: 'absolute' },
+  // 18/74 of 110 in the storyboard, scaled to 90; the cross street runs just below the cell's middle, as drawn there.
+  cell: { top: 15, height: 60, borderRadius: Radius.sm, borderWidth: BorderWidth.strong, opacity: 0.55 },
+  street: { top: 49, height: 2 },
+  avenue: { top: 0, width: 2, height: MAP_HEIGHT },
   pill: { height: 28, paddingHorizontal: 12, borderRadius: 14, justifyContent: 'center', flexShrink: 0 },
   top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
   name: { flexShrink: 1, gap: 2 },

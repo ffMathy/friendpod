@@ -6,6 +6,7 @@ import { AreaCard } from '@/features/onboarding/AreaCard';
 import { OnboardingDraftProvider, useOnboardingDraft, type OnboardingDraft } from '@/features/onboarding/draft';
 import { ageToFraction, fractionToAge } from '@/features/profile/AgeRangeSlider';
 import { PreferencesForm } from '@/features/profile/PreferencesForm';
+import { i18n } from '@/i18n';
 import { LEGAL_DOC_VERSIONS } from '@/lib/legal';
 import AboutYou from '../app/(onboarding)/about';
 import AddInterests from '../app/(onboarding)/add-interests';
@@ -248,10 +249,22 @@ describe('onboarding step 5, Who would you like to meet?', () => {
     expect(screen.getByText('Step 5 of 6')).toBeOnTheScreen();
     expect(screen.getByText('28–42')).toBeOnTheScreen();
     expect(screen.getByRole('radio', { name: 'about 10 km' })).toBeChecked();
-    expect(screen.getByRole('checkbox', { name: 'Dansk' })).toBeChecked();
+    expect(screen.getByRole('checkbox', { name: 'Danish' })).toBeChecked();
     expect(screen.getByRole('checkbox', { name: 'Saturday, daytime' })).toBeChecked();
     expect(screen.getByRole('checkbox', { name: 'Weekdays, daytime' })).not.toBeChecked();
     expect(screen.getByRole('switch', { name: 'Same-gender pods only' })).not.toBeChecked();
+  });
+
+  it('names the meetup languages in the reader\'s language, not as the app-language picker\'s endonyms', async () => {
+    await i18n.changeLanguage('da');
+    try {
+      await renderStep(<PodPreferences />);
+      expect(screen.getByRole('checkbox', { name: 'Dansk' })).toBeChecked();
+      expect(screen.getByRole('checkbox', { name: 'Engelsk' })).toBeChecked();
+      expect(screen.queryByText('English')).toBeNull();
+    } finally {
+      await i18n.changeLanguage('en');
+    }
   });
 
   it('saves the changes (never sameGenderOnly, which has its own consent) and goes on to the last step', async () => {
@@ -307,6 +320,40 @@ describe('onboarding step 5, Who would you like to meet?', () => {
   it('keeps "open to anyone" in Settings → Preferences', async () => {
     await renderStep(<PreferencesForm initial={PREFS} locale="en" submitLabel="Save" onSaved={jest.fn()} />);
     expect(screen.getByRole('switch', { name: 'Open to meeting anyone' })).not.toBeChecked();
+  });
+
+  it('same-gender pods turn on only through their own sheet: a gender, the unticked consent, then the proof', async () => {
+    mockCall.mockResolvedValue({ ok: true });
+    await renderStep(<PreferencesForm initial={PREFS} locale="en" submitLabel="Save" onSaved={jest.fn()} />);
+    await fireEvent.press(screen.getByRole('switch', { name: 'Same-gender pods only' }));
+    expect(screen.getByTestId('gender-sheet')).toBeOnTheScreen();
+    expect(screen.getByText('Same-gender pods')).toBeOnTheScreen();
+    expect(screen.getByTestId('gender-confirm')).toBeDisabled();
+    await fireEvent.press(screen.getByTestId('gender-woman'));
+    expect(screen.getByTestId('gender-confirm')).toBeDisabled();
+    await fireEvent.press(screen.getByTestId('gender-consent'));
+    await act(async () => await fireEvent.press(screen.getByTestId('gender-confirm')));
+    await flush();
+    expect(mockCall).toHaveBeenCalledWith('updateProfile', {
+      prefs: { sameGenderOnly: true },
+      gender: 'woman',
+      genderConsent: expect.objectContaining({ checked: true, textVersion: expect.any(String), textSha256: expect.any(String) }),
+    });
+    expect(screen.queryByTestId('gender-sheet')).toBeNull();
+    expect(screen.getByRole('switch', { name: 'Same-gender pods only' })).toBeChecked();
+  });
+
+  it('closing the same-gender sheet sends nothing and leaves the setting off', async () => {
+    await renderStep(<PreferencesForm initial={PREFS} locale="en" submitLabel="Save" onSaved={jest.fn()} />);
+    await fireEvent.press(screen.getByRole('switch', { name: 'Same-gender pods only' }));
+    await fireEvent.press(screen.getByTestId('gender-man'));
+    // The close cross and the Cancel button under the actions both say "Cancel".
+    const cancels = screen.getAllByRole('button', { name: 'Cancel' });
+    expect(cancels).toHaveLength(2);
+    await fireEvent.press(cancels[cancels.length - 1]!);
+    expect(screen.queryByTestId('gender-sheet')).toBeNull();
+    expect(mockCall).not.toHaveBeenCalled();
+    expect(screen.getByRole('switch', { name: 'Same-gender pods only' })).not.toBeChecked();
   });
 
   it('needs at least one time slot', async () => {

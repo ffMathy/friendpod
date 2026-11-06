@@ -23,6 +23,8 @@ jest.mock('@/features/auth/emailLink', () => ({
   pendingEmail: () => mockPendingEmail(),
 }));
 jest.mock('@/lib/env', () => ({ useEmulators: false }));
+let mockPhase: 'signedOut' | 'ready' = 'signedOut';
+jest.mock('@/features/session/SessionProvider', () => ({ useSession: () => ({ phase: mockPhase }) }));
 jest.mock('@/firebase', () => ({ auth: jest.fn() }));
 jest.mock('@react-native-firebase/auth', () => ({ AppleAuthProvider: {}, signInWithCredential: jest.fn(), reauthenticateWithCredential: jest.fn() }));
 
@@ -101,6 +103,28 @@ describe('email link (F10)', () => {
     expect(screen.getByRole('button', { name: 'Send a new link' })).toBeOnTheScreen();
   });
 
+  it('starts with the address a link was asked for before, under the welcome logo', async () => {
+    mockPendingEmail.mockResolvedValueOnce('emil@example.com');
+    await render(<EmailSignIn />);
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(screen.getByLabelText('Email address')).toHaveDisplayValue('emil@example.com');
+    expect(screen.getByRole('image', { name: 'Grouper' })).toBeOnTheScreen();
+  });
+
+  it('does not overwrite an address the person started typing with the stored one', async () => {
+    let resolve: (stored: string | null) => void = () => undefined;
+    mockPendingEmail.mockReturnValueOnce(new Promise((r) => (resolve = r)));
+    await render(<EmailSignIn />);
+    await fireEvent.changeText(screen.getByLabelText('Email address'), 'sofie@example.com');
+    await act(async () => {
+      resolve('emil@example.com');
+      await Promise.resolve();
+    });
+    expect(screen.getByLabelText('Email address')).toHaveDisplayValue('sofie@example.com');
+  });
+
   it('says when the link could not be sent', async () => {
     mockSendLink.mockRejectedValueOnce(new Error('auth/invalid-email'));
     await render(<EmailSignIn />);
@@ -114,6 +138,21 @@ describe('email link landing (§11)', () => {
   const link = 'https://grouper.example/__/auth/action?mode=signIn&oobCode=abc';
   afterEach(() => {
     mockParams = {};
+    mockPhase = 'signedOut';
+  });
+
+  it('says what is happening while the stored address signs in', async () => {
+    mockParams = { link };
+    mockPendingEmail.mockResolvedValueOnce('emil@example.com');
+    mockCompleteLink.mockReturnValueOnce(new Promise(() => undefined));
+    await render(<CompleteEmailLink />);
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(screen.getByRole('header', { name: 'Signing you in' })).toBeOnTheScreen();
+    expect(screen.getByText('This only takes a moment.')).toBeOnTheScreen();
+    expect(screen.getByRole('image', { name: 'Grouper' })).toBeOnTheScreen();
+    expect(screen.queryByRole('button')).toBeNull();
   });
 
   it('asks for the address when the link was opened on another phone, signs in with it, and offers a way back', async () => {
@@ -135,7 +174,7 @@ describe('email link landing (§11)', () => {
     expect(mockRouter.replace).toHaveBeenCalledWith('/');
   });
 
-  it('signs in at once with the stored address, and ends with a way back when the link does not work', async () => {
+  it('signs in at once with the stored address, and offers a new link or a way back when the link does not work', async () => {
     mockParams = { link };
     mockPendingEmail.mockResolvedValueOnce('emil@example.com');
     mockCompleteLink.mockRejectedValueOnce(new Error('auth/invalid-action-code'));
@@ -144,7 +183,37 @@ describe('email link landing (§11)', () => {
       await Promise.resolve();
     });
     expect(mockCompleteLink).toHaveBeenCalledWith(link, 'emil@example.com');
+    expect(screen.getByRole('header', { name: "That link didn't work" })).toBeOnTheScreen();
     expect(screen.getByRole('alert')).toHaveTextContent('The link has expired or was already used. Ask for a new one.');
+    await fireEvent.press(screen.getByRole('button', { name: 'Send a new link' }));
+    expect(mockRouter.replace).toHaveBeenCalledWith('/email');
+    mockRouter.replace.mockClear();
+    await fireEvent.press(screen.getByRole('link', { name: 'Back to the start' }));
+    expect(mockRouter.replace).toHaveBeenCalledWith('/');
+  });
+
+  it('offers a new link for a link that is not a sign-in link at all', async () => {
+    mockParams = { link: 'https://grouper.example/__/auth/action?mode=signIn' };
+    mockPendingEmail.mockResolvedValueOnce('emil@example.com');
+    await render(<CompleteEmailLink />);
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(mockCompleteLink).not.toHaveBeenCalled();
+    expect(screen.getByRole('alert')).toHaveTextContent("This isn't a valid sign-in link. Ask for a new one.");
+    expect(screen.getByRole('button', { name: 'Send a new link' })).toBeOnTheScreen();
+  });
+
+  it('when re-authenticating while signed in, ends with the way back only (the new link comes from the action)', async () => {
+    mockPhase = 'ready';
+    mockParams = { link };
+    mockPendingEmail.mockResolvedValueOnce('emil@example.com');
+    mockCompleteLink.mockRejectedValueOnce(new Error('auth/invalid-action-code'));
+    await render(<CompleteEmailLink />);
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(screen.queryByRole('button', { name: 'Send a new link' })).toBeNull();
     await fireEvent.press(screen.getByRole('button', { name: 'Back to the start' }));
     expect(mockRouter.replace).toHaveBeenCalledWith('/');
   });
