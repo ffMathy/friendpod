@@ -3,7 +3,7 @@
  * This file owns drop weeks 2027-W06 and 2027-W07 (release touches every unreleased component of its week).
  */
 import { gunzipSync } from 'node:zlib';
-import { dropSchedule, uidHash, type WeekId } from '@grouper/core';
+import { areaDocFromConfig, dropSchedule, getLaunchArea, uidHash, type WeekId } from '@grouper/core';
 import { expect, it } from 'vitest';
 import { respondToPod } from '../../src/callables/pods';
 import { docs, ts } from '../../src/lib/firestore';
@@ -115,7 +115,10 @@ describeEmulator('dropOrchestrator → matchComponent → releaseDrop (emulator)
 
   it('freezes one snapshot per component of the live areas, enqueues matching and release, and a retry reuses them', async () => {
     const theme = newConcept();
-    await deps.db.doc('areas/aarhus').set({ status: 'live' }, { merge: true });
+    // The area doc normally exists after an onboarding in an earlier file; create it in full when this file runs first.
+    const area = deps.db.doc('areas/aarhus');
+    if (!(await area.get()).exists) await area.set(areaDocFromConfig(getLaunchArea('aarhus')!, 0));
+    await area.set({ status: 'live' }, { merge: true });
     try {
       const [c2, c3] = [await makeConcept(deps), await makeConcept(deps)];
       await makeConcept(deps, theme);

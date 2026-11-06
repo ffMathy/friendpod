@@ -4,7 +4,7 @@
  * a tag precisely relative to a concept's centroid or to a detector prototype.
  */
 import { createHash } from 'node:crypto';
-import { EMBEDDING_MODEL, detectorMargin, lexiconCheck, normalizeTag, type Prototypes } from '@grouper/core';
+import { EMBEDDING_MODEL, detectorMargin, normalizeTag, type Prototypes } from '@grouper/core';
 
 export interface Link {
   readonly to: string;
@@ -71,11 +71,11 @@ export class StubVectors {
     return { modelKey: EMBEDDING_MODEL.modelKey, art9: art9.map((t) => this.vector(t)), anchors: anchors.map((t) => this.vector(t)) };
   }
 
-  /** One addInterests item as an honest app sends it: the vector of the normalized text, its margin and lexicon hit. */
+  /** One addInterests item as an honest app sends it: the vector of the normalized text and its detector margin. */
   item(text: string, prototypes: Prototypes, extra: Record<string, unknown> = {}): Record<string, unknown> {
     const n = normalizeTag(text);
     const norm = n.ok ? n.norm : text;
     const vector = this.vector(norm);
-    return { text, vector: Array.from(vector), detector: { margin: detectorMargin(vector, prototypes), lexiconHit: lexiconCheck(norm).hit }, ...extra };
+    return { text, vector: Array.from(vector), detector: { margin: detectorMargin(vector, prototypes) }, ...extra };
   }
 }

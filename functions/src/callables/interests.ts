@@ -123,7 +123,7 @@ export async function confirmSuggestion(deps: AppDeps, call: CallContext, input:
       tx.get(db.collection(`users/${uid}/sensitiveInterests`)),
     ]);
     const h = hSnap.data();
-    if (!h || h.state !== 'active' || h.notSensitiveForMe || !h.conceptId || !profile.exists) throw new AppError('STATE');
+    if (!h || h.notSensitiveForMe || !profile.exists) throw new AppError('STATE');
     if (h.conceptId === input.conceptId) return null;
     const tagKey = tagKeyFor(h.norm, EMBEDDING_MODEL.modelKey);
     const [tagSnap, conceptSnap, linkSnap] = await tx.getAll(db.doc(`tags/${tagKey}`), db.doc(`concepts/${input.conceptId}`), db.doc(`conceptLinks/${conceptLinkId(h.conceptId, input.conceptId)}`));

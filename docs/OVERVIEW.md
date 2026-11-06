@@ -46,7 +46,7 @@ The pod screen shows **one "next step" card** at a time (vote → confirm you're
 | # | Decision |
 |---|---|
 | D1 | **The embedding model runs on the phone** for every tag. The server stores the phone's vector and trusts it (an accepted manipulation risk); the server-side embedder is gone |
-| D2 | **No human review anywhere.** A shipped list of ~480 everyday Danish and English hobby words, the detector, "Keep this private" and the user's own "This isn't sensitive for me" replace review. Pauses are automatic and every one expires |
+| D2 | **No human review anywhere.** The detector, "Keep this private" and the user's own "This isn't sensitive for me" replace review (the hobby-word list it first named was removed by F38). Pauses are automatic and every one expires |
 | D3 | **One blanket consent for sensitive interests** at onboarding, on its own screen. Saying no keeps the app usable; sensitive tags are then refused. No prompt per tag, just a lock icon |
 | D4 | Short tags stay; an optional "about me" sentence (140 characters) for confirmed co-members |
 | D5 | Attendance: yes vote = coming; asks at T−3 days and T−24 h; nudge at T−6 h; "hasn't confirmed" after that; no answer is never a no-show |
@@ -74,13 +74,20 @@ The pod screen shows **one "next step" card** at a time (vote → confirm you're
 | F36 | **Funnel from day 1** without an analytics SDK: sign-up → onboarded → waitlisted → eligible → first proposal → first confirmed → first meetup → second meetup, per city and week | Counters without user IDs; each person counted once per stage; anything under 10 shown as "<10"; kept 24 months; `funnel show` in the admin CLI |
 | F37 | **"Where did you hear about Grouper?"**, optional, one choice | Only counted per city and week, never saved on the profile |
 
+**Decisions of 2026-11-06** (DESIGN F38–F39):
+
+| # | Decision | What it means in the app |
+|---|---|---|
+| F38 | **Sensitivity is decided by the on-device model only, or by "Keep this private".** The word list, the known-ordinary hobby list and server rescans are gone | About half of everyday hobby words are flagged by the model (238 of the 479 words the hobby list held; three in four of the Danish ones, such as "madlavning", "brætspil", "løb"). With the consent they quietly become theme-only and the user can tap "This isn't sensitive for me"; without it they are refused. A model change applies when phones re-check new interests; stored ones keep their partition |
+| F39 | **No email at all.** The inactivity warning and breach notices go in the app and by push | A user who has turned notifications off and does not open the app is still deleted 30 days after the warning. For a breach that individual notices cannot reach, a public notice (website, app store pages) is the fallback, for the lawyer to confirm |
+
 ## Decisions I made for you (please confirm or veto)
 
 The full list is DESIGN §2.2; these are the ones with the most product impact.
 
 1. **Model: EmbeddingGemma 2** (q4), not v1. It passed the gate we set (below) and is Apache-2.0 licensed. On the phone it runs on **ONNX Runtime** (the React Native package, with the native engine pinned to the exact version the thresholds were measured on); a sandbox test reproduced the calibration vectors to a cosine of 0.9999993. The model (~175 MB, ~210 MB with its tokenizer) **ships inside the app**, as you decided: every file is checked against a pinned hash when the app is built, so there is no download, no hosting bill and no extra processor. On Android the app copies it once into its own storage at first launch, because the runtime needs a real file path, so there it takes about twice the space (~415 MB) and the first launch needs ~260 MB free. The price is app size: iPhones ask before downloading an app above 200 MB on cellular, and every app update that changes the model ships it again. Phones that can't run it can't add interests (target: about 4 GB of RAM).
 2. **Sensitive interests are protected in layers:**
-   - detection on the phone: a word list, the known-ordinary hobby list, then the model; the server repeats the word list;
+   - detection on the phone by the model alone (F38); the server uses the phone's result;
    - a sensitive interest is never merged with an ordinary one, and is only ever used as a pod's *theme*;
    - a sensitive pod needs at least 12 consenting holders nearby;
    - **anti-infiltration gate:** to join a sensitive pod, an account must be 14+ days old and have attended one meetup. "Not a genuine member" reports and odd patterns put an account on an automatic 28-day hold.
@@ -105,7 +112,7 @@ The full list is DESIGN §2.2; these are the ones with the most product impact.
 | Sensitive detector: catches every sensitive tag, false flags | 44 of 112 | 55 of 112 |
 | Licence | Gemma Terms | **Apache-2.0** |
 
-The detector is tuned to miss nothing, so it over-flags, mostly ordinary Danish hobby words. Instead of a pre-launch review, the app ships a **known-ordinary list** of 479 everyday hobby words (196 Danish, 283 English), written by hand from everyday hobbies and leaving out anything near health, faith, sexuality or politics. On the calibration set it covers 18 of the detector's 46 false flags at its 100%-recall point (an optimistic, in-sample figure; M0 re-measures it). For anything it misses, a consenting user can tap "This isn't sensitive for me"; without consent, an over-flagged hobby is refused, which is the price of not reviewing.
+The detector is tuned to miss nothing, so it over-flags, mostly ordinary Danish hobby words. Since F38 nothing corrects that: there is no hobby-word list and no review. Of the 479 words the removed list held, the model flags 238 (145 of 196 Danish, 93 of 283 English). A consenting user can tap "This isn't sensitive for me"; without consent, an over-flagged hobby is refused, which is the price of not reviewing. The other side: with no word list, a sensitive tag the model scores just below the threshold is not caught by anything else.
 
 **On-device runtime** (sandbox, x86): 29 ms per tag with 4 threads, 85 ms with 1; about 470 MB peak memory. Phone numbers are estimates until the M0 spike on 4 real devices.
 
@@ -160,7 +167,7 @@ The full list is DESIGN §2.4.
 | # | Question | My default |
 |---|---|---|
 | Q19 | Which thin-market levers for the alpha: ≥ 300 testers in seed cohorts, invite 5–6, wider ages, or confirm at 3? | ≥ 300 testers in cohorts + test "invite 5–6" in the simulator |
-| Q23 | Should "This isn't sensitive for me" also be offered to people **without** the sensitive-interests consent, when only the model (not the word list) flagged a tag? | No, until the lawyer has looked at it |
+| Q23 | Should "This isn't sensitive for me" also be offered to people **without** the sensitive-interests consent, when the model refuses a tag? Since F38 every refusal is a model flag, and many are everyday hobbies | No, until the lawyer has looked at it |
 | Q22 | Minimum phone for adding interests | About 4 GB RAM, confirmed in the M0 device test |
 | Q21 | Google's terms limit how long we may keep place names and addresses | Check in M0; if needed, drop the place 30 days after the meetup |
 | Q15 | Is the sensitive-pod gate (14 days + 1 attended meetup) worth delaying a new user's first sensitive pod? | Yes; revisit with alpha data |
@@ -178,7 +185,7 @@ Answered by your round-2 decisions: Q4 (who reviews: nobody), Q9 (Apple on Andro
 apps/mobile          Expo SDK 58 app: onboarding with the sensitive-interests consent, on-device model, interests,
                      pods (next-step card, place picker, attendance, calendar), chat, settings (Danish + English)
 functions            Firebase Functions: callables (addInterests included), weekly drop, sweeps, exports, deletion
-packages/core        Shared rules: schemas, normalisation, Art. 9 word list, known-ordinary list, model pinning and
+packages/core        Shared rules: schemas, normalisation, blocklist and PII patterns, model pinning and
                      thresholds, detector, geo, schedule, attendance and planning rules, consent texts, matcher
 tests/rules          Security-rules tests against the emulators
 tools/sim, tools/admin  Simulator, admin CLI (stub)

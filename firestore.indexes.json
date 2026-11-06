@@ -47,13 +47,6 @@
       ]
     },
     {
-      "collectionGroup": "interests",
-      "fieldPath": "pendingUntil",
-      "indexes": [
-        { "order": "ASCENDING", "queryScope": "COLLECTION_GROUP" }
-      ]
-    },
-    {
       "collectionGroup": "sensitiveInterests",
       "fieldPath": "conceptId",
       "indexes": [

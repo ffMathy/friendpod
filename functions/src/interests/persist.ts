@@ -29,7 +29,7 @@ import { COLLECTIONS, docs, ts, type DocOf } from '../lib/firestore';
 import { rateLimitKey } from '../lib/rateLimits';
 import { C128_DIM, CONCEPT_GEN, LIMITS, SENSITIVE_ADDS_BUCKET } from './config';
 import { MODERATION_RULES_VERSION } from './moderation';
-import { SENSITIVITY_RULES_VERSION, sameTagState, sideSlotField, slotCount, slotPartition, tagStateFromDoc, type Slot, type TagState } from './tags';
+import { sameTagState, sideSlotField, slotCount, slotPartition, tagStateFromDoc, type Slot, type TagState } from './tags';
 import { addInto, fromF32Bytes, normalized, toF32Bytes, truncateNormalize } from './vectors';
 
 export type AddInterestResult = CallableOutput<'addInterests'>['results'][number];
@@ -291,7 +291,7 @@ export async function persist(ctx: PersistContext, items: readonly PersistItem[]
             norm: item.norm,
             vec: FieldValue.vector(Array.from(tag.vec)),
             modelId: EMBEDDING_MODEL.modelKey,
-            sens: { sensitive: tag.sens.sensitive, margin: tag.sens.margin, lexiconHit: tag.sens.lexiconHit, knownOrdinary: tag.sens.knownOrdinary, rulesVersion: SENSITIVITY_RULES_VERSION },
+            sens: { sensitive: tag.sens.sensitive, margin: tag.sens.margin },
             moderation: { status: 'ok', rulesVersion: MODERATION_RULES_VERSION },
             conceptId: item.slot === 'own' ? a.conceptId : null,
             // For a text first added into a side slot this records that assignment; `conceptId` stays null.
@@ -355,7 +355,6 @@ export async function persist(ctx: PersistContext, items: readonly PersistItem[]
           conceptId: a.conceptId,
           starred: held?.starred ?? false,
           ...(item.notSensitiveForMe ? { notSensitiveForMe: true } : {}),
-          state: 'active',
           createdAt: heldOrdinary?.createdAt ?? now,
         };
         ordinaryDocs.set(item.interestId, doc);

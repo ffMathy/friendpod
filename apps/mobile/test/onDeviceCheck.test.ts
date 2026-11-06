@@ -12,7 +12,7 @@ describe('on-device interest check (DESIGN.md §5.2 (0))', () => {
     expect(checkInterestOnDevice('C++')).toMatchObject({ kind: 'ok', norm: 'c++' });
   });
 
-  it('decides nothing about sensitivity: that is the on-device model alone (F35)', () => {
+  it('decides nothing about sensitivity: that is the on-device model alone (F38)', () => {
     for (const text of ['gravid', 'Pregnant with our first', 'AA møder', 'Type 1 diabetes']) {
       const r = checkInterestOnDevice(text);
       expect(r).toMatchObject({ kind: 'ok', thirdParty: false });

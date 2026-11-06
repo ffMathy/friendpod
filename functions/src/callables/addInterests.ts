@@ -2,7 +2,7 @@
  * addInterests (DESIGN.md §5.2, §10.1; D1). The app embeds each tag on the device with the pinned EmbeddingGemma 2
  * q4 and sends `{text, vector, detector}`. This callable trusts the vector, an accepted manipulation risk: a client
  * can misplace its own holding, or poison the stored vector and margin of a text nobody has added before. Sensitivity is
- * the on-device model's decision (F35): the server uses the phone's margin and never recomputes it, so a crafted
+ * the on-device model's decision (F38): the server uses the phone's margin and never recomputes it, so a crafted
  * client can make its own holding look less sensitive; a later holder's own phone can still raise it for their
  * holding. The rest of the pipeline is in interests/. Order: kill switch → per-uid window (and account state) → pipeline. Nothing about the
  * request body is logged, and responses carry statuses only, never a vector.

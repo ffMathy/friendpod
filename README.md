@@ -15,7 +15,7 @@ server function is built and tested; what is still open is listed in [What is st
 
 | Path | What | Kind |
 |---|---|---|
-| `packages/core/` | Shared domain logic consumed as TypeScript source: zod schemas, interest normalization and lexicon, geo, time, ids, consent texts, the pure matcher, app error codes. `@grouper/core/node` adds server-only helpers (HMAC, log-safe parsing) | workspace |
+| `packages/core/` | Shared domain logic consumed as TypeScript source: zod schemas, interest normalization, blocklist and PII patterns, geo, time, ids, consent texts, the pure matcher, app error codes. `@grouper/core/node` adds server-only helpers (HMAC, log-safe parsing) | workspace |
 | `apps/mobile/` | Expo SDK 58 app with React Native Firebase 27 and expo-router (§11); development builds only | workspace |
 | `functions/` | The one Functions codebase, `default`: callables (`addInterests` included), scheduled, task and event functions (§10.1, §10.3) | standalone npm project |
 | `tests/rules/` | Firestore and Storage security-rules tests and the index validator (§9, §13) | standalone npm project |
@@ -34,7 +34,8 @@ own `package-lock.json` (DESIGN.md §14; `tests/rules` deliberately so, unlike t
 
 **Embedding happens on the phone (D1).** The app runs the pinned EmbeddingGemma 2 q4 (onnxruntime-react-native, CPU)
 for every tag and sends `{text, vector, detector}` with the model key; `addInterests` trusts the vector (an accepted
-manipulation risk) and repeats normalisation, moderation, the lexicon and, with `prototypes.bin`, the detector margin.
+manipulation risk) and repeats normalisation and moderation. Sensitivity is the detector margin the phone computed (or
+the user's "Keep this private"): there is no word list, and the server never recomputes the margin (DESIGN.md F38).
 The model id, pinned files with their sha256, prompt and thresholds live in `packages/core/src/interests/model.ts`,
 shared by app and server. The former `services/embedder` codebase is retired.
 
@@ -69,9 +70,6 @@ npm run emulators         # firebase emulators:start --project demo-grouper
 - **Secrets.** The callables need `UID_HMAC_KEY` and `POD_ID_KEY`, each base64 of at least 32 random bytes. For the
   emulator, put test values in `functions/.secret.local` (gitignored), for example the output of
   `node -e "console.log('UID_HMAC_KEY=' + require('crypto').randomBytes(32).toString('base64'))"`.
-- **Detector prototypes.** `addInterests` reads `prototypes.bin` from `gs://<projectId>-models/models/eg2-q4-daa72c5/`.
-  Without it (the emulator, or before the file is built) the server decides with the client's margin alone and logs
-  `addInterests.prototypesUnavailable`; the lexicon still runs on the server.
 - **Skipped locally:** no Pub/Sub emulator is configured, so `dropOrchestrator`, `hourlySweeper`, `dailyMaintenance`
   and `onBudgetAlert` are not loaded by `emulators:start`.
 - **Behind an HTTPS proxy:** firebase-tools 15.34.2 sends its emulator-to-emulator calls through `HTTPS_PROXY` and
@@ -177,9 +175,7 @@ and suspension (§4.4), `registerPushToken`, photos (`onPhotoUploaded`, `deleteP
 
 | Still open | Where | DESIGN.md |
 |---|---|---|
-| `interestsBatch(rescan)`: re-classifying stored tags moves holdings into the 14-day `pendingConsent` hold, which needs counsel's approval first (PRIVACY.md §4.3); a typed stub until then. `dailyMaintenance` already deletes expired `pendingConsent` holdings | `functions/src/tasks/index.ts` | §5.2 (8) |
 | Concept shortlist above 20k concepts (stage 2; Wednesday maintenance warns at 15k) | `functions/src/interests/assign.ts` | §5.2 (6) |
-| Inactivity warning by email (in-app notice and push are sent; the email provider is Q17) | `functions/src/scheduled/maintenance.ts` | §8.1, Q17 |
 | `prototypes.bin` build and the nightly calibration gate (offline model tooling, not built) | `.github/workflows/calibration.yml` | §13 |
 | `prototypes.bin` pin in `EMBEDDING_MODEL.files` (until it exists the device embedder refuses to load) | `packages/core/src/interests/model.ts` | §5.1 |
 | Device golden test reference vectors (the comparison logic exists) | `apps/mobile/src/features/interests/embedder/golden.ts` | §5.1 |

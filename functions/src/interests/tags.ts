@@ -18,7 +18,7 @@ import { vectorFromField } from './assign';
 export type Slot = 'own' | 'private' | 'ordinary';
 export const SLOTS: readonly Slot[] = ['own', 'private', 'ordinary'];
 
-/** The tag-level decision, made once from the first writer's phone margin (F35) and never re-run on the server. */
+/** The tag-level decision, made once from the first writer's phone margin (F38) and never re-run on the server. */
 export interface TagSens {
   readonly sensitive: boolean;
   readonly margin: number | null;

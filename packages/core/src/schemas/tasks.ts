@@ -10,7 +10,7 @@ export const deleteExportTask = z.strictObject({ uid: uidSchema, exportId: docId
 export const purgeUserTask = z.strictObject({ uid: uidSchema });
 /**
  * Interest batch work in the default codebase (D1): weekly maintenance only. Stored tags are never re-classified on
- * the server (F35); prototype or threshold changes ship with a new app version. Embedding (seeds, a model upgrade)
+ * the server (F38); prototype or threshold changes ship with a new app version. Embedding (seeds, a model upgrade)
  * happens offline with the pinned model, never in a Function.
  */
 export const interestsBatchTask = z.strictObject({

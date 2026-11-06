@@ -232,8 +232,8 @@ export const tagVectorSchema = z
 
 /**
  * One tag, embedded on the device (D1). The server trusts `vector` and `detector.margin` (an accepted manipulation
- * risk: sensitivity is the on-device model's decision, F35) but repeats normalisation and moderation. `selfFlagPrivate` ("Keep this private") and `notSensitiveForMe` apply to this holding
- * only and exclude each other. Sent for an existing holding, either flag changes that holding instead.
+ * risk: sensitivity is the on-device model's decision, F38) but repeats normalisation and moderation.
+ * `selfFlagPrivate` ("Keep this private") and `notSensitiveForMe` apply to this holding only and exclude each other. Sent for an existing holding, either flag changes that holding instead.
  */
 export const addInterestsItem = z
   .strictObject({

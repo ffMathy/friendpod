@@ -15,7 +15,6 @@ import {
 } from '@grouper/core';
 import { onTaskDispatched, type TaskQueueOptions } from 'firebase-functions/tasks';
 import { runTask } from '../lib/background';
-import { notImplemented } from '../lib/errors';
 import { BASE_OPTIONS, HEAVY_OPTIONS } from '../lib/options';
 import { appDeps, dropsStore, handlerDeps } from '../lib/runtime';
 import { POD_ID_KEY, UID_HMAC_KEY, hmacFromSecret } from '../lib/secrets';
@@ -138,12 +137,10 @@ export const deleteExport = onTaskDispatched(TASK_OPTIONS.deleteExport, (req) =>
   }),
 );
 
-// maintenance: concept sums, empty concepts, holder counts and labels (non-sensitive only), with a cursor.
-// rescan: re-classifying stored tags after a lexicon, prototype or known-ordinary change moves holdings into the
-// pendingConsent hold, which counsel must approve first (PRIVACY.md §4.3); it stays a typed stub until then.
+// maintenance: concept sums, empty concepts, holder counts and labels (non-sensitive only), with a cursor. There is
+// no rescan (F38): prototype or threshold changes ship with a new app version and apply when phones re-check.
 export const interestsBatch = onTaskDispatched(TASK_OPTIONS.interestsBatch, (req) =>
   runTask('interestsBatch', interestsBatchTask, req.data, handlerDeps, async (task) => {
-    if (task.op === 'rescan') throw notImplemented('§5.2 (8) rescan');
     const { outcome, concepts, updated, deleted } = await interestsMaintenance(appDeps(), task.cursor);
     return { outcome, concepts, updated, deleted };
   }),

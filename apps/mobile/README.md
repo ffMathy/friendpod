@@ -93,7 +93,9 @@ the phone and never sent.
 ## On-device embedding (D1)
 
 Every interest is embedded on the phone with the pinned EmbeddingGemma 2 q4 graph (`EMBEDDING_MODEL` in core) and
-scored by the core detector against `prototypes.bin`; `addInterests` receives `{text, vector, detector}`.
+scored by the core detector against `prototypes.bin`; `addInterests` receives `{text, vector, detector: {margin}}`. That
+margin is the only sensitivity signal besides "Keep this private" (DESIGN.md F38): there is no word list on the phone or
+the server. The stub embedder (`EXPO_PUBLIC_EMBEDDER=stub`, tests) fakes the model's judgement with a few word stems.
 
 - Runtime: `onnxruntime-react-native` 1.24.3 (CPU execution provider only), its native core pinned to ORT 1.30.0 on
   both platforms by `plugins/withOrtPinned.js`; `react-native.config.js` registers `OnnxruntimePackage` on Android.
@@ -143,7 +145,7 @@ through the typed callables (`src/firebase/callables.ts`, `useCallable`); nothin
 | Feedback | `pod/[podId]/feedback` | `submitFeedback` |
 | Leave pod | pod screen | `leavePod` |
 | Block (remove them / leave instead / re-plan when scheduled), unblock, report a member, option or message | `pod/[podId]/member/[uid]`, `sheets/report`, `settings/blocked` | `blockUser`, `unblockUser`, `report`; `users/{uid}/blocks` |
-| Interests (remove, star, did-you-mean, keep private, not sensitive for me, rescan holds) | `InterestManager` | `addInterests`, `removeInterest`, `updateInterest`, `confirmSuggestion` |
+| Interests (remove, star, did-you-mean, keep private, not sensitive for me) | `InterestManager` | `addInterests`, `removeInterest`, `updateInterest`, `confirmSuggestion` |
 | Privacy: Art. 9 and gender consent, pause / skip, photo, export, blocked, notices, delete | `settings/privacy`, `settings/delete-account` | `setArt9Consent`, `withdrawArt9Consent`, `updateProfile`, `setParticipation`, `deletePhoto`, `exportData`, `deleteAccount`; `users/{uid}/exports` |
 | Photo upload, change and delete | `(onboarding)/photo`, Me → `PhotoCard` | Storage `uploads/{uid}/pending*.jpg` (`onPhotoUploaded`), `deletePhoto` |
 | Messages from Grouper (statements of reasons, report receipts, export ready) | `settings/notices`, `NoticeCard` | `users/{uid}/notices` |

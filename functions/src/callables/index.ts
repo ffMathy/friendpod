@@ -3,7 +3,7 @@ import type { CallableInput, CallableName, CallableOutput } from '@grouper/core'
 import { withActivity } from '../lib/activity';
 import { callable, type CallContext } from '../lib/handler';
 import { callableOptions } from '../lib/options';
-import { appDeps, handlerDeps, modelsPrototypes, type AppDeps } from '../lib/runtime';
+import { appDeps, handlerDeps, type AppDeps } from '../lib/runtime';
 import { addInterestsWith } from './addInterests';
 import { setArt9Consent as setArt9ConsentImpl, withdrawArt9Consent as withdrawArt9ConsentImpl } from './art9Consent';
 import { completeOnboarding as completeOnboardingImpl } from './completeOnboarding';
@@ -27,7 +27,7 @@ export const completeOnboarding = define('completeOnboarding', completeOnboardin
 export const updateProfile = define('updateProfile', updateProfileImpl);
 export const setParticipation = define('setParticipation', setParticipationImpl);
 export const sendMessage = define('sendMessage', sendMessageImpl);
-export const addInterests = define('addInterests', addInterestsWith({ prototypes: modelsPrototypes }));
+export const addInterests = define('addInterests', addInterestsWith({}));
 export const setArt9Consent = define('setArt9Consent', setArt9ConsentImpl);
 export const withdrawArt9Consent = define('withdrawArt9Consent', withdrawArt9ConsentImpl);
 export const removeInterest = define('removeInterest', interests.removeInterest);

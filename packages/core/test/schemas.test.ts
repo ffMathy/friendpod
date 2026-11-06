@@ -55,7 +55,7 @@ describe('callable schemas (§10)', () => {
     expect(withVector(unit().map((x, i) => (i === 5 ? Number.NaN : x)))).toBe(false);
     expect(withVector(unit().map((x, i) => (i === 5 ? Number.POSITIVE_INFINITY : x)))).toBe(false);
     expect(addInterestsInput.safeParse({ ...input, items: [{ ...item, detector: { margin: Number.NaN } }] }).success).toBe(false);
-    // No word-list result travels with a tag any more (F35): the margin is the whole detector result.
+    // No word-list result travels with a tag any more (F38): the margin is the whole detector result.
     expect(addInterestsInput.safeParse({ ...input, items: [{ ...item, detector: { margin: -0.1, lexiconHit: false } }] }).success).toBe(false);
     expect(addInterestsInput.safeParse({ ...input, items: [{ ...item, selfFlagPrivate: true }] }).success).toBe(true);
     expect(addInterestsInput.safeParse({ ...input, items: [{ ...item, notSensitiveForMe: true }] }).success).toBe(true);

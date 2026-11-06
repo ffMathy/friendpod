@@ -13,7 +13,7 @@ const base: SensitivitySignals = {
 };
 const decide = (s: Partial<SensitivitySignals>) => decideSensitivity({ ...base, ...s });
 
-describe('sensitivity (§5.2 (5), D2, D3, F35): the on-device model decides the tag; holding flags on top', () => {
+describe('sensitivity (§5.2 (5), D2, D3, F38): the on-device model decides the tag; holding flags on top', () => {
   it('ordinary when the detector does not flag', () => {
     expect(decide({})).toMatchObject({ tag: 'ordinary', tagSource: null, holdingSensitive: false, outcome: 'ordinary', overridden: false });
   });

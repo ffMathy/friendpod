@@ -356,7 +356,7 @@ export const tagDocSchema = z.object({
   modelId: z.string(),
   sens: z.object({
     sensitive: z.boolean(),
-    /** The detector margin the first writer's phone computed (F35); null when it was missing. */
+    /** The detector margin the first writer's phone computed (F38); null when it was missing. */
     margin: z.number().nullable(),
   }),
   moderation: z.object({ status: z.enum(['ok', 'shadowFlag']), rulesVersion: z.string() }),

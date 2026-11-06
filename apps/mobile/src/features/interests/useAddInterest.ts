@@ -31,7 +31,7 @@ export interface AddInterestOptions {
 
 /**
  * Adds interests (D1, DESIGN.md §5.2): the on-device text checks, then the pinned model embeds each tag on the phone
- * and the core detector scores it against the prototypes; that margin alone decides the tag's sensitivity (F35). The
+ * and the core detector scores it against the prototypes; that margin alone decides the tag's sensitivity (F38). The
  * same `decideSensitivity` as the server runs here, so a
  * tag that would be refused (someone else's Art. 9 data, or sensitive without the blanket consent) never leaves the
  * phone. The rest goes to `addInterests` as {text, vector, detector}; the server repeats the text checks and decides.

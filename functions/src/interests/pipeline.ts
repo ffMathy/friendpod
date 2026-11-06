@@ -4,7 +4,7 @@
  * consent gate → concept assignment in the holding's partition → persist in one transaction.
  *
  * The server repeats everything that does not need the model (normalization, PII, blocklist, third-party kinship).
- * Sensitivity is the on-device model's decision (F35): the server uses the detector margin the phone sent and never
+ * Sensitivity is the on-device model's decision (F38): the server uses the detector margin the phone sent and never
  * recomputes it. A holding
  * that is refused (no blanket consent, someone else's Art. 9 data, sensitive holdings switched off) leaves nothing
  * behind: no document, no log line.
@@ -221,7 +221,7 @@ function holdingMargin(c: Candidate, known: TagState): number | null {
   return Math.max(known.sens.margin, own);
 }
 
-/** A text first seen now: the client's vector and margin (trusted, D1, F35). */
+/** A text first seen now: the client's vector and margin (trusted, D1, F38). */
 function newTagState(c: Candidate): TagState {
   const vec = renormalize(c.input.vector);
   const margin = clientMargin(c);

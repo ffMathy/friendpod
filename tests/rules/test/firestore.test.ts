@@ -20,8 +20,8 @@ type Data = Record<string, unknown>;
 const ownerDocs = (uid: string, other: string): Record<string, Data> => ({
   // "About me" (D4) lives on the users doc, so only its owner reads it there.
   [`users/${uid}`]: { firstName: 'Ada', locale: 'da', status: 'active', aboutMe: 'Ny i byen, glad for brætspil', createdAt: AT },
-  [`users/${uid}/interests/int1`]: { display: 'Bouldering', norm: 'bouldering', conceptId: 'c1', starred: true, state: 'active' },
-  [`users/${uid}/sensitiveInterests/sen1`]: { display: 'Theme', norm: 'theme', conceptId: 'c9', selfFlagged: false, source: 'lexicon' },
+  [`users/${uid}/interests/int1`]: { display: 'Bouldering', norm: 'bouldering', conceptId: 'c1', starred: true },
+  [`users/${uid}/sensitiveInterests/sen1`]: { display: 'Theme', norm: 'theme', conceptId: 'c9', selfFlagged: false, source: 'model' },
   [`users/${uid}/pods/p1`]: { state: 'confirmed', myStatus: 'accepted', themeLabel: 'Bouldering', themeSensitive: false },
   [`users/${uid}/blocks/${other}`]: { firstName: 'Bo', podId: 'p1', since: AT },
   [`users/${uid}/notices/n1`]: { type: 'system', code: 'EXPORT_READY', params: {}, createdAt: AT, expiresAt: AT },

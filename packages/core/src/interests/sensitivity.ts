@@ -45,7 +45,7 @@ export interface SensitivityDecision {
 }
 
 /**
- * Sensitivity per DESIGN.md §5.2 (5) (D2, F35). The tag is decided by the on-device model alone: a detector flag
+ * Sensitivity per DESIGN.md §5.2 (5) (D2, F38). The tag is decided by the on-device model alone: a detector flag
  * (a missing or non-finite margin fails closed) → sensitive, else ordinary. No word list adds or removes a flag.
  * The holding: "Keep this private" makes it sensitive; "This isn't sensitive for me" makes a sensitive tag ordinary
  * for this holding only, never for a third-party tag, whose subject cannot be waived for. The third-party pattern

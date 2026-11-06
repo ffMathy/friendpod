@@ -2,7 +2,7 @@ import { detectThirdParty, findPii, normalizeTag, type NormalizeFailure } from '
 
 /**
  * Step (0) of the interest pipeline (DESIGN.md §5.2): the same normalization and PII patterns as the server, run
- * before any text leaves the phone. Sensitivity is the on-device model's alone (F35): the embedding and the detector
+ * before any text leaves the phone. Sensitivity is the on-device model's alone (F38): the embedding and the detector
  * margin follow in useAddInterest, which also refuses a third-party tag once the model calls it sensitive. The
  * server repeats the text checks and decides with the margin the phone sent.
  */

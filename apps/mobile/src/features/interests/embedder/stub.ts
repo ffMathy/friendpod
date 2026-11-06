@@ -53,7 +53,7 @@ const ART9_NORMS: ReadonlySet<string> = new Set(
 /**
  * Word stems the stub treats as sensitive, so tests and stub builds have predictable sensitive tags. This is a fake
  * of the model's judgement for development only, never a sensitivity source in a real build: the device embedder and
- * the detector margin decide there (F35).
+ * the detector margin decide there (F38).
  */
 const STUB_SENSITIVE_STEMS: readonly string[] = [
   'gravid', 'pregnan', 'autis', 'diabet', 'barnløs', 'kræft', 'cancer', 'depress', 'adhd', 'hiv',
