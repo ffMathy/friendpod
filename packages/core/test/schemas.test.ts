@@ -42,7 +42,7 @@ describe('callable schemas (§10)', () => {
   });
 
   it('takes device-embedded tags: model key, a 768-d unit vector and the detector result (D1)', () => {
-    const item = { text: 'madlavning', vector: unit(), detector: { margin: -0.1, lexiconHit: false } };
+    const item = { text: 'madlavning', vector: unit(), detector: { margin: -0.1 } };
     const input = { modelKey: EMBEDDING_MODEL_ID, items: [item] };
     expect(addInterestsInput.safeParse(input).success).toBe(true);
     expect(addInterestsInput.safeParse({ ...input, modelKey: 'eg300m-q4@5090578' }).success).toBe(false);
@@ -54,7 +54,9 @@ describe('callable schemas (§10)', () => {
     expect(withVector(unit().map((x) => x * 1.002))).toBe(false);
     expect(withVector(unit().map((x, i) => (i === 5 ? Number.NaN : x)))).toBe(false);
     expect(withVector(unit().map((x, i) => (i === 5 ? Number.POSITIVE_INFINITY : x)))).toBe(false);
-    expect(addInterestsInput.safeParse({ ...input, items: [{ ...item, detector: { margin: Number.NaN, lexiconHit: false } }] }).success).toBe(false);
+    expect(addInterestsInput.safeParse({ ...input, items: [{ ...item, detector: { margin: Number.NaN } }] }).success).toBe(false);
+    // No word-list result travels with a tag any more (F35): the margin is the whole detector result.
+    expect(addInterestsInput.safeParse({ ...input, items: [{ ...item, detector: { margin: -0.1, lexiconHit: false } }] }).success).toBe(false);
     expect(addInterestsInput.safeParse({ ...input, items: [{ ...item, selfFlagPrivate: true }] }).success).toBe(true);
     expect(addInterestsInput.safeParse({ ...input, items: [{ ...item, notSensitiveForMe: true }] }).success).toBe(true);
     expect(addInterestsInput.safeParse({ ...input, items: [{ ...item, selfFlagPrivate: true, notSensitiveForMe: true }] }).success).toBe(false);

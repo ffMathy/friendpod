@@ -3,7 +3,6 @@ import {
   EMBEDDING_MODEL_ID,
   decideSensitivity,
   detectorMargin,
-  isKnownOrdinary,
   type CallableInput,
   type CallableOutput,
   type ModerationReason,
@@ -32,7 +31,8 @@ export interface AddInterestOptions {
 
 /**
  * Adds interests (D1, DESIGN.md §5.2): the on-device text checks, then the pinned model embeds each tag on the phone
- * and the core detector scores it against the prototypes. The same `decideSensitivity` as the server runs here, so a
+ * and the core detector scores it against the prototypes; that margin alone decides the tag's sensitivity (F35). The
+ * same `decideSensitivity` as the server runs here, so a
  * tag that would be refused (someone else's Art. 9 data, or sensitive without the blanket consent) never leaves the
  * phone. The rest goes to `addInterests` as {text, vector, detector}; the server repeats the text checks and decides.
  * The same call with `choice` set changes an existing holding (lock it, or "This isn't sensitive for me").
@@ -44,11 +44,11 @@ export function useAddInterest() {
 
   const addMany = useCallback(async (texts: readonly string[], opts: AddInterestOptions): Promise<AddInterestOutcome[] | null> => {
     const outcomes: (AddInterestOutcome | null)[] = [];
-    const toEmbed: { index: number; text: string; norm: string; lexiconHit: boolean; thirdParty: boolean }[] = [];
+    const toEmbed: { index: number; text: string; norm: string; thirdParty: boolean }[] = [];
     texts.slice(0, ADD_INTERESTS_MAX_ITEMS).forEach((text, index) => {
       const check = checkInterestOnDevice(text);
       if (check.kind === 'ok') {
-        toEmbed.push({ index, text, norm: check.norm, lexiconHit: check.lexiconHit, thirdParty: check.thirdParty });
+        toEmbed.push({ index, text, norm: check.norm, thirdParty: check.thirdParty });
         outcomes.push(null);
       } else {
         outcomes.push({ kind: 'rejected', code: check.code });
@@ -70,9 +70,7 @@ export function useAddInterest() {
         const vector = vectors[k]!;
         const margin = detectorMargin(vector, prototypes);
         const decision = decideSensitivity({
-          lexiconHit: t.lexiconHit,
           detectorMargin: margin,
-          knownOrdinary: isKnownOrdinary(t.norm),
           selfFlagPrivate: opts.choice === 'selfFlagPrivate',
           notSensitiveForMe: opts.choice === 'notSensitiveForMe',
           thirdParty: t.thirdParty,
@@ -89,7 +87,7 @@ export function useAddInterest() {
         items.push({
           text: t.text,
           vector: Array.from(vector),
-          detector: { margin, lexiconHit: t.lexiconHit },
+          detector: { margin },
           ...(opts.choice ? { [opts.choice]: true } : {}),
         });
         sentIndex.push(t.index);

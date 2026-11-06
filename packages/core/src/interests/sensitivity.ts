@@ -3,12 +3,8 @@ import { isDetectorFlag } from './detector';
 import { DETECTOR_MARGIN_THRESHOLD } from './model';
 
 export interface SensitivitySignals {
-  /** High-precision lexicon hit; the server ORs the client's value with its own lexiconCheck(norm). */
-  readonly lexiconHit: boolean;
-  /** Detector margin on the tag's vector (reconcileDetectorMargin on the server); null when unknown. */
+  /** Detector margin the phone computed on the tag's vector; null when unknown. */
   readonly detectorMargin: number | null;
-  /** isKnownOrdinary(norm). */
-  readonly knownOrdinary: boolean;
   /** The user asked to "Keep this private" (holding-level only). */
   readonly selfFlagPrivate: boolean;
   /** The user chose "This isn't sensitive for me" (holding-level only). */
@@ -20,7 +16,7 @@ export interface SensitivitySignals {
 }
 
 export type TagSensitivity = 'sensitive' | 'ordinary';
-export type TagSensitivitySource = 'lexicon' | 'model' | 'knownOrdinary';
+export type TagSensitivitySource = 'model';
 
 export type SensitivityOutcome =
   /** Store as an ordinary holding. */
@@ -49,22 +45,16 @@ export interface SensitivityDecision {
 }
 
 /**
- * Sensitivity per DESIGN.md §5.2 (5) after D2 (no human review). The tag: lexicon hit → sensitive; else on the
- * known-ordinary list → ordinary; else detector flag (a missing or non-finite margin fails closed) → sensitive.
- * The lexicon wins over the list, and a test keeps the two disjoint. The holding: "Keep this private" makes it
- * sensitive; "This isn't sensitive for me" makes a sensitive tag ordinary for this holding only, never for a
- * third-party tag, whose subject cannot be waived for. A sensitive holding needs the blanket consent.
+ * Sensitivity per DESIGN.md §5.2 (5) (D2, F35). The tag is decided by the on-device model alone: a detector flag
+ * (a missing or non-finite margin fails closed) → sensitive, else ordinary. No word list adds or removes a flag.
+ * The holding: "Keep this private" makes it sensitive; "This isn't sensitive for me" makes a sensitive tag ordinary
+ * for this holding only, never for a third-party tag, whose subject cannot be waived for. The third-party pattern
+ * is not a sensitivity source: it only reacts to the model's result. A sensitive holding needs the blanket consent.
  */
 export function decideSensitivity(signals: SensitivitySignals, threshold: number = DETECTOR_MARGIN_THRESHOLD): SensitivityDecision {
   let tag: TagSensitivity;
   let tagSource: TagSensitivitySource | null;
-  if (signals.lexiconHit) {
-    tag = 'sensitive';
-    tagSource = 'lexicon';
-  } else if (signals.knownOrdinary) {
-    tag = 'ordinary';
-    tagSource = 'knownOrdinary';
-  } else if (isDetectorFlag(signals.detectorMargin, threshold)) {
+  if (isDetectorFlag(signals.detectorMargin, threshold)) {
     tag = 'sensitive';
     tagSource = 'model';
   } else {
@@ -79,10 +69,10 @@ export function decideSensitivity(signals: SensitivitySignals, threshold: number
   let holdingSource: SensitivitySource | null = null;
   let overridden = false;
   if (signals.selfFlagPrivate) {
-    holdingSource = tag === 'sensitive' ? (tagSource as 'lexicon' | 'model') : 'self';
+    holdingSource = tag === 'sensitive' ? 'model' : 'self';
   } else if (tag === 'sensitive') {
     if (signals.notSensitiveForMe) overridden = true;
-    else holdingSource = tagSource as 'lexicon' | 'model';
+    else holdingSource = 'model';
   }
   const holdingSensitive = holdingSource !== null;
   const outcome: SensitivityOutcome = !holdingSensitive ? 'ordinary' : signals.hasArt9Consent ? 'sensitive' : 'refuseNoConsent';

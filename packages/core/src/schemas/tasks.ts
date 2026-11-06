@@ -9,12 +9,12 @@ export const buildExportTask = z.strictObject({ uid: uidSchema, exportId: docIdS
 export const deleteExportTask = z.strictObject({ uid: uidSchema, exportId: docIdSchema });
 export const purgeUserTask = z.strictObject({ uid: uidSchema });
 /**
- * Interest batch work in the default codebase (D1). Only what stored vectors allow: re-classify tags after a lexicon,
- * prototype or known-ordinary change, and weekly maintenance. Embedding (seeds, a model upgrade) happens offline with
- * the pinned model, never in a Function.
+ * Interest batch work in the default codebase (D1): weekly maintenance only. Stored tags are never re-classified on
+ * the server (F35); prototype or threshold changes ship with a new app version. Embedding (seeds, a model upgrade)
+ * happens offline with the pinned model, never in a Function.
  */
 export const interestsBatchTask = z.strictObject({
-  op: z.enum(['rescan', 'maintenance']),
+  op: z.enum(['maintenance']),
   cursor: z.string().max(1500).optional(),
 });
 /**

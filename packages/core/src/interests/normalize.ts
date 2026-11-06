@@ -10,7 +10,7 @@ export type NormalizeResult =
 // Emoji: pictographs plus the joiners, selectors, keycap, skin-tone and tag characters that build sequences.
 const EMOJI = /(?:[\p{Extended_Pictographic}\p{Emoji_Modifier}\p{Regional_Indicator}]|\u200d|\ufe0e|\ufe0f|\u20e3|[\u{e0020}-\u{e007f}])/gu;
 // DESIGN-DEVIATION: not in §5.2 (1). Invisible format characters (zero-width spaces, bidi overrides,
-// soft hyphen) would let "mad\u200blavning" slip past the lexicon and the cache key, so they go too.
+// soft hyphen) would let "mad\u200blavning" slip past the blocklist and the cache key, so they go too.
 const INVISIBLE = /[\p{Cf}]/gu;
 const WHITESPACE = /[\s\p{Cc}]+/gu;
 // Punctuation except '#' and '&'; '+' is a math symbol, so "C++" survives as well.
@@ -46,7 +46,7 @@ export function normalizeTag(text: string): NormalizeResult {
   return { ok: true, norm, display };
 }
 
-/** Tokens for lexicon and pattern matching: letters, digits and the kept symbols + # &. */
+/** Tokens for blocklist and pattern matching: letters, digits and the kept symbols + # &. */
 export function tagTokens(norm: string): string[] {
   return norm.split(/[^\p{L}\p{M}\p{N}+#&]+/u).filter((t) => t.length > 0);
 }

@@ -15,7 +15,7 @@ beforeEach(() => {
   mockCall.mockReset();
 });
 
-type Sent = { modelKey: string; items: { text: string; vector: number[]; detector: { margin: number; lexiconHit: boolean } }[] };
+type Sent = { modelKey: string; items: { text: string; vector: number[]; detector: { margin: number } }[] };
 const sent = (call = 0): Sent => mockCall.mock.calls[call]?.[1] as Sent;
 
 describe('useAddInterest (D1: embedded on the device)', () => {
@@ -38,7 +38,7 @@ describe('useAddInterest (D1: embedded on the device)', () => {
     expect(item.text).toBe('Brætspil');
     expect(item.vector).toHaveLength(EMBEDDING_DIM);
     expect(isModelVector(item.vector)).toBe(true);
-    expect(item.detector).toEqual({ margin: expect.any(Number), lexiconHit: false });
+    expect(item.detector).toEqual({ margin: expect.any(Number) });
     expect(item.detector.margin).toBeLessThan(0);
     expect(addInterestsInput.safeParse(body).success).toBe(true);
   });
@@ -72,7 +72,7 @@ describe('useAddInterest (D1: embedded on the device)', () => {
       await expect(result.current.add('gravid', { hasArt9Consent: true })).resolves.toMatchObject({ result: { private: true } });
     });
     const item = sent().items[0]!;
-    expect(item.detector.lexiconHit).toBe(true);
+    expect(item.detector).toEqual({ margin: expect.any(Number) });
     expect(item.detector.margin).toBeGreaterThan(0);
   });
 
@@ -110,7 +110,20 @@ describe('useAddInterest (D1: embedded on the device)', () => {
     await act(async () => {
       await expect(result.current.add('ring 12345678', { hasArt9Consent: true })).resolves.toEqual({ kind: 'rejected', code: 'PII' });
       await expect(result.current.add('min søns autisme', { hasArt9Consent: true })).resolves.toEqual({ kind: 'rejected', code: 'THIRD_PARTY_SENSITIVE' });
+      await expect(result.current.add("my daughter's diabetes", { hasArt9Consent: true, choice: 'notSensitiveForMe' })).resolves.toEqual({
+        kind: 'rejected',
+        code: 'THIRD_PARTY_SENSITIVE',
+      });
     });
     expect(mockCall).not.toHaveBeenCalled();
+  });
+
+  it('sends an ordinary third-party tag (the model did not flag it); the server adds the warning', async () => {
+    mockCall.mockResolvedValue(added);
+    const { result } = await renderHook(() => useAddInterest());
+    await act(async () => {
+      await expect(result.current.add('min datters fodbold', { hasArt9Consent: false })).resolves.toMatchObject({ kind: 'done' });
+    });
+    expect(sent().items[0]!.detector.margin).toBeLessThan(0);
   });
 });

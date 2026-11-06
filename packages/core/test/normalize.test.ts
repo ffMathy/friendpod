@@ -41,7 +41,7 @@ describe('normalizeTag (§5.2 (1))', () => {
     expect(norm('🎉🎉')).toBeNull();
   });
 
-  it('removes invisible format characters that would dodge the lexicon', () => {
+  it('removes invisible format characters that would dodge the blocklist', () => {
     expect(norm('mad\u200blavning')).toBe('madlavning');
     expect(norm('gra\u00advid')).toBe('gravid');
     expect(norm('\u202eevil')).toBe('evil');

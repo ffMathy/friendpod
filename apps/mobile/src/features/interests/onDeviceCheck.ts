@@ -1,20 +1,19 @@
-import { detectThirdParty, findPii, lexiconCheck, normalizeTag, type NormalizeFailure } from '@grouper/core';
+import { detectThirdParty, findPii, normalizeTag, type NormalizeFailure } from '@grouper/core';
 
 /**
- * Step (0) of the interest pipeline (DESIGN.md §5.2): the same normalization, PII patterns and high-precision Art. 9
- * lexicon as the server, run before any text leaves the phone. The embedding and the detector margin follow on the
- * device too (D1, useAddInterest); the server repeats every text check and ORs in its own lexicon result.
+ * Step (0) of the interest pipeline (DESIGN.md §5.2): the same normalization and PII patterns as the server, run
+ * before any text leaves the phone. Sensitivity is the on-device model's alone (F35): the embedding and the detector
+ * margin follow in useAddInterest, which also refuses a third-party tag once the model calls it sensitive. The
+ * server repeats the text checks and decides with the margin the phone sent.
  */
 export type DeviceCheckResult =
   | { readonly kind: 'invalid'; readonly code: NormalizeFailure }
   | { readonly kind: 'rejected'; readonly code: 'PII' }
-  /** A family member's sensitive data: the user's own consent cannot cover it (PRIVACY.md §4.3). */
-  | { readonly kind: 'refused'; readonly code: 'THIRD_PARTY_SENSITIVE' }
   | {
       readonly kind: 'ok';
       readonly display: string;
       readonly norm: string;
-      readonly lexiconHit: boolean;
+      /** Possessive kinship pattern: not a sensitivity source, it only reacts to the model's result. */
       readonly thirdParty: boolean;
     };
 
@@ -23,8 +22,5 @@ export function checkInterestOnDevice(text: string): DeviceCheckResult {
   if (!normalized.ok) return { kind: 'invalid', code: normalized.code };
   const { norm, display } = normalized;
   if (findPii(text).length > 0) return { kind: 'rejected', code: 'PII' };
-  const lexiconHit = lexiconCheck(norm).hit;
-  const thirdParty = detectThirdParty(norm).hit;
-  if (lexiconHit && thirdParty) return { kind: 'refused', code: 'THIRD_PARTY_SENSITIVE' };
-  return { kind: 'ok', display, norm, lexiconHit, thirdParty };
+  return { kind: 'ok', display, norm, thirdParty: detectThirdParty(norm).hit };
 }

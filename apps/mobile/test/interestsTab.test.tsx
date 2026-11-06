@@ -17,7 +17,6 @@ jest.mock('@/firebase/callables', () => ({
 }));
 
 const live = (data: unknown) => ({ data, error: null, isLoading: false });
-const ts = (ms: number) => ({ toMillis: () => ms });
 type Row = { id: string; data: Record<string, unknown> };
 let mockOrdinary: Row[] = [];
 let mockConsent = false;
@@ -31,7 +30,7 @@ jest.mock('@/data/docs', () => ({
 
 const ordinary = (id: string, display: string, extra: Record<string, unknown> = {}): Row => ({
   id,
-  data: { display, starred: false, state: 'active', ...extra },
+  data: { display, starred: false, ...extra },
 });
 
 let client: QueryClient;
@@ -127,13 +126,5 @@ describe('Interests tab (§11)', () => {
     });
     expect(mockCall).not.toHaveBeenCalled();
     expect(screen.getByRole('button', { name: 'Sensitive interests: give consent' })).toBeOnTheScreen();
-  });
-
-  it('shows a rescan hold (pendingConsent) with its removal date and a way to the consent', async () => {
-    mockOrdinary = [ordinary('ffffffffffffffff', 'Gåture', { state: 'pendingConsent', conceptId: null, pendingUntil: ts(Date.UTC(2026, 10, 20, 12)) })];
-    await renderTab();
-    expect(screen.getByText(/^This interest may be sensitive, so it is on hold\. Unless you agree to sensitive interests, it is removed on /)).toBeOnTheScreen();
-    await fireEvent.press(screen.getByRole('button', { name: 'Sensitive interests: give consent' }));
-    expect(mockRouter.push).toHaveBeenCalledWith('/settings/sensitive-consent');
   });
 });

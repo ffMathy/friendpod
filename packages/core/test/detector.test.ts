@@ -7,7 +7,6 @@ import {
   isDetectorFlag,
   PROTOTYPE_LISTS,
   prototypeTexts,
-  reconcileDetectorMargin,
   StalePrototypesError,
 } from '../src/interests/detector';
 import {
@@ -90,14 +89,6 @@ describe('detector (§5.2 (5)), pure for the device', () => {
     expect(isDetectorFlag(null)).toBe(true);
     expect(isDetectorFlag(Number.NaN)).toBe(true);
     expect(isDetectorFlag(Number.POSITIVE_INFINITY)).toBe(true);
-  });
-
-  it('keeps the more cautious of the client and server margins', () => {
-    expect(reconcileDetectorMargin(-0.1, null)).toBe(-0.1);
-    expect(reconcileDetectorMargin(-0.1, -0.02)).toBe(-0.02);
-    expect(reconcileDetectorMargin(0.05, -0.2)).toBe(0.05);
-    expect(reconcileDetectorMargin(Number.NaN, -0.2)).toBeNull();
-    expect(reconcileDetectorMargin(-0.2, Number.NaN)).toBeNull();
   });
 
   it('round-trips prototypes.bin and refuses a file for another model or other phrase lists', () => {

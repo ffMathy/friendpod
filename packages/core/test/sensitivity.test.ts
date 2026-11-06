@@ -5,9 +5,7 @@ import { assertV2ThresholdFloors, DEFAULT_ASSIGN_THRESHOLDS, decideAssignment, n
 import { EMBEDDING_MODEL_ID, EMBEDDING_MODEL_ID_V1, tagKeyMaterial } from '../src/interests/model';
 
 const base: SensitivitySignals = {
-  lexiconHit: false,
   detectorMargin: -0.2,
-  knownOrdinary: false,
   selfFlagPrivate: false,
   notSensitiveForMe: false,
   thirdParty: false,
@@ -15,55 +13,46 @@ const base: SensitivitySignals = {
 };
 const decide = (s: Partial<SensitivitySignals>) => decideSensitivity({ ...base, ...s });
 
-describe('sensitivity (§5.2 (5), D2, D3): lexicon > known-ordinary > detector; holding flags on top', () => {
-  it('ordinary when no signal fires', () => {
+describe('sensitivity (§5.2 (5), D2, D3, F35): the on-device model decides the tag; holding flags on top', () => {
+  it('ordinary when the detector does not flag', () => {
     expect(decide({})).toMatchObject({ tag: 'ordinary', tagSource: null, holdingSensitive: false, outcome: 'ordinary', overridden: false });
-  });
-
-  it('a lexicon hit makes the tag sensitive without the detector, and beats the known-ordinary list', () => {
-    expect(decide({ lexiconHit: true, detectorMargin: null })).toMatchObject({ tag: 'sensitive', tagSource: 'lexicon', holdingSource: 'lexicon', outcome: 'sensitive' });
-    expect(decide({ lexiconHit: true, knownOrdinary: true })).toMatchObject({ tag: 'sensitive', tagSource: 'lexicon' });
   });
 
   it('the detector flags at margin ≥ −0.03 and fails closed when the margin is missing or not finite', () => {
     expect(decide({ detectorMargin: -0.03 })).toMatchObject({ tag: 'sensitive', tagSource: 'model', holdingSource: 'model', outcome: 'sensitive' });
     expect(decide({ detectorMargin: -0.0301 })).toMatchObject({ tag: 'ordinary' });
     expect(decideSensitivity({ ...base, detectorMargin: 0.005 }, 0.01)).toMatchObject({ tag: 'ordinary' });
-    expect(decide({ detectorMargin: null }).tag).toBe('sensitive');
+    expect(decide({ detectorMargin: null })).toMatchObject({ tag: 'sensitive', tagSource: 'model' });
     expect(decide({ detectorMargin: Number.NaN }).tag).toBe('sensitive');
-  });
-
-  it('the known-ordinary list turns a detector flag off', () => {
-    expect(decide({ detectorMargin: 0.2, knownOrdinary: true })).toMatchObject({ tag: 'ordinary', tagSource: 'knownOrdinary', outcome: 'ordinary' });
-    expect(decide({ detectorMargin: null, knownOrdinary: true })).toMatchObject({ tag: 'ordinary' });
+    expect(decide({ detectorMargin: Number.POSITIVE_INFINITY }).tag).toBe('sensitive');
   });
 
   it('"Keep this private" makes only the holding sensitive', () => {
     expect(decide({ selfFlagPrivate: true })).toMatchObject({ tag: 'ordinary', holdingSensitive: true, holdingSource: 'self', outcome: 'sensitive' });
-    expect(decide({ selfFlagPrivate: true, knownOrdinary: true })).toMatchObject({ holdingSource: 'self' });
-    expect(decide({ selfFlagPrivate: true, lexiconHit: true })).toMatchObject({ holdingSource: 'lexicon' });
+    expect(decide({ selfFlagPrivate: true, detectorMargin: 0.1 })).toMatchObject({ tag: 'sensitive', holdingSource: 'model' });
     // Contradictory flags (the schema refuses them) fail safe: private wins.
-    expect(decide({ selfFlagPrivate: true, notSensitiveForMe: true, lexiconHit: true })).toMatchObject({ holdingSensitive: true, overridden: false });
+    expect(decide({ selfFlagPrivate: true, notSensitiveForMe: true, detectorMargin: 0.1 })).toMatchObject({ holdingSensitive: true, overridden: false });
   });
 
   it('"This isn\'t sensitive for me" makes a sensitive tag ordinary for this holding only', () => {
-    expect(decide({ lexiconHit: true, notSensitiveForMe: true })).toMatchObject({ tag: 'sensitive', holdingSensitive: false, overridden: true, outcome: 'ordinary' });
+    expect(decide({ detectorMargin: 0.1, notSensitiveForMe: true })).toMatchObject({ tag: 'sensitive', holdingSensitive: false, overridden: true, outcome: 'ordinary' });
     expect(decide({ detectorMargin: 0.1, notSensitiveForMe: true, hasArt9Consent: false })).toMatchObject({ overridden: true, outcome: 'ordinary' });
     expect(decide({ notSensitiveForMe: true })).toMatchObject({ overridden: false, outcome: 'ordinary' });
   });
 
   it('refuses a sensitive holding without the blanket consent, so refusing consent costs only those tags', () => {
-    expect(decide({ lexiconHit: true, hasArt9Consent: false })).toMatchObject({ holdingSensitive: true, outcome: 'refuseNoConsent' });
+    expect(decide({ detectorMargin: 0.1, hasArt9Consent: false })).toMatchObject({ holdingSensitive: true, outcome: 'refuseNoConsent' });
+    expect(decide({ detectorMargin: null, hasArt9Consent: false })).toMatchObject({ outcome: 'refuseNoConsent' });
     expect(decide({ selfFlagPrivate: true, hasArt9Consent: false })).toMatchObject({ outcome: 'refuseNoConsent' });
     expect(decide({ hasArt9Consent: false })).toMatchObject({ outcome: 'ordinary' });
   });
 
   it('refuses sensitive third-party tags even with consent or an override, and only warns on ordinary ones', () => {
-    expect(decide({ thirdParty: true, lexiconHit: true })).toMatchObject({ outcome: 'refuseThirdParty', holdingSensitive: false });
-    expect(decide({ thirdParty: true, detectorMargin: 0 })).toMatchObject({ outcome: 'refuseThirdParty' });
-    expect(decide({ thirdParty: true, lexiconHit: true, notSensitiveForMe: true })).toMatchObject({ outcome: 'refuseThirdParty' });
-    expect(decide({ thirdParty: true })).toMatchObject({ outcome: 'ordinary', thirdPartyWarning: true });
-    expect(decide({ thirdParty: true, detectorMargin: 0.2, knownOrdinary: true })).toMatchObject({ outcome: 'ordinary', thirdPartyWarning: true });
+    expect(decide({ thirdParty: true, detectorMargin: 0 })).toMatchObject({ outcome: 'refuseThirdParty', holdingSensitive: false });
+    expect(decide({ thirdParty: true, detectorMargin: null })).toMatchObject({ outcome: 'refuseThirdParty' });
+    expect(decide({ thirdParty: true, detectorMargin: 0.1, notSensitiveForMe: true })).toMatchObject({ outcome: 'refuseThirdParty' });
+    // The kinship pattern is not a sensitivity source: an ordinary model result stays ordinary, with the warning.
+    expect(decide({ thirdParty: true })).toMatchObject({ tag: 'ordinary', outcome: 'ordinary', thirdPartyWarning: true });
   });
 });
 

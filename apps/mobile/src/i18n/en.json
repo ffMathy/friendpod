@@ -163,9 +163,7 @@
       "integrity": "Something went wrong getting interests ready, so we deleted it. Please try again. If it keeps happening, reinstall the app.",
       "runtime": "This phone can't run the interest check right now (it may need more free memory). Close other apps and try again.",
       "notPinned": "Adding interests isn't available in this version yet."
-    },
-    "pendingConsent": "This interest may be sensitive, so it is on hold. Unless you agree to sensitive interests, it is removed on {{when}}.",
-    "pendingConsentNoDate": "This interest may be sensitive, so it is on hold until you agree to sensitive interests."
+    }
   },
   "moderation": {
     "TAG_TOO_SHORT": "An interest needs at least 2 characters.",
