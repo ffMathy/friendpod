@@ -7,7 +7,7 @@ import type { ConfigContext } from 'expo/config';
 import type { ReactElement } from 'react';
 import { StyleSheet, type TextStyle } from 'react-native';
 import appConfig from '../app.config';
-import { FontMetrics, Type, glyphRoom, type TypeVariant } from '@/components/theme';
+import { FontMetrics, Type, androidGlyphRoom, glyphRoom, tightLineFor, type TypeVariant } from '@/components/theme';
 import { NextDropCard } from '@/features/drop/NextDropCard';
 import { ProposalCard } from '@/features/pods/ProposalCard';
 
@@ -232,6 +232,29 @@ afterEach(() => {
 });
 
 const flat = (el: { props: { style?: unknown } }) => (StyleSheet.flatten(el.props.style as never) ?? {}) as TextStyle;
+
+describe('glyph room: Android', () => {
+  // On the device, Android clipped the g of "baking bread" even with glyphRoom's padding: its text view clips at the
+  // content box. Android therefore gets a line box that holds the ink, and negative margins keep the storyboard space.
+  const tight: [number, number][] = [[40, 42], [36, 40], [30, 35], [26, 31], [24, 29], [22, 27], [48, 54], [32, 37]];
+
+  it.each(tight)('%i/%i: the line holds the ink, and a one-line title takes exactly the storyboard height', (size, line) => {
+    const r = androidGlyphRoom(size, line);
+    expect(r.lineHeight).toBeGreaterThanOrEqual(Math.ceil(size * (FontMetrics.inkTop + FontMetrics.inkBottom)));
+    expect(r.lineHeight + (r.marginTop ?? 0) + (r.marginBottom ?? 0)).toBe(line);
+    expect(r.paddingTop ?? 0).toBe(0);
+    expect(r.paddingBottom ?? 0).toBe(0);
+  });
+
+  it('leaves lines that already hold the ink alone', () => {
+    expect(androidGlyphRoom(16, 24)).toEqual({ lineHeight: 24 });
+  });
+
+  it('picks the Android room on Android and the padded room elsewhere', () => {
+    expect(tightLineFor('android', 40, 42)).toEqual({ fontSize: 40, ...androidGlyphRoom(40, 42) });
+    expect(tightLineFor('ios', 40, 42)).toEqual({ fontSize: 40, lineHeight: 42, ...glyphRoom(40, 42) });
+  });
+});
 
 describe('glyph room: the cards', () => {
   it.each([

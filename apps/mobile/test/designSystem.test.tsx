@@ -149,6 +149,13 @@ describe('design foundation: components', () => {
     expect(screen.getByText('Grouper')).toBeOnTheScreen();
   });
 
+  it('pads the card checkbox 12 on every side (storyboard 1.4), not 4 at the top and bottom', async () => {
+    await render(<Checkbox label="I explicitly consent" checked={false} onChange={() => {}} variant="card" />);
+    const style = StyleSheet.flatten(screen.getByRole('checkbox').props.style) as Record<string, unknown>;
+    expect(style.paddingVertical).toBe(12);
+    expect(style.paddingHorizontal).toBe(12);
+  });
+
   it('keeps Button, Toggle and Checkbox semantics', async () => {
     const onPress = jest.fn();
     const onToggle = jest.fn();

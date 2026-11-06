@@ -335,9 +335,29 @@ export function glyphRoom(fontSize: number, lineHeight: number): GlyphRoom {
   return { paddingTop: top, paddingBottom: bottom, marginTop: -top, marginBottom: -bottom };
 }
 
-/** A size and line height plus the glyph room it needs (see `glyphRoom`). */
+/**
+ * Android variant of the glyph room. Android's text view clips glyphs at its content box (padding included), so the
+ * padding of `glyphRoom` does not save the descender there: on the device "baking bread" (40/42) still lost the tail of
+ * its g. Android instead gets a line tall enough for the ink (the font's 1.307 em plus 1 for rounding), and equal
+ * negative margins pull the extra back out of the layout, so a one-line title takes exactly the storyboard's space.
+ * A title that wraps keeps the font's own leading between its lines, a little looser than drawn.
+ */
+export function androidGlyphRoom(fontSize: number, lineHeight: number): { readonly lineHeight: number } & GlyphRoom {
+  const inkLine = Math.ceil(fontSize * (FontMetrics.inkTop + FontMetrics.inkBottom)) + 1;
+  if (lineHeight >= inkLine) return { lineHeight };
+  const extra = inkLine - lineHeight;
+  const top = Math.floor(extra / 2);
+  return { lineHeight: inkLine, marginTop: -top, marginBottom: -(extra - top) };
+}
+
+/** A size and line height plus the glyph room it needs on this platform (see `glyphRoom`, `androidGlyphRoom`). */
+export function tightLineFor(os: string, fontSize: number, lineHeight: number): { readonly fontSize: number; readonly lineHeight: number } & GlyphRoom {
+  return os === 'android' ? { fontSize, ...androidGlyphRoom(fontSize, lineHeight) } : { fontSize, lineHeight, ...glyphRoom(fontSize, lineHeight) };
+}
+
+/** `tightLineFor` on the running platform. */
 export function tightLine(fontSize: number, lineHeight: number): { readonly fontSize: number; readonly lineHeight: number } & GlyphRoom {
-  return { fontSize, lineHeight, ...glyphRoom(fontSize, lineHeight) };
+  return tightLineFor(Platform.OS, fontSize, lineHeight);
 }
 
 /**

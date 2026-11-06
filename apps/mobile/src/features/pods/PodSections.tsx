@@ -7,7 +7,7 @@ import type { AttendanceStatus, PodDoc } from '@grouper/core';
 import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
-import { Fonts, Radius, Spacing, Type, usePalette } from '@/components/theme';
+import { Fonts, Radius, Spacing, Type, tightLine, usePalette } from '@/components/theme';
 import { AppText, Card, ChipRow, Icon, IconButton, ListGroup, Pill, Row, SwitchRow } from '@/components/ui';
 import { MemberAvatar } from './MemberAvatar';
 import { memberFills, viewerLast } from './memberFill';
@@ -346,7 +346,7 @@ const styles = StyleSheet.create({
   // Hero (3.1)
   heroTitle: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   heroLock: { marginTop: 2 },
-  heroTheme: { ...Type.hero, fontSize: 34, lineHeight: 37, letterSpacing: -1 },
+  heroTheme: { ...Type.hero, ...tightLine(34, 37), letterSpacing: -1 },
   heroMembers: { flexDirection: 'row', gap: 6 },
   heroMember: { flex: 1, alignItems: 'center', gap: 6, minWidth: 0 },
   pressed: { opacity: 0.75 },

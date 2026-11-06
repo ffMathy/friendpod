@@ -2,7 +2,7 @@
  * Identity marks from the storyboards: the six-circle logo with the wordmark, and the welcome illustration.
  */
 import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
-import { HeroColors, Radius, Type, usePalette } from './theme';
+import { HeroColors, Radius, Type, tightLine, usePalette } from './theme';
 
 /** The mark's circles in its 36×36 box: a centre dot (r5) and five satellites (r4, 55 % opacity). */
 const MARK: readonly (readonly [cx: number, cy: number, r: number, opacity: number])[] = [
@@ -45,7 +45,7 @@ export function Logo({ size = 36, wordmark = true, name = 'Grouper', color, styl
         ))}
       </View>
       {wordmark ? (
-        <Text style={[Type.title, { fontSize: 22 * s, lineHeight: 28 * s, letterSpacing: -0.44 * s, color: p.ink }]}>{name}</Text>
+        <Text style={[Type.title, { ...tightLine(22 * s, 28 * s), letterSpacing: -0.44 * s, color: p.ink }]}>{name}</Text>
       ) : null}
     </View>
   );

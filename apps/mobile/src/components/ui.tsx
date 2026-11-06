@@ -1824,7 +1824,8 @@ export const styles = StyleSheet.create({
   trackSegment: { minHeight: 34, borderRadius: 17, paddingHorizontal: Spacing.ms, alignItems: 'center', justifyContent: 'center' },
   trackText: { ...Fonts.semibold, fontSize: 13, lineHeight: 18 },
   checkRow: { flexDirection: 'row', gap: Spacing.ms, alignItems: 'flex-start', minHeight: Sizes.touch, paddingVertical: Spacing.xs },
-  checkCard: { borderWidth: 1, borderRadius: Radius.lg, padding: Spacing.ms },
+  // paddingVertical, not padding: checkRow's paddingVertical would otherwise win and leave the card 4 tall at the edges.
+  checkCard: { borderWidth: 1, borderRadius: Radius.lg, paddingHorizontal: Spacing.ms, paddingVertical: Spacing.ms },
   checkBare: { minHeight: 0, paddingVertical: 0, alignSelf: 'center' },
   checkText: { flex: 1, gap: 2 },
   checkLabel: { lineHeight: 20 },

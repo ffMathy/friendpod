@@ -14,7 +14,7 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
-import { FontSize, HeroColors, Radius, Spacing, usePalette } from '@/components/theme';
+import { FontSize, HeroColors, Radius, Spacing, tightLine, usePalette } from '@/components/theme';
 import {
   AppText,
   Banner,
@@ -234,7 +234,7 @@ const styles = StyleSheet.create({
   // squeezing it.
   cardHead: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', columnGap: Spacing.ms, rowGap: Spacing.sm },
   cardTitle: { flexGrow: 1, flexShrink: 1, gap: Spacing.xxs },
-  areaName: { fontSize: FontSize.h5, lineHeight: 26 },
+  areaName: { ...tightLine(FontSize.h5, 26) },
   map: { height: 110, borderRadius: Radius.md, overflow: 'hidden' },
   // Positions from the storyboard's 304-pt-wide map, as fractions so it scales with the card.
   mapCell: { position: 'absolute', left: '39.5%', top: 18, width: '33%', height: 74, borderRadius: Radius.sm, borderWidth: 2, opacity: 0.55 },
