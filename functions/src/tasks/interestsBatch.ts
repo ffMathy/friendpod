@@ -4,7 +4,7 @@
  * updates), deletes empty non-seed concepts, and for non-sensitive concepts recomputes `holderCount` (ordinary
  * holdings) and each locale's label (the most common wording among ordinary holders of that language). Sensitive
  * concepts get no label and no count. Each run stops after about 20 minutes and re-enqueues itself with a cursor.
- * `rescan` re-classifies stored tags from their stored vectors (see rescan.ts).
+ * Stored tags are never re-classified here (F38): their sensitivity was the first writer's on-device result.
  */
 import { EMBEDDING_MODEL } from '@grouper/core';
 import { FieldPath, FieldValue, type DocumentSnapshot, type Query, type QuerySnapshot } from 'firebase-admin/firestore';

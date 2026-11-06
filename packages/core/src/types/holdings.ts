@@ -32,12 +32,8 @@ export interface SensitiveHolding {
   readonly consentRef: ConsentRef;
 }
 
-/**
- * Repository constructor for `users/{uid}/interests/{interestId}`. A `pendingConsent` holding (rescan hit)
- * is excluded from everything, including the holder's own pod cards, so it yields null.
- */
-export function ordinaryHoldingFromDoc(interestId: InterestId, doc: InterestDoc): OrdinaryHolding | null {
-  if (doc.state !== 'active' || doc.conceptId === null) return null;
+/** Repository constructor for `users/{uid}/interests/{interestId}`. */
+export function ordinaryHoldingFromDoc(interestId: InterestId, doc: InterestDoc): OrdinaryHolding {
   return {
     interestId,
     conceptId: doc.conceptId as NonSensitiveConceptId,

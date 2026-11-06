@@ -12,7 +12,6 @@ import { errorFields } from '../lib/log';
 import { writeNotice } from '../lib/notices';
 import type { AppDeps } from '../lib/runtime';
 import { taskId } from '../lib/tasks';
-import { removeHoldings } from '../interests/remove';
 import { pruneRecent, recentMinUntil } from '../pods/context';
 import { pushTo } from '../pods/effects';
 
@@ -104,17 +103,6 @@ export async function deleteEndedPods(deps: AppDeps, now: number) {
   return each(deps, 'endedPods', due.docs.map((d) => d.id), (id) => deletePod(deps, id));
 }
 
-/** `pendingConsent` holdings (rescan hits without the consent) after 14 days (§5.2 (8), PRIVACY.md §5). */
-export async function deletePendingConsent(deps: AppDeps, now: number) {
-  const due = await deps.db.collectionGroup('interests').where('pendingUntil', '<=', ts(now)).limit(PAGE * 5).get();
-  return each(deps, 'pendingConsent', due.docs, async (d) => {
-    if (d.get('state') !== 'pendingConsent') return false;
-    const uid = d.ref.parent.parent!.id;
-    await removeHoldings(deps, uid, () => ({ ordinary: [d.id], sensitive: [] }), now);
-    return true;
-  });
-}
-
 /** Expired `recentH` entries of profiles no drop wrote recently (§8.2 `recentMinUntil`). */
 export async function pruneRecentH(deps: AppDeps, now: number) {
   const week = weekIdAt(now);
@@ -179,7 +167,10 @@ export async function expireReports(deps: AppDeps, now: number) {
   });
 }
 
-/** Inactive 12 months → a warning (in-app notice and push; email waits for the provider, Q17); deleted 30 days later. */
+/**
+ * Inactive 12 months → a warning (in-app notice and push; there is no email, F39); deleted 30 days later. A user who
+ * cannot be reached (notifications off, no push token) is deleted all the same once the 30 days have passed.
+ */
 export const INACTIVE_AFTER_MS = 365 * DAY_MS;
 export const INACTIVE_GRACE_MS = 30 * DAY_MS;
 
@@ -310,7 +301,6 @@ export async function dailyMaintenance(deps: AppDeps, now: number): Promise<Reco
   const out: Record<string, number> = {};
   const steps: [string, () => Promise<Record<string, number> | { done: number; failed: number } | boolean>][] = [
     ['endedPods', () => deleteEndedPods(deps, now)],
-    ['pendingConsent', () => deletePendingConsent(deps, now)],
     ['recentH', () => pruneRecentH(deps, now)],
     ['reports', () => expireReports(deps, now)],
     ['inactivity', () => inactivity(deps, now)],

@@ -1,9 +1,13 @@
 import { QueryClientProvider } from '@tanstack/react-query';
-import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
+import { useFonts } from 'expo-font';
+import { Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
+import * as SystemUI from 'expo-system-ui';
 import { useEffect } from 'react';
 import { I18nextProvider, useTranslation } from 'react-i18next';
-import { useColorScheme } from 'react-native';
+import { FONT_ASSETS } from '@/components/fonts';
+import { useNavigationTheme, useStackScreenOptions } from '@/components/navigation';
+import { usePalette } from '@/components/theme';
 import { useUserDoc } from '@/data/docs';
 import { queryClient } from '@/data/queryClient';
 import { initFirebase } from '@/firebase';
@@ -35,17 +39,27 @@ function ProfileEffects({ uid }: { uid: string }) {
 function Navigator() {
   const { phase, user } = useSession();
   const { t } = useTranslation();
-  const scheme = useColorScheme();
+  const theme = useNavigationTheme();
+  const stackOptions = useStackScreenOptions();
+  const page = usePalette().page;
+  // Plus Jakarta Sans, one face per weight (src/components/fonts.ts). The splash stays up until the fonts are in;
+  // if they fail to load, the app starts anyway with the system font.
+  const [fontsLoaded, fontError] = useFonts(FONT_ASSETS);
+  const fontsReady = fontsLoaded || fontError !== null;
 
   useEffect(() => {
-    if (phase !== 'loading') void SplashScreen.hideAsync();
-  }, [phase]);
-  if (phase === 'loading') return null;
+    // The root view behind every screen (visible during transitions and keyboard animations).
+    void SystemUI.setBackgroundColorAsync(page);
+  }, [page]);
+  useEffect(() => {
+    if (phase !== 'loading' && fontsReady) void SplashScreen.hideAsync();
+  }, [phase, fontsReady]);
+  if (phase === 'loading' || !fontsReady) return null;
 
   return (
-    <ThemeProvider value={scheme === 'dark' ? DarkTheme : DefaultTheme}>
+    <ThemeProvider value={theme}>
       {phase === 'ready' && user ? <ProfileEffects key={user.uid} uid={user.uid} /> : null}
-      <Stack screenOptions={{ headerBackButtonDisplayMode: 'minimal' }}>
+      <Stack screenOptions={stackOptions}>
         <Stack.Protected guard={phase === 'signedOut'}>
           <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         </Stack.Protected>

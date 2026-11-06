@@ -51,7 +51,7 @@ export async function assembleExport(deps: Pick<AppDeps, 'db'>, uid: string): Pr
   const u = user.data();
   const p = profile.data();
 
-  // How each interest was classified (lexicon, detector margin, known-ordinary list, the user's own choices).
+  // How each interest was classified (the on-device detector margin, the user's own choices).
   const holdings = [
     ...ordinary.docs.map((d) => ({ id: d.id, partition: 'ordinary' as const, doc: d.data() as Record<string, unknown> })),
     ...sensitive.docs.map((d) => ({ id: d.id, partition: 'sensitive' as const, doc: d.data() as Record<string, unknown> })),
@@ -62,13 +62,11 @@ export async function assembleExport(deps: Pick<AppDeps, 'db'>, uid: string): Pr
     return {
       interestId: h.id,
       wording: h.doc.display,
-      stored: h.partition === 'sensitive' ? 'sensitive' : h.doc.state === 'pendingConsent' ? 'pendingConsent' : 'ordinary',
+      stored: h.partition,
       starred: h.doc.starred === true,
       createdAt: plain(h.doc.createdAt ?? h.doc.consentedAt),
       classification: {
-        lexiconHit: sens?.lexiconHit ?? null,
         detectorMargin: sens?.margin ?? null,
-        knownOrdinary: sens?.knownOrdinary ?? null,
         keepThisPrivate: h.doc.selfFlagged === true,
         notSensitiveForMe: h.doc.notSensitiveForMe === true,
         source: h.doc.source ?? null,

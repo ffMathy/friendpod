@@ -231,16 +231,15 @@ export const tagVectorSchema = z
   .refine((v) => Math.abs(vectorNorm(v) - 1) <= VECTOR_NORM_TOLERANCE, { message: 'vector must be L2-normalised' });
 
 /**
- * One tag, embedded on the device (D1). The server trusts `vector` (an accepted manipulation risk) but repeats
- * normalisation, moderation and the lexicon itself, and recomputes the margin from the vector when it can
- * (reconcileDetectorMargin). `selfFlagPrivate` ("Keep this private") and `notSensitiveForMe` apply to this holding
- * only and exclude each other. Sent for an existing holding, either flag changes that holding instead.
+ * One tag, embedded on the device (D1). The server trusts `vector` and `detector.margin` (an accepted manipulation
+ * risk: sensitivity is the on-device model's decision, F38) but repeats normalisation and moderation.
+ * `selfFlagPrivate` ("Keep this private") and `notSensitiveForMe` apply to this holding only and exclude each other. Sent for an existing holding, either flag changes that holding instead.
  */
 export const addInterestsItem = z
   .strictObject({
     text: z.string().min(1).max(ADD_INTERESTS_TEXT_MAX),
     vector: tagVectorSchema,
-    detector: z.strictObject({ margin: z.number().min(-2).max(2), lexiconHit: z.boolean() }),
+    detector: z.strictObject({ margin: z.number().min(-2).max(2) }),
     selfFlagPrivate: z.boolean().optional(),
     notSensitiveForMe: z.boolean().optional(),
   })

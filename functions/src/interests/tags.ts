@@ -10,34 +10,18 @@
  * So a holding's partition decides its slot, and partitions never mix in a concept (§5.2 (5)). A tag's vector is in
  * a slot concept's `sum` only while that slot's count is above 0 (§5.2 (8)).
  */
-import {
-  KNOWN_ORDINARY_VERSION,
-  LEXICON_RULES_VERSION,
-  PROTOTYPE_LISTS,
-  tagKeyMaterial,
-  type Partition,
-} from '@grouper/core';
+import { tagKeyMaterial, type Partition } from '@grouper/core';
 import { sha256Hex } from '@grouper/core/node';
 import type { DocumentSnapshot } from 'firebase-admin/firestore';
 import { vectorFromField } from './assign';
 
-/** The rules a tag-level decision was made with (`tags.sens.rulesVersion`); a rescan compares against it. */
-export const SENSITIVITY_RULES_VERSION = [
-  LEXICON_RULES_VERSION,
-  `art9-${PROTOTYPE_LISTS.versions.art9}`,
-  `anchors-${PROTOTYPE_LISTS.versions.anchors}`,
-  `ordinary-${KNOWN_ORDINARY_VERSION}`,
-].join('+');
-
 export type Slot = 'own' | 'private' | 'ordinary';
 export const SLOTS: readonly Slot[] = ['own', 'private', 'ordinary'];
 
+/** The tag-level decision, made once from the first writer's phone margin (F38) and never re-run on the server. */
 export interface TagSens {
   readonly sensitive: boolean;
   readonly margin: number | null;
-  readonly lexiconHit: boolean;
-  readonly knownOrdinary: boolean;
-  readonly rulesVersion: string;
 }
 
 export interface TagState {
@@ -97,9 +81,6 @@ export function tagStateFromDoc(snap: DocumentSnapshot, dim: number): TagState {
     sens: {
       sensitive: s.sensitive === true,
       margin: typeof s.margin === 'number' ? s.margin : null,
-      lexiconHit: s.lexiconHit === true,
-      knownOrdinary: s.knownOrdinary === true,
-      rulesVersion: String(s.rulesVersion),
     },
     slots: {
       own: refCount > 0 && typeof d.conceptId === 'string' ? d.conceptId : null,

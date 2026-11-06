@@ -1,26 +1,41 @@
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Button, Heading, Screen } from '@/components/ui';
+import { Button } from '@/components/ui';
 import { useInterests, useSensitiveInterests } from '@/data/docs';
 import { InterestManager } from '@/features/interests/InterestManager';
+import { OnboardingStep, useStepBack } from '@/features/onboarding/OnboardingStep';
 import { useUid } from '@/features/session/SessionProvider';
 import { currentLocale } from '@/i18n';
 
 const MIN_INTERESTS = 3;
 
-/** §3.1 step 7: free-text interests, minimum 3 (nudged towards 5). */
+/**
+ * Step 4 of 6, "What are you into?" (onb-interests; DESIGN §3.1 step 8): free-text interests, minimum 3 (nudged to 5).
+ * Continue follows the content, as the storyboard draws it, so the "Did you mean" card and "Popular in …" are never
+ * under a pinned button.
+ */
 export default function AddInterests() {
   const { t } = useTranslation();
   const router = useRouter();
+  // Back is the consent step (step 3), as on the storyboard. After a resume this screen is the first in its stack:
+  // back then opens the consent step in its place, which carries on here again, as in the first run.
+  const back = useStepBack() ?? (() => router.replace('/sensitive-consent'));
   const uid = useUid();
   const ordinary = useInterests(uid).data ?? [];
   const sensitive = useSensitiveInterests(uid).data ?? [];
   const enough = ordinary.length + sensitive.length >= MIN_INTERESTS;
   return (
-    <Screen>
-      <Heading>{t('onboarding.interests.title')}</Heading>
+    <OnboardingStep
+      step={4}
+      title={t('onboarding.interests.title')}
+      lede={t('onboarding.interests.lede')}
+      ledeSize="body"
+      gap={18}
+      onBack={back}
+      footerPinned={false}
+      footer={<Button testID="interests-continue" label={t('common.continue')} disabled={!enough} onPress={() => router.push('/pod-preferences')} />}
+    >
       <InterestManager uid={uid} locale={currentLocale()} mode="onboarding" />
-      <Button label={t('common.continue')} disabled={!enough} onPress={() => router.push('/pod-preferences')} />
-    </Screen>
+    </OnboardingStep>
   );
 }

@@ -79,8 +79,8 @@ src/
   firebase/          RNFirebase init, App Check, emulators, typed callables (core zod schemas)
   data/              TanStack Query client, callable mutations, onSnapshot bridges, typed doc hooks
   features/          auth, session, onboarding, interests (+ embedder/), consent, profile, pods, places, chat, photos, notifications, notices, account
-  components/        small UI kit
-  i18n/              da.json, en.json (+ native/ for iOS permission prompts)
+  components/        the design system: tokens (theme.ts), primitives (ui.tsx re-exports), icons, nav chrome
+  i18n/              en/ and da/ per-area copy files (+ native/ for iOS permission prompts)
 test/                jest tests
 ```
 
@@ -90,10 +90,63 @@ The blanket Art. 9 consent (D3) is its own onboarding step after `completeOnboar
 and can be given or withdrawn in Settings → Privacy. Without it, a tag that is sensitive for the holding is refused on
 the phone and never sent.
 
+## Design system
+
+The app looks like the design storyboards (390 × 844 artboards; React Native units equal CSS px at that width, so
+the numbers are the storyboards' own). Everything lives in `src/components/` and is imported from one place:
+
+```tsx
+import { Screen, StepHeader, Title, Lede, TextField, Button } from '@/components/ui';
+import { usePalette, Type, font } from '@/components/theme';
+```
+
+**Tokens** (`theme.ts`). `usePalette()` returns the light or dark palette for the system appearance. Light mode is
+the storyboard palette exactly: `page` #F3F5F1, `surface` #FFFFFF, `text` #18211D, `textMuted` #55605A, `primary`
+#1E6B58 (pressed #174F42), `border` #DCE2DC, `borderStrong` #C9D1CA (inputs, outline buttons), `mint` #E1EFE9,
+`ink`/`hero` #18211D (dark buttons and cards), `accent` #F2B544, plus warning (amber), danger (red), private
+(purple) and avatar colours. Dark mode keeps the brand with a lighter green primary (dark text on it) on warm
+green-greys. `Layout` (gutters 24/20, gaps), `Radius` (14 inputs, 20 cards, 28 panels, `pill`), `BorderWidth`,
+`Size` (54 buttons, 44 hit target) and `Space` hold the rest. Never hard-code a colour in a screen.
+
+**Typography.** Plus Jakarta Sans 400–800, loaded by the root layout (`fonts.ts`, splash held until ready) and
+embedded natively by the `expo-font` plugin in `app.config.ts`. A custom font needs one family per weight, so
+**never set `fontWeight`** (a test enforces it): use `<Text variant="heading">`, the named primitives (`Display`,
+`Title`, `Headline`, `Heading`, `Body`, `Lede`, `Muted`, `Small`, `Label`, `Overline`, `Eyebrow`), `<Strong>` for
+inline bold, or in a StyleSheet `Type.body` / `typeStyle('body', '700')` / `font('600')`. The type scale
+(`TypeScale`) names every size/weight/tracking/leading the storyboards use: `display` 36/800/−3%, `title` 30/800/−2%,
+`headline` 24/800, `heading` 15/700, `body` 15/400/1.5, `lede` 16/1.5, `caption` 13/1.5, `overline` 13/700 caps, …
+
+**Primitives** (`ui.tsx`): layout (`Screen` with `header`/`footer`, `StepHeader`, `PageHeader`, `Sheet`, `Loading`),
+`Button` (primary, dark, outline, ghost, danger, dangerSoft, private, light/outlineOnDark/outlineOnMint; sizes lg 54,
+md 48, sm 44, xs 40), `IconButton`, `BackButton`, `CloseButton`, `TextLink`, `InlineLink`, `Card` (default, mint,
+highlighted, panel, hero, brand, inset), `Banner`, `EmptyState`, `Illustration`, `Divider`, `SectionHeader`,
+`ListSection`/`ListRow`/`LinkRow`, `TextField`, `Checkbox`, `Radio`, `Switch`, `ChoiceChip`, `Toggle`,
+`SegmentedControl`, `Chip`, `ChipButton`, `ChipRow`, `Tag`, `Badge`, `Avatar`, `AvatarStack`, `ProgressBar`,
+`ProgressSegments`, `Logo`. Every control keeps a 44 px touch target and its accessibility role and state.
+
+**Icons** (`Icon.tsx`): `<Icon name="lock" size={14} color={p.privateText} />`, decorative unless given an
+`accessibilityLabel`. Names: back, chevronRight, close, check, plus, calendar, calendarAdd, people, tag, person, pin,
+clock, lock, camera, bell, info, shield, star, starFilled, send, search, chat, download, share, more, pause, trash,
+block, flag.
+
+**Navigation chrome** (`navigation.tsx`): every Stack uses `useStackScreenOptions()` (page-coloured header, no
+hairline, minimal back chevron); the tab bar uses `useTabScreenOptions()` and the storyboard tab icons. A screen that
+draws its own header hides the native one with `<Stack.Screen options={{ headerShown: false }} />`.
+
+**Identity.** The mark is "pod dots" (`Logo`, `PodDots`); the app icon, Android adaptive layers and splash marks in
+`assets/images/` and the iOS `assets/expo.icon` were rendered from it (`assets/images/source/*.svg`).
+
+**Copy.** `src/i18n/{en,da}/<area>.json`, deep-merged at start (`resources.ts`): common, auth, onboarding, drop, pod,
+after, privacy, shell. Key paths are unchanged (`t('pod.next.voteBody')`); a key lives in one file only and both
+languages have the same keys per file (test/i18n.test.ts). Danish copy is written as Danish, not translated word for
+word.
+
 ## On-device embedding (D1)
 
 Every interest is embedded on the phone with the pinned EmbeddingGemma 2 q4 graph (`EMBEDDING_MODEL` in core) and
-scored by the core detector against `prototypes.bin`; `addInterests` receives `{text, vector, detector}`.
+scored by the core detector against `prototypes.bin`; `addInterests` receives `{text, vector, detector: {margin}}`. That
+margin is the only sensitivity signal besides "Keep this private" (DESIGN.md F38): there is no word list on the phone or
+the server. The stub embedder (`EXPO_PUBLIC_EMBEDDER=stub`, tests) fakes the model's judgement with a few word stems.
 
 - Runtime: `onnxruntime-react-native` 1.24.3 (CPU execution provider only), its native core pinned to ORT 1.30.0 on
   both platforms by `plugins/withOrtPinned.js`; `react-native.config.js` registers `OnnxruntimePackage` on Android.
@@ -143,7 +196,7 @@ through the typed callables (`src/firebase/callables.ts`, `useCallable`); nothin
 | Feedback | `pod/[podId]/feedback` | `submitFeedback` |
 | Leave pod | pod screen | `leavePod` |
 | Block (remove them / leave instead / re-plan when scheduled), unblock, report a member, option or message | `pod/[podId]/member/[uid]`, `sheets/report`, `settings/blocked` | `blockUser`, `unblockUser`, `report`; `users/{uid}/blocks` |
-| Interests (remove, star, did-you-mean, keep private, not sensitive for me, rescan holds) | `InterestManager` | `addInterests`, `removeInterest`, `updateInterest`, `confirmSuggestion` |
+| Interests (remove, star, did-you-mean, keep private, not sensitive for me) | `InterestManager` | `addInterests`, `removeInterest`, `updateInterest`, `confirmSuggestion` |
 | Privacy: Art. 9 and gender consent, pause / skip, photo, export, blocked, notices, delete | `settings/privacy`, `settings/delete-account` | `setArt9Consent`, `withdrawArt9Consent`, `updateProfile`, `setParticipation`, `deletePhoto`, `exportData`, `deleteAccount`; `users/{uid}/exports` |
 | Photo upload, change and delete | `(onboarding)/photo`, Me → `PhotoCard` | Storage `uploads/{uid}/pending*.jpg` (`onPhotoUploaded`), `deletePhoto` |
 | Messages from Grouper (statements of reasons, report receipts, export ready) | `settings/notices`, `NoticeCard` | `users/{uid}/notices` |

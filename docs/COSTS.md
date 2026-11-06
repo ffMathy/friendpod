@@ -94,7 +94,6 @@ The app calls Places directly with a key restricted to the apps (DESIGN §9). A 
 | Google Play registration | $25 once [P] | ~$1 over 24 months | |
 | Domain (`.dk`) | Punktum wholesale DKK 72.50/year from 2026-04-01, plus the registrar's margin [P]; ~$15/year [A] | ~$1.25 | One-year terms only from 2026-07-01 |
 | Expo EAS | Free: 15 Android + 15 iOS builds a month, low-priority queue. Starter $19/month incl. $45 build credit [P] | $0, then $19 | Starter from the public launch [A]; `eas build --local` stays the fallback; EAS Update is not used (A14) |
-| Transactional email (Q17) | Brevo (FR, EU) free 300/day; Postmark free 100/month [P] | $0 | ~0.02 emails per MAU a month (inactivity warnings, Art. 34 notices) [A] |
 | Firebase Auth email links | $0 on Blaze, 25,000/day [P] | $0 | ~0.3 sends per MAU a month [A] |
 | FCM | $0 [P] | $0 | ~6 pushes per MAU a month (drop, T−3 d, T−24 h, T−6 h, feedback and its reminder) [A] |
 | App Check: Play Integrity, App Attest | $0 [P] | $0 | Play Integrity standard tier 10,000 calls/day, which runs out at about 30–40k DAU with a 1 h token TTL; the free increase is requested at about 15k MAU (DESIGN §9) |
@@ -161,7 +160,6 @@ The app calls Places directly with a key restricted to the apps (DESIGN §9). A 
 | Google Play registration | https://support.google.com/googleplay/android-developer/answer/6112435 |
 | Apple Developer Program fee (secondary source) | https://studio.adalo.com/blog/apple-developer-program-guide |
 | `.dk` domain | https://www.punktum.dk/en/articles/prices-and-fees |
-| Transactional email | https://www.brevo.com/pricing/, https://postmarkapp.com/pricing |
 | Hugging Face rate limits | https://huggingface.co/docs/hub/rate-limits |
 | GitHub Actions | https://docs.github.com/en/billing/concepts/product-billing/github-actions |
 | On-device model sizes [ODV] | On-device EmbeddingGemma 2 research, 2026-11-04 (DESIGN §5.1) |

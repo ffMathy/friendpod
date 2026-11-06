@@ -33,12 +33,12 @@ export type LaunchAreaStatus = (typeof LAUNCH_AREA_STATUSES)[number];
 export const MATCHING_PROFILE_IDS = ['launch', 'alpha'] as const;
 export type MatchingProfileId = (typeof MATCHING_PROFILE_IDS)[number];
 
-/** GDPR Art. 9 categories named in the blanket consent (PRIVACY.md §3.3); the lexicon files its terms under them. */
+/** GDPR Art. 9 categories named in the blanket consent (PRIVACY.md §3.3); the detector's prototype phrases are filed under them. */
 export const ART9_CATEGORIES = ['health', 'religion', 'sexualOrientation', 'politics', 'ethnicOrigin', 'tradeUnion'] as const;
 export type Art9Category = (typeof ART9_CATEGORIES)[number];
 
-/** `sensitiveInterests.source` (§8.1). There is no human review (D2). */
-export const SENSITIVITY_SOURCES = ['lexicon', 'self', 'model'] as const;
+/** `sensitiveInterests.source` (§8.1): the on-device model or the user's "Keep this private". No human review (D2). */
+export const SENSITIVITY_SOURCES = ['self', 'model'] as const;
 export type SensitivitySource = (typeof SENSITIVITY_SOURCES)[number];
 
 export const REPORT_CATEGORIES = ['harassment', 'safety', 'noShow', 'content', 'underage', 'notGenuine'] as const;

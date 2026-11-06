@@ -38,5 +38,3 @@ export const CONCEPT_SEARCH_LIMIT = 3;
 /** Concept snapshot generation; stays 0 until the in-memory shortlist stage (§5.2 (6), above 20k concepts). */
 export const CONCEPT_GEN = 0;
 
-/** prototypes.bin is re-read from the models bucket at most this often per instance after a failed or missing read. */
-export const PROTOTYPES_RETRY_MS = 10 * 60_000;

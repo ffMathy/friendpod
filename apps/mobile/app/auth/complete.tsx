@@ -1,18 +1,26 @@
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Body, Button, ErrorText, Field, Screen } from '@/components/ui';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { Banner, Button, Screen, Text, TextField, TextLink, Title } from '@/components/ui';
+import { usePalette } from '@/components/theme';
+import { AuthHeader } from '@/features/auth/AuthHeader';
 import { completeEmailLink, isEmailLink, pendingEmail } from '@/features/auth/emailLink';
+import { useSession } from '@/features/session/SessionProvider';
 import { useEmulators } from '@/lib/env';
 
 /**
  * Email-link completion (§11). Reached through `+native-intent` with the incoming URL in `link`. If the
  * link was opened on another device (no stored address), the user confirms the address. In emulator
  * builds the Auth emulator prints links instead of sending them, so a link can be pasted here.
+ * Drawn like /email, the step before it (the welcome logo, 30/800 title, lede, actions pinned at the bottom); the
+ * native header is hidden.
  */
 export default function CompleteEmailLink() {
   const { t } = useTranslation();
   const router = useRouter();
+  const p = usePalette();
+  const { phase } = useSession();
   const params = useLocalSearchParams<{ link?: string }>();
   const [link, setLink] = useState(params.link ?? '');
   const [email, setEmail] = useState('');
@@ -42,25 +50,82 @@ export default function CompleteEmailLink() {
     // Runs once per incoming link.
   }, [params.link]);
 
+  const manual = useEmulators && !params.link;
+  const askEmail = needsEmail || manual;
+  const error = state === 'invalid' ? t('auth.complete.invalid') : state === 'failed' ? t('auth.complete.failed') : null;
+  // With a stored address there is nothing to correct here: an error ends in a new link (the email step, which starts
+  // with the stored address) or a way back to the start.
+  const dead = error !== null && !askEmail;
+  // A signed-in person re-authenticating (export, deletion) gets a new link from the action that asked for it, and
+  // the email step is for signed-out people only.
+  const offerNewLink = dead && phase === 'signedOut';
+
+  const title = askEmail ? t('auth.complete.confirmTitle') : dead ? t('auth.complete.errorTitle') : t('auth.complete.title');
+  const lede = askEmail ? t('auth.complete.confirmBody') : dead ? error : t('auth.complete.body');
+  const restart = () => router.replace('/');
+
   return (
-    <Screen>
-      <Body>{t('auth.complete.body')}</Body>
-      {useEmulators && !params.link ? (
-        <Field label={t('auth.complete.pasteLink')} value={link} onChangeText={setLink} autoCapitalize="none" />
-      ) : null}
-      {needsEmail || (useEmulators && !params.link) ? (
-        <Field label={t('auth.email.label')} value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
-      ) : null}
-      {needsEmail || (useEmulators && !params.link) ? (
-        <Button
-          label={t('auth.complete.continue')}
-          busy={state === 'working'}
-          disabled={link.length === 0 || email.trim().length === 0}
-          onPress={() => void complete(link, email.trim())}
-        />
-      ) : null}
-      {state === 'invalid' ? <ErrorText>{t('auth.complete.invalid')}</ErrorText> : null}
-      {state === 'failed' ? <ErrorText>{t('auth.complete.failed')}</ErrorText> : null}
-    </Screen>
+    <>
+      <Stack.Screen options={{ headerShown: false }} />
+      <Screen
+        safeTop
+        gap={24}
+        header={<AuthHeader />}
+        footer={
+          askEmail ? (
+            <>
+              <Button
+                label={t('auth.complete.continue')}
+                busy={state === 'working'}
+                disabled={link.length === 0 || email.trim().length === 0}
+                onPress={() => void complete(link, email.trim())}
+              />
+              {/* A link opened on the wrong phone, or an address the person no longer remembers: a way out. */}
+              <TextLink label={t('auth.complete.restart')} align="center" onPress={restart} />
+            </>
+          ) : offerNewLink ? (
+            <>
+              <Button label={t('auth.complete.newLink')} onPress={() => router.replace('/email')} />
+              <TextLink label={t('auth.complete.restart')} align="center" onPress={restart} />
+            </>
+          ) : dead ? (
+            <Button label={t('auth.complete.restart')} onPress={restart} />
+          ) : undefined
+        }
+      >
+        <View style={styles.titleBlock}>
+          <Title>{title}</Title>
+          {/* An error is announced (it replaces the progress line once the link has been tried). */}
+          <Text variant="lede" color="textMuted" accessibilityRole={dead ? 'alert' : undefined}>
+            {lede}
+          </Text>
+        </View>
+        {!askEmail && !dead ? <ActivityIndicator size="large" color={p.primary} accessibilityLabel={t('auth.complete.title')} style={styles.spinner} /> : null}
+        {manual ? <TextField label={t('auth.complete.pasteLink')} value={link} onChangeText={setLink} autoCapitalize="none" autoCorrect={false} /> : null}
+        {askEmail ? (
+          <TextField
+            label={t('auth.email.label')}
+            placeholder={t('auth.email.placeholder')}
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+            autoComplete="email"
+            textContentType="emailAddress"
+          />
+        ) : null}
+        {askEmail && error ? (
+          <Banner tone="danger" icon="info" alert>
+            {error}
+          </Banner>
+        ) : null}
+      </Screen>
+    </>
   );
 }
+
+const styles = StyleSheet.create({
+  titleBlock: { gap: 8 },
+  spinner: { alignSelf: 'flex-start' },
+});

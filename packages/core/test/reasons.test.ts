@@ -30,7 +30,7 @@ describe('card reasons (§6.7)', () => {
 });
 
 describe('holdings (§5.2 (5))', () => {
-  const ordinary = ordinaryHoldingFromDoc('aaaaaaaaaaaaaaaa', { display: 'Brætspil', norm: 'brætspil', conceptId: 'c_00000000000000000001', starred: true, state: 'active', createdAt: ts })!;
+  const ordinary = ordinaryHoldingFromDoc('aaaaaaaaaaaaaaaa', { display: 'Brætspil', norm: 'brætspil', conceptId: 'c_00000000000000000001', starred: true, createdAt: ts });
   const sensitive = sensitiveHoldingFromDoc('bbbbbbbbbbbbbbbb', {
     display: 'Brætspil',
     norm: 'brætspil',
@@ -55,7 +55,7 @@ describe('holdings (§5.2 (5))', () => {
   });
 
   it('keeps a star when another wording of the same concept comes first', () => {
-    const doc = (display: string, starred: boolean) => ({ display, norm: display, conceptId: 'c_00000000000000000002', starred, state: 'active' as const, createdAt: ts });
+    const doc = (display: string, starred: boolean) => ({ display, norm: display, conceptId: 'c_00000000000000000002', starred, createdAt: ts });
     const lob = ordinaryHoldingFromDoc('aaaaaaaaaaaaaaab', doc('løb', false))!;
     const running = ordinaryHoldingFromDoc('aaaaaaaaaaaaaaac', doc('running', true))!;
     for (const order of [[lob, running], [running, lob]]) {
@@ -63,8 +63,7 @@ describe('holdings (§5.2 (5))', () => {
     }
   });
 
-  it('excludes pending holdings and rejects sensitive holdings without consent', () => {
-    expect(ordinaryHoldingFromDoc('cccccccccccccccc', { display: 'x', norm: 'xx', conceptId: null, starred: false, state: 'pendingConsent', createdAt: ts })).toBeNull();
+  it('rejects sensitive holdings without consent', () => {
     expect(() => sensitiveHoldingFromDoc('dddddddddddddddd', { ...sensitiveDoc(), consentEventId: '' })).toThrow();
   });
 });

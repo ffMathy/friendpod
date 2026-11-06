@@ -1,11 +1,13 @@
-import type { LatLon, Place } from '@grouper/core';
+import type { LatLon, Place, PublicPlaceType } from '@grouper/core';
 
 /** One Autocomplete row, already filtered to public place types (D8). */
 export interface PlacePrediction {
   readonly placeId: string;
   readonly name: string;
-  /** Street and town, for telling two cafés apart. */
+  /** Street and town, for telling two cafés apart (without the country). */
   readonly secondary: string;
+  /** The first public place type of the prediction ("cafe"), shown as "Café · Aarhus C"; null if unknown. */
+  readonly type: PublicPlaceType | null;
 }
 
 /**

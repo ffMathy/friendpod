@@ -5,7 +5,7 @@ import { Art9BlanketConsent } from '@/features/consent/Art9BlanketConsent';
 import { appVersion } from '@/lib/appVersion';
 import SensitiveConsentStep from '../app/(onboarding)/sensitive-consent';
 
-const mockRouter = { push: jest.fn(), replace: jest.fn(), back: jest.fn() };
+const mockRouter = { push: jest.fn(), replace: jest.fn(), back: jest.fn(), canGoBack: jest.fn(() => false) };
 jest.mock('expo-router', () => ({ useRouter: () => mockRouter }));
 
 const mockCall = jest.fn();
@@ -19,6 +19,7 @@ const handlers = () => ({ onAgree: jest.fn(), onNotNow: jest.fn(), onReadMore: j
 beforeEach(() => {
   mockCall.mockReset();
   Object.values(mockRouter).forEach((f) => f.mockClear());
+  mockRouter.canGoBack.mockReturnValue(false);
 });
 
 describe('blanket Art. 9 consent (D3, PRIVACY.md §3.3)', () => {
@@ -72,11 +73,32 @@ describe('blanket Art. 9 consent (D3, PRIVACY.md §3.3)', () => {
     };
     afterEach(() => client.clear());
 
+    it('is step 3 of 6, with the locked title under the "Private interests" badge and no way back to the submitted steps', async () => {
+      await renderStep();
+      expect(screen.getByText('Step 3 of 6')).toBeOnTheScreen();
+      expect(screen.getByText('Private interests')).toBeOnTheScreen();
+      expect(screen.getByRole('header', { name: 'Sensitive interests' })).toBeOnTheScreen();
+      expect(screen.queryByRole('button', { name: 'Back' })).toBeNull();
+    });
+
     it('"Not now" carries on to the interests and records nothing, so saying no keeps the app usable', async () => {
       await renderStep();
       await fireEvent.press(screen.getByRole('button', { name: 'Not now' }));
       expect(mockCall).not.toHaveBeenCalled();
-      expect(mockRouter.replace).toHaveBeenCalledWith('/add-interests');
+      expect(mockRouter.push).toHaveBeenCalledWith('/add-interests');
+    });
+
+    it('opened from the interests step (a refused sensitive interest), it returns there', async () => {
+      mockCall.mockResolvedValue({ ok: true });
+      mockRouter.canGoBack.mockReturnValue(true);
+      await renderStep();
+      await fireEvent.press(screen.getByTestId('art9-checkbox'));
+      await fireEvent.press(screen.getByRole('button', { name: 'I agree' }));
+      await act(async () => {
+        await Promise.resolve();
+      });
+      expect(mockRouter.back).toHaveBeenCalledTimes(1);
+      expect(mockRouter.push).not.toHaveBeenCalled();
     });
 
     it('"I agree" calls setArt9Consent with the proof, then carries on', async () => {
@@ -93,7 +115,7 @@ describe('blanket Art. 9 consent (D3, PRIVACY.md §3.3)', () => {
       expect(setArt9ConsentInput.parse(input)).toEqual({
         consent: { textVersion: 'art9-blanket-en-v1', textSha256: LEGAL_TEXT_SHA256['art9-blanket-en-v1'], appVersion, checked: true },
       });
-      expect(mockRouter.replace).toHaveBeenCalledWith('/add-interests');
+      expect(mockRouter.push).toHaveBeenCalledWith('/add-interests');
     });
   });
 });

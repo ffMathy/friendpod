@@ -165,14 +165,14 @@ export async function makeUser(deps: TestDeps, o: UserOptions = {}): Promise<str
         norm: `my ${t.c.slice(-4)}`,
         conceptId: t.c,
         selfFlagged: false,
-        source: 'lexicon',
+        source: 'model',
         consentEventId: 'consentEvt1',
         consentTextVersion: 'art9-blanket-en-v1',
         consentedAt: at,
         starred: false,
       });
     } else {
-      batch.set(refs.interest(uid, id), { display: `my ${t.c.slice(-4)}`, norm: `my ${t.c.slice(-4)}`, conceptId: t.c, starred: false, state: 'active', createdAt: at });
+      batch.set(refs.interest(uid, id), { display: `my ${t.c.slice(-4)}`, norm: `my ${t.c.slice(-4)}`, conceptId: t.c, starred: false, createdAt: at });
     }
   }
   await batch.commit();

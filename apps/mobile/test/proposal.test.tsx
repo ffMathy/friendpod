@@ -1,13 +1,21 @@
-import { respondToPodInput } from '@grouper/core';
+import { leavePodInput, respondToPodInput } from '@grouper/core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import type { ReactElement } from 'react';
+import { Alert } from 'react-native';
 import WhyThisPod from '../app/sheets/why-this-pod';
 import { ProposalCard } from '@/features/pods/ProposalCard';
 
 const POD_ID = 'abcdefghijklmnopqrst';
 const mockRouter = { push: jest.fn(), back: jest.fn() };
-jest.mock('expo-router', () => ({ useRouter: () => mockRouter, useLocalSearchParams: () => ({ podId: 'abcdefghijklmnopqrst' }) }));
+const mockParentOptions = jest.fn();
+const mockNavigation = { getParent: () => ({ setOptions: mockParentOptions }) };
+jest.mock('expo-router', () => ({
+  useRouter: () => mockRouter,
+  useNavigation: () => mockNavigation,
+  useLocalSearchParams: () => ({ podId: 'abcdefghijklmnopqrst' }),
+  Stack: { Screen: () => null },
+}));
 jest.mock('@/features/session/SessionProvider', () => ({ useUid: () => 'me' }));
 
 const mockCall = jest.fn();
@@ -19,8 +27,10 @@ jest.mock('@/firebase/callables', () => ({
 const ts = (ms: number) => ({ toMillis: () => ms });
 const reasons = [
   { code: 'THEME', yourWording: 'brætspil' },
+  { code: 'AREA', label: 'Aarhus C' },
   { code: 'NEAR_YOU', km: 10 },
   { code: 'ALSO_SHARE', yourWordings: ['kaffe', 'gåture'] },
+  { code: 'AGE_SPAN', min: 30, max: 41 },
   { code: 'PRIORITY', weeks: 2 },
 ];
 function card(over: Record<string, unknown> = {}) {
@@ -38,6 +48,8 @@ function card(over: Record<string, unknown> = {}) {
     ...over,
   } as never;
 }
+const privateCard = () =>
+  card({ themeLabel: 'gravid', themeSensitive: true, ageSpan: undefined, reasons: [{ code: 'THEME', yourWording: 'gravid' }, { code: 'NEAR_YOU', km: 5 }] });
 let mockCard: unknown = null;
 jest.mock('@/data/docs', () => ({ usePodCard: () => ({ data: mockCard, error: null, isLoading: false }) }));
 
@@ -49,61 +61,141 @@ async function renderWith(ui: ReactElement) {
 beforeEach(() => {
   mockCall.mockReset();
   mockRouter.push.mockClear();
+  mockRouter.back.mockClear();
+  mockParentOptions.mockClear();
 });
 afterEach(() => client.clear());
 
-describe('proposal card (§3.2, §3.3)', () => {
-  it('shows theme, size, distance, age span and shared interests, never names', async () => {
+describe('proposal card (§3.2, §3.3; drop-proposal)', () => {
+  it('shows theme, size and ages, area and distance, shared interests and empty seats, never names', async () => {
+    await renderWith(<ProposalCard podId={POD_ID} card={card()} confirmationMin={4} />);
+    expect(screen.getByText('New pod')).toBeOnTheScreen();
+    expect(screen.getByText('A pod around')).toBeOnTheScreen();
+    expect(screen.getByRole('header', { name: 'brætspil' })).toBeOnTheScreen();
+    expect(screen.getByText('5 people, ages 30–41')).toBeOnTheScreen();
+    expect(screen.getByText('Near Aarhus C · everyone within about 10 km of you')).toBeOnTheScreen();
+    expect(screen.getByText('Some of you also share kaffe and gåture')).toBeOnTheScreen();
+    expect(screen.getByText('Names and photos appear when 4 people have said yes.')).toBeOnTheScreen();
+    expect(screen.getByText(/^Answer by \w{3} \d{2}:\d{2}$/)).toBeOnTheScreen();
+  });
+
+  it('without the confirmation threshold it does not name a number', async () => {
     await renderWith(<ProposalCard podId={POD_ID} card={card()} />);
-    expect(screen.getByText('brætspil')).toBeOnTheScreen();
-    expect(screen.getByText('5 people near Aarhus C')).toBeOnTheScreen();
-    expect(screen.getByText('Everyone lives about 10 km or less from you')).toBeOnTheScreen();
-    expect(screen.getByText('Ages 30–41')).toBeOnTheScreen();
-    expect(screen.getByText('You also share: kaffe, gåture')).toBeOnTheScreen();
+    expect(screen.getByText('Names and photos appear once the pod is confirmed.')).toBeOnTheScreen();
   });
 
-  it('a sensitive theme shows the lock and neither age span nor shared interests', async () => {
-    await renderWith(<ProposalCard podId={POD_ID} card={card({ themeSensitive: true, ageSpan: undefined, reasons: [{ code: 'NEAR_YOU', km: 5 }] })} />);
-    expect(screen.getByText('🔒 brætspil')).toBeOnTheScreen();
-    expect(screen.queryByText(/^Ages /)).toBeNull();
-    expect(screen.queryByText(/^You also share/)).toBeNull();
+  it('a private interest shows the private badge, size and area only, and how private interests are protected', async () => {
+    await renderWith(<ProposalCard podId={POD_ID} card={privateCard()} confirmationMin={4} />);
+    expect(screen.getByText('Private interest')).toBeOnTheScreen();
+    expect(screen.getByText('5 people')).toBeOnTheScreen();
+    expect(screen.getByText('Near Aarhus C')).toBeOnTheScreen();
+    expect(screen.queryByText(/ages/)).toBeNull();
+    expect(screen.queryByText(/also share/)).toBeNull();
+    expect(screen.queryByText(/km/)).toBeNull();
+    expect(screen.queryByText('Why this pod?')).toBeNull();
+    expect(screen.getByText(/We show less here on purpose/)).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('link', { name: 'How private interests are protected' }));
+    expect(mockRouter.push).toHaveBeenCalledWith('/info/sensitive-interests');
   });
 
-  it('Accept calls respondToPod with accept: true', async () => {
+  it('"I\'m in" calls respondToPod with accept: true', async () => {
     mockCall.mockResolvedValue({ state: 'proposed', acceptedCount: 3 });
     await renderWith(<ProposalCard podId={POD_ID} card={card()} />);
-    await fireEvent.press(screen.getByRole('button', { name: 'Accept' }));
+    await fireEvent.press(screen.getByRole('button', { name: "I'm in" }));
     expect(mockCall).toHaveBeenCalledWith('respondToPod', { podId: POD_ID, accept: true });
     expect(respondToPodInput.safeParse(mockCall.mock.calls[0]?.[1]).success).toBe(true);
   });
 
-  it('Decline takes an optional reason chip before confirming', async () => {
+  it('"Not this time" takes an optional reason chip before confirming', async () => {
     mockCall.mockResolvedValue({ state: 'proposed', acceptedCount: 2 });
     await renderWith(<ProposalCard podId={POD_ID} card={card()} />);
-    await fireEvent.press(screen.getByRole('button', { name: 'Decline' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Not this time' }));
     expect(mockCall).not.toHaveBeenCalled();
-    await fireEvent.press(screen.getByText('Too far'));
+    await fireEvent.press(screen.getByRole('radio', { name: 'Too far' }));
+    expect(screen.getByRole('radio', { name: 'Too far' }).props.accessibilityState).toMatchObject({ checked: true });
     await fireEvent.press(screen.getByRole('button', { name: 'Decline this pod' }));
     expect(mockCall).toHaveBeenCalledWith('respondToPod', { podId: POD_ID, accept: false, reason: 'distance' });
     expect(respondToPodInput.safeParse(mockCall.mock.calls[0]?.[1]).success).toBe(true);
   });
 
-  it('after accepting, shows how many accepted and no answer buttons', async () => {
-    await renderWith(<ProposalCard podId={POD_ID} card={card({ myStatus: 'accepted', acceptedCount: 3 })} />);
-    expect(screen.getByText('3 of 5 accepted')).toBeOnTheScreen();
-    expect(screen.queryByRole('button', { name: 'Accept' })).toBeNull();
+  it('declining without a reason sends none; Cancel goes back to the answer buttons', async () => {
+    mockCall.mockResolvedValue({ state: 'proposed', acceptedCount: 2 });
+    await renderWith(<ProposalCard podId={POD_ID} card={card()} />);
+    await fireEvent.press(screen.getByRole('button', { name: 'Not this time' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Cancel' }));
+    expect(screen.getByRole('button', { name: "I'm in" })).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('button', { name: 'Not this time' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Decline this pod' }));
+    expect(mockCall).toHaveBeenCalledWith('respondToPod', { podId: POD_ID, accept: false });
   });
 
-  it('"Why this pod" opens the sheet, which renders the server reason codes in the viewer\'s own words', async () => {
+  it('after "I\'m in": how many said yes and how many are needed, no answer buttons, Okay and leave (drop-waiting)', async () => {
+    const onDone = jest.fn();
+    mockCall.mockResolvedValue({ ok: true });
+    await renderWith(<ProposalCard podId={POD_ID} card={card({ myStatus: 'accepted', acceptedCount: 3 })} confirmationMin={4} onDone={onDone} />);
+    expect(screen.getByText("You're in")).toBeOnTheScreen();
+    expect(screen.getByText('3 of 5 said yes')).toBeOnTheScreen();
+    expect(screen.getByText('4 needed')).toBeOnTheScreen();
+    expect(screen.getByText(/^Open until /)).toBeOnTheScreen();
+    expect(screen.queryByRole('button', { name: "I'm in" })).toBeNull();
+    expect(screen.queryByText('5 people, ages 30–41')).toBeNull();
+    await fireEvent.press(screen.getByRole('button', { name: 'Okay' }));
+    expect(onDone).toHaveBeenCalledTimes(1);
+
+    const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
+    await fireEvent.press(screen.getByRole('link', { name: 'Changed your mind? Leave this pod' }));
+    expect(mockCall).not.toHaveBeenCalled();
+    const buttons = alert.mock.calls[0]?.[2] ?? [];
+    await act(async () => buttons.find((b) => b.style === 'destructive')?.onPress?.());
+    expect(mockCall).toHaveBeenCalledWith('leavePod', { podId: POD_ID });
+    expect(leavePodInput.safeParse(mockCall.mock.calls[0]?.[1]).success).toBe(true);
+    alert.mockRestore();
+  });
+
+  it('"Why this pod?" opens the sheet, which renders the server reason codes in the viewer\'s own words', async () => {
     await renderWith(<ProposalCard podId={POD_ID} card={card()} />);
-    await fireEvent.press(screen.getByRole('button', { name: 'Why this pod' }));
+    await fireEvent.press(screen.getByRole('link', { name: 'Why this pod?' }));
     expect(mockRouter.push).toHaveBeenCalledWith({ pathname: '/sheets/why-this-pod', params: { podId: POD_ID } });
 
     client.clear();
     mockCard = card();
     await renderWith(<WhyThisPod />);
-    expect(screen.getByText('• You both added “brætspil”')).toBeOnTheScreen();
-    expect(screen.getByText('• You have waited 2 weeks, so you had priority')).toBeOnTheScreen();
-    expect(screen.getByText('• You also share: kaffe, gåture')).toBeOnTheScreen();
+    expect(screen.getByRole('header', { name: 'Why this pod' })).toBeOnTheScreen();
+    expect(screen.getByText('Everyone added brætspil, or something that means the same.')).toBeOnTheScreen();
+    expect(screen.getByText('You also share kaffe and gåture with some of them.')).toBeOnTheScreen();
+    expect(screen.getByText('Everyone lives about 10 km or less from you, near Aarhus C.')).toBeOnTheScreen();
+    expect(screen.getByText("Ages 30–41: everyone is inside everyone else's age range.")).toBeOnTheScreen();
+    expect(screen.getByText('You waited 2 weeks, so you got priority this time.')).toBeOnTheScreen();
+    expect(screen.getByText('What we never use')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('link', { name: 'How matching works' }));
+    expect(mockRouter.push).toHaveBeenCalledWith('/info/how-matching-works');
+    await fireEvent.press(screen.getByRole('button', { name: 'Close' }));
+    expect(mockRouter.back).toHaveBeenCalled();
+  });
+
+  it('the sheet is a bottom sheet over the screen it came from, not a page-height modal (drop-why)', async () => {
+    mockCard = card();
+    await renderWith(<WhyThisPod />);
+    // Its own instance of the sheets group is presented transparently; the sheet paints the dimmed backdrop.
+    expect(mockParentOptions).toHaveBeenCalledWith(expect.objectContaining({ presentation: 'transparentModal', contentStyle: { backgroundColor: 'transparent' } }));
+    expect(screen.getByTestId('why-this-pod')).toBeOnTheScreen();
+  });
+
+  it('while the card loads, the sheet still has its title and a way out', async () => {
+    mockCard = undefined;
+    await renderWith(<WhyThisPod />);
+    expect(screen.getByRole('header', { name: 'Why this pod' })).toBeOnTheScreen();
+    expect(screen.getByLabelText('Loading')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('button', { name: 'Close' }));
+    expect(mockRouter.back).toHaveBeenCalled();
+  });
+
+  it('the sheet for a private interest says only what its card carries', async () => {
+    mockCard = privateCard();
+    await renderWith(<WhyThisPod />);
+    expect(screen.getByText('Everyone added gravid, or something that means the same.')).toBeOnTheScreen();
+    expect(screen.getByText('Everyone lives about 5 km or less from you.')).toBeOnTheScreen();
+    expect(screen.queryByText(/also share/)).toBeNull();
+    expect(screen.queryByText(/age range/)).toBeNull();
   });
 });

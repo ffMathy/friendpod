@@ -1,136 +1,287 @@
-import { useRouter } from 'expo-router';
-import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { Alert } from 'react-native';
-import { Body, Button, Card, ErrorText, Heading, LinkRow, Screen } from '@/components/ui';
-import { useSensitiveInterests, useUserDoc } from '@/data/docs';
+import { Stack, useRouter } from 'expo-router';
+import { Trans, useTranslation } from 'react-i18next';
+import type { ReactNode } from 'react';
+import { ActivityIndicator, Linking, Pressable, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BorderWidth, usePalette } from '@/components/theme';
+import { Button, ErrorText, Icon, InlineLink, ListSection, Loading, Overline, Screen, Text, Title, type IconName } from '@/components/ui';
+import { useBlocks, useSensitiveInterests, useUserDoc } from '@/data/docs';
 import { useCallable } from '@/data/useCallable';
-import { requestDataExport } from '@/features/account/account';
-import { clearImageCaches } from '@/features/account/clearDeviceData';
-import { ExportStatus } from '@/features/account/ExportStatus';
-import { art9WithdrawCopy } from '@/features/consent/art9';
+import { ExportRequestStatus, ExportStatus, useLatestExport, useRequestExport, type ExportRequestState } from '@/features/account/ExportStatus';
 import { useUid } from '@/features/session/SessionProvider';
-import { toAppError } from '@/firebase/callables';
 import { currentLocale } from '@/i18n';
 import { errorMessageKey } from '@/lib/errors';
 import { formatDateTime } from '@/lib/format';
 
 /**
- * Settings → Privacy (§11, PRIVACY.md §6): consents (Art. 9 blanket, gender), photo, export with its authenticated
- * download, pause or skip, blocked people, messages from Grouper, delete.
+ * Me → Privacy (priv-settings; §11, PRIVACY.md §6). "What you've agreed to": private interests (the blanket Art. 9
+ * consent, given or withdrawn on its own screen), same-gender pods (with the way to turn it off and delete the gender
+ * while it is on) and the photo (changed or deleted under Me). "Your data and matching": pause, the export with its
+ * authenticated download, blocked people and how matching works. Then delete account and the right to complain.
  */
 export default function Privacy() {
   const { t } = useTranslation();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const uid = useUid();
   const user = useUserDoc(uid);
   const sensitive = useSensitiveInterests(uid).data ?? [];
-  const withdraw = useCallable('withdrawArt9Consent');
+  const blocks = useBlocks(uid).data ?? [];
   const updateProfile = useCallable('updateProfile');
   const participation = useCallable('setParticipation');
-  const deletePhoto = useCallable('deletePhoto');
-  const [exportState, setExportState] = useState<'idle' | 'working' | 'requested' | 'linkSent' | { error: string }>('idle');
+  const exportRequest = useRequestExport();
+  const p = usePalette();
 
-  const exportData = async () => {
-    setExportState('working');
-    try {
-      const outcome = await requestDataExport();
-      setExportState(outcome.kind === 'done' ? 'requested' : 'linkSent');
-    } catch (e) {
-      setExportState({ error: t(errorMessageKey(toAppError(e))) });
-    }
-  };
+  const hideHeader = <Stack.Screen options={{ headerShown: false }} />;
+  if (user.isLoading) {
+    return (
+      <>
+        {hideHeader}
+        <Loading label={t('common.loading')} />
+      </>
+    );
+  }
+  const u = user.data;
+  const hasArt9Consent = u?.legal.art9 !== undefined;
+  const sameGender = u?.prefs.sameGenderOnly === true;
+  const hasPhoto = u?.photo !== null && u?.photo !== undefined;
+  const pausedUntil = u?.participation.pausedUntil?.toMillis();
+  const paused = pausedUntil !== undefined || u?.status === 'paused';
+  const firstError = updateProfile.error ?? participation.error;
+  const back = router.canGoBack() ? () => router.back() : undefined;
 
-  const hasArt9Consent = user.data?.legal.art9 !== undefined;
-  const confirmWithdraw = () =>
-    Alert.alert(t('settings.privacy.withdrawSensitive'), art9WithdrawCopy(currentLocale()), [
-      { text: t('common.cancel'), style: 'cancel' },
-      { text: t('settings.privacy.withdrawSensitive'), style: 'destructive', onPress: () => withdraw.mutate({}) },
-    ]);
-  const sameGender = user.data?.prefs.sameGenderOnly === true;
-  const hasPhoto = user.data?.photo !== null && user.data?.photo !== undefined;
-  const confirmDeletePhoto = () =>
-    Alert.alert(t('settings.privacy.deletePhoto'), t('settings.privacy.deletePhotoBody'), [
-      { text: t('common.cancel'), style: 'cancel' },
-      {
-        text: t('settings.privacy.deletePhoto'),
-        style: 'destructive',
-        onPress: () => deletePhoto.mutate({}, { onSuccess: () => void clearImageCaches().catch(() => undefined) }),
-      },
-    ]);
-  const pausedUntil = user.data?.participation.pausedUntil?.toMillis();
-  const skipWeek = user.data?.participation.skipWeekId;
-  const firstError = withdraw.error ?? updateProfile.error ?? participation.error ?? deletePhoto.error;
+  const pauseDetail = participation.data
+    ? t('me.effectiveFrom', { week: participation.data.effectiveWeekId })
+    : pausedUntil !== undefined
+      ? t('privacy.pausedUntil', { when: formatDateTime(pausedUntil, currentLocale()) })
+      : paused
+        ? t('privacy.paused')
+        : t('privacy.pauseDetail');
 
   return (
-    <Screen>
-      <Heading>{t('settings.privacy.consents')}</Heading>
-      <Card>
-        <Body bold>{t('settings.privacy.sensitiveTitle')}</Body>
-        <Body>{hasArt9Consent ? t('settings.privacy.sensitiveOn', { count: sensitive.length }) : t('settings.privacy.sensitiveOff')}</Body>
-        {hasArt9Consent ? (
-          <Button label={t('settings.privacy.withdrawSensitive')} variant="danger" busy={withdraw.isPending} onPress={confirmWithdraw} />
-        ) : (
-          <Button label={t('settings.privacy.giveSensitive')} variant="secondary" onPress={() => router.push('/settings/sensitive-consent')} />
-        )}
-      </Card>
-      <Card>
-        <Body>{sameGender ? t('settings.privacy.genderOn') : t('settings.privacy.genderOff')}</Body>
-        {sameGender ? (
-          <Button
-            label={t('settings.privacy.withdrawGender')}
-            variant="secondary"
-            busy={updateProfile.isPending}
-            onPress={() => updateProfile.mutate({ prefs: { sameGenderOnly: false } })}
-          />
-        ) : null}
-      </Card>
-      {hasPhoto ? (
-        <Button
-          testID="delete-photo"
-          label={t('settings.privacy.deletePhoto')}
-          variant="secondary"
-          busy={deletePhoto.isPending}
-          onPress={confirmDeletePhoto}
+    <Screen safeTop gutter="compact" contentStyle={{ paddingTop: Math.max(8, 40 - insets.top) }}>
+      {hideHeader}
+      <View style={styles.header}>
+        <ParentLink label={t('tabs.me')} backLabel={t('common.back')} onBack={back} />
+        <Title style={styles.title}>{t('privacy.title')}</Title>
+      </View>
+
+      {user.error ? <ErrorText>{t('common.loadFailed')}</ErrorText> : null}
+      <ListSection>
+        <CardTitle>{t('privacy.agreedTo')}</CardTitle>
+        <Row
+          testID="privacy-sensitive"
+          label={t('privacy.privateInterests')}
+          detail={hasArt9Consent ? t('privacy.privateOn', { count: sensitive.length }) : t('privacy.privateOff')}
+          chevron
+          separator
+          minHeight={LINK_ROW}
+          onPress={() => router.push('/settings/sensitive-consent')}
         />
-      ) : null}
+        <Row
+          testID="privacy-same-gender"
+          label={t('privacy.sameGender')}
+          detail={sameGender ? t('privacy.sameGenderOn') : t('privacy.sameGenderOff')}
+          chevron
+          separator={!sameGender}
+          minHeight={sameGender ? undefined : LINK_ROW}
+          onPress={() => router.push('/settings/preferences')}
+        />
+        {sameGender ? (
+          <View style={[styles.inlineAction, { borderBottomWidth: BorderWidth.hairline, borderBottomColor: p.separator }]}>
+            <Button
+              variant="dangerSoft"
+              size="xs"
+              label={t('privacy.sameGenderWithdraw')}
+              busy={updateProfile.isPending}
+              onPress={() => updateProfile.mutate({ prefs: { sameGenderOnly: false } })}
+            />
+          </View>
+        ) : null}
+        <Row
+          testID="privacy-photo"
+          label={t('privacy.photo')}
+          detail={hasPhoto ? t('privacy.photoOn') : t('privacy.photoOff')}
+          chevron
+          onPress={() => router.push('/me')}
+        />
+      </ListSection>
 
-      <Heading>{t('settings.privacy.yourData')}</Heading>
-      <Body muted>{t('settings.privacy.exportBody')}</Body>
-      <Button testID="export-request" label={t('settings.privacy.export')} busy={exportState === 'working'} onPress={() => void exportData()} />
-      <ExportStatus uid={uid} />
-      {exportState === 'requested' ? <Body>{t('settings.privacy.exportRequested')}</Body> : null}
-      {exportState === 'linkSent' ? <Body>{t('settings.reauthLinkSent')}</Body> : null}
-      {typeof exportState === 'object' ? <ErrorText>{exportState.error}</ErrorText> : null}
+      <ListSection>
+        <CardTitle>{t('privacy.yourData')}</CardTitle>
+        <Row
+          testID="pause"
+          icon="pause"
+          label={t('privacy.pause')}
+          detail={pauseDetail}
+          role="button"
+          separator
+          onPress={() => (participation.isPending ? undefined : participation.mutate({ mode: 'pause' }))}
+        />
+        <ExportBlock uid={uid} state={exportRequest.state} onRequest={() => void exportRequest.request()} />
+        <Row
+          icon="block"
+          label={t('privacy.blocked')}
+          detail={blocks.length === 0 ? t('privacy.blockedNone') : t('privacy.blockedCount', { count: blocks.length })}
+          separator
+          onPress={() => router.push('/settings/blocked')}
+        />
+        <Row icon="info" label={t('info.howMatchingWorks.title')} onPress={() => router.push('/info/how-matching-works')} />
+      </ListSection>
 
-      <Heading>{t('settings.privacy.restrict')}</Heading>
-      {pausedUntil !== undefined ? (
-        <Body>{t('settings.privacy.pausedUntil', { when: formatDateTime(pausedUntil, currentLocale()) })}</Body>
-      ) : user.data?.status === 'paused' ? (
-        <Body>{t('settings.privacy.paused')}</Body>
-      ) : null}
-      {skipWeek ? <Body>{t('settings.privacy.skipping', { week: skipWeek })}</Body> : null}
-      <Button
-        testID="pause"
-        label={t('settings.privacy.pause')}
-        variant="secondary"
-        busy={participation.isPending && participation.variables.mode === 'pause'}
-        onPress={() => participation.mutate({ mode: 'pause' })}
-      />
-      <Button
-        testID="skip-next"
-        label={t('settings.privacy.skipNext')}
-        variant="secondary"
-        busy={participation.isPending && participation.variables.mode === 'skipNext'}
-        onPress={() => participation.mutate({ mode: 'skipNext' })}
-      />
-      {participation.data ? <Body muted>{t('me.effectiveFrom', { week: participation.data.effectiveWeekId })}</Body> : null}
-      <LinkRow label={t('settings.blocked.title')} onPress={() => router.push('/settings/blocked')} />
-      <LinkRow label={t('notices.title')} onPress={() => router.push('/settings/notices')} />
-      <LinkRow label={t('settings.delete.title')} onPress={() => router.push('/settings/delete-account')} />
-      <LinkRow label={t('info.howMatchingWorks.title')} onPress={() => router.push('/info/how-matching-works')} />
-      <Body muted>{t('settings.privacy.complaint')}</Body>
       {firstError ? <ErrorText>{t(errorMessageKey(firstError))}</ErrorText> : null}
+
+      <Button
+        testID="privacy-delete"
+        variant="dangerSoft"
+        icon="trash"
+        label={t('privacy.deleteAccount')}
+        onPress={() => router.push('/settings/delete-account')}
+        style={styles.delete}
+      />
+      {/* Not on priv-settings, but PRIVACY.md §6 requires the complaint path: a link to datatilsynet.dk. */}
+      <Text variant="caption" color="textMuted" align="center">
+        <Trans
+          i18nKey="privacy.complaint"
+          components={{ a: <InlineLink onPress={() => void Linking.openURL(DATATILSYNET_URL).catch(() => undefined)}>datatilsynet.dk</InlineLink> }}
+        />
+      </Text>
     </Screen>
   );
 }
+
+const DATATILSYNET_URL = 'https://www.datatilsynet.dk';
+/** priv-settings' link rows: min-height 56 plus the 1 px separator under it. */
+const LINK_ROW = 56 + BorderWidth.hairline;
+
+/**
+ * "Me" above the title (priv-settings). The storyboard has no separate back chevron: the parent's name is the way
+ * back, so with history it becomes "‹ Me" with a 44 px touch target from hitSlop, keeping the storyboard's layout.
+ */
+function ParentLink({ label, backLabel, onBack }: { label: string; backLabel: string; onBack?: () => void }) {
+  const p = usePalette();
+  const text = (
+    <Text variant="smallStrong" color="textMuted" style={styles.parentText}>
+      {label}
+    </Text>
+  );
+  if (!onBack) return text;
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`${backLabel}: ${label}`}
+      onPress={onBack}
+      hitSlop={{ top: 12, bottom: 12, left: 12, right: 24 }}
+      style={({ pressed }) => [styles.parent, { opacity: pressed ? 0.6 : 1 }]}
+    >
+      <Icon name="back" size={16} color={p.textMuted} strokeWidth={2.4} />
+      {text}
+    </Pressable>
+  );
+}
+
+interface RowProps {
+  readonly label: string;
+  readonly detail?: string;
+  readonly icon?: IconName;
+  readonly trailing?: ReactNode;
+  readonly chevron?: boolean;
+  /** A 1 px separator at the bottom, inside `minHeight`. */
+  readonly separator?: boolean;
+  /** Default 56. The storyboard's link rows are 56 plus their separator (57); its button rows 56 with it. */
+  readonly minHeight?: number;
+  /** `link` (default): opens another screen; `button`: acts here (pause, download). */
+  readonly role?: 'link' | 'button';
+  readonly onPress?: () => void;
+  readonly testID?: string;
+}
+
+/**
+ * A row of the priv-settings cards, on the storyboard's metrics: 56 px (57 for the link rows with a separator), the
+ * 16/600 title and the 13 px detail on a 16 px line, 2 px under it (ListRow's 20 px detail line put the title 2 px
+ * high and the detail 2 px low), a 22 px green icon or a 20 px chevron.
+ */
+function Row({ label, detail, icon, trailing, chevron = false, separator = false, minHeight = 56, role = 'link', onPress, testID }: RowProps) {
+  const p = usePalette();
+  return (
+    <Pressable
+      testID={testID}
+      accessibilityRole={role}
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.row,
+        { minHeight },
+        separator ? { borderBottomWidth: BorderWidth.hairline, borderBottomColor: p.separator } : null,
+        { opacity: pressed ? 0.7 : 1 },
+      ]}
+    >
+      {icon ? <Icon name={icon} size={22} color={p.primary} /> : null}
+      <View style={styles.rowText}>
+        <Text variant="rowTitle">
+          {label}
+        </Text>
+        {detail ? (
+          <Text variant="caption" color="textMuted" style={styles.rowDetail}>
+            {detail}
+          </Text>
+        ) : null}
+      </View>
+      {trailing}
+      {chevron ? <Icon name="chevronRight" size={20} color={p.textMuted} /> : null}
+    </Pressable>
+  );
+}
+
+/** "WHAT YOU'VE AGREED TO": ListSection's title, at the storyboard h2's normal line height (16 px, not 17). */
+function CardTitle({ children }: { children: string }) {
+  return <Overline style={styles.cardTitle}>{children}</Overline>;
+}
+
+/** "Download my data" as a row of the data card, with the request's outcome and the latest export's state under it. */
+function ExportBlock({ uid, state, onRequest }: { uid: string; state: ExportRequestState; onRequest: () => void }) {
+  const p = usePalette();
+  const { t } = useTranslation();
+  const latest = useLatestExport(uid);
+  const working = state === 'working';
+  const showStatus = latest !== null || (state !== 'idle' && !working);
+  return (
+    <View style={{ borderBottomWidth: BorderWidth.hairline, borderBottomColor: p.separator }}>
+      <Row
+        testID="export-request"
+        minHeight={56 - BorderWidth.hairline}
+        icon="download"
+        label={t('privacy.export')}
+        detail={t('privacy.exportDetail')}
+        role="button"
+        trailing={working ? <ActivityIndicator color={p.primary} accessibilityLabel={t('common.loading')} /> : undefined}
+        onPress={working ? undefined : onRequest}
+      />
+      {showStatus ? (
+        <View style={styles.exportStatus}>
+          <ExportRequestStatus state={state} />
+          <ExportStatus uid={uid} />
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  header: { gap: 4 },
+  parent: { flexDirection: 'row', alignItems: 'center', gap: 2, alignSelf: 'flex-start', marginLeft: -4 },
+  /**
+   * The storyboard's text keeps Plus Jakarta Sans' normal line height, which the browser rounds to whole pixels:
+   * 18 at 14 px ("Me"), 38 at 30 px (h1, Title's is 35), 16 at 13 px (the card titles and row details), 21 at 16 px.
+   */
+  parentText: { lineHeight: 18 },
+  title: { lineHeight: 38 },
+  cardTitle: { marginTop: 10, marginBottom: 2, lineHeight: 16 },
+  /** The padding only shows when a long (Danish) detail wraps to a third line. */
+  row: { paddingVertical: 6, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  rowText: { flex: 1, gap: 2 },
+  rowDetail: { lineHeight: 16 },
+  inlineAction: { paddingBottom: 12, paddingLeft: 0 },
+  exportStatus: { paddingLeft: 34, gap: 8, paddingBottom: 14 },
+  /** The storyboard's link: min-height 52 plus its 1 px border, top and bottom. */
+  delete: { minHeight: 54, borderRadius: 18 },
+});

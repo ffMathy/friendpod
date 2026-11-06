@@ -2,7 +2,6 @@ import {
   EMBEDDING_DIM,
   EMBEDDING_MODEL_ID,
   PROTOTYPE_LISTS,
-  lexiconCheck,
   normalizeTag,
   renormalize,
   xxhash32,
@@ -51,9 +50,21 @@ const ART9_NORMS: ReadonlySet<string> = new Set(
   }),
 );
 
-/** The stub's stand-in for the model's judgement: a lexicon hit or an exact Art. 9 prototype phrase. */
+/**
+ * Word stems the stub treats as sensitive, so tests and stub builds have predictable sensitive tags. This is a fake
+ * of the model's judgement for development only, never a sensitivity source in a real build: the device embedder and
+ * the detector margin decide there (F38).
+ */
+const STUB_SENSITIVE_STEMS: readonly string[] = [
+  'gravid', 'pregnan', 'autis', 'diabet', 'barnløs', 'kræft', 'cancer', 'depress', 'adhd', 'hiv',
+  'kirke', 'church', 'muslim', 'islam', 'kristen', 'pride', 'queer', 'lgbt', 'fagforening', 'union',
+];
+
+/** The stub's stand-in for the model's judgement: an exact Art. 9 prototype phrase or a token with a stub stem. */
 export function stubLooksSensitive(norm: string): boolean {
-  return lexiconCheck(norm).hit || ART9_NORMS.has(norm);
+  if (ART9_NORMS.has(norm)) return true;
+  const tokens = norm.split(/[^\p{L}\p{M}\p{N}]+/u);
+  return tokens.some((t) => STUB_SENSITIVE_STEMS.some((s) => t.includes(s)));
 }
 
 /**

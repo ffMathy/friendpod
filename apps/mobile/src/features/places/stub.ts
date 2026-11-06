@@ -1,3 +1,4 @@
+import type { PublicPlaceType } from '@grouper/core';
 import { toPlace } from './shape';
 import { PlaceNotPublicError, type PlacePrediction, type PlacesService } from './types';
 
@@ -28,7 +29,7 @@ export function createStubPlaces(): PlacesService {
         const q = input.trim().toLowerCase();
         if (q.length === 0) return [];
         return STUB_PLACES.filter((p) => p.primaryType !== 'street_address' && p.name.toLowerCase().includes(q)).map(
-          (p): PlacePrediction => ({ placeId: p.placeId, name: p.name, secondary: p.address }),
+          (p): PlacePrediction => ({ placeId: p.placeId, name: p.name, secondary: p.address, type: p.primaryType as PublicPlaceType }),
         );
       },
       async details(placeId) {

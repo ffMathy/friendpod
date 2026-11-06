@@ -37,6 +37,11 @@ const detailsResponse = z.object({
   types: z.array(z.string()).default([]),
 });
 
+/** "Mejlgade, Aarhus C, Danmark" → "Mejlgade, Aarhus C": every result is in Denmark (`regionCode: 'dk'`). */
+export function withoutCountry(secondary: string): string {
+  return secondary.replace(/,\s*(Danmark|Denmark)\s*$/iu, '').trim();
+}
+
 /**
  * Places API (New) over REST from the app (D8): Autocomplete with a session token, then Place Details with the same
  * token, which closes the session for billing. The key is restricted to the app ids, so every call names the app.
@@ -72,9 +77,10 @@ export function createGooglePlaces(apiKey: string, appId: string, androidCertSha
           if (!res.ok) throw new PlacesUnavailableError(`autocomplete ${res.status}`);
           const body = autocompleteResponse.parse(await res.json());
           return body.suggestions.flatMap(({ placePrediction: p }): PlacePrediction[] => {
-            if (!p || publicPlaceType(null, p.types) === null) return [];
+            const type = p ? publicPlaceType(null, p.types) : null;
+            if (!p || type === null) return [];
             const name = p.structuredFormat?.mainText.text ?? p.text?.text ?? '';
-            return name ? [{ placeId: p.placeId, name, secondary: p.structuredFormat?.secondaryText?.text ?? '' }] : [];
+            return name ? [{ placeId: p.placeId, name, secondary: withoutCountry(p.structuredFormat?.secondaryText?.text ?? ''), type }] : [];
           });
         },
         async details(placeId) {

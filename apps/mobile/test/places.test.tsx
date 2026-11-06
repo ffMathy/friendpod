@@ -2,6 +2,7 @@ import { googleMapsPlaceUrl, placeSchema, proposeOptionInput } from '@grouper/co
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { useState } from 'react';
 import { getPlaces } from '@/features/places';
+import { withoutCountry } from '@/features/places/google';
 import { PlacePicker } from '@/features/places/PlacePicker';
 import { publicPlaceType, toPlace } from '@/features/places/shape';
 import { PlaceNotPublicError } from '@/features/places/types';
@@ -92,8 +93,32 @@ describe('places (D8)', () => {
     });
     expect(picked).toHaveLength(1);
     expect(placeSchema.parse(picked[0])).toMatchObject({ name: 'Café Nord', type: 'cafe' });
-    expect(screen.getByText('Café Nord')).toBeOnTheScreen();
-    expect(screen.getByRole('button', { name: 'Change place' })).toBeOnTheScreen();
+    // Each result reads "<kind> · <where>" under its name.
+    expect(screen.getByText('Café · Nørregade 1, Aarhus')).toBeOnTheScreen();
+    // The picked place stays in the list, selected (mint, ticked); tapping another result changes it.
+    expect(screen.getByRole('button', { name: 'Café Nord, Café, Nørregade 1, Aarhus' })).toBeSelected();
+    expect(screen.getByLabelText('Selected')).toBeOnTheScreen();
+    // It stays selected at the top when the search changes.
+    await fireEvent.changeText(screen.getByTestId('place-search'), 'dokk');
+    await act(async () => {
+      jest.advanceTimersByTime(400);
+    });
+    expect(screen.getByRole('button', { name: 'Café Nord, Café, Nørregade 1, Aarhus' })).toBeSelected();
+    await fireEvent.press(screen.getByText('Dokk1'));
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(picked).toHaveLength(2);
+    expect(placeSchema.parse(picked[1])).toMatchObject({ name: 'Dokk1', type: 'library' });
+    expect(screen.getByRole('button', { name: 'Dokk1, Library, Hack Kampmanns Plads 2, Aarhus' })).toBeSelected();
+    expect(screen.getByText('Library · Hack Kampmanns Plads 2, Aarhus')).toBeOnTheScreen();
+    expect(screen.queryByRole('button', { name: /^Café Nord,/ })).toBeNull();
     jest.useRealTimers();
+  });
+
+  it("drops the country from Google's secondary text: every result is in Denmark", () => {
+    expect(withoutCountry('Mejlgade, Aarhus C, Danmark')).toBe('Mejlgade, Aarhus C');
+    expect(withoutCountry('Mejlgade, Aarhus C, Denmark')).toBe('Mejlgade, Aarhus C');
+    expect(withoutCountry('Danmarksgade 3, Aalborg')).toBe('Danmarksgade 3, Aalborg');
   });
 });

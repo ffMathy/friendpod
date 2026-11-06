@@ -40,5 +40,3 @@ the repo root and run one file at a time, because they share the `demo-grouper` 
   emulator. firebase-tools 15.34.2 sends that internal request through `HTTPS_PROXY` when one is set (it
   ignores `NO_PROXY`), so behind a proxy the two tests that expect a grantee to read a photo fail while every
   denial still passes. CI runners have no proxy.
-- `interests.pendingUntil` has a collection-group index that §8 does not list: `dailyMaintenance` deletes
-  `pendingConsent` holdings after 14 days (§10.3) and needs a collection-group range query to find them.

@@ -163,14 +163,3 @@ export function detectorMargin(tagVec: ArrayLike<number>, p: Prototypes): number
 export function isDetectorFlag(margin: number | null, threshold: number = DETECTOR_MARGIN_THRESHOLD): boolean {
   return margin === null || !Number.isFinite(margin) || margin >= threshold;
 }
-
-/**
- * The margin the server decides with. The server trusts the client's vector (D1), but recomputes the margin from
- * that vector when it has the prototypes, and keeps the higher (more cautious) of the two.
- */
-export function reconcileDetectorMargin(clientMargin: number, serverMargin: number | null): number | null {
-  if (!Number.isFinite(clientMargin)) return null;
-  if (serverMargin === null) return clientMargin;
-  if (!Number.isFinite(serverMargin)) return null;
-  return Math.max(clientMargin, serverMargin);
-}

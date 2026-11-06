@@ -43,7 +43,7 @@ describeEmulator('interest removal and consent withdrawal (emulator)', () => {
   const deps = emulatorDeps(dropSchedule(W(30)).releaseAt - 3 * DAY);
   const flow = podFlow(deps);
   const add = (uid: string, ...items: Record<string, unknown>[]) =>
-    invoke('addInterests', addInterestsWith({ prototypes: async () => PROTOTYPES, art9Holdings: true, configPath: 'config/none' }), deps, { modelKey: MODEL_KEY, items }, { uid });
+    invoke('addInterests', addInterestsWith({ art9Holdings: true, configPath: 'config/none' }), deps, { modelKey: MODEL_KEY, items }, { uid });
   const doc = async (path: string) => (await deps.db.doc(path).get()).data();
 
   beforeAll(async () => {

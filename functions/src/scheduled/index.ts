@@ -71,7 +71,7 @@ export const hourlySweeper = onSchedule(SCHEDULE_OPTIONS.hourlySweeper, () =>
 
 export const dailyMaintenance = onSchedule(SCHEDULE_OPTIONS.dailyMaintenance, () =>
   runBackground('schedule', 'dailyMaintenance', handlerDeps, async () => {
-    // Ended pods, pendingConsent holdings, recentH, expiring reports, inactive accounts, the Auth reconciliation
+    // Ended pods, recentH, expiring reports, inactive accounts, the Auth reconciliation
     // (abandoned sign-ups count their `signup` funnel stage there, §6.8) and Wednesday's interest maintenance.
     const deps = appDeps();
     return runDailyMaintenance(deps, deps.now());

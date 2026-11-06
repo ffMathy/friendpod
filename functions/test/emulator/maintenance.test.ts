@@ -1,6 +1,6 @@
 /**
  * dailyMaintenance, the hourly extras and the leftovers (DESIGN.md §4.1, §5.2 (8), §10.3) against the emulators:
- * deletion of ended pods, pendingConsent holdings, recentH pruning, report expiry, inactivity, the Auth reconciliation
+ * deletion of ended pods, recentH pruning, report expiry, inactivity, the Auth reconciliation
  * (scoped to this file's users, other files' fixtures have no Auth users), the Monday nudge, Wednesday's interest
  * maintenance, area chips, the backfill watchdog, and the erasure-ledger replay entry points. Owns weeks 2027-W45–W52.
  */
@@ -16,7 +16,6 @@ import { advance, endPod, startBackfill } from '../../src/pods/transitions';
 import { replayHandlers } from '../../src/replay';
 import {
   deleteEndedPods,
-  deletePendingConsent,
   expireReports,
   inactivity,
   mondayNudge,
@@ -61,18 +60,9 @@ describeEmulator('maintenance and replay (emulator)', () => {
     expect((await read.grant(deps, members[0]!, members[1]!))!.pods).toEqual(['otherpodaaaaaaaaaaaa']);
   });
 
-  it('deletes pendingConsent holdings after 14 days and prunes expired recentH entries', async () => {
+  it('prunes expired recentH entries', async () => {
     const uid = await makeUser(deps, { themes: [{ c: newConcept() }] });
     const now = deps.clock.now;
-    const id = base32Id(16);
-    await docs(deps.db).interest(uid, id).set({ display: 'x y', norm: 'x y', conceptId: null, starred: false, state: 'pendingConsent', pendingUntil: ts(now + 14 * DAY_MS), createdAt: ts(now) });
-    await docs(deps.db).user(uid).update({ interestCount: 2 });
-    await deletePendingConsent(deps, now + 13 * DAY_MS);
-    expect((await docs(deps.db).interest(uid, id).get()).exists).toBe(true);
-    await deletePendingConsent(deps, now + 15 * DAY_MS);
-    expect((await docs(deps.db).interest(uid, id).get()).exists).toBe(false);
-    expect((await read.user(deps, uid))!.interestCount).toBe(1);
-
     const week = weekIdAt(now);
     await docs(deps.db).matchProfile(uid).update({ recentH: { aaaaaaaaaaaaaaaaaaaa: week, bbbbbbbbbbbbbbbbbbbb: '9999-W52' }, recentMinUntil: week });
     await pruneRecentH(deps, now);
@@ -111,6 +101,24 @@ describeEmulator('maintenance and replay (emulator)', () => {
     expect(deps.enqueued.some((t) => t.queue === 'purgeUser' && t.data.uid === idle)).toBe(true);
     expect((await read.user(deps, back!))).toMatchObject({ status: 'active' });
     expect((await read.user(deps, back!))!.inactivityWarnedAt).toBeUndefined();
+  });
+
+  it('warns a user who cannot be reached by push (no token at all) in the app only, and still deletes after 30 days', async () => {
+    const [unreachable] = await makeUsers(deps, 1);
+    await deps.db.doc(PATHS.pushTokens(unreachable!)).delete();
+    const only = (u: string) => u === unreachable;
+    const t0 = deps.clock.now + 400 * DAY_MS;
+    const from = deps.pushes.length;
+    expect(await inactivity(deps, t0, { only })).toMatchObject({ warned: 1, deleted: 0, failed: 0 });
+    expect((await read.user(deps, unreachable!))!.inactivityWarnedAt!.toMillis()).toBe(t0);
+    expect((await deps.db.collection(`users/${unreachable}/notices`).where('code', '==', NOTICE_CODES.INACTIVITY_WARNING).get()).size).toBe(1);
+    // There is no email or other channel (F39): no push could go out.
+    expect(pushedUids(deps, 'notice', from)).not.toContain(unreachable);
+    await inactivity(deps, t0 + 29 * DAY_MS, { only });
+    expect((await read.user(deps, unreachable!))!.status).toBe('active');
+    expect(await inactivity(deps, t0 + 30 * DAY_MS, { only })).toMatchObject({ deleted: 1, failed: 0 });
+    expect((await read.user(deps, unreachable!))!.status).toBe('deleting');
+    expect(deps.enqueued.some((t) => t.queue === 'purgeUser' && t.data.uid === unreachable)).toBe(true);
   });
 
   it('Auth reconciliation: abandoned sign-ups go after 7 days (counted as signups), profiles without Auth are purged', async () => {

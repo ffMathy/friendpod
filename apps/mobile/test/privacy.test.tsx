@@ -1,14 +1,17 @@
+import { currentLegalText } from '@grouper/core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import type { ReactElement } from 'react';
-import { Alert, type AlertButton } from 'react-native';
+import { Alert, Linking, type AlertButton } from 'react-native';
 import Welcome from '../app/(auth)/index';
 import DeleteAccount from '../app/settings/delete-account';
 import Notices from '../app/settings/notices';
 import Privacy from '../app/settings/privacy';
+import SettingsSensitiveConsent from '../app/settings/sensitive-consent';
 
-const mockRouter = { push: jest.fn(), back: jest.fn() };
-jest.mock('expo-router', () => ({ useRouter: () => mockRouter, useLocalSearchParams: () => ({}) }));
+const mockRouter = { push: jest.fn(), back: jest.fn(), replace: jest.fn(), canGoBack: () => true };
+// Screens that draw their own header hide the native one with <Stack.Screen options={{ headerShown: false }} />.
+jest.mock('expo-router', () => ({ useRouter: () => mockRouter, useLocalSearchParams: () => ({}), Stack: { Screen: () => null } }));
 jest.mock('@/features/session/SessionProvider', () => ({ useUid: () => 'me' }));
 
 const mockCall = jest.fn();
@@ -28,6 +31,9 @@ jest.mock('@/features/account/account', () => ({
     return was;
   },
 }));
+// The welcome screen carries the sign-in buttons (Main.dc.html); their providers load native modules.
+jest.mock('@/features/auth/apple', () => ({ isAppleSignInAvailable: async () => false, signInWithApple: jest.fn() }));
+jest.mock('@/features/auth/google', () => ({ signInWithGoogle: jest.fn() }));
 const mockDownload = jest.fn(async () => undefined);
 jest.mock('@/features/account/exportDownload', () => ({
   downloadExport: (...args: unknown[]) => mockDownload(...(args as [])),
@@ -41,10 +47,12 @@ const NOW = Date.now();
 let mockUser: Record<string, unknown> = {};
 let mockExports: unknown[] = [];
 let mockNotices: unknown[] = [];
+let mockBlocks: unknown[] = [];
 jest.mock('@/data/docs', () => ({
   useUserDoc: () => live(mockUser),
   useSensitiveInterests: () => live([{ id: 'p1', data: {} }, { id: 'p2', data: {} }]),
   useExports: () => live(mockExports),
+  useBlocks: () => live(mockBlocks),
   useNotices: () => live(mockNotices),
 }));
 
@@ -78,6 +86,7 @@ beforeEach(() => {
   mockUser = user();
   mockExports = [];
   mockNotices = [];
+  mockBlocks = [];
   alert = jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
 });
 afterEach(() => {
@@ -85,41 +94,45 @@ afterEach(() => {
   client.clear();
 });
 
-describe('Settings → Privacy (PRIVACY.md §6)', () => {
-  it('withdraws the Art. 9 consent only after the withdrawal copy is confirmed', async () => {
-    mockCall.mockResolvedValue({ removed: 2 });
+describe('Settings → Privacy (priv-settings; PRIVACY.md §6)', () => {
+  it('lists what was agreed to, each linking to where it is changed', async () => {
+    mockBlocks = [{ id: 'u_x', data: { firstName: 'X', podId: 'p', since: ts(0) } }];
     await renderWith(<Privacy />);
-    expect(screen.getByText("You've agreed to sensitive interests. 2 of your interests are private.")).toBeOnTheScreen();
-    await fireEvent.press(screen.getByRole('button', { name: 'Withdraw consent for sensitive interests' }));
-    expect(mockCall).not.toHaveBeenCalled();
-    await confirmAlert(alert);
-    expect(mockCall).toHaveBeenCalledWith('withdrawArt9Consent', {});
+    expect(screen.getByText('2 interests, consent given')).toBeOnTheScreen();
+    expect(screen.getByText('Off, no gender stored')).toBeOnTheScreen();
+    expect(screen.getByText('Shown to confirmed pods')).toBeOnTheScreen();
+    expect(screen.getByText('1 person')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByTestId('privacy-sensitive'));
+    expect(mockRouter.push).toHaveBeenLastCalledWith('/settings/sensitive-consent');
+    await fireEvent.press(screen.getByTestId('privacy-same-gender'));
+    expect(mockRouter.push).toHaveBeenLastCalledWith('/settings/preferences');
+    // The photo is changed or deleted (with its confirmation and cache clearing) on Me (PhotoCard, media.test).
+    await fireEvent.press(screen.getByTestId('privacy-photo'));
+    expect(mockRouter.push).toHaveBeenLastCalledWith('/me');
   });
 
-  it('without the consent, links to the consent screen', async () => {
+  it('without the consent, says nothing sensitive is saved and links to the consent screen', async () => {
     mockUser = user({ legal: { terms: 't', privacy: 'p' } });
     await renderWith(<Privacy />);
-    await fireEvent.press(screen.getByRole('button', { name: 'Agree to sensitive interests' }));
+    expect(screen.getByText('Not given, so nothing sensitive is saved')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByTestId('privacy-sensitive'));
     expect(mockRouter.push).toHaveBeenCalledWith('/settings/sensitive-consent');
   });
 
-  it('pauses or skips the next drop, and shows from which week', async () => {
+  it('with same-gender pods on, turns them off and deletes the gender in one tap', async () => {
+    mockUser = user({ prefs: { sameGenderOnly: true } });
+    await renderWith(<Privacy />);
+    expect(screen.getByText('On, uses your gender')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('button', { name: 'Turn off and delete my gender' }));
+    expect(mockCall).toHaveBeenCalledWith('updateProfile', { prefs: { sameGenderOnly: false } });
+  });
+
+  it('pauses matching, and shows from which week', async () => {
     mockCall.mockResolvedValue({ effectiveWeekId: '2026-W46' });
     await renderWith(<Privacy />);
-    await fireEvent.press(screen.getByTestId('skip-next'));
-    expect(mockCall).toHaveBeenCalledWith('setParticipation', { mode: 'skipNext' });
     await fireEvent.press(screen.getByTestId('pause'));
     expect(mockCall).toHaveBeenCalledWith('setParticipation', { mode: 'pause' });
     expect(screen.getByText(/2026-W46/)).toBeOnTheScreen();
-  });
-
-  it('deletes the photo after a confirmation and clears the image caches', async () => {
-    await renderWith(<Privacy />);
-    await fireEvent.press(screen.getByTestId('delete-photo'));
-    expect(mockCall).not.toHaveBeenCalled();
-    await confirmAlert(alert);
-    expect(mockCall).toHaveBeenCalledWith('deletePhoto', {});
-    expect(mockClearImageCaches).toHaveBeenCalled();
   });
 
   it('requests the export (re-authenticating first), and says when a sign-in link was sent instead', async () => {
@@ -157,22 +170,65 @@ describe('Settings → Privacy (PRIVACY.md §6)', () => {
     expect(screen.getByText("The download didn't work. Try again.")).toBeOnTheScreen();
   });
 
-  it('links to blocked people and messages from Grouper', async () => {
+  it('links to blocked people, how matching works and delete account, and names the right to complain', async () => {
     await renderWith(<Privacy />);
-    await fireEvent.press(screen.getByRole('link', { name: 'Blocked people' }));
+    expect(screen.getByText('Nobody')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('link', { name: /^Blocked people/ }));
     expect(mockRouter.push).toHaveBeenCalledWith('/settings/blocked');
-    await fireEvent.press(screen.getByRole('link', { name: 'Messages from Grouper' }));
-    expect(mockRouter.push).toHaveBeenCalledWith('/settings/notices');
+    await fireEvent.press(screen.getByRole('link', { name: 'How matching works' }));
+    expect(mockRouter.push).toHaveBeenCalledWith('/info/how-matching-works');
+    await fireEvent.press(screen.getByRole('button', { name: 'Delete account' }));
+    expect(mockRouter.push).toHaveBeenCalledWith('/settings/delete-account');
+    // PRIVACY.md §6: the complaint path is a link to datatilsynet.dk.
+    expect(screen.getByText(/You can complain to the Danish Data Protection Agency/)).toBeOnTheScreen();
+    const openURL = jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
+    await fireEvent.press(screen.getByRole('link', { name: 'datatilsynet.dk' }));
+    expect(openURL).toHaveBeenCalledWith('https://www.datatilsynet.dk');
+    openURL.mockRestore();
+  });
+
+  it('"Me" above the title goes back when there is somewhere to go back to', async () => {
+    await renderWith(<Privacy />);
+    await fireEvent.press(screen.getByRole('button', { name: 'Back: Me' }));
+    expect(mockRouter.back).toHaveBeenCalled();
   });
 });
 
-describe('delete account (§3.10)', () => {
-  it('asks once more, then deletes; the welcome screen confirms it afterwards', async () => {
+describe('Settings → Privacy → Private interests (the blanket Art. 9 consent, PRIVACY.md §3.3, §3.5)', () => {
+  it('with the consent, says when it was given and withdraws it only after the locked withdrawal copy is confirmed', async () => {
+    mockCall.mockResolvedValue({ removed: 2 });
+    await renderWith(<SettingsSensitiveConsent />);
+    expect(screen.getByText('You agreed on 1 Jan 1970.')).toBeOnTheScreen();
+    expect(screen.getByText('2 of your interests are private.')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('button', { name: 'Withdraw consent' }));
+    expect(mockCall).not.toHaveBeenCalled();
+    const withdrawCopy = currentLegalText('withdrawConfirmation', 'en');
+    expect(alert.mock.calls.at(-1)?.[1]).toBe(withdrawCopy.kind === 'withdrawConfirmation' ? withdrawCopy.content.text : null);
+    await confirmAlert(alert);
+    expect(mockCall).toHaveBeenCalledWith('withdrawArt9Consent', {});
+    expect(mockRouter.back).toHaveBeenCalled();
+  });
+
+  it('without it, shows the consent: "I agree" stays disabled until the box is ticked', async () => {
+    mockUser = user({ legal: { terms: 't', privacy: 'p' } });
+    await renderWith(<SettingsSensitiveConsent />);
+    await fireEvent.press(screen.getByTestId('art9-agree'));
+    expect(mockCall).not.toHaveBeenCalled();
+    await fireEvent.press(screen.getByTestId('art9-checkbox'));
+    await fireEvent.press(screen.getByTestId('art9-agree'));
+    expect(mockCall).toHaveBeenCalledWith('setArt9Consent', { consent: expect.objectContaining({ textVersion: 'art9-blanket-en-v1', checked: true }) });
+  });
+});
+
+describe('delete account (priv-delete; §3.10)', () => {
+  it('explains what happens, asks once more, then deletes; the welcome screen confirms it afterwards', async () => {
     mockDeleteAccount.mockImplementation(async () => {
       mockDeleted = true;
       return { kind: 'done' };
     });
     await renderWith(<DeleteAccount />);
+    expect(screen.getByText('Copies in our backups disappear within 7 days.')).toBeOnTheScreen();
+    expect(screen.getByText("Your sign-in record at Google's login service can take up to 180 days to clear.")).toBeOnTheScreen();
     await fireEvent.press(screen.getByTestId('delete-account'));
     expect(mockDeleteAccount).not.toHaveBeenCalled();
     await confirmAlert(alert);
@@ -190,6 +246,28 @@ describe('delete account (§3.10)', () => {
     await confirmAlert(alert);
     expect(screen.getByText(/we sent a sign-in link to your email/)).toBeOnTheScreen();
   });
+
+  it('"Download my data first" asks for the export, or downloads the file when one is ready', async () => {
+    mockRequestExport.mockResolvedValueOnce({ kind: 'done' });
+    await renderWith(<DeleteAccount />);
+    await fireEvent.press(screen.getByTestId('delete-export'));
+    expect(mockRequestExport).toHaveBeenCalledTimes(1);
+    expect(screen.getByText("We're preparing your file and will let you know when it's ready.")).toBeOnTheScreen();
+    client.clear();
+
+    mockExports = [{ id: 'exp1', data: { status: 'ready', expiresAt: ts(NOW + 3_600_000) } }];
+    await renderWith(<DeleteAccount />);
+    await fireEvent.press(screen.getByRole('button', { name: 'Download my data first' }));
+    expect(mockDownload).toHaveBeenCalledWith('me', 'exp1', 'Your Grouper data');
+    expect(mockRequestExport).toHaveBeenCalledTimes(1);
+  });
+
+  it('"Cancel" goes back without deleting', async () => {
+    await renderWith(<DeleteAccount />);
+    await fireEvent.press(screen.getByRole('button', { name: 'Cancel' }));
+    expect(mockRouter.back).toHaveBeenCalled();
+    expect(mockDeleteAccount).not.toHaveBeenCalled();
+  });
 });
 
 describe('messages from Grouper (notices)', () => {
@@ -200,8 +278,11 @@ describe('messages from Grouper (notices)', () => {
       { id: 'n3', data: { type: 'system', code: 'SOMETHING_NEW', params: {}, createdAt: ts(NOW), expiresAt: ts(NOW + 1e10) } },
     ];
     await renderWith(<Notices />);
+    // A short title over each notice; an unknown code gets a generic one.
+    expect(screen.getByRole('header', { name: 'Matching paused' })).toBeOnTheScreen();
+    expect(screen.getByRole('header', { name: 'Message from Grouper' })).toBeOnTheScreen();
     expect(screen.getByText(/^You are paused from drops until .*3 Dec.* because two members reported you within 30 days\.$/)).toBeOnTheScreen();
-    expect(screen.getByText('This was decided automatically; no person reviewed it. It ends on its own.')).toBeOnTheScreen();
+    expect(screen.getByText('This was decided automatically; no person reviewed it. The pause ends on its own.')).toBeOnTheScreen();
     expect(screen.getByText('Questions? Write to privacy@grouper.example.')).toBeOnTheScreen();
     expect(screen.getByText('A member left one of your pods.')).toBeOnTheScreen();
     expect(screen.getByText('You have a message from Grouper. Update the app to read it.')).toBeOnTheScreen();
@@ -209,12 +290,15 @@ describe('messages from Grouper (notices)', () => {
     expect(screen.getAllByText(/decided automatically/)).toHaveLength(1);
   });
 
-  it('a safety report receipt adds the 112 line', async () => {
+  it('a safety report receipt adds the 112 line, worded as on after-report and Meeting safely', async () => {
     mockNotices = [
       { id: 'n1', data: { type: 'system', code: 'REPORT_RECEIVED', params: { reportId: 'r1', category: 'safety' }, createdAt: ts(NOW), expiresAt: ts(NOW + 1e10) } },
     ];
     await renderWith(<Notices />);
-    expect(screen.getByText('In an emergency, call 112.')).toBeOnTheScreen();
+    expect(screen.getByRole('header', { name: 'Thanks for your report' })).toBeOnTheScreen();
+    expect(screen.getByText('In danger right now? Call 112.')).toBeOnTheScreen();
+    // Bold, as after-report sets it (<strong>) and Meeting safely shows it: the banner's title.
+    expect(screen.getByText('In danger right now? Call 112.')).toHaveStyle({ fontFamily: 'PlusJakartaSans_700Bold' });
   });
 
   it('"Your data is ready" downloads that export while it exists', async () => {

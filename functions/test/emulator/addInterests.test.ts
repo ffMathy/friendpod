@@ -1,8 +1,8 @@
 /**
  * addInterests end to end against the Firestore emulator (DESIGN.md §5.2, §13; D1–D3), with deterministic stand-ins
  * for the device's vectors: refusals write nothing and log nothing; the blanket consent decides sensitive holdings;
- * client vectors are trusted but the server repeats the lexicon and the margin; cache keys carry the modelId;
- * partitions never mix; the user's own overrides stay theirs.
+ * client vectors and margins are trusted and the phone's margin alone decides sensitivity (F38); cache keys carry the
+ * modelId; partitions never mix; the user's own overrides stay theirs.
  */
 import { randomBytes } from 'node:crypto';
 import {
@@ -35,7 +35,7 @@ const NOW = Date.UTC(2026, 10, 4, 12, 0, 0);
 const DAY = 86_400_000;
 const MODEL_KEY = EMBEDDING_MODEL.modelKey;
 
-/** Ordinary texts lean on a hobby anchor; sensitive ones on an Art. 9 prototype or the lexicon. Cosines are exact. */
+/** Ordinary texts lean on a hobby anchor; sensitive ones on an Art. 9 prototype. Cosines are exact. */
 const V = new StubVectors({
   cooking: { to: 'food and drink', cos: 0.9 },
   madlavning: { to: 'cooking', cos: 0.95 },
@@ -49,10 +49,15 @@ const V = new StubVectors({
   'ønsker os et barn': { to: 'pregnancy and expecting a baby', cos: 0.95 },
   'gravid i uge 20': { to: 'gravid', cos: 0.96 },
   'gravid med tvillinger': { to: 'gravid', cos: 0.94 },
+  'min datters diabetes': { to: 'living with diabetes', cos: 0.9 },
   løb: { to: 'sports', cos: 0.9 },
+  // An everyday hobby word the detector over-flags (there is no known-ordinary list any more, F38).
   knitting: { to: 'faith and church', cos: 0.9 },
 });
-const PROTOTYPES: Prototypes = V.prototypes(['pregnancy and expecting a baby', 'gravid', 'faith and church'], ['food and drink', 'games', 'exercise', 'music', 'sports']);
+const PROTOTYPES: Prototypes = V.prototypes(
+  ['pregnancy and expecting a baby', 'gravid', 'faith and church', 'living with diabetes'],
+  ['food and drink', 'games', 'exercise', 'music', 'sports'],
+);
 const item = (text: string, extra: Record<string, unknown> = {}) => V.item(text, PROTOTYPES, extra);
 const body = (...items: Record<string, unknown>[]) => ({ modelKey: MODEL_KEY, items });
 
@@ -60,7 +65,7 @@ const BLANKET = { ...consentProofFor('art9-blanket-da-v1'), appVersion: '1.2.3',
 
 describeEmulator('addInterests (emulator)', () => {
   const deps = emulatorDeps(NOW);
-  const runtime = (o: Partial<InterestsRuntime> = {}): InterestsRuntime => ({ prototypes: async () => PROTOTYPES, art9Holdings: true, configPath: 'config/none', ...o });
+  const runtime = (o: Partial<InterestsRuntime> = {}): InterestsRuntime => ({ art9Holdings: true, configPath: 'config/none', ...o });
   const call = (uid: string, data: unknown, rt: InterestsRuntime = runtime()): Promise<Output> => invoke('addInterests', addInterestsWith(rt), deps, data, { uid });
 
   beforeEach(async () => {
@@ -138,13 +143,12 @@ describeEmulator('addInterests (emulator)', () => {
     const tag = await deps.db.doc(`tags/${key}`).get();
     expect(tag.get('modelId')).toBe(MODEL_KEY);
     expect((tag.get('vec') as { toArray(): number[] }).toArray()).toEqual(Array.from(Float32Array.from(sent.vector as number[])));
-    expect(tag.get('sens')).toEqual({ sensitive: false, margin: expect.any(Number), lexiconHit: false, knownOrdinary: true, rulesVersion: expect.stringContaining('lexicon-') });
+    expect(tag.get('sens')).toEqual({ sensitive: false, margin: (sent.detector as { margin: number }).margin });
     expect(tag.get('refCount')).toBe(1);
     expect(JSON.stringify(tag.data())).not.toContain(uid);
 
     const holding = await doc(`users/${uid}/interests/${id}`);
-    expect(holding).toMatchObject({ display: 'Løb', norm: 'løb', conceptId: tag.get('conceptId'), starred: false, state: 'active' });
-    expect(holding?.notSensitiveForMe).toBeUndefined();
+    expect(holding).toEqual({ display: 'Løb', norm: 'løb', conceptId: tag.get('conceptId'), starred: false, createdAt: expect.any(Timestamp) });
     expect((await doc(`matchProfiles/${uid}`))?.secondary).toEqual([tag.get('conceptId')]);
     expect((await doc(`users/${uid}`))?.interestCount).toBe(1);
     expect(JSON.stringify(res)).not.toMatch(/\[\s*-?\d+(\.\d+)?\s*,/);
@@ -163,17 +167,17 @@ describeEmulator('addInterests (emulator)', () => {
     expect(capturedLogs().join('\n')).not.toMatch(/gravid|barn/i);
   });
 
-  it('repeats the lexicon and the margin on the server: a client that understates sensitivity is still refused', async () => {
+  it("decides with the phone's margin only and never recomputes it from the vector (F38)", async () => {
     const uid = await onboarded();
-    const lying = (text: string) => ({ ...item(text), detector: { margin: -1, lexiconHit: false } });
-    const res = await call(uid, body(lying('gravid med tvillinger'), lying('ønsker os et barn')));
-    expect(res.results.map((r) => r.reasonCode)).toEqual(['ART9_CONSENT_REQUIRED', 'ART9_CONSENT_REQUIRED']);
-
-    // Without prototypes.bin the server has only the client's margin to go on (D1); the lexicon still applies.
-    const blind = runtime({ prototypes: async () => null });
-    const trusted = await call(uid, body(lying('ønsker os et barn'), lying('gravid med tvillinger')), blind);
-    expect(trusted.results[0]).toMatchObject({ status: 'added', private: false });
-    expect(trusted.results[1]).toEqual({ status: 'rejected', reasonCode: 'ART9_CONSENT_REQUIRED' });
+    // A client that understates sensitivity is trusted for a new text: the accepted manipulation risk (D1).
+    const lying = { ...item('gravid med tvillinger'), detector: { margin: -1 } };
+    expect((await call(uid, body(lying))).results[0]).toMatchObject({ status: 'added', private: false });
+    expect((await doc(`tags/${tagKeyFor('gravid med tvillinger', MODEL_KEY)}`))?.sens).toEqual({ sensitive: false, margin: -1 });
+    // The phone's flag decides even when the vector itself sits on a hobby anchor.
+    const flagged = { ...item('cooking'), detector: { margin: EMBEDDING_MODEL.detectorMargin } };
+    expect((await call(uid, body(flagged))).results[0]).toEqual({ status: 'rejected', reasonCode: 'ART9_CONSENT_REQUIRED' });
+    // A tag-level text the model does not flag needs no consent, whatever it says.
+    expect((await call(uid, body(item('løb')))).results[0]).toMatchObject({ status: 'added', private: false });
   });
 
   it('lets a later honest client raise sensitivity for its own holding when the first writer sent a crafted vector', async () => {
@@ -181,8 +185,8 @@ describeEmulator('addInterests (emulator)', () => {
     const honest = await onboarded({ consent: true });
     const text = 'ønsker os et barn';
     const tagKey = tagKeyFor(text, MODEL_KEY);
-    // A vector on an ordinary anchor and a low margin: the server's own margin agrees, so the tag is stored ordinary.
-    const crafted = { text, vector: Array.from(V.vector('sports')), detector: { margin: -1, lexiconHit: false } };
+    // A vector on an ordinary anchor and a low margin: the tag is stored ordinary.
+    const crafted = { text, vector: Array.from(V.vector('sports')), detector: { margin: -1 } };
     expect((await call(attacker, body(crafted))).results[0]).toMatchObject({ status: 'added', private: false });
     expect((await doc(`tags/${tagKey}`))?.sens).toMatchObject({ sensitive: false });
 
@@ -211,7 +215,7 @@ describeEmulator('addInterests (emulator)', () => {
     const grant = await grantId(uid);
     const user = await doc(`users/${uid}`);
     const holding = await doc(`users/${uid}/sensitiveInterests/${id}`);
-    expect(holding).toMatchObject({ display: 'Gravid i uge 20', selfFlagged: false, source: 'lexicon', consentEventId: grant, consentTextVersion: 'art9-blanket-da-v1' });
+    expect(holding).toMatchObject({ display: 'Gravid i uge 20', selfFlagged: false, source: 'model', consentEventId: grant, consentTextVersion: 'art9-blanket-da-v1' });
     expect((holding?.consentedAt as Timestamp).isEqual(user?.legal.art9.at)).toBe(true);
     expect(await doc(`users/${uid}/interests/${id}`)).toBeUndefined();
     const events = (await deps.db.collection('consentEvents').where('uid', '==', uid).get()).docs.map((d) => d.data());
@@ -219,7 +223,7 @@ describeEmulator('addInterests (emulator)', () => {
     expect(JSON.stringify(events)).not.toContain(id);
 
     const tag = await doc(`tags/${tagKeyFor('gravid i uge 20', MODEL_KEY)}`);
-    expect(tag).toMatchObject({ refCount: 1, conceptId: holding?.conceptId, sens: { sensitive: true, lexiconHit: true }, langHints: { da: 0, en: 0 } });
+    expect(tag).toMatchObject({ refCount: 1, conceptId: holding?.conceptId, sens: { sensitive: true }, langHints: { da: 0, en: 0 } });
     expect(await doc(`concepts/${holding?.conceptId}`)).toMatchObject({ sensitive: true, labels: {}, n: 1 });
     const profile = await doc(`matchProfiles/${uid}`);
     expect(profile?.themes).toEqual([{ c: holding?.conceptId, starred: false, sens: true, consentRef: grant }]);
@@ -245,12 +249,19 @@ describeEmulator('addInterests (emulator)', () => {
     expect((await deps.db.collection('concepts').where('sensitive', '==', true).get()).size).toBe(0);
   });
 
-  it('keeps a known-ordinary hobby word ordinary even when the detector flags it', async () => {
-    const uid = await onboarded();
+  it('treats an everyday hobby word the detector flags as sensitive: no word list switches the flag off (F38)', async () => {
     const sent = item('knitting');
     expect((sent.detector as { margin: number }).margin).toBeGreaterThan(EMBEDDING_MODEL.detectorMargin);
-    expect((await call(uid, body(sent))).results[0]).toMatchObject({ status: 'added', private: false });
-    expect((await doc(`tags/${tagKeyFor('knitting', MODEL_KEY)}`))?.sens).toMatchObject({ sensitive: false, knownOrdinary: true });
+    const without = await onboarded();
+    expect((await call(without, body(sent))).results[0]).toEqual({ status: 'rejected', reasonCode: 'ART9_CONSENT_REQUIRED' });
+    expect(await doc(`tags/${tagKeyFor('knitting', MODEL_KEY)}`)).toBeUndefined();
+    const consenting = await onboarded({ consent: true });
+    const res = await call(consenting, body(sent));
+    expect(res.results[0]).toMatchObject({ status: 'added', private: true });
+    expect(await doc(`users/${consenting}/sensitiveInterests/${res.results[0]?.interestId}`)).toMatchObject({ source: 'model', selfFlagged: false });
+    expect((await doc(`tags/${tagKeyFor('knitting', MODEL_KEY)}`))?.sens).toMatchObject({ sensitive: true });
+    // Only the consenting user's own "This isn't sensitive for me" makes their holding ordinary.
+    expect((await call(consenting, body(item('knitting', { notSensitiveForMe: true })))).results[0]).toMatchObject({ status: 'madeOrdinary', private: false });
   });
 
   it('validates the model key and the vector before anything else', async () => {
@@ -290,7 +301,9 @@ describeEmulator('addInterests (emulator)', () => {
     await seedConcept('seed_kirkegaenger', 'kirkegænger', { sensitive: true });
     await seedConcept('seed_gravid', 'gravid', { sensitive: true });
 
-    const res = await call(uid, body(item('graviditetsyoga'), item('kirkekor'), item('gravid i uge 20'), item('gravid med tvillinger')));
+    // The phone's model flags "graviditetsyoga" although its vector sits next to yoga (the margin decides, F38).
+    const yogaFlagged = { ...item('graviditetsyoga'), detector: { margin: 0.1 } };
+    const res = await call(uid, body(yogaFlagged, item('kirkekor'), item('gravid i uge 20'), item('gravid med tvillinger')));
     expect(res.results.map((r) => [r.status, r.private])).toEqual([
       ['added', true],
       ['added', false],

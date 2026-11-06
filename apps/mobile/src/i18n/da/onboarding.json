@@ -1,0 +1,168 @@
+{
+  "onboarding": {
+    "about": {
+      "title": "Om dig",
+      "lede": "Kun det mest nødvendige. Ingen ser det, før I er i en bekræftet pod sammen.",
+      "firstName": "Fornavn",
+      "firstNameHelp": "Kun dem, der er i en bekræftet pod med dig, kan se det.",
+      "firstNameInvalid": "Brug 1–30 bogstaver. Ingen kontaktoplysninger.",
+      "dob": "Fødselsdato",
+      "day": "Dag",
+      "month": "Måned",
+      "year": "År",
+      "dobHelp": "Vi tjekker, at du er fyldt 18, og gemmer derefter kun dit fødselsår, så vi kan matche dig med folk på din alder.",
+      "dobInvalid": "Det er ikke en gyldig dato.",
+      "underage": "Grouper er kun for personer på 18 år og derover.",
+      "acceptTerms": "Jeg accepterer vilkårene",
+      "legalLinks": "Læs <terms>vilkårene</terms>. Hvordan vi behandler dine data, kan du læse i <privacy>privatlivserklæringen</privacy>."
+    },
+    "area": {
+      "title": "Hvor bor du?",
+      "lede": "Pods mødes tæt på, hvor man bor. Din telefon laver det om til et område på ca. 5 km, før noget bliver sendt.",
+      "postcode": "Postnummer",
+      "unknownPostcode": "Det postnummer kender vi ikke.",
+      "useLocation": "Brug min omtrentlige placering",
+      "locationFailed": "Vi kunne ikke finde din omtrentlige placering. Brug dit postnummer i stedet.",
+      "yourArea": "Dit område",
+      "nearYou": "Tæt på dig",
+      "live": "Åben i {{city}}",
+      "opensSoon": "{{city}} åbner snart",
+      "notOpen": "Ikke åben her endnu",
+      "storedNote": "Vi gemmer kun det her område – aldrig din adresse eller præcise placering. Ingen får nogensinde at se, hvor langt væk du bor.",
+      "outsideHint": "Du kan stadig tilmelde dig. Vi giver besked, når vi åbner i nærheden af dig.",
+      "attribution": "Postnummerdata: {{source}}",
+      "underage": "Grouper er kun for personer på 18 år og derover. Vi har slettet dit login og gemmer intet andet om dig."
+    },
+    "heardFrom": {
+      "question": "Hvor hørte du om Grouper?",
+      "hint": "Vi tæller kun svarene pr. by og uge; svaret gemmes ikke på din profil.",
+      "dadsGroup": "En fædre- eller forældregruppe",
+      "newcomerEvent": "Et arrangement for nytilflyttere",
+      "university": "Universitet eller skole",
+      "venuePoster": "En plakat på en café eller et spillested",
+      "friend": "En ven",
+      "socialMedia": "Sociale medier",
+      "press": "Nyheder eller presse",
+      "other": "Et andet sted"
+    },
+    "consent": {
+      "badge": "Private interesser"
+    },
+    "interests": {
+      "title": "Hvad går du op i?",
+      "lede": "Med dine egne ord, på dansk eller engelsk. En pod samles om én ting, I alle deler."
+    },
+    "prefs": {
+      "title": "Hvem vil du gerne møde?"
+    },
+    "final": {
+      "title": "Næsten færdig",
+      "photoTitle": "Et billede, så din pod kan genkende dig",
+      "photoBody": "Kun dem, der er i en bekræftet pod med dig, kan se det. I pods om en privat interesse vælger du selv for hver pod.",
+      "addPhoto": "Tilføj billede",
+      "changePhoto": "Skift billede",
+      "yourPhoto": "Dit billede",
+      "notifTitle": "Få besked, når dit drop lander",
+      "notifBody": "Notifikationer siger kun noget i stil med »Dit ugentlige drop er her«. Aldrig hvem der er i en pod, eller hvad den handler om.",
+      "notifEnable": "Slå notifikationer til",
+      "notifOn": "Notifikationer er slået til",
+      "notifOff": "Notifikationer er slået fra. Du kan slå dem til senere under Indstillinger.",
+      "pledgeTitle": "Vores sikkerhedsløfte",
+      "pledge": "Jeg mødes på offentlige steder, behandler andre med respekt og bruger Anmeld, hvis noget føles forkert.",
+      "finish": "Færdig"
+    },
+    "photo": {
+      "choose": "Vælg et billede",
+      "uploaded": "Tak! Dit billede dukker op om lidt.",
+      "failed": "Billedet kunne ikke uploades. Du kan tilføje et senere."
+    }
+  },
+  "prefs": {
+    "ages": "Alder",
+    "agesValue": "Alder {{min}} til {{max}}",
+    "agesHint": "Starter omkring din egen alder. Alle i en pod passer ind i hinandens aldersinterval.",
+    "youngest": "Yngste alder",
+    "oldest": "Ældste alder",
+    "ageRangeTooNarrow": "Aldersintervallet skal dække mindst 5 år.",
+    "travel": "Hvor langt vil du tage for at mødes?",
+    "km": "{{km}} km",
+    "aboutKm": "ca. {{km}} km",
+    "languages": "Sprog til møderne",
+    "language": {
+      "da": "Dansk",
+      "en": "Engelsk"
+    },
+    "languageInText": {
+      "da": "dansk",
+      "en": "engelsk"
+    },
+    "pickLanguage": "Vælg mindst ét sprog.",
+    "availability": "Hvornår har du typisk tid?",
+    "pickAvailability": "Vælg mindst ét tidspunkt.",
+    "grid": {
+      "weekdays": "Hverdage",
+      "saturday": "Lørdag",
+      "sunday": "Søndag",
+      "daytime": "Dag",
+      "evening": "Aften"
+    },
+    "openToAnyone": "Åben for at møde alle",
+    "openToAnyoneHint": "Hvis ingen interesse passer, kan du blive matchet med folk i nærheden uden et fælles tema.",
+    "sameGender": "Kun pods med samme køn",
+    "sameGenderHint": "Vi spørger om dit køn og dit samtykke og bruger det kun til det her.",
+    "sameGenderOffTitle": "Slå pods med samme køn fra?",
+    "sameGenderOffBody": "Vi sletter dit køn alle steder.",
+    "turnOff": "Slå fra"
+  },
+  "gender": {
+    "title": "Pods med samme køn",
+    "question": "Dit køn",
+    "pick": "Vælg dit køn for at se, hvordan vi bruger det.",
+    "options": {
+      "woman": "Kvinde",
+      "man": "Mand",
+      "nonbinary": "Nonbinær"
+    },
+    "englishOnly": "Denne tekst findes indtil videre kun på engelsk.",
+    "confirm": "Slå pods med samme køn til"
+  },
+  "availability": {
+    "weekdayDay": "Hverdage, dag",
+    "weekdayEvening": "Hverdage, aften",
+    "saturdayDay": "Lørdag, dag",
+    "saturdayEvening": "Lørdag, aften",
+    "sundayDay": "Søndag, dag",
+    "sundayEvening": "Søndag, aften"
+  },
+  "aboutMe": {
+    "intro": "Valgfrit: én sætning om dig. Kun dem, der er i en bekræftet pod med dig, kan se den, og den bruges aldrig til matchning.",
+    "label": "Om mig",
+    "placeholder": "Fx: Ny i byen og altid frisk på en lang gåtur",
+    "helper": "Vises for medlemmerne af en bekræftet pod. Bruges ikke til matchning.",
+    "tooLong": "Højst {{max}} tegn.",
+    "CONTACT_INFO": "Ingen kontaktoplysninger her: I har ikke mødt hinanden endnu. Del dem gerne, når I ses.",
+    "BLOCKLIST": "Teksten indeholder ord, der ikke er tilladt på Grouper.",
+    "save": "Gem",
+    "saved": "Gemt."
+  },
+  "waitlist": {
+    "eyebrow": "Du er på listen",
+    "title": "{{city}} åbner snart",
+    "cardTitle": "Venteliste for {{city}}",
+    "ofGoal": "af {{goal}}",
+    "counter": "{{n}} af {{goal}} tilmeldt",
+    "progressLabel": "Tilmeldte på ventelisten for {{city}}",
+    "next": "Målet er {{goal}} tilmeldte i {{city}}, før vi åbner byen. Dit første drop kommer torsdagen efter kl. 18.00, og vi sender dig en notifikation.",
+    "shareTitle": "Hjælp {{city}} med at åbne hurtigere",
+    "shareBody": "Kender du nogen, der gerne vil møde nye mennesker? Hver ny tilmelding bringer din første pod tættere på.",
+    "share": "Del invitationslink",
+    "shareSheetTitle": "Grouper i {{city}}",
+    "shareMessage": "Grouper samler små grupper af folk tæt på dig om en fælles interesse. Skriv dig på ventelisten for {{city}}: {{link}}",
+    "copy": "Kopiér",
+    "copyLink": "Kopiér invitationslink",
+    "copied": "Kopieret",
+    "whileYouWait": "Mens du venter",
+    "moreInterests": "Tilføj et par interesser mere",
+    "profileAndSettings": "Profil og indstillinger"
+  }
+}

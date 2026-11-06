@@ -93,19 +93,15 @@ export const userDocSchema = z.object({
 export type UserDoc = z.infer<typeof userDocSchema>;
 
 /** `users/{uid}/interests/{interestId}`: ordinary holdings. */
-export const interestDocSchema = z
-  .object({
-    display: wording,
-    norm: z.string().min(2).max(40),
-    conceptId: conceptIdSchema.nullable(),
-    starred: z.boolean(),
-    /** The user chose "This isn't sensitive for me" for a sensitive tag (D2); rescans leave this holding alone. */
-    notSensitiveForMe: z.boolean().optional(),
-    state: z.enum(['active', 'pendingConsent']),
-    pendingUntil: timestampSchema.optional(),
-    createdAt: timestampSchema,
-  })
-  .refine((d) => d.state === 'pendingConsent' || d.conceptId !== null, { message: 'an active holding needs a conceptId' });
+export const interestDocSchema = z.object({
+  display: wording,
+  norm: z.string().min(2).max(40),
+  conceptId: conceptIdSchema,
+  starred: z.boolean(),
+  /** The user chose "This isn't sensitive for me" for a sensitive tag (D2). */
+  notSensitiveForMe: z.boolean().optional(),
+  createdAt: timestampSchema,
+});
 export type InterestDoc = z.infer<typeof interestDocSchema>;
 
 /** `users/{uid}/sensitiveInterests/{interestId}`: sensitive holdings, each pointing at the blanket consent's grant event. */
@@ -360,11 +356,8 @@ export const tagDocSchema = z.object({
   modelId: z.string(),
   sens: z.object({
     sensitive: z.boolean(),
+    /** The detector margin the first writer's phone computed (F38); null when it was missing. */
     margin: z.number().nullable(),
-    lexiconHit: z.boolean(),
-    knownOrdinary: z.boolean(),
-    /** LEXICON_RULES_VERSION, prototype list versions and KNOWN_ORDINARY_VERSION the decision used. */
-    rulesVersion: z.string(),
   }),
   moderation: z.object({ status: z.enum(['ok', 'shadowFlag']), rulesVersion: z.string() }),
   conceptId: conceptIdSchema.nullable(),

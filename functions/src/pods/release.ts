@@ -64,7 +64,6 @@ export async function holdingsOf(db: Firestore, uid: string, conceptIds: readonl
   const snap = await db.collection(`${PATHS.user(uid)}/${partition}`).where('conceptId', 'in', [...new Set(conceptIds)].slice(0, 30)).get();
   for (const d of snap.docs.sort((a, b) => (a.id < b.id ? -1 : 1))) {
     const c = d.get('conceptId') as string;
-    if (partition === 'interests' && d.get('state') !== 'active') continue;
     if (!out.has(c)) out.set(c, { id: d.id, display: d.get('display') as string });
   }
   return out;

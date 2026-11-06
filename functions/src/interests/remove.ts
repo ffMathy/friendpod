@@ -69,10 +69,10 @@ export async function removeHoldings<R = undefined>(
     for (const d of ordinarySnap.docs) holdings.ordinary.set(d.id, d.data() as InterestDoc);
     for (const d of sensitiveSnap.docs) holdings.sensitive.set(d.id, d.data() as SensitiveInterestDoc);
     const sel = select(holdings);
-    const chosen: { id: string; partition: 'ordinary' | 'sensitive'; norm: string; conceptId: string | null; notSensitiveForMe: boolean }[] = [
+    const chosen: { id: string; partition: 'ordinary' | 'sensitive'; norm: string; conceptId: string; notSensitiveForMe: boolean }[] = [
       ...sel.ordinary.filter((id) => holdings.ordinary.has(id)).map((id) => {
         const h = holdings.ordinary.get(id)!;
-        return { id, partition: 'ordinary' as const, norm: h.norm, conceptId: h.state === 'active' ? h.conceptId : null, notSensitiveForMe: h.notSensitiveForMe === true };
+        return { id, partition: 'ordinary' as const, norm: h.norm, conceptId: h.conceptId, notSensitiveForMe: h.notSensitiveForMe === true };
       }),
       ...sel.sensitive.filter((id) => holdings.sensitive.has(id)).map((id) => {
         const h = holdings.sensitive.get(id)!;
@@ -81,8 +81,8 @@ export async function removeHoldings<R = undefined>(
     ];
     const locale = userSnap.get('locale') === 'da' ? 'da' : 'en';
 
-    // Tag slots of the holdings that still count (a pendingConsent holding holds no count, §5.2 (8) Rescan).
-    const counted = chosen.filter((c) => c.conceptId !== null);
+    // Tag slots of the holdings.
+    const counted = chosen;
     const tagKeys = [...new Set(counted.map((c) => tagKeyFor(c.norm, EMBEDDING_MODEL.modelKey)))];
     const tagSnaps = tagKeys.length > 0 ? await tx.getAll(...tagKeys.map((k) => db.doc(`tags/${k}`))) : [];
     const tags = new Map(tagKeys.map((k, i) => [k, tagSnaps[i]!] as const));
