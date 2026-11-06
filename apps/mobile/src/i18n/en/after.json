@@ -1,0 +1,60 @@
+{
+  "feedback": {
+    "title": "Feedback",
+    "didYouMeet": "Did you meet?",
+    "yes": "Yes",
+    "no": "No",
+    "meetAgain": "Meet {{name}} again?",
+    "rating": "How was it? (1–5)",
+    "private": "Your answers are private. Nobody sees what you said about them.",
+    "keep": "Keep pod",
+    "notForMe": "Not for me",
+    "send": "Send",
+    "whoWasThere": "Who was there?",
+    "whoWasThereHint": "Everyone is ticked. Untick anyone who didn’t come.",
+    "meetAgainEffect": "If you both say yes, you can be matched together again after 4 weeks instead of 6 months. If either of you says no, you won't be matched together again. Nobody is told what you answered."
+  },
+  "member": {
+    "title": "Member",
+    "formerMember": "Former member",
+    "report": "Report",
+    "block": "Block",
+    "blockTitle": "Block {{name}}?",
+    "blockBody": "You will never be matched again, and photos are hidden both ways.",
+    "blockExplainer": "Blocking is immediate. In an active pod, the blocked member is removed; the others only see that the pod changed.",
+    "leaveInstead": "Leave the pod myself instead",
+    "blockBodyReplan": "You will never be matched again, photos are hidden both ways, and the pod plans a new meetup within 48 hours.",
+    "blockedAlready": "You've blocked {{name}}.",
+    "replan": "Re-plan the meetup",
+    "replanExplainer": "They already know where and when you're meeting. Re-planning picks a new time and place within 48 hours."
+  },
+  "report": {
+    "title": "Report",
+    "intro": "Reports are confidential. We never tell anyone who reported them.",
+    "messageCopy": "We keep a copy of this message with your report for 12 months, also after the chat is deleted.",
+    "categories": {
+      "harassment": "Harassment",
+      "safety": "Safety",
+      "noShow": "No-show",
+      "content": "Content",
+      "underage": "Suspected under 18",
+      "notGenuine": "Not a genuine member"
+    },
+    "emergency": "In an emergency, call 112.",
+    "textLabel": "What happened? (optional)",
+    "textWarning": "Please don't include sensitive details about anyone.",
+    "send": "Send report"
+  },
+  "reasons": {
+    "THEME": "You both added “{{wording}}”",
+    "ALSO_SHARE": "You also share: {{list}}",
+    "AREA": "Near {{label}}",
+    "NEAR_YOU": "Everyone lives about {{km}} km or less from you",
+    "AGE_SPAN": "Ages {{min}}–{{max}}",
+    "PRIORITY_one": "You have waited {{count}} week, so you had priority",
+    "PRIORITY_other": "You have waited {{count}} weeks, so you had priority",
+    "SOFT_THEME": "Your “{{yourTag}}” is close to this pod's “{{podTheme}}”",
+    "OPEN_TO_ANYONE": "You are open to meet anyone nearby",
+    "footer": "Pods are formed automatically. Read “How matching works” to see which information is used."
+  }
+}

@@ -1,0 +1,489 @@
+{
+  "//": "One entry per screen to compare: storyboard artboard (390x844) vs the real app route rendered with a scenario (preview/scenarios/<scenario>.ts). Edit freely: route, scenario, notes and steps (Playwright actions run before the screenshot: fill/click/press/wait/waitFor/scroll). See preview/README.md.",
+  "storyboardDir": "/tmp/claude-0/-home-user-grouper/19a9b4fa-694b-5b12-97c2-db654d116b3b/scratchpad/design-canvas/project",
+  "screens": [
+    {
+      "id": "Main",
+      "title": "1.1 Welcome and sign-in",
+      "storyboard": "Main.dc.html",
+      "route": "/",
+      "scenario": "signed-out",
+      "notes": "Welcome and sign-in in one screen. Today: (auth)/index (welcome + language) and a separate /sign-in screen (app-auth-sign-in). Sign in with Apple shows because the preview reports Platform.OS ios to app code."
+    },
+    {
+      "id": "onb-about",
+      "title": "1.2 About you",
+      "storyboard": "onb-about.dc.html",
+      "route": "/name",
+      "scenario": "onboarding-start",
+      "notes": "Storyboard step 1 of 6 \"About you\" = first name + date of birth. Today these are two steps after /terms: /dob (app-onb-dob) then /name. Point this at the merged step once onboarding is restructured."
+    },
+    {
+      "id": "onb-area",
+      "title": "1.3 Your area",
+      "storyboard": "onb-area.dc.html",
+      "route": "/area",
+      "scenario": "onboarding-start",
+      "notes": "Step 2 of 6. Today /area is also where completeOnboarding runs (it needs the draft from the earlier steps; the preview opens it with an empty draft)."
+    },
+    {
+      "id": "onb-consent",
+      "title": "1.4 Consent for sensitive interests (once)",
+      "storyboard": "onb-consent.dc.html",
+      "route": "/sensitive-consent",
+      "scenario": "onboarding-consent",
+      "notes": "Step 3 of 6. Consent copy is hash-locked in packages/core (art9-blanket-*): match the look, not the storyboard wording."
+    },
+    {
+      "id": "onb-interests",
+      "title": "1.5 Interests",
+      "storyboard": "onb-interests.dc.html",
+      "route": "/add-interests",
+      "scenario": "onboarding-interests",
+      "notes": "Step 4 of 6. Steps type \"brætspilsaften\" and tap Add; the scenario answers with the suggestion \"brætspil\" (\"Did you mean ...?\"). Area chips (Popular in Aarhus) come from areas/aarhus.",
+      "steps": [
+        {
+          "fill": "role=textbox >> nth=0",
+          "text": "brætspilsaften"
+        },
+        {
+          "click": "[data-testid=\"interest-add\"]"
+        },
+        {
+          "wait": 1200
+        }
+      ]
+    },
+    {
+      "id": "onb-prefs",
+      "title": "1.6 Who you'd like to meet",
+      "storyboard": "onb-prefs.dc.html",
+      "route": "/pod-preferences",
+      "scenario": "onboarding-interests",
+      "notes": "Step 5 of 6. Prefs: ages 28–42, 10 km, Dansk + English, weekday evenings + Saturday/Sunday daytime."
+    },
+    {
+      "id": "onb-final",
+      "title": "1.7 Photo, about me, notifications, pledge",
+      "storyboard": "onb-final.dc.html",
+      "route": "/photo",
+      "scenario": "onboarding-interests",
+      "notes": "Step 6 of 6 combines photo, About me, notifications and the pledge. Today: /photo, /notifications, /pledge, /done (app-onb-*). Point this at the merged step once restructured."
+    },
+    {
+      "id": "city-waitlist",
+      "title": "1.8 Your city's waitlist (until it opens)",
+      "storyboard": "city-waitlist.dc.html",
+      "route": "/",
+      "scenario": "waitlist-odense",
+      "notes": "Home tab while the area is not live (WaitlistScreen): Odense, 186 of 250."
+    },
+    {
+      "id": "drop-home",
+      "title": "2.1 This week, before the drop",
+      "storyboard": "drop-home.dc.html",
+      "route": "/",
+      "scenario": "this-week",
+      "notes": "Home tab, Tuesday of week 46 before the drop. Interests include one private (\"gravid\"), which must not appear in \"What we'll match on\". One active pod (sourdough, Sat 14:00, bakery café, Frederiksbjerg) and an archived one."
+    },
+    {
+      "id": "drop-proposal",
+      "title": "2.2 The drop: a pod proposal",
+      "storyboard": "drop-proposal.dc.html",
+      "route": "/",
+      "scenario": "drop-proposal",
+      "notes": "Home tab right after the drop: brætspil proposal, not answered."
+    },
+    {
+      "id": "drop-why",
+      "title": "2.3 Why this pod",
+      "storyboard": "drop-why.dc.html",
+      "route": "/sheets/why-this-pod?podId=braetspilpodaarhus46",
+      "scenario": "drop-proposal",
+      "notes": "Modal sheet over the home tab. Server reason codes only."
+    },
+    {
+      "id": "drop-waiting",
+      "title": "2.4 Waiting for the others",
+      "storyboard": "drop-waiting.dc.html",
+      "route": "/",
+      "scenario": "drop-waiting",
+      "notes": "The storyboard is the home tab (\"This week\" active, \"Your weekly drop\") after saying yes: 3 of 5, 4 needed. The same state on the pod route is app-pod-waiting."
+    },
+    {
+      "id": "drop-none",
+      "title": "2.5 No pod this week",
+      "storyboard": "drop-none.dc.html",
+      "route": "/",
+      "scenario": "drop-none",
+      "notes": "Home tab, no pod this week, reason NO_THEME_BUCKET (names no setting). The 3-weeks variant that names a setting is app-home-none-setting."
+    },
+    {
+      "id": "pod-confirmed",
+      "title": "3.1 Pod confirmed",
+      "storyboard": "pod-confirmed.dc.html",
+      "route": "/pod/braetspilpodaarhus46",
+      "scenario": "pod-confirmed",
+      "notes": "Pod screen right after confirmation, planning, no options yet. Storyboard shows the tab bar with Pods active and a back arrow."
+    },
+    {
+      "id": "pod-plan",
+      "title": "3.2 Plan the meetup",
+      "storyboard": "pod-plan.dc.html",
+      "route": "/pod/braetspilpodaarhus46/plan",
+      "scenario": "pod-planning",
+      "notes": "Two options: Sat 14 Nov 14:00 (3 yes: Mette, Jonas, you) and Sun 15 Nov 11:00 (2 yes, you have not voted). One spot left."
+    },
+    {
+      "id": "pod-propose",
+      "title": "3.3 Suggest a time and a public place",
+      "storyboard": "pod-propose.dc.html",
+      "route": "/pod/braetspilpodaarhus46/plan",
+      "scenario": "pod-planning",
+      "notes": "\"Suggest a time and place\". Today it is the form at the bottom of the plan screen; steps type \"café latin\" in the place search so the three placeholder places show. Place search goes to the scenario's places (Google Places is stubbed on the network).",
+      "steps": [
+        {
+          "fill": "[data-testid=\"place-search\"]",
+          "text": "café latin"
+        },
+        {
+          "waitFor": "text=Bakery café name"
+        },
+        {
+          "scroll": "text=Bakery café name"
+        },
+        {
+          "wait": 500
+        }
+      ]
+    },
+    {
+      "id": "pod-scheduled",
+      "title": "3.4 Pod page: next step, plan, chat, members",
+      "storyboard": "pod-scheduled.dc.html",
+      "route": "/pod/braetspilpodaarhus46",
+      "scenario": "pod-scheduled",
+      "notes": "Friday 19:30, meetup Saturday 14:00: \"Still coming?\" pending, chat open (3 messages), Sofie hasn't confirmed."
+    },
+    {
+      "id": "pod-chat",
+      "title": "3.5 Meetup chat (24 h before to 24 h after)",
+      "storyboard": "pod-chat.dc.html",
+      "route": "/pod/braetspilpodaarhus46/chat",
+      "scenario": "pod-chat-open",
+      "notes": "Saturday 13:58, five messages (two from today). Messages expire 72 h after the meetup."
+    },
+    {
+      "id": "after-feedback",
+      "title": "4.1 How did it go? (push the next morning)",
+      "storyboard": "after-feedback.dc.html",
+      "route": "/pod/braetspilpodaarhus46/feedback",
+      "scenario": "pod-happened",
+      "notes": "Sunday 10:05, the morning after."
+    },
+    {
+      "id": "after-member",
+      "title": "4.2 Member: block or report",
+      "storyboard": "after-member.dc.html",
+      "route": "/pod/braetspilpodaarhus46/member/u_jonas",
+      "scenario": "pod-happened",
+      "notes": "Member sheet for Jonas (block or report)."
+    },
+    {
+      "id": "after-report",
+      "title": "4.3 Report",
+      "storyboard": "after-report.dc.html",
+      "route": "/sheets/report?podId=braetspilpodaarhus46&uid=u_jonas",
+      "scenario": "pod-happened",
+      "notes": "Report Jonas (user report). The message-report variant is app-sheets-report-message."
+    },
+    {
+      "id": "priv-sensitive",
+      "title": "5.1 A pod about a private interest",
+      "storyboard": "priv-sensitive.dc.html",
+      "route": "/",
+      "scenario": "drop-private",
+      "notes": "Home tab, week 48: proposal about the private interest \"gravid\" (no age span, no shared interests by schema)."
+    },
+    {
+      "id": "priv-interests",
+      "title": "5.2 Interests and private interests",
+      "storyboard": "priv-interests.dc.html",
+      "route": "/interests",
+      "scenario": "this-week",
+      "notes": "Interests tab: 4 interests + private \"gravid\" (consent given 4 Nov 2026), 5 of 20."
+    },
+    {
+      "id": "priv-settings",
+      "title": "5.3 Privacy settings",
+      "storyboard": "priv-settings.dc.html",
+      "route": "/settings/privacy",
+      "scenario": "this-week",
+      "notes": "Me → Privacy. 1 private interest with consent, same-gender off, photo shown to confirmed pods, 1 blocked person."
+    },
+    {
+      "id": "priv-delete",
+      "title": "5.4 Delete account",
+      "storyboard": "priv-delete.dc.html",
+      "route": "/settings/delete-account",
+      "scenario": "this-week",
+      "notes": "Delete account. Provider is Apple (re-auth before deletion)."
+    },
+    {
+      "id": "app-auth-sign-in",
+      "title": "Sign-in options",
+      "storyboard": null,
+      "route": "/sign-in",
+      "scenario": "signed-out",
+      "notes": "Today separate from the welcome screen; the storyboard merges both (Main)."
+    },
+    {
+      "id": "app-auth-email",
+      "title": "Email link sign-in",
+      "storyboard": null,
+      "route": "/email",
+      "scenario": "signed-out",
+      "notes": ""
+    },
+    {
+      "id": "app-auth-complete",
+      "title": "Email link landing",
+      "storyboard": null,
+      "route": "/auth/complete",
+      "scenario": "signed-out",
+      "notes": "Without a link in the URL."
+    },
+    {
+      "id": "app-onb-terms",
+      "title": "Onboarding: terms",
+      "storyboard": null,
+      "route": "/terms",
+      "scenario": "onboarding-start",
+      "notes": "Not a storyboard step; the storyboard puts the legal line on the welcome screen."
+    },
+    {
+      "id": "app-onb-dob",
+      "title": "Onboarding: date of birth",
+      "storyboard": null,
+      "route": "/dob",
+      "scenario": "onboarding-start",
+      "notes": "Part of storyboard \"About you\" (onb-about)."
+    },
+    {
+      "id": "app-onb-notifications",
+      "title": "Onboarding: notifications",
+      "storyboard": null,
+      "route": "/notifications",
+      "scenario": "onboarding-interests",
+      "notes": "Part of storyboard step 6 (onb-final)."
+    },
+    {
+      "id": "app-onb-pledge",
+      "title": "Onboarding: safety pledge",
+      "storyboard": null,
+      "route": "/pledge",
+      "scenario": "onboarding-interests",
+      "notes": "Part of storyboard step 6 (onb-final)."
+    },
+    {
+      "id": "app-onb-done",
+      "title": "Onboarding: done",
+      "storyboard": null,
+      "route": "/done",
+      "scenario": "onboarding-interests",
+      "notes": ""
+    },
+    {
+      "id": "app-home-none-setting",
+      "title": "Home: no pod, names the setting",
+      "storyboard": null,
+      "route": "/",
+      "scenario": "drop-none-setting",
+      "notes": "Reason RADIUS (third week with the same cause): names the distance setting."
+    },
+    {
+      "id": "app-pod-proposal",
+      "title": "Pod route: proposal (not a member yet)",
+      "storyboard": null,
+      "route": "/pod/braetspilpodaarhus46",
+      "scenario": "drop-proposal",
+      "notes": ""
+    },
+    {
+      "id": "app-pod-waiting",
+      "title": "Pod route: accepted, waiting",
+      "storyboard": null,
+      "route": "/pod/braetspilpodaarhus46",
+      "scenario": "drop-waiting",
+      "notes": ""
+    },
+    {
+      "id": "app-pod-private-proposal",
+      "title": "Pod route: private-interest proposal",
+      "storyboard": null,
+      "route": "/pod/privatepodaarhusweek",
+      "scenario": "drop-private",
+      "notes": ""
+    },
+    {
+      "id": "app-pod-plan-locked",
+      "title": "Plan route after the plan locked",
+      "storyboard": null,
+      "route": "/pod/braetspilpodaarhus46/plan",
+      "scenario": "pod-scheduled",
+      "notes": ""
+    },
+    {
+      "id": "app-pod-chat-friday",
+      "title": "Chat the day before (3 messages)",
+      "storyboard": null,
+      "route": "/pod/braetspilpodaarhus46/chat",
+      "scenario": "pod-scheduled",
+      "notes": ""
+    },
+    {
+      "id": "app-pod-happened",
+      "title": "Pod route the morning after",
+      "storyboard": null,
+      "route": "/pod/braetspilpodaarhus46",
+      "scenario": "pod-happened",
+      "notes": ""
+    },
+    {
+      "id": "app-sheets-report-message",
+      "title": "Report a chat message",
+      "storyboard": null,
+      "route": "/sheets/report?podId=braetspilpodaarhus46&messageId=m4",
+      "scenario": "pod-happened",
+      "notes": ""
+    },
+    {
+      "id": "app-pods",
+      "title": "Pods tab",
+      "storyboard": null,
+      "route": "/pods",
+      "scenario": "this-week",
+      "notes": "One active (sourdough), one past (climbing)."
+    },
+    {
+      "id": "app-me",
+      "title": "Me tab",
+      "storyboard": null,
+      "route": "/me",
+      "scenario": "this-week",
+      "notes": ""
+    },
+    {
+      "id": "app-interests-no-consent",
+      "title": "Interests tab without Art. 9 consent",
+      "storyboard": null,
+      "route": "/interests",
+      "scenario": "this-week-no-consent",
+      "notes": ""
+    },
+    {
+      "id": "app-settings",
+      "title": "Settings",
+      "storyboard": null,
+      "route": "/settings",
+      "scenario": "this-week",
+      "notes": ""
+    },
+    {
+      "id": "app-settings-preferences",
+      "title": "Settings: preferences",
+      "storyboard": null,
+      "route": "/settings/preferences",
+      "scenario": "this-week",
+      "notes": ""
+    },
+    {
+      "id": "app-settings-notifications",
+      "title": "Settings: notifications",
+      "storyboard": null,
+      "route": "/settings/notifications",
+      "scenario": "this-week",
+      "notes": "Push permission granted."
+    },
+    {
+      "id": "app-settings-notices",
+      "title": "Settings: notices",
+      "storyboard": null,
+      "route": "/settings/notices",
+      "scenario": "this-week",
+      "notes": "Export ready + a member-left notice."
+    },
+    {
+      "id": "app-settings-blocked",
+      "title": "Settings: blocked people",
+      "storyboard": null,
+      "route": "/settings/blocked",
+      "scenario": "this-week",
+      "notes": "One blocked person (Rasmus)."
+    },
+    {
+      "id": "app-settings-privacy-no-consent",
+      "title": "Privacy without Art. 9 consent",
+      "storyboard": null,
+      "route": "/settings/privacy",
+      "scenario": "this-week-no-consent",
+      "notes": ""
+    },
+    {
+      "id": "app-settings-sensitive-consent",
+      "title": "Settings: give Art. 9 consent",
+      "storyboard": null,
+      "route": "/settings/sensitive-consent",
+      "scenario": "this-week-no-consent",
+      "notes": "Consent copy is hash-locked in packages/core."
+    },
+    {
+      "id": "app-info-how-matching-works",
+      "title": "How matching works",
+      "storyboard": null,
+      "route": "/info/how-matching-works",
+      "scenario": "this-week",
+      "notes": ""
+    },
+    {
+      "id": "app-info-safety",
+      "title": "Meeting safely",
+      "storyboard": null,
+      "route": "/info/safety",
+      "scenario": "this-week",
+      "notes": ""
+    },
+    {
+      "id": "app-info-sensitive-interests",
+      "title": "About private interests",
+      "storyboard": null,
+      "route": "/info/sensitive-interests",
+      "scenario": "this-week",
+      "notes": ""
+    },
+    {
+      "id": "app-info-legal-terms",
+      "title": "Terms",
+      "storyboard": null,
+      "route": "/info/legal/terms",
+      "scenario": "signed-out",
+      "notes": ""
+    },
+    {
+      "id": "app-info-legal-privacy",
+      "title": "Privacy notice",
+      "storyboard": null,
+      "route": "/info/legal/privacy",
+      "scenario": "signed-out",
+      "notes": ""
+    },
+    {
+      "id": "app-info-legal-licences",
+      "title": "Licences",
+      "storyboard": null,
+      "route": "/info/legal/licences",
+      "scenario": "this-week",
+      "notes": ""
+    }
+  ]
+}

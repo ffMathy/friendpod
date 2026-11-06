@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Body, Button, ErrorText, Heading, Loading, Screen } from '@/components/ui';
-import { Spacing, usePalette } from '@/components/theme';
+import { BorderWidth, Radius, typeStyle, usePalette } from '@/components/theme';
 import { usePod, usePodCard } from '@/data/docs';
 import { Composer } from '@/features/chat/Composer';
 import { MessageBubble } from '@/features/chat/MessageBubble';
@@ -139,7 +139,7 @@ export default function Chat() {
   const report = (messageId: string) => router.push({ pathname: '/sheets/report', params: { podId, messageId } });
 
   return (
-    <SafeAreaView style={[styles.flex, { backgroundColor: p.background }]} edges={['bottom', 'left', 'right']}>
+    <SafeAreaView style={[styles.flex, { backgroundColor: p.page }]} edges={['bottom', 'left', 'right']}>
       {c.themeSensitive ? <ScreenCaptureGuard /> : null}
       <View
         ref={frameRef}
@@ -147,7 +147,7 @@ export default function Chat() {
         onLayout={() => frameRef.current?.measureInWindow((_x, y) => setKeyboardOffset(y))}
       >
         <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={keyboardOffset} style={styles.flex}>
-          <View style={[styles.header, { borderColor: p.border }]}>
+          <View style={[styles.header, { backgroundColor: p.surface, borderColor: p.border }]}>
             <Heading>{c.themeSensitive ? `🔒 ${theme}` : theme}</Heading>
             <Body muted>{statusLine}</Body>
           </View>
@@ -169,12 +169,12 @@ export default function Chat() {
               />
             )}
           />
-          <View style={[styles.footer, { borderColor: p.border }]}>
+          <View style={[styles.footer, { backgroundColor: p.surface, borderColor: p.border }]}>
             {messages.error ? <ErrorText>{t('common.loadFailed')}</ErrorText> : null}
             {open ? null : <Body muted>{closedNote}</Body>}
             {warning ? (
-              <View style={[styles.warning, { backgroundColor: p.surface }]}>
-                <Text accessibilityRole="alert" style={[styles.warningTitle, { color: p.text }]}>
+              <View style={[styles.warning, { backgroundColor: p.warningBg, borderColor: p.warningBorder }]}>
+                <Text accessibilityRole="alert" style={[typeStyle('smallBold'), { color: p.warningInk }]}>
                   {t('chat.contactWarning')}
                 </Text>
                 <Body muted>{t('chat.contactWarningDetail')}</Body>
@@ -207,10 +207,9 @@ export default function Chat() {
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  header: { paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, gap: Spacing.xs, borderBottomWidth: StyleSheet.hairlineWidth },
-  list: { padding: Spacing.md, gap: Spacing.sm },
-  footer: { padding: Spacing.md, gap: Spacing.sm, borderTopWidth: StyleSheet.hairlineWidth },
-  warning: { borderRadius: 12, padding: Spacing.md, gap: Spacing.sm },
-  warningTitle: { fontSize: 16, lineHeight: 22, fontWeight: '600' },
-  warningActions: { flexDirection: 'row', gap: Spacing.sm },
+  header: { paddingHorizontal: 16, paddingVertical: 12, gap: 2, borderBottomWidth: BorderWidth.hairline },
+  list: { paddingVertical: 14, paddingHorizontal: 16, gap: 10 },
+  footer: { paddingTop: 10, paddingHorizontal: 12, paddingBottom: 12, gap: 10, borderTopWidth: BorderWidth.hairline },
+  warning: { borderRadius: Radius.lg, borderWidth: BorderWidth.hairline, padding: 12, gap: 10 },
+  warningActions: { flexDirection: 'row', gap: 8 },
 });

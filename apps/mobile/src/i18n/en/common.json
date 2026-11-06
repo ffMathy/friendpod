@@ -1,0 +1,19 @@
+{
+  "common": {
+    "continue": "Continue",
+    "cancel": "Cancel",
+    "save": "Save",
+    "skip": "Skip",
+    "notNow": "Not now",
+    "ok": "OK",
+    "loading": "Loading",
+    "loadFailed": "This could not be loaded. Try again later.",
+    "retry": "Try again",
+    "back": "Back",
+    "close": "Close",
+    "optional": "(optional)",
+    "stepOf": "Step {{step}} of {{total}}",
+    "you": "You",
+    "or": "or"
+  }
+}

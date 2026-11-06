@@ -26,6 +26,20 @@ interface EnvSettings {
   readonly appAttestEnvironment: 'development' | 'production';
 }
 
+/** Brand colours for the icon background and the splash (src/components/theme.ts: primary, dark page). */
+const BRAND_GREEN = '#1E6B58';
+const DARK_PAGE = '#111513';
+
+/**
+ * Plus Jakarta Sans, embedded in the native app (expo-font plugin) as well as loaded at start by the root layout.
+ * One file per weight; the family names match src/components/theme.ts `FontFamily`. npm workspaces hoist the
+ * package to the repository root.
+ */
+const FONT_DIR = '../../node_modules/@expo-google-fonts/plus-jakarta-sans';
+export const FONT_FILES = ['400Regular', '500Medium', '600SemiBold', '700Bold', '800ExtraBold'].map(
+  (weight) => `${FONT_DIR}/${weight}/PlusJakartaSans_${weight}.ttf`,
+);
+
 /** The native ONNX Runtime the detector thresholds were verified on (core EMBEDDING_MODEL.device.nativeOrt). */
 const ORT_NATIVE_VERSION = '1.30.0';
 const ENVIRONMENTS: Record<AppEnv, EnvSettings> = {
@@ -142,7 +156,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       package: s.appId,
       googleServicesFile: googleServicesFile(env, 'GOOGLE_SERVICES_JSON'),
       adaptiveIcon: {
-        backgroundColor: '#E6F4FE',
+        backgroundColor: BRAND_GREEN,
         foregroundImage: './assets/images/android-icon-foreground.png',
         backgroundImage: './assets/images/android-icon-background.png',
         monochromeImage: './assets/images/android-icon-monochrome.png',
@@ -181,8 +195,14 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       ['expo-router', { sitemap: false }],
       [
         'expo-splash-screen',
-        { backgroundColor: '#208AEF', image: './assets/images/splash-icon.png', imageWidth: 76 },
+        {
+          backgroundColor: BRAND_GREEN,
+          image: './assets/images/splash-icon.png',
+          imageWidth: 96,
+          dark: { backgroundColor: DARK_PAGE, image: './assets/images/splash-icon-dark.png' },
+        },
       ],
+      ['expo-font', { fonts: FONT_FILES }],
       '@react-native-firebase/app',
       '@react-native-firebase/auth',
       '@react-native-firebase/app-check',

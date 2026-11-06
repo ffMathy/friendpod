@@ -1,0 +1,58 @@
+{
+  "home": {
+    "noPod": "No pod this week",
+    "noPodYet": "Your first drop is coming up.",
+    "tip": "Tip: add a few more interests, or try a larger distance.",
+    "openPreferences": "Change preferences",
+    "nextDrop": "Next drop: {{when}}"
+  },
+  "unmatched": {
+    "NO_THEME_BUCKET": "Not enough people nearby share one of your interests yet.",
+    "RADIUS": "Your distance setting leaves too few people to form a pod.",
+    "AGE": "Your age range leaves too few people to form a pod.",
+    "GENDER": "Same-gender pods: too few people with the same setting nearby.",
+    "GENDER_POOL": "There are too few people for same-gender pods in your area right now.",
+    "LANGUAGE": "Too few people nearby share your meetup languages.",
+    "AVAILABILITY": "Too few people nearby can meet at your times.",
+    "MAX_ACTIVE_PODS": "You already have 2 active pods.",
+    "TOO_FEW_INTERESTS": "Add at least 3 interests to be matched.",
+    "SENSITIVE_ELIGIBILITY": "Pods about sensitive interests aren't open to you yet, so we looked at your other interests.",
+    "SENSITIVE_DENSITY": "Too few people nearby have added your sensitive interest for a pod.",
+    "AREA_WAITLIST": "Your area is still on the waitlist.",
+    "OUTSIDE_AREAS": "Grouper isn't in your area yet.",
+    "NO_FIT_THIS_WEEK": "There were people to match with, but no pod fitted this week."
+  },
+  "pods": {
+    "openToAnyone": "Open to anyone",
+    "sizeAndArea": "{{size}} people near {{area}}",
+    "nearYou": "Everyone lives about {{km}} km or less from you",
+    "ageSpan": "Ages {{min}}–{{max}}",
+    "alsoShare": "You also share: {{list}}",
+    "acceptBy": "Answer by {{when}}",
+    "acceptedCount": "{{accepted}} of {{size}} accepted",
+    "accept": "Accept",
+    "decline": "Decline",
+    "declineReasonPrompt": "Optional: why? (used only for anonymous statistics)",
+    "declineReasons": {
+      "notThisWeek": "Not this week",
+      "theme": "Not this interest",
+      "distance": "Too far",
+      "groupSize": "Group size",
+      "other": "Other"
+    },
+    "confirmDecline": "Decline this pod",
+    "whyThisPod": "Why this pod",
+    "active": "Active",
+    "past": "Past",
+    "noneActive": "No active pods.",
+    "nonePast": "No past pods."
+  },
+  "podState": {
+    "proposed": "Proposed",
+    "planning": "Planning",
+    "scheduled": "Scheduled",
+    "happened": "Met",
+    "archived": "Archived",
+    "dissolved": "Didn't come together"
+  }
+}

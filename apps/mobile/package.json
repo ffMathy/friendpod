@@ -15,7 +15,12 @@
     "config": "expo config --type public",
     "typecheck": "expo customize tsconfig.json && tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.test.json",
     "test": "jest",
-    "build": "expo export --platform android --platform ios --output-dir dist"
+    "build": "expo export --platform android --platform ios --output-dir dist",
+    "preview:check": "tsx preview/check.mts",
+    "preview:typecheck": "tsc --noEmit -p preview/tsconfig.json",
+    "preview:build": "node preview/shoot.mjs --build-only",
+    "preview:serve": "node preview/serve.mjs",
+    "preview:shoot": "node preview/shoot.mjs"
   },
   "dependencies": {
     "@expo-google-fonts/plus-jakarta-sans": "0.4.2",

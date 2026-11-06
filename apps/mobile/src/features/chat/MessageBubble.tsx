@@ -1,7 +1,8 @@
 import type { PodMessageDoc } from '@grouper/core';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, Text, View, type AccessibilityActionEvent } from 'react-native';
-import { Spacing, usePalette } from '@/components/theme';
+import { Pressable, StyleSheet, View, type AccessibilityActionEvent } from 'react-native';
+import { Text } from '@/components/ui';
+import { BorderWidth, usePalette } from '@/components/theme';
 
 export interface MessageBubbleProps {
   readonly message: PodMessageDoc;
@@ -30,21 +31,29 @@ export function MessageBubble({ message, authorName, own, time, onReport }: Mess
 
   return (
     <Pressable {...a11y} style={[styles.row, own ? styles.own : styles.other]}>
-      {own ? null : <Text style={[styles.name, { color: p.textSecondary }]}>{authorName}</Text>}
-      <View style={[styles.bubble, { backgroundColor: own ? p.primary : p.surface }]}>
-        <Text style={[styles.text, { color: own ? p.onPrimary : p.text }]}>{body}</Text>
+      {own ? null : (
+        <Text variant="microBold" color="textSecondary" style={styles.name}>
+          {authorName}
+        </Text>
+      )}
+      <View style={[styles.bubble, own ? [styles.ownBubble, { backgroundColor: p.primary }] : [styles.otherBubble, { backgroundColor: p.surface, borderColor: p.border }]]}>
+        <Text variant="body" color={own ? 'onPrimary' : 'text'}>
+          {body}
+        </Text>
       </View>
-      <Text style={[styles.time, { color: p.textSecondary }]}>{time}</Text>
+      <Text variant="micro" color="textMuted" style={styles.name}>
+        {time}
+      </Text>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  row: { maxWidth: '85%', gap: 2 },
+  row: { maxWidth: 280, gap: 3 },
   own: { alignSelf: 'flex-end', alignItems: 'flex-end' },
   other: { alignSelf: 'flex-start', alignItems: 'flex-start' },
-  name: { fontSize: 13, fontWeight: '600' },
-  bubble: { borderRadius: 16, paddingVertical: Spacing.sm, paddingHorizontal: 12 },
-  text: { fontSize: 16, lineHeight: 22 },
-  time: { fontSize: 11 },
+  name: { paddingHorizontal: 4 },
+  bubble: { borderRadius: 18, paddingVertical: 10, paddingHorizontal: 14 },
+  ownBubble: { borderBottomRightRadius: 6 },
+  otherBubble: { borderBottomLeftRadius: 6, borderWidth: BorderWidth.hairline },
 });

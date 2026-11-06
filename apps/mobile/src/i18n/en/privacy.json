@@ -1,0 +1,48 @@
+{
+  "interests": {
+    "fieldLabel": "Add an interest in your own words",
+    "add": "Add",
+    "added": "Added.",
+    "thirdPartyWarning": "Added. Please only add interests about yourself.",
+    "madePrivate": "This interest is now private.",
+    "duplicate": "You already have this interest.",
+    "limit": "You have reached 20 interests. Remove one to add another.",
+    "starLimit": "You can star up to 3 interests.",
+    "didYouMean": "Did you mean “{{label}}”?",
+    "useSuggestion": "Yes, use that",
+    "popularNearYou": "Popular near you",
+    "count_one": "{{count}} interest. Add at least {{min}}; {{nudge}} or more gives better pods.",
+    "count_other": "{{count}} interests. Add at least {{min}}; {{nudge}} or more gives better pods.",
+    "yours": "Your interests",
+    "empty": "No interests yet.",
+    "star": "Star",
+    "keepPrivate": "Keep this private",
+    "remove": "Remove",
+    "readMoreSensitive": "Read more about sensitive interests",
+    "madeOrdinary": "Done. We now treat this as an ordinary interest, for you only.",
+    "notSensitiveForMe": "This isn't sensitive for me",
+    "privateLabel": "{{name}}, private",
+    "privateExplainer": "🔒 Private: never shown on any profile, and used only as the theme of a pod whose members all added it too.",
+    "openSensitiveConsent": "Sensitive interests: give consent",
+    "model": {
+      "preparing": "Getting interests ready on your phone…",
+      "notBundled": "This version of the app doesn't include what your phone needs to understand interests. Install the app from the App Store or Google Play.",
+      "storage": "Your phone needs about 260 MB of free space to get interests ready, once. Free up some space, then try again.",
+      "integrity": "Something went wrong getting interests ready, so we deleted it. Please try again. If it keeps happening, reinstall the app.",
+      "runtime": "This phone can't run the interest check right now (it may need more free memory). Close other apps and try again.",
+      "notPinned": "Adding interests isn't available in this version yet."
+    }
+  },
+  "moderation": {
+    "TAG_TOO_SHORT": "An interest needs at least 2 characters.",
+    "TAG_TOO_LONG": "An interest can have at most 40 characters.",
+    "PII": "Interests cannot contain contact details such as phone numbers, emails, links or handles.",
+    "BLOCKLIST": "This interest isn't allowed on Grouper.",
+    "THIRD_PARTY_SENSITIVE": "This seems to describe someone else's sensitive situation. Describe your own instead, for example “parent of an autistic child”.",
+    "INTEREST_LIMIT": "You have reached 20 interests.",
+    "SENSITIVE_ADD_LIMIT": "You can add at most 3 sensitive interests per week.",
+    "SENSITIVE_UNAVAILABLE": "Sensitive interests can't be added yet.",
+    "ART9_CONSENT_REQUIRED": "This interest may be sensitive, so we only save it if you've agreed to sensitive interests. Nothing was sent or saved. You can give consent in Settings → Privacy.",
+    "ART9_CONSENT_REQUIRED_SERVER": "This interest may be sensitive, so we only save it if you've agreed to sensitive interests. We didn't save it. You can give consent in Settings → Privacy."
+  }
+}

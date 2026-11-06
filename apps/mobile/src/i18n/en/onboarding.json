@@ -1,0 +1,150 @@
+{
+  "onboarding": {
+    "title": "Getting started",
+    "terms": {
+      "title": "Terms and privacy",
+      "body": "To use Grouper you accept our Terms. Our privacy notice explains what we do with your data; it is information, not something you consent to.",
+      "readTerms": "Read the Terms",
+      "readPrivacy": "Read the privacy notice",
+      "accept": "I accept the Terms"
+    },
+    "dob": {
+      "title": "Your date of birth",
+      "why": "Grouper is for people aged 18 and over. We only keep your birth year.",
+      "day": "Day",
+      "month": "Month",
+      "year": "Year",
+      "invalid": "That is not a valid date.",
+      "underage": "Grouper is only for people aged 18 and over."
+    },
+    "name": {
+      "title": "Your first name",
+      "who": "Only people in a confirmed pod with you see it.",
+      "label": "First name",
+      "invalid": "Use 1–30 letters. No contact details."
+    },
+    "area": {
+      "title": "Your area",
+      "privacy": "Your postcode or location is turned into a rough map cell on your phone. We only receive the cell, never the postcode or coordinates.",
+      "postcode": "Postcode",
+      "unknownPostcode": "We don't know that postcode.",
+      "usePostcode": "Use {{name}}",
+      "usePostcodeShort": "Use postcode",
+      "useLocation": "Use my approximate location instead",
+      "locationFailed": "We could not get your approximate location. Use your postcode instead.",
+      "outside": "Grouper isn't in your area yet",
+      "outsideHint": "You can still sign up; we'll tell you when we open near you.",
+      "underage": "Grouper is only for people aged 18 and over. We have deleted your sign-in and kept nothing else about you."
+    },
+    "interests": {
+      "title": "Your interests"
+    },
+    "prefs": {
+      "title": "Pod preferences",
+      "body": "These decide who you can be matched with. You can change them any time."
+    },
+    "photo": {
+      "title": "Photo (optional)",
+      "body": "Only people in a confirmed pod with you can see it. In pods about a sensitive interest, you choose per pod whether to show it.",
+      "choose": "Choose a photo",
+      "uploaded": "Thanks! Your photo will appear shortly.",
+      "failed": "The upload did not work. You can add a photo later."
+    },
+    "notifications": {
+      "title": "Notifications",
+      "body": "We tell you when your weekly drop is here, when your pod is confirmed, when there's a new message in your pod's meetup chat, and the morning after a meetup to ask how it went. Notifications never mention an interest, a person or what anyone wrote.",
+      "enable": "Turn on notifications"
+    },
+    "pledge": {
+      "title": "Our safety pledge",
+      "body": "Meet only in public places, be kind and on time, and never pressure anyone. If something feels wrong, leave and use Report.",
+      "checkbox": "I will meet in public places and treat everyone with respect."
+    },
+    "done": {
+      "title": "You're in",
+      "live": "Your first drop is Thursday at 18:00.",
+      "waitlist": "{{area}}: {{n}} of {{goal}} signed up. We'll open when enough people near you have joined.",
+      "outside": "Grouper isn't in your area yet. We'll let you know when it is.",
+      "go": "Go to Grouper"
+    },
+    "heardFrom": {
+      "question": "Where did you hear about Grouper? (optional)",
+      "hint": "We only count the answers per city and week; it is not saved on your profile.",
+      "dadsGroup": "A dads' or parents' group",
+      "newcomerEvent": "A newcomer event",
+      "university": "University or school",
+      "venuePoster": "A poster at a café or venue",
+      "friend": "A friend",
+      "socialMedia": "Social media",
+      "press": "News or press",
+      "other": "Somewhere else"
+    }
+  },
+  "areaStatus": {
+    "waitlist": "On the waitlist",
+    "beta": "In beta",
+    "live": "Live"
+  },
+  "prefs": {
+    "ageRange": "Age range",
+    "from": "From",
+    "to": "To",
+    "ageRangeTooNarrow": "The age range must span at least 5 years.",
+    "radius": "Distance",
+    "aboutKm": "about {{km}} km",
+    "languages": "Meetup languages",
+    "pickLanguage": "Pick at least one language.",
+    "availability": "When can you meet?",
+    "pickAvailability": "Pick at least one time.",
+    "openToAnyone": "Open to meet anyone",
+    "openToAnyoneHint": "If no interest fits, you can be matched with nearby people without a shared theme.",
+    "sameGender": "Same-gender pods only",
+    "sameGenderHint": "Needs your gender and a separate consent. Pods may be rarer.",
+    "sameGenderOffTitle": "Turn off same-gender pods?",
+    "sameGenderOffBody": "We'll delete your gender everywhere.",
+    "turnOff": "Turn off",
+    "decrease": "Decrease {{label}}",
+    "increase": "Increase {{label}}"
+  },
+  "gender": {
+    "title": "Same-gender pods",
+    "options": {
+      "woman": "Woman",
+      "man": "Man",
+      "nonbinary": "Non-binary"
+    },
+    "englishOnly": "This text is only available in English for now.",
+    "confirm": "Turn on same-gender pods"
+  },
+  "availability": {
+    "weekdayDay": "Weekdays, daytime",
+    "weekdayEvening": "Weekdays, evening",
+    "saturdayDay": "Saturday, daytime",
+    "saturdayEvening": "Saturday, evening",
+    "sundayDay": "Sunday, daytime",
+    "sundayEvening": "Sunday, evening"
+  },
+  "aboutMe": {
+    "intro": "Optional: one sentence about you. Only people in a confirmed pod with you see it, and it is never used for matching.",
+    "label": "About me",
+    "placeholder": "For example: New in Aarhus and always up for a long walk.",
+    "hint": "{{count}}/{{max}} characters",
+    "tooLong": "At most {{max}} characters.",
+    "CONTACT_INFO": "No contact details here: you haven't met yet. Share them in person if you like.",
+    "BLOCKLIST": "This contains words that aren't allowed on Grouper.",
+    "save": "Save",
+    "saved": "Saved."
+  },
+  "waitlist": {
+    "title": "Grouper is coming to {{city}}",
+    "counter": "{{n}} of {{goal}} signed up",
+    "nextTitle": "What happens next",
+    "next": "We'll notify you when {{city}} opens; your first drop will be the Thursday after.",
+    "shareIntro": "The more people in {{city}} sign up, the sooner it opens.",
+    "share": "Invite people",
+    "shareTitle": "Grouper in {{city}}",
+    "shareMessage": "Grouper forms small groups of people near you around a shared interest. Join the waitlist for {{city}}: {{link}}",
+    "copy": "Copy link",
+    "copied": "Link copied"
+  }
+}

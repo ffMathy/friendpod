@@ -1,0 +1,58 @@
+{
+  "home": {
+    "noPod": "Ingen pod i denne uge",
+    "noPodYet": "Dit første drop kommer snart.",
+    "tip": "Tip: tilføj et par interesser mere, eller prøv en større afstand.",
+    "openPreferences": "Skift ønsker",
+    "nextDrop": "Næste drop: {{when}}"
+  },
+  "unmatched": {
+    "NO_THEME_BUCKET": "Der er endnu ikke nok i nærheden, som deler en af dine interesser.",
+    "RADIUS": "Din afstand giver for få personer til en pod.",
+    "AGE": "Dit aldersinterval giver for få personer til en pod.",
+    "GENDER": "Pods med samme køn: for få i nærheden med samme indstilling.",
+    "GENDER_POOL": "Der er for få personer til pods med samme køn i dit område lige nu.",
+    "LANGUAGE": "For få i nærheden deler dine sprog ved møder.",
+    "AVAILABILITY": "For få i nærheden kan mødes på dine tidspunkter.",
+    "MAX_ACTIVE_PODS": "Du har allerede 2 aktive pods.",
+    "TOO_FEW_INTERESTS": "Tilføj mindst 3 interesser for at blive matchet.",
+    "SENSITIVE_ELIGIBILITY": "Pods om følsomme interesser er ikke åbne for dig endnu, så vi så på dine andre interesser.",
+    "SENSITIVE_DENSITY": "For få i nærheden har tilføjet din følsomme interesse til en pod.",
+    "AREA_WAITLIST": "Dit område er stadig på venteliste.",
+    "OUTSIDE_AREAS": "Grouper er ikke i dit område endnu.",
+    "NO_FIT_THIS_WEEK": "Der var nogen at matche med, men ingen pod passede i denne uge."
+  },
+  "pods": {
+    "openToAnyone": "Åben for alle",
+    "sizeAndArea": "{{size}} personer nær {{area}}",
+    "nearYou": "Alle bor ca. {{km}} km eller mindre fra dig",
+    "ageSpan": "Alder {{min}}–{{max}}",
+    "alsoShare": "I deler også: {{list}}",
+    "acceptBy": "Svar senest {{when}}",
+    "acceptedCount": "{{accepted}} af {{size}} har sagt ja",
+    "accept": "Sig ja",
+    "decline": "Sig nej tak",
+    "declineReasonPrompt": "Valgfrit: hvorfor? (bruges kun til anonym statistik)",
+    "declineReasons": {
+      "notThisWeek": "Ikke i denne uge",
+      "theme": "Ikke denne interesse",
+      "distance": "For langt væk",
+      "groupSize": "Gruppens størrelse",
+      "other": "Andet"
+    },
+    "confirmDecline": "Sig nej tak til denne pod",
+    "whyThisPod": "Hvorfor denne pod",
+    "active": "Aktive",
+    "past": "Tidligere",
+    "noneActive": "Ingen aktive pods.",
+    "nonePast": "Ingen tidligere pods."
+  },
+  "podState": {
+    "proposed": "Foreslået",
+    "planning": "Planlægges",
+    "scheduled": "Aftalt",
+    "happened": "Mødtes",
+    "archived": "Arkiveret",
+    "dissolved": "Blev ikke til noget"
+  }
+}

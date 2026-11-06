@@ -1,0 +1,19 @@
+{
+  "common": {
+    "continue": "Fortsæt",
+    "cancel": "Annullér",
+    "save": "Gem",
+    "skip": "Spring over",
+    "notNow": "Ikke nu",
+    "ok": "OK",
+    "loading": "Indlæser",
+    "loadFailed": "Det kunne ikke indlæses. Prøv igen senere.",
+    "retry": "Prøv igen",
+    "back": "Tilbage",
+    "close": "Luk",
+    "optional": "(valgfrit)",
+    "stepOf": "Trin {{step}} af {{total}}",
+    "you": "Dig",
+    "or": "eller"
+  }
+}

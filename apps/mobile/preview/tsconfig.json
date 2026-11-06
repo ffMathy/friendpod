@@ -1,0 +1,18 @@
+{
+  "//": "Type-checks the web preview harness (runtime, mocks, scenarios) together with the app code it renders. `npm run preview:typecheck`.",
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "types": []
+  },
+  "include": [
+    "runtime/**/*.ts",
+    "mocks/**/*.ts",
+    "scenarios/**/*.ts",
+    "../app/**/*.ts",
+    "../app/**/*.tsx",
+    "../src/**/*.ts",
+    "../src/**/*.tsx",
+    "../.expo/types/**/*.ts",
+    "../expo-env.d.ts"
+  ]
+}

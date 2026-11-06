@@ -1,9 +1,9 @@
 import { CHAT_MESSAGE_MAX } from '@grouper/core';
 import type { Ref } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, Text, TextInput, View, type TextInputInstance } from 'react-native';
-import { Button, styles as ui } from '@/components/ui';
-import { Spacing, usePalette } from '@/components/theme';
+import { StyleSheet, TextInput, View, type TextInputInstance } from 'react-native';
+import { Button, Text } from '@/components/ui';
+import { BorderWidth, typeStyle, usePalette } from '@/components/theme';
 
 export interface ComposerProps {
   readonly value: string;
@@ -32,23 +32,24 @@ export function Composer({ value, onChangeText, onSend, enabled, busy, hideSend 
         accessibilityState={{ disabled: !enabled }}
         editable={enabled}
         placeholder={t('chat.placeholder')}
-        placeholderTextColor={p.textSecondary}
+        placeholderTextColor={p.textFaint}
         value={value}
         onChangeText={onChangeText}
         multiline
         maxLength={CHAT_MESSAGE_MAX}
-        style={[ui.input, styles.input, { color: p.text, borderColor: p.border, opacity: enabled ? 1 : 0.5 }]}
+        style={[typeStyle('body'), styles.input, { color: p.text, backgroundColor: p.page, borderColor: p.borderStrong, opacity: enabled ? 1 : 0.5 }]}
       />
       <View style={styles.actions}>
         <Text
           accessibilityLabel={t('chat.counterLabel', { length, max: CHAT_MESSAGE_MAX })}
-          style={[styles.counter, { color: length >= CHAT_MESSAGE_MAX ? p.danger : p.textSecondary }]}
+          variant="caption"
+          color={length >= CHAT_MESSAGE_MAX ? 'dangerText' : 'textMuted'}
         >
           {t('chat.counter', { length, max: CHAT_MESSAGE_MAX })}
         </Text>
         {hideSend ? null : (
           <View style={styles.send}>
-            <Button testID="chat-send" label={t('chat.send')} disabled={!canSend} busy={busy} onPress={onSend} />
+            <Button testID="chat-send" label={t('chat.send')} icon="send" size="sm" disabled={!canSend} busy={busy} onPress={onSend} />
           </View>
         )}
       </View>
@@ -57,9 +58,8 @@ export function Composer({ value, onChangeText, onSend, enabled, busy, hideSend 
 }
 
 const styles = StyleSheet.create({
-  composer: { gap: Spacing.xs },
-  input: { maxHeight: 140 },
-  actions: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.sm },
-  counter: { fontSize: 13 },
+  composer: { gap: 6 },
+  input: { minHeight: 46, maxHeight: 140, borderRadius: 23, borderWidth: BorderWidth.hairline, paddingHorizontal: 16, paddingTop: 11, paddingBottom: 11 },
+  actions: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
   send: { minWidth: 96 },
 });

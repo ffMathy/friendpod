@@ -1,10 +1,12 @@
 import { Stack } from 'expo-router';
 import { useTranslation } from 'react-i18next';
+import { useStackScreenOptions } from '@/components/navigation';
 
 export default function SettingsLayout() {
   const { t } = useTranslation();
+  const stackOptions = useStackScreenOptions();
   return (
-    <Stack screenOptions={{ headerBackButtonDisplayMode: 'minimal' }}>
+    <Stack screenOptions={stackOptions}>
       <Stack.Screen name="index" options={{ title: t('settings.title') }} />
       <Stack.Screen name="privacy" options={{ title: t('settings.privacy.title') }} />
       <Stack.Screen name="delete-account" options={{ title: t('settings.delete.title') }} />

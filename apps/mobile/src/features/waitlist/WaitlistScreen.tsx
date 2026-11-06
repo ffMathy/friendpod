@@ -2,9 +2,8 @@ import { waitlistDisplay, waitlistProgress } from '@grouper/core';
 import * as Clipboard from 'expo-clipboard';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Share, StyleSheet, View } from 'react-native';
-import { Body, Button, Card, Heading, Screen } from '@/components/ui';
-import { usePalette } from '@/components/theme';
+import { Share } from 'react-native';
+import { Body, Button, Card, Heading, ProgressBar, Screen } from '@/components/ui';
 import { cityLink } from './cityLink';
 
 export interface WaitlistScreenProps {
@@ -21,7 +20,6 @@ export interface WaitlistScreenProps {
  */
 export function WaitlistScreen({ areaId, city, count, goal }: WaitlistScreenProps) {
   const { t } = useTranslation();
-  const p = usePalette();
   const [copied, setCopied] = useState(false);
   const link = cityLink(areaId);
   const shown = waitlistDisplay(count);
@@ -44,15 +42,14 @@ export function WaitlistScreen({ areaId, city, count, goal }: WaitlistScreenProp
       <Heading>{t('waitlist.title', { city })}</Heading>
       <Card>
         <Body bold>{t('waitlist.counter', { n: shown, goal })}</Body>
-        <View
+        <ProgressBar
           testID="waitlist-progress"
-          accessibilityRole="progressbar"
+          value={progress}
+          height={10}
+          color="accent"
           accessibilityLabel={t('waitlist.counter', { n: shown, goal })}
           accessibilityValue={{ min: 0, max: goal, now: Math.min(count, goal) }}
-          style={[styles.track, { backgroundColor: p.border }]}
-        >
-          <View style={[styles.fill, { backgroundColor: p.primary, width: `${Math.round(progress * 100)}%` }]} />
-        </View>
+        />
       </Card>
       <Card>
         <Body bold>{t('waitlist.nextTitle')}</Body>
@@ -64,8 +61,3 @@ export function WaitlistScreen({ areaId, city, count, goal }: WaitlistScreenProp
     </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  track: { height: 8, borderRadius: 4, overflow: 'hidden', marginTop: 8 },
-  fill: { height: 8, borderRadius: 4 },
-});
