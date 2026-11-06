@@ -11,6 +11,7 @@ import {
   Avatar,
   Button,
   Checkbox,
+  Title,
   ChoiceRow,
   Field,
   Icon,
@@ -147,6 +148,13 @@ describe('design foundation: components', () => {
     );
     expect(screen.getByRole('image', { name: 'Grouper' })).toBeOnTheScreen();
     expect(screen.getByText('Grouper')).toBeOnTheScreen();
+  });
+
+  it('renders an explicit line break as one header with a line per text, so Android keeps the leading (1.1)', async () => {
+    await render(<Title size="hero">{'Small groups.\nReal meetups.'}</Title>);
+    expect(screen.getByRole('header', { name: 'Small groups. Real meetups.' })).toBeTruthy();
+    expect(screen.getByText('Small groups.')).toBeTruthy();
+    expect(screen.getByText('Real meetups.')).toBeTruthy();
   });
 
   it('pads the card checkbox 12 on every side (storyboard 1.4), not 4 at the top and bottom', async () => {

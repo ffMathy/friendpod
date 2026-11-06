@@ -403,8 +403,23 @@ export function AppText({ variant = 'body', tone = 'ink', color, align, style, .
 
 /** The screen's h1: 'lg' 30/800 (default) · 'hero' 36 (welcome) · 'md' 26 · 'sm' 24. */
 export function Title({ children, size = 'lg', align }: { children: ReactNode; size?: 'hero' | 'lg' | 'md' | 'sm'; align?: 'left' | 'center' }) {
+  const variant = size === 'hero' ? 'hero' : TITLE_VARIANT[size];
+  // An explicit line break ("Small groups.\nReal meetups.") renders one text per line. On Android a tight title's
+  // line box is raised to hold its ink (androidGlyphRoom), which would open up the leading inside one multi-line text;
+  // separate one-line texts keep the storyboard's line spacing. Screen readers still get one header.
+  if (typeof children === 'string' && children.includes('\n')) {
+    return (
+      <View accessible accessibilityRole="header" accessibilityLabel={children.replace(/\n/g, ' ')}>
+        {children.split('\n').map((line, i) => (
+          <AppText key={i} variant={variant} align={align} importantForAccessibility="no">
+            {line}
+          </AppText>
+        ))}
+      </View>
+    );
+  }
   return (
-    <AppText accessibilityRole="header" variant={size === 'hero' ? 'hero' : TITLE_VARIANT[size]} align={align}>
+    <AppText accessibilityRole="header" variant={variant} align={align}>
       {children}
     </AppText>
   );
