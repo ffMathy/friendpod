@@ -24,7 +24,7 @@ jest.mock('@/data/docs', () => ({
     live({ area: { areaId: null }, legal: mockConsent ? { art9: { textVersion: 'art9-blanket-en-v1', textSha256: 'x', at: ts } } : {} }),
   useAreaDoc: () => live(null),
   useInterests: () => live([{ id: 'ordinary000000001', data: { display: 'Brætspil', starred: false } }]),
-  useSensitiveInterests: () => live([{ id: 'private0000000001', data: { display: 'Gravid', starred: false } }]),
+  useSensitiveInterests: () => live([{ id: 'private0000000001', data: { display: 'Gravid', starred: false, consentedAt: ts } }]),
 }));
 
 let client: QueryClient;
@@ -49,13 +49,28 @@ beforeEach(() => {
 afterEach(() => client.clear());
 
 describe('InterestManager (D1, D3)', () => {
-  it('shows private holdings with a lock and no theme explanation, ordinary ones without', async () => {
+  it('shows private holdings as purple chips with a lock, and offers each change on a tap', async () => {
     await renderManager();
-    expect(screen.getByText('🔒 Gravid')).toBeOnTheScreen();
     expect(screen.getByLabelText('Gravid, private')).toBeOnTheScreen();
     expect(screen.getByText('Brætspil')).toBeOnTheScreen();
+    expect(screen.getByText('2 added', { exact: false })).toBeOnTheScreen();
+    // The standing notice at the field (PRIVACY §3.2), verbatim.
+    expect(screen.getByText(/^Tip: interests that say something about your health/)).toBeOnTheScreen();
+    expect(screen.getByText("Tap an interest to change whether it's private.")).toBeOnTheScreen();
+    // No change is offered until the interest is tapped ("Tap an interest to change that").
+    expect(screen.queryByRole('button', { name: "This isn't sensitive for me" })).toBeNull();
+    await fireEvent.press(screen.getByLabelText('Gravid, private'));
     expect(screen.getByRole('button', { name: "This isn't sensitive for me" })).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('button', { name: 'Brætspil' }));
     expect(screen.getByRole('button', { name: 'Keep this private' })).toBeOnTheScreen();
+    expect(screen.queryByRole('button', { name: "This isn't sensitive for me" })).toBeNull();
+  });
+
+  it('removes an interest from its chip', async () => {
+    mockCall.mockResolvedValue({ ok: true });
+    await renderManager();
+    await fireEvent.press(screen.getByRole('button', { name: 'Remove Gravid' }));
+    expect(mockCall).toHaveBeenCalledWith('removeInterest', { interestId: 'private0000000001' });
   });
 
   it('adds a tag with its on-device vector', async () => {
@@ -104,6 +119,7 @@ describe('InterestManager (D1, D3)', () => {
     mockConsent = true;
     mockCall.mockResolvedValue({ results: [{ status: 'madeOrdinary', interestId: 'private0000000001' }] });
     await renderManager();
+    await fireEvent.press(screen.getByLabelText('Gravid, private'));
     await fireEvent.press(screen.getByRole('button', { name: "This isn't sensitive for me" }));
     await act(async () => {
       await Promise.resolve();

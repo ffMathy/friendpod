@@ -8,15 +8,23 @@
       "storyboard": "Main.dc.html",
       "route": "/",
       "scenario": "signed-out",
-      "notes": "Welcome and sign-in in one screen. Today: (auth)/index (welcome + language) and a separate /sign-in screen (app-auth-sign-in). Sign in with Apple shows because the preview reports Platform.OS ios to app code."
+      "notes": "Welcome and sign-in in one screen, (auth)/index (the separate /sign-in screen is gone). Sign in with Apple shows because the preview reports Platform.OS ios to app code. The storyboard clips its legal line at 844 px; the app scrolls."
     },
     {
       "id": "onb-about",
       "title": "1.2 About you",
       "storyboard": "onb-about.dc.html",
-      "route": "/name",
+      "route": "/about",
       "scenario": "onboarding-start",
-      "notes": "Storyboard step 1 of 6 \"About you\" = first name + date of birth. Today these are two steps after /terms: /dob (app-onb-dob) then /name. Point this at the merged step once onboarding is restructured."
+      "notes": "Step 1 of 6: first name, date of birth and the Terms (the storyboard has no Terms tick; DESIGN §3.1 step 3 keeps an explicit one). Steps type the storyboard's answers with the preview's viewer name.",
+      "steps": [
+        { "fill": "[data-testid=\"first-name\"]", "text": "Emil" },
+        { "fill": "[data-testid=\"dob-day\"]", "text": "14" },
+        { "fill": "[data-testid=\"dob-month\"]", "text": "03" },
+        { "fill": "[data-testid=\"dob-year\"]", "text": "1991" },
+        { "click": "[data-testid=\"terms-accept\"]" },
+        { "wait": 300 }
+      ]
     },
     {
       "id": "onb-area",
@@ -24,7 +32,11 @@
       "storyboard": "onb-area.dc.html",
       "route": "/area",
       "scenario": "onboarding-start",
-      "notes": "Step 2 of 6. Today /area is also where completeOnboarding runs (it needs the draft from the earlier steps; the preview opens it with an empty draft)."
+      "notes": "Step 2 of 6, where completeOnboarding runs. Steps type 8000: the card shows Aarhus C. Its status badge comes from the bundled areas.json (Aarhus is on the waitlist there, so \"Aarhus opens soon\" where the storyboard says \"Aarhus is live\"); the area doc is only readable after onboarding.",
+      "steps": [
+        { "fill": "[data-testid=\"postcode\"]", "text": "8000" },
+        { "wait": 300 }
+      ]
     },
     {
       "id": "onb-consent",
@@ -66,9 +78,9 @@
       "id": "onb-final",
       "title": "1.7 Photo, about me, notifications, pledge",
       "storyboard": "onb-final.dc.html",
-      "route": "/photo",
-      "scenario": "onboarding-interests",
-      "notes": "Step 6 of 6 combines photo, About me, notifications and the pledge. Today: /photo, /notifications, /pledge, /done (app-onb-*). Point this at the merged step once restructured."
+      "route": "/almost-done",
+      "scenario": "onboarding-final",
+      "notes": "Step 6 of 6: photo, About me (typed in the user's language by the scenario), notifications and the safety pledge; Finish ends onboarding (Home is then the waitlist while the city is not live)."
     },
     {
       "id": "city-waitlist",
@@ -138,22 +150,40 @@
       "id": "pod-propose",
       "title": "3.3 Suggest a time and a public place",
       "storyboard": "pod-propose.dc.html",
-      "route": "/pod/braetspilpodaarhus46/plan",
+      "route": "/pod/braetspilpodaarhus46/propose",
       "scenario": "pod-planning",
-      "notes": "\"Suggest a time and place\". Today it is the form at the bottom of the plan screen; steps type \"café latin\" in the place search so the three placeholder places show. Place search goes to the scenario's places (Google Places is stubbed on the network).",
+      "notes": "\"Suggest a time\" opens from the planner's \"Suggest another time\". Steps pick Sunday 15 Nov at 15:00 from the Day and Time sheets (the storyboard's Sunday, see the date note in _kit.ts), type \"café latin\" in the place search, pick the first placeholder place so it shows selected, and focus the search again (the storyboard draws it focused). Place search goes to the scenario's places, named in the preview's language (Google Places is stubbed on the network).",
       "steps": [
+        {
+          "click": "[data-testid=\"option-date\"]"
+        },
+        {
+          "click": "[data-testid=\"option-day-2026-11-15\"]"
+        },
+        {
+          "click": "[data-testid=\"option-time\"]"
+        },
+        {
+          "click": "[data-testid=\"option-time-15:00\"]"
+        },
         {
           "fill": "[data-testid=\"place-search\"]",
           "text": "café latin"
         },
         {
-          "waitFor": "text=Bakery café name"
+          "waitFor": "[data-testid=\"place-placeholderBakeryCafe2\"]"
         },
         {
-          "scroll": "text=Bakery café name"
+          "click": "[data-testid=\"place-placeholderCafeLatinQ\"]"
         },
         {
-          "wait": 500
+          "wait": 700
+        },
+        {
+          "click": "[data-testid=\"place-search\"]"
+        },
+        {
+          "wait": 300
         }
       ]
     },
@@ -179,7 +209,13 @@
       "storyboard": "after-feedback.dc.html",
       "route": "/pod/braetspilpodaarhus46/feedback",
       "scenario": "pod-happened",
-      "notes": "Sunday 10:05, the morning after."
+      "notes": "Sunday 10:05, the morning after. Steps answer the storyboard's state: meet Mette and Jonas again, rating 4. \"Meet again\" is Yes / No per person (DESIGN §3.6: yes, no or no answer), where the storyboard draws one checkbox.",
+      "steps": [
+        { "click": "[data-testid=\"again-u_mette-yes\"]" },
+        { "click": "[data-testid=\"again-u_jonas-yes\"]" },
+        { "click": "[data-testid=\"rating-4\"]" },
+        { "wait": 300 }
+      ]
     },
     {
       "id": "after-member",
@@ -187,7 +223,7 @@
       "storyboard": "after-member.dc.html",
       "route": "/pod/braetspilpodaarhus46/member/u_jonas",
       "scenario": "pod-happened",
-      "notes": "Member sheet for Jonas (block or report)."
+      "notes": "Member sheet for Jonas (block or report): a bottom sheet over the dimmed backdrop. The meetup chat is still open, so the pod counts as active and Block says Jonas is taken out."
     },
     {
       "id": "after-report",
@@ -195,7 +231,11 @@
       "storyboard": "after-report.dc.html",
       "route": "/sheets/report?podId=braetspilpodaarhus46&uid=u_jonas",
       "scenario": "pod-happened",
-      "notes": "Report Jonas (user report). The message-report variant is app-sheets-report-message."
+      "notes": "Report Jonas (user report). Steps pick \"I felt unsafe\" as on the storyboard. The message-report variant is app-sheets-report-message.",
+      "steps": [
+        { "click": "[data-testid=\"report-safety\"]" },
+        { "wait": 300 }
+      ]
     },
     {
       "id": "priv-sensitive",
@@ -218,24 +258,16 @@
       "title": "5.3 Privacy settings",
       "storyboard": "priv-settings.dc.html",
       "route": "/settings/privacy",
-      "scenario": "this-week",
-      "notes": "Me → Privacy. 1 private interest with consent, same-gender off, photo shown to confirmed pods, 1 blocked person."
+      "scenario": "privacy-settings",
+      "notes": "Me → Privacy. 1 private interest with consent, same-gender off, photo shown to confirmed pods, 1 blocked person, no export in progress. Opened directly, so there is no back chevron (on a phone it shows above \"Me\")."
     },
     {
       "id": "priv-delete",
       "title": "5.4 Delete account",
       "storyboard": "priv-delete.dc.html",
       "route": "/settings/delete-account",
-      "scenario": "this-week",
-      "notes": "Delete account. Provider is Apple (re-auth before deletion)."
-    },
-    {
-      "id": "app-auth-sign-in",
-      "title": "Sign-in options",
-      "storyboard": null,
-      "route": "/sign-in",
-      "scenario": "signed-out",
-      "notes": "Today separate from the welcome screen; the storyboard merges both (Main)."
+      "scenario": "privacy-settings",
+      "notes": "Delete account. Provider is Apple (re-auth before deletion). \"Sign in again and delete\" asks once more (native alert), then re-authenticates."
     },
     {
       "id": "app-auth-email",
@@ -243,7 +275,20 @@
       "storyboard": null,
       "route": "/email",
       "scenario": "signed-out",
-      "notes": ""
+      "notes": "From \"Continue with email\" on Main. No storyboard; laid out like the onboarding steps."
+    },
+    {
+      "id": "app-auth-email-sent",
+      "title": "Email link sign-in: link sent",
+      "storyboard": null,
+      "route": "/email",
+      "scenario": "signed-out",
+      "notes": "Steps type an address and send; the fake Auth accepts it.",
+      "steps": [
+        { "fill": "role=textbox >> nth=0", "text": "emil@example.com" },
+        { "click": "[data-testid=\"send-email-link\"]" },
+        { "wait": 600 }
+      ]
     },
     {
       "id": "app-auth-complete",
@@ -251,47 +296,59 @@
       "storyboard": null,
       "route": "/auth/complete",
       "scenario": "signed-out",
-      "notes": "Without a link in the URL."
+      "notes": "Without a link in the URL: the progress state."
     },
     {
-      "id": "app-onb-terms",
-      "title": "Onboarding: terms",
+      "id": "app-auth-complete-confirm",
+      "title": "Email link landing: confirm the address",
       "storyboard": null,
-      "route": "/terms",
+      "route": "/auth/complete?link=https%3A%2F%2Fgrouper-staging.firebaseapp.com%2F__%2Fauth%2Faction%3Fmode%3DsignIn%26oobCode%3Dpreview",
+      "scenario": "signed-out",
+      "notes": "A valid link opened on a phone that has no pending address stored: the person types the address."
+    },
+    {
+      "id": "app-auth-complete-invalid",
+      "title": "Email link landing: link does not work",
+      "storyboard": null,
+      "route": "/auth/complete?link=https%3A%2F%2Fgrouper-staging.firebaseapp.com%2F__%2Fauth%2Faction%3Fmode%3DsignIn",
+      "scenario": "signed-out-link-pending",
+      "notes": "A pending address is stored but the link has no code: the dead-end state with \"Back to the start\"."
+    },
+    {
+      "id": "app-onb-about-empty",
+      "title": "Onboarding step 1: nothing typed yet",
+      "storyboard": null,
+      "route": "/about",
       "scenario": "onboarding-start",
-      "notes": "Not a storyboard step; the storyboard puts the legal line on the welcome screen."
+      "notes": "The first state of \"About you\": empty fields, Terms unticked, Continue disabled. (The old /terms, /dob, /name, /photo, /notifications, /pledge and /done routes are folded into the six steps.)"
     },
     {
-      "id": "app-onb-dob",
-      "title": "Onboarding: date of birth",
+      "id": "app-onb-area-heard-from",
+      "title": "Onboarding step 2: \"Where did you hear about Grouper?\"",
       "storyboard": null,
-      "route": "/dob",
+      "route": "/area",
       "scenario": "onboarding-start",
-      "notes": "Part of storyboard \"About you\" (onb-about)."
+      "notes": "Below the area card: the optional source question (DESIGN §3.1 step 6, F37), scrolled into view with one answer picked.",
+      "steps": [
+        { "fill": "[data-testid=\"postcode\"]", "text": "8000" },
+        { "click": "[data-testid=\"heard-from-dadsGroup\"]" },
+        { "scroll": "[data-testid=\"heard-from-other\"]" },
+        { "wait": 300 }
+      ]
     },
     {
-      "id": "app-onb-notifications",
-      "title": "Onboarding: notifications",
+      "id": "app-onb-gender-sheet",
+      "title": "Onboarding step 5: same-gender pods consent sheet",
       "storyboard": null,
-      "route": "/notifications",
+      "route": "/pod-preferences",
       "scenario": "onboarding-interests",
-      "notes": "Part of storyboard step 6 (onb-final)."
-    },
-    {
-      "id": "app-onb-pledge",
-      "title": "Onboarding: safety pledge",
-      "storyboard": null,
-      "route": "/pledge",
-      "scenario": "onboarding-interests",
-      "notes": "Part of storyboard step 6 (onb-final)."
-    },
-    {
-      "id": "app-onb-done",
-      "title": "Onboarding: done",
-      "storyboard": null,
-      "route": "/done",
-      "scenario": "onboarding-interests",
-      "notes": ""
+      "notes": "Turning on \"Same-gender pods only\" opens the gender picker with its own unticked consent (PRIVACY.md §3.6), verbatim from core.",
+      "steps": [
+        { "click": "[data-testid=\"same-gender\"]" },
+        { "wait": 600 },
+        { "click": "[data-testid=\"gender-woman\"]" },
+        { "wait": 300 }
+      ]
     },
     {
       "id": "app-home-none-setting",
@@ -342,6 +399,29 @@
       "notes": ""
     },
     {
+      "id": "app-pod-chat-warning",
+      "title": "Chat: a phone number before the meetup (\"You haven't met yet\")",
+      "storyboard": null,
+      "route": "/pod/braetspilpodaarhus46/chat",
+      "scenario": "pod-chat-open",
+      "notes": "The storyboard's warning state (pod-chat.dc.html showWarning): sendMessage answers with CONTACT_INFO_BEFORE_MEETUP for contact details before the meetup (the scenario's callable), so nothing is posted until \"Send anyway\".",
+      "steps": [
+        {
+          "fill": "[data-testid=\"chat-input\"]",
+          "text": "20 30 40 50"
+        },
+        {
+          "click": "[data-testid=\"chat-send\"]"
+        },
+        {
+          "waitFor": "[data-testid=\"chat-warning\"]"
+        },
+        {
+          "wait": 300
+        }
+      ]
+    },
+    {
       "id": "app-pod-happened",
       "title": "Pod route the morning after",
       "storyboard": null,
@@ -356,6 +436,18 @@
       "route": "/sheets/report?podId=braetspilpodaarhus46&messageId=m4",
       "scenario": "pod-happened",
       "notes": ""
+    },
+    {
+      "id": "app-member-block",
+      "title": "Block Jonas: the confirmation in the member sheet",
+      "storyboard": null,
+      "route": "/pod/braetspilpodaarhus46/member/u_jonas",
+      "scenario": "pod-happened",
+      "notes": "After \"Block Jonas\": take him out (default) or leave the pod yourself, then Block or Cancel.",
+      "steps": [
+        { "click": "[data-testid=\"member-block\"]" },
+        { "wait": 300 }
+      ]
     },
     {
       "id": "app-pods",
@@ -410,8 +502,8 @@
       "title": "Settings: notices",
       "storyboard": null,
       "route": "/settings/notices",
-      "scenario": "this-week",
-      "notes": "Export ready + a member-left notice."
+      "scenario": "me-notices",
+      "notes": "One of each kind: export ready (download), a safety report receipt (112 line), the no-show pause ending, its statement of reasons (automated, support address) and a member leaving."
     },
     {
       "id": "app-settings-blocked",
@@ -436,6 +528,48 @@
       "route": "/settings/sensitive-consent",
       "scenario": "this-week-no-consent",
       "notes": "Consent copy is hash-locked in packages/core."
+    },
+    {
+      "id": "app-settings-sensitive-consent-given",
+      "title": "Settings: private interests, consent given (withdraw)",
+      "storyboard": null,
+      "route": "/settings/sensitive-consent",
+      "scenario": "this-week",
+      "notes": "Opened from Privacy → Private interests: when it was given, how many are private, the locked text, and \"Withdraw consent for sensitive interests\" (confirmed with the locked withdrawal text)."
+    },
+    {
+      "id": "app-settings-privacy-export",
+      "title": "Privacy with a ready data export",
+      "storyboard": null,
+      "route": "/settings/privacy",
+      "scenario": "this-week",
+      "notes": "The export is ready until Tue 10 Nov 21:12: the authenticated download sits under \"Download my data\"."
+    },
+    {
+      "id": "app-settings-delete-export",
+      "title": "Delete account with a ready data export",
+      "storyboard": null,
+      "route": "/settings/delete-account",
+      "scenario": "this-week",
+      "notes": "\"Download my data first\" downloads the ready file instead of asking for another one."
+    },
+    {
+      "id": "app-interests-more",
+      "title": "Interests tab: a row's \"…\" opened",
+      "storyboard": null,
+      "route": "/interests",
+      "scenario": "this-week",
+      "notes": "\"More for sourdough\" opens \"Keep this private\" and \"Remove\" under the row.",
+      "steps": [{ "click": "[data-testid=\"interest-more-intsourdoughaaaa\"]" }, { "wait": 400 }]
+    },
+    {
+      "id": "app-onb-interests-chip",
+      "title": "Onboarding interests: a chip tapped",
+      "storyboard": null,
+      "route": "/add-interests",
+      "scenario": "onboarding-interests",
+      "notes": "\"Tap an interest to change that\": tapping \"gravid\" offers \"This isn't sensitive for me\".",
+      "steps": [{ "click": "[data-testid=\"interest-chip-intgravidaaaaaaa\"]" }, { "wait": 400 }]
     },
     {
       "id": "app-info-how-matching-works",

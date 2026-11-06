@@ -3,9 +3,12 @@ import {
   BAKERY_CAFE,
   BLOCKED,
   CAST_PHOTOS,
+  INTEREST_IDS,
+  interestDocs,
   ME,
   now,
   ONBOARDED_USER,
+  place,
   POD_SOURDOUGH,
   profileWorld,
   roster,
@@ -32,6 +35,12 @@ const scenario: Scenario = {
   pushPermission: 'granted',
   docs: ({ locale }) => ({
     ...profileWorld({ locale, lastDrop: { weekId: '2026-W45', outcome: 'proposed' } }),
+    // Storyboard 5.2: "far på barsel" was once treated as sensitive and the viewer chose "This isn't sensitive for me",
+    // so its row offers "Keep this private" at hand.
+    [`users/${ME}/interests/${INTEREST_IDS.farPaaBarsel}`]: {
+      ...interestDocs()[`users/${ME}/interests/${INTEREST_IDS.farPaaBarsel}`],
+      notSensitiveForMe: true,
+    },
     [`users/${ME}/pods/${POD_SOURDOUGH}`]: {
       state: 'scheduled',
       myStatus: 'accepted',
@@ -61,7 +70,8 @@ const scenario: Scenario = {
         winningOptionId: 'optionBakery',
         meetupAt: ts('2026-11-14 14:00'),
         planLockedAt: ts('2026-11-09 12:30'),
-        place: BAKERY_CAFE,
+        // A placeholder in the reader's language: no real venue, and no English inside Danish copy.
+        place: locale === 'da' ? place('placeholderBakeryCafe01', '[Bagericafé]', 'Frederiksbjerg, Aarhus C', 56.147, 10.203, 'bakery') : BAKERY_CAFE,
       },
       attendance: Object.fromEntries(sourdoughMembers.map((m) => [m.uid, 'pending'])),
       confirmedAt: ts('2026-11-06 20:10'),

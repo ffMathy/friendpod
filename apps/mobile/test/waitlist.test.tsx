@@ -6,7 +6,11 @@ import { Share } from 'react-native';
 import ThisWeek from '../app/(tabs)/index';
 import Area from '../app/(onboarding)/area';
 
-jest.mock('expo-router', () => ({ useRouter: () => ({ push: jest.fn(), replace: jest.fn(), back: jest.fn() }) }));
+const mockRouter = { push: jest.fn(), replace: jest.fn(), back: jest.fn(), canGoBack: () => true, canDismiss: () => true, dismissAll: jest.fn() };
+// WaitlistScreen hides the tab header and the tab bar through the tab's options; there is no navigator in these tests.
+const mockNavigation = { setOptions: jest.fn() };
+jest.mock('expo-router', () => ({ useRouter: () => mockRouter, useNavigation: () => mockNavigation }));
+jest.mock('expo-router/js-tabs', () => ({ Tabs: { Screen: () => null } }));
 jest.mock('expo-clipboard', () => ({ setStringAsync: jest.fn(async () => true) }));
 jest.mock('expo-location', () => ({ requestForegroundPermissionsAsync: jest.fn(), getCurrentPositionAsync: jest.fn(), Accuracy: { Lowest: 1 } }));
 jest.mock('@/features/session/SessionProvider', () => ({ useUid: () => 'me', useSession: () => ({ refreshClaims: async () => undefined }) }));
@@ -17,11 +21,19 @@ const live = (data: unknown) => ({ data, error: null, isLoading: false });
 const ts = (ms: number) => ({ toMillis: () => ms });
 const VEJLE = getLaunchArea('vejle')!;
 let mockArea: Record<string, unknown> | null = null;
-const mockUser = { area: { gh5: VEJLE.cells[0], label: 'Vejle', areaId: 'vejle' }, lastDrop: null };
+const mockUser = {
+  area: { gh5: VEJLE.cells[0], label: 'Vejle', areaId: 'vejle' },
+  lastDrop: null,
+  status: 'active',
+  participation: { mode: 'auto' },
+  prefs: { ageMin: 28, ageMax: 42, maxKm: 10, languages: ['da'], availability: 63, sameGenderOnly: false, openToAnyone: false },
+};
 jest.mock('@/data/docs', () => ({
   useUserDoc: () => live(mockUser),
   usePodCards: () => live([]),
   useAreaDoc: () => live(mockArea),
+  useInterests: () => live([]),
+  usePod: () => live(undefined),
 }));
 
 const mockCall = jest.fn();
@@ -55,17 +67,23 @@ describe('in-app waitlist (§3.1 step 12)', () => {
   it('shows the city, the live counter "N of goal" with a progress bar, and what happens next', async () => {
     mockArea = areaDoc('waitlist', 137);
     await renderWith(<ThisWeek />);
-    expect(screen.getByText('Grouper is coming to Vejle')).toBeTruthy();
-    expect(screen.getByText('137 of 250 signed up')).toBeTruthy();
+    expect(screen.getByText("You're on the list")).toBeTruthy();
+    expect(screen.getByText('Vejle opens soon')).toBeTruthy();
+    expect(screen.getByText('Vejle waitlist')).toBeTruthy();
+    expect(screen.getByLabelText('137 of 250 signed up')).toBeTruthy();
+    expect(screen.getByText('137')).toBeTruthy();
+    expect(screen.getByText('of 250')).toBeTruthy();
     expect(screen.getByTestId('waitlist-progress').props.accessibilityValue).toEqual({ min: 0, max: 250, now: 137 });
-    expect(screen.getByText("We'll notify you when Vejle opens; your first drop will be the Thursday after.")).toBeTruthy();
-    expect(screen.queryByText('No pod this week')).toBeNull();
+    expect(screen.getByTestId('waitlist-progress').props.accessibilityLabel).toBe('People on the Vejle waitlist');
+    expect(screen.getByText(/Your first drop is the Thursday after, at 18:00\. We'll send you a notification\./)).toBeTruthy();
+    expect(screen.queryByTestId('next-drop')).toBeNull();
   });
 
   it('shows "<10" below 10', async () => {
     mockArea = areaDoc('waitlist', 4);
     await renderWith(<ThisWeek />);
-    expect(screen.getByText('<10 of 250 signed up')).toBeTruthy();
+    expect(screen.getByLabelText('<10 of 250 signed up')).toBeTruthy();
+    expect(screen.getByText('<10')).toBeTruthy();
   });
 
   it('shares the city link with the native share sheet and copies it, with no personal data', async () => {
@@ -83,18 +101,43 @@ describe('in-app waitlist (§3.1 step 12)', () => {
 
     await act(async () => await fireEvent.press(screen.getByTestId('waitlist-copy')));
     expect(Clipboard.setStringAsync).toHaveBeenCalledWith(link);
-    expect(screen.getByText('Link copied')).toBeTruthy();
+    expect(screen.getByText('Copied')).toBeTruthy();
+    // The link is shown without the scheme, as on the storyboard; this long one puts the host and the city on two
+    // lines, so neither is cut off.
+    expect(screen.getByLabelText('grouper-staging.firebaseapp.com/c/vejle')).toBeTruthy();
+    expect(screen.getByText('grouper-staging.firebaseapp.com')).toBeTruthy();
+    expect(screen.getByText('/c/vejle').props.numberOfLines).toBe(1);
+  });
+
+  it('stands alone like the storyboard: no tab bar while waitlisted, with a way to Me, and the bar comes back after', async () => {
+    mockArea = areaDoc('waitlist', 42);
+    mockNavigation.setOptions.mockClear();
+    const view = await renderWith(<ThisWeek />);
+    expect(mockNavigation.setOptions).toHaveBeenCalledWith({ headerShown: false, tabBarStyle: { display: 'none' } });
+    await fireEvent.press(screen.getByRole('link', { name: 'Profile and settings' }));
+    expect(mockRouter.push).toHaveBeenCalledWith('/me');
+    await view.unmount();
+    const restored = mockNavigation.setOptions.mock.calls.at(-1)![0] as { tabBarStyle: { display?: string; backgroundColor?: string } };
+    expect(restored.tabBarStyle.display).toBeUndefined();
+    expect(restored.tabBarStyle.backgroundColor).toBeTruthy();
+  });
+
+  it('points to the interests while you wait', async () => {
+    mockArea = areaDoc('waitlist', 42);
+    await renderWith(<ThisWeek />);
+    await fireEvent.press(screen.getByRole('link', { name: 'Add a few more interests' }));
+    expect(mockRouter.push).toHaveBeenCalledWith('/interests');
   });
 
   it('keeps showing on every open while waitlisted, and gives way to Home when the city goes live', async () => {
     mockArea = areaDoc('waitlist', 12);
     const first = await renderWith(<ThisWeek />);
-    expect(screen.getByText('12 of 250 signed up')).toBeTruthy();
+    expect(screen.getByLabelText('12 of 250 signed up')).toBeTruthy();
     await first.unmount();
     // The next app open: still waitlisted, with a newer count from the live area doc.
     mockArea = areaDoc('waitlist', 13);
     const second = await renderWith(<ThisWeek />);
-    expect(screen.getByText('13 of 250 signed up')).toBeTruthy();
+    expect(screen.getByLabelText('13 of 250 signed up')).toBeTruthy();
     // Beta areas are not matched either.
     mockArea = areaDoc('beta', 13);
     await second.rerender(
@@ -102,21 +145,23 @@ describe('in-app waitlist (§3.1 step 12)', () => {
         <ThisWeek />
       </QueryClientProvider>,
     );
-    expect(screen.getByText('Grouper is coming to Vejle')).toBeTruthy();
+    expect(screen.getByText('Vejle opens soon')).toBeTruthy();
     mockArea = areaDoc('live', 260);
     await second.rerender(
       <QueryClientProvider client={client}>
         <ThisWeek />
       </QueryClientProvider>,
     );
-    expect(screen.queryByText('Grouper is coming to Vejle')).toBeNull();
-    expect(screen.getByText('No pod this week')).toBeTruthy();
+    expect(screen.queryByText('Vejle opens soon')).toBeNull();
+    // Home before the drop: the next drop with its countdown.
+    expect(screen.getByTestId('next-drop')).toBeTruthy();
+    expect(screen.getByText('Next drop')).toBeTruthy();
   });
 
   it('falls back to areas.json when the area doc has not been synced yet', async () => {
     mockArea = null;
     await renderWith(<ThisWeek />);
-    expect(screen.getByText('<10 of 250 signed up')).toBeTruthy();
+    expect(screen.getByLabelText('<10 of 250 signed up')).toBeTruthy();
   });
 });
 

@@ -9,22 +9,33 @@
     "participation": "Ugentlige drops",
     "modes": {
       "auto": "Hver uge",
-      "manual": "Når jeg melder mig",
-      "skipNext": "Spring næste drop over",
-      "pause": "Pause"
+      "manual": "Når jeg melder mig til"
     },
     "effectiveFrom": "Gælder fra uge {{week}}",
-    "record": "Dit fremmøde",
-    "attended": "{{attended}}/{{total}} mødt op",
-    "noMeetupsYet": "Ingen møder endnu.",
+    "attended": "Mødt op til {{attended}} af {{total}} møder",
+    "noMeetupsYet": "Ingen møder endnu",
     "language": "Sprog",
     "preferences": "Ønsker til pods",
     "settings": "Indstillinger",
     "photo": "Billede",
-    "photoWho": "Kun folk i en bekræftet pod med dig kan se det. I pods om en følsom interesse vælger du for hver pod.",
+    "photoWho": "Kun folk i en bekræftet pod med dig kan se dit billede. I pods om en privat interesse vælger du selv for hver pod.",
     "yourPhoto": "Dit billede",
     "changePhoto": "Skift billede",
-    "photoFailed": "Upload virkede ikke. Prøv igen."
+    "photoFailed": "Billedet kunne ikke uploades. Prøv igen.",
+    "preferencesLede": "Hvem du gerne vil møde, og hvornår du kan. Ændringer gælder fra næste drop.",
+    "prefsAges": "{{min}}–{{max}} år",
+    "prefsKm": "ca. {{km}} km",
+    "privacy": "Privatliv",
+    "privacyDetail": "Samtykker, dine data, slet konto",
+    "noticesDetail": "Pauser, kvitteringer, dine data",
+    "settingsDetail": "Sprog, notifikationer, vilkår og log ud",
+    "goodToKnow": "Godt at vide",
+    "changePreferences": "Ret dine ønsker",
+    "addPhoto": "Tilføj et billede",
+    "deletePhoto": "Slet billede",
+    "deletePhotoTitle": "Vil du slette dit billede?",
+    "deletePhotoBody": "Dit billede bliver slettet, og medlemmerne af dine pods kan ikke længere se det.",
+    "photoUploaded": "Tak! Dit billede dukker op om lidt."
   },
   "settings": {
     "title": "Indstillinger",
@@ -52,15 +63,11 @@
       "withdrawSensitive": "Træk samtykket til følsomme interesser tilbage",
       "exportFileTitle": "Dine Grouper-data",
       "exportDownload": "Hent filen",
-      "exportDownloadFailed": "Download virkede ikke. Prøv igen.",
+      "exportDownloadFailed": "Filen kunne ikke hentes. Prøv igen.",
       "exportPending": "Vi gør din fil klar.",
       "exportFailed": "Det lykkedes ikke at gøre din fil klar. Du kan spørge igen i morgen.",
       "exportReady": "Din fil er klar indtil {{when}}.",
-      "deletePhotoBody": "Dit billede slettes, og medlemmerne af dine pods kan ikke længere se det.",
-      "pausedUntil": "Matchning er sat på pause indtil {{when}}.",
-      "paused": "Matchning er sat på pause.",
-      "skipping": "Du springer droppet over i uge {{week}}.",
-      "skipNext": "Spring næste drop over"
+      "deletePhotoBody": "Dit billede slettes, og medlemmerne af dine pods kan ikke længere se det."
     },
     "delete": {
       "title": "Slet konto",
@@ -76,79 +83,130 @@
       "title": "Blokerede personer",
       "none": "Du har ikke blokeret nogen.",
       "unnamed": "En person fra en ikke-bekræftet pod",
-      "unblock": "Fjern blokering"
+      "unblock": "Fjern blokering",
+      "lede": "Du bliver aldrig matchet med nogen, du har blokeret.",
+      "howTo": "Du blokerer nogen ved at trykke på deres navn i en pod.",
+      "since": "Blokeret {{date}}",
+      "unblockName": "Fjern blokering af {{name}}"
     },
     "notifications": {
       "title": "Notifikationer",
-      "body": "Push-beskeder siger kun, at dit drop er her, at en pod har ændret sig, eller at der er en ny besked i din pod; aldrig en interesse, et navn eller selve beskeden.",
+      "body": "Notifikationer siger kun noget i stil med »Dit ugentlige drop er her«.",
       "turnOn": "Slå notifikationer til",
-      "turnOff": "Slå notifikationer fra",
-      "failed": "Det virkede ikke. Du kan ændre notifikationer i telefonens indstillinger."
+      "turnOff": "Slå fra i telefonens indstillinger",
+      "failed": "Det virkede ikke. Du kan ændre notifikationer i telefonens indstillinger.",
+      "cardTitle": "Få besked, når dit drop lander",
+      "on": "Notifikationer er slået til",
+      "sentTitle": "Det giver vi besked om",
+      "sent": {
+        "drop": "Dit ugentlige drop er her",
+        "pod": "Din pod er bekræftet eller ændret, eller jeres møde nærmer sig",
+        "message": "Der er en ny besked i jeres pod-chat",
+        "notice": "Der er en besked fra Grouper om din konto"
+      },
+      "neverTitle": "Det står der aldrig i en notifikation",
+      "never": "Hvem der er i en pod, hvad den handler om, dine interesser eller hvad nogen har skrevet."
     }
   },
   "info": {
-    "legalTitle": "Jura",
+    "legalTitle": "Juridisk",
     "legalTerms": "Vilkår",
     "legalPrivacy": "Privatlivserklæring",
     "legalLicences": "Licenser",
     "legalUnknown": "Siden findes ikke.",
-    "legalVersion": "Version {{version}}",
+    "legalVersion": "Version fra {{month}}",
     "legal": {
       "terms": {
         "title": "Vilkår",
-        "body": "Udkast: vilkårene gennemgås af vores advokat og offentliggøres her før lanceringen."
+        "body": "Vilkårene gennemgås af vores advokat og offentliggøres her før lanceringen."
       },
       "privacy": {
         "title": "Privatlivserklæring",
-        "body": "Udkast: den lagdelte privatlivserklæring gennemgås af vores advokat og offentliggøres her før lanceringen."
+        "body": "Den lagdelte privatlivserklæring gennemgås af vores advokat og offentliggøres her før lanceringen."
       },
       "licences": {
         "title": "Licenser",
-        "body": "Grouper bruger åbne data og open source-software."
+        "body": "Grouper er bygget med åbne data og open source-software. Tak til folkene bag."
       }
     },
     "howMatchingWorks": {
-      "title": "Sådan virker matchningen",
-      "inputs": "Hver torsdag danner vi pods med 4–6 personer, som deler en interesse. Vi bruger dine interesser, dit omtrentlige område (et kortfelt), dit fødselsår, dit aldersinterval, din afstand, dine sprog og tidspunkter ved møder, og hvor stabilt du møder op.",
-      "notUsed": "Vi bruger aldrig billeder eller noget, vi udleder om dig. Køn bruges kun, hvis du slår pods med samme køn til.",
-      "sensitive": "Følsomme interesser bruges kun, hvis du har sagt ja til dem, kun som tema for en pod, hvor alle medlemmer har tilføjet dem, og først når din konto er 14 dage gammel, og du har været til et møde.",
-      "pauses": "Nogle pauser sker automatisk. Hver pause kommer med en forklaring og ophører af sig selv.",
-      "humanReview": "Ingen person gennemgår disse afgørelser. Du kan stadig bruge dine rettigheder efter databeskyttelsesreglerne ved at kontakte vores privatlivsteam (se privatlivserklæringen).",
+      "title": "Sådan matcher vi",
+      "notUsed": "Billeder, din »Om mig« eller noget, vi udleder om dig. Køn kun, hvis du slår pods med samme køn til.",
+      "sensitive": "Private interesser bruges kun, hvis du har sagt ja til følsomme interesser, kun som tema for en pod, hvor alle medlemmer har tilføjet dem, og først når din konto er 14 dage gammel, og du har været til et møde.",
+      "pauses": "Nogle pauser sker automatisk efter faste regler. Hver pause kommer med en forklaring i Beskeder fra Grouper og slutter af sig selv.",
+      "humanReview": "Du kan stadig bruge dine rettigheder efter databeskyttelsesreglerne ved at kontakte vores privatlivsteam (se privatlivserklæringen).",
       "pause": "Du kan altid sætte matchning på pause.",
       "pausesTitle": "Automatiske pauser",
       "pauseList": {
-        "reports": "To uafhængige anmeldelser inden for 30 dage eller én sikkerhedsanmeldelse sætter dig på pause i en periode. Pausen ophører automatisk.",
-        "noShow": "To udeblivelser inden for 8 uger giver 2 ugers pause.",
-        "underage": "En anmeldelse om »mistanke om under 18« sætter kontoen på pause i en periode. Pausen ophører automatisk.",
-        "notGenuine": "En anmeldelse om »ikke et ægte medlem« holder dig ude af pods om følsomme interesser i 4 uger."
-      }
+        "reports": "To uafhængige anmeldelser inden for {{window}} dage eller én sikkerhedsanmeldelse: ingen drops i {{days}} dage.",
+        "noShow": "To udeblivelser inden for {{window}} uger: {{weeks}} ugers pause. Tre: ingen drops i {{suspension}} uger.",
+        "underage": "En anmeldelse om »mistanke om under 18«: ingen drops i {{days}} dage. En ny anmeldelse fra en anden pod starter pausen forfra.",
+        "notGenuine": "En anmeldelse om »ikke et ægte medlem«: ingen pods om private interesser i {{days}} dage."
+      },
+      "intro": "Hver torsdag sætter vi pods sammen med 4–6 personer nær dig, som deler en interesse. Her er, hvad der afgør, hvem du møder.",
+      "usedTitle": "Det bruger vi",
+      "used": {
+        "interests": "Dine interesser",
+        "area": "Dit omtrentlige område (et felt på kortet)",
+        "age": "Dit fødselsår og det aldersinterval, du har valgt",
+        "prefs": "Hvor langt du vil tage, hvilke sprog du kan mødes på, og hvornår du kan",
+        "reliability": "Hvor stabilt du møder op"
+      },
+      "meetAgain": "Dine svar på »Ses igen«: Siger I begge ja, kan I blive matchet igen efter {{weeks}} uger. Siger en af jer nej, sker det aldrig igen. Ingen ser dit svar.",
+      "neverTitle": "Det bruger vi aldrig",
+      "sensitiveTitle": "Private interesser",
+      "reviewTitle": "Ingen mennesker gennemgår afgørelserne",
+      "noReview": "Ingen læser anmeldelser eller det, der står i dem, og ingen bliver udelukket for altid. En pause kan ikke ankes: Er den forkert, udløber den bare.",
+      "pauseLink": "Sæt matchning på pause"
     },
     "safety": {
-      "title": "Gode råd om sikkerhed",
+      "title": "Mød hinanden trygt",
       "tips": {
         "public": "Mød hinanden på et offentligt sted om dagen eller tidligt på aftenen.",
         "transport": "Sørg selv for transport.",
         "tellFriend": "Fortæl en ven, hvor du skal hen.",
         "leave": "Du kan altid gå.",
-        "drink": "Drik med måde; ingen skal presses til at drikke.",
-        "address": "Del aldrig din adresse.",
-        "report": "Brug Anmeld, hvis noget føles forkert; ring 112 i en nødsituation."
-      }
+        "drink": "Drik kun, hvis du har lyst, og i dit eget tempo.",
+        "address": "Del aldrig din hjemadresse.",
+        "report": "Brug Anmeld i poden, hvis noget føles forkert."
+      },
+      "lede": "Et par gode vaner, så alle føler sig godt tilpas, når I mødes.",
+      "emergency": "I fare lige nu? Ring 112.",
+      "beforeTitle": "Inden mødet",
+      "atTitle": "Under mødet"
     },
     "sensitive": {
-      "title": "Følsomme interesser",
-      "what": "Nogle interesser siger noget om dit helbred, din tro, din seksualitet, politik, etniske oprindelse eller fagforening. Loven kalder det særlige kategorier af personoplysninger.",
-      "where": "Hvis du har sagt ja til følsomme interesser, gemmer vi dem privat på din konto, markeret med en hængelås. De vises aldrig på nogen profil. Har du ikke sagt ja, gemmer vi dem slet ikke.",
-      "who": "En sådan interesse vises kun som tema for en pod og kun for de personer, der er inviteret til poden, og som også selv har tilføjet den.",
-      "withdraw": "Du kan til enhver tid trække dit samtykke tilbage under Indstillinger → Privatliv. Så sletter vi alle dine følsomme interesser og tager dig ud af pods, der er bygget op om dem. Vil du kun stoppe én interesse, så fjern den.",
-      "risk": "Vi kan ikke kontrollere, hvem folk er, så del kun det i en pod, som du er tryg ved."
-    }
+      "title": "Private interesser",
+      "what": "Fx »gravid«, »ramadan« eller »queer læseklub«. Loven kalder det særlige kategorier af personoplysninger og kræver dit udtrykkelige samtykke.",
+      "where": "Kun på din konto, markeret med en hængelås. De vises aldrig på nogen profil.",
+      "who": "Kun dem, der er inviteret til en pod bygget op om interessen, og kun hvis de selv har tilføjet den.",
+      "withdraw": "Du kan til enhver tid trække dit samtykke tilbage. Så sletter vi alle dine private interesser og tager dig ud af pods, der er bygget op om dem. Vil du kun stoppe én interesse, så fjern den.",
+      "risk": "Vi kan ikke kontrollere, hvem folk er, så del kun det i en pod, som du er tryg ved.",
+      "lede": "Nogle interesser siger mere om dig end andre. Sådan passer vi på dem.",
+      "headings": {
+        "what": "Hvad der tæller som privat",
+        "where": "Hvor vi gemmer dem",
+        "who": "Hvem der ser dem",
+        "withdraw": "Hvis du fortryder"
+      },
+      "noticeTitle": "Når du tilføjer en interesse"
+    },
+    "legalDraft": "Udkast",
+    "legalPostcodes": "Postnumre",
+    "legalPostcodesUse": "Danske postnumre og deres placering, som vi bruger, når du vælger dit område.",
+    "legalFont": "Skrifttype",
+    "legalShowLicence": "Vis licensen",
+    "legalHideLicence": "Skjul licensen",
+    "legalSoftware": "Open source-software",
+    "legalSoftwareNote": "Den fulde licenstekst følger med hver pakkes kildekode.",
+    "legalAnd": "{{list}} og {{last}}",
+    "legalOnDeviceModel": "{{name}} (modellen på telefonen)"
   },
   "notices": {
     "title": "Beskeder fra Grouper",
     "none": "Ingen beskeder fra Grouper.",
     "unknown": "Du har en besked fra Grouper. Opdatér appen for at læse den.",
-    "automated": "Det blev afgjort automatisk; ingen person har gennemgået det. Det ophører af sig selv.",
+    "automated": "Det blev afgjort automatisk, uden at et menneske har set på det. Pausen slutter af sig selv.",
     "contact": "Spørgsmål? Skriv til {{email}}.",
     "exportGone": "Filen er ikke længere tilgængelig. Du kan bede om en ny under Indstillinger → Privatliv.",
     "codes": {
@@ -157,13 +215,29 @@
       "PAUSE_UNDERAGE_REPORT": "Du er sat på pause fra drops indtil {{until}}, fordi et medlem har anmeldt, at du måske er under 18. Grouper er kun for voksne.",
       "PAUSE_NO_SHOW": "Du er sat på pause fra drops indtil {{until}}, fordi du er udeblevet fra møder uden at melde afbud. Når du er tilbage, beder vi dig love at møde op.",
       "SUSPENSION_NO_SHOW": "Du er udelukket fra drops indtil {{until}}, fordi du er udeblevet fra flere møder uden at melde afbud.",
-      "SENSITIVE_HOLD_NOT_GENUINE": "Indtil {{until}} får du ikke pods om følsomme interesser, fordi et medlem har anmeldt, at du ikke så ud til at dele podens interesse.",
+      "SENSITIVE_HOLD_NOT_GENUINE": "Indtil {{until}} får du ikke pods om private interesser, fordi et medlem har anmeldt, at du ikke så ud til at dele podens interesse.",
       "SANCTION_ENDED": "Din pause er slut. Du kan blive matchet igen fra næste drop.",
       "REPORT_RECEIVED": "Vi har modtaget din anmeldelse. Den, du har anmeldt, får ikke at vide, hvem der anmeldte.",
       "POD_MEMBER_LEFT": "Et medlem har forladt en af dine pods.",
       "EXPORT_READY": "Dine data er klar til download. Filen slettes inden for 48 timer.",
       "INACTIVITY_WARNING": "Du har ikke brugt Grouper i et år. Åbn appen før {{deleteAfter}} for at beholde din konto; ellers sletter vi den."
-    }
+    },
+    "lede": "Pauser, kvitteringer for anmeldelser og andet nyt om din konto. Hver besked gemmes i et år.",
+    "noneBody": "Hvis vi sætter matchning på pause, modtager din anmeldelse eller har dine data klar, finder du det her.",
+    "titles": {
+      "PAUSE_REPORTS": "Matchning sat på pause",
+      "PAUSE_SAFETY_REPORT": "Matchning sat på pause",
+      "PAUSE_UNDERAGE_REPORT": "Matchning sat på pause",
+      "PAUSE_NO_SHOW": "Matchning sat på pause",
+      "SUSPENSION_NO_SHOW": "Udelukket fra drops",
+      "SENSITIVE_HOLD_NOT_GENUINE": "Pods om private interesser er sat på pause",
+      "SANCTION_ENDED": "Velkommen tilbage",
+      "REPORT_RECEIVED": "Tak for din anmeldelse",
+      "POD_MEMBER_LEFT": "Din pod er ændret",
+      "EXPORT_READY": "Dine Grouper-data",
+      "INACTIVITY_WARNING": "Vil du beholde din konto?"
+    },
+    "unknownTitle": "Besked fra Grouper"
   },
   "blockingSetting": {
     "RADIUS": "Din afstand er lille for dit område. En større afstand vil hjælpe.",

@@ -13,6 +13,7 @@ jest.mock('expo-router', () => ({
 }));
 jest.mock('@/features/session/SessionProvider', () => ({ useUid: () => 'me' }));
 jest.mock('@/features/pods/ScreenCaptureGuard', () => ({ ScreenCaptureGuard: () => null }));
+jest.mock('@/features/photos/AuthenticatedPhoto', () => ({ AuthenticatedPhoto: () => null }));
 
 const live = (data: unknown) => ({ data, error: null, isLoading: false });
 let mockPod: Record<string, unknown> = {};
@@ -87,12 +88,16 @@ describe('meetup chat (§3.6)', () => {
   it('counts characters up to 500 and sends only non-blank text', async () => {
     await renderChat();
     expect(input()).toHaveProp('maxLength', CHAT_MESSAGE_MAX);
-    expect(screen.getByText('0/500')).toBeOnTheScreen();
+    // The counter stays out of the way until the limit is near.
+    expect(screen.queryByText('0/500')).toBeNull();
     expect(sendButton()).toBeDisabled();
 
     await fireEvent.changeText(input(), '   ');
-    expect(screen.getByText('3/500')).toBeOnTheScreen();
+    expect(screen.queryByText('3/500')).toBeNull();
     expect(sendButton()).toBeDisabled();
+
+    await fireEvent.changeText(input(), 'x'.repeat(400));
+    expect(screen.getByText('400/500')).toBeOnTheScreen();
 
     await fireEvent.changeText(input(), 'x'.repeat(CHAT_MESSAGE_MAX));
     expect(screen.getByText('500/500')).toBeOnTheScreen();
@@ -117,14 +122,17 @@ describe('meetup chat (§3.6)', () => {
     await flush();
 
     expect(mockCall).toHaveBeenCalledTimes(1);
-    expect(screen.getByRole('alert', { name: "You haven't met yet. It's fine to wait until after." })).toBeOnTheScreen();
+    expect(
+      screen.getByRole('alert', { name: "You haven't met yet. It's fine to wait until after the meetup before sharing your number or profile." }),
+    ).toBeOnTheScreen();
     expect(input()).toHaveDisplayValue('Ring på 12345678');
-    expect(screen.queryByTestId('chat-send')).toBeNull();
+    // While the warning is up, only "Send anyway" sends.
+    expect(sendButton()).toBeDisabled();
 
     await fireEvent.press(screen.getByRole('button', { name: 'Send anyway' }));
     await flush();
     expect(mockCall).toHaveBeenNthCalledWith(2, 'sendMessage', { podId: POD_ID, text: 'Ring på 12345678', ackContactWarning: true });
-    expect(screen.queryByText("You haven't met yet. It's fine to wait until after.")).toBeNull();
+    expect(screen.queryByRole('alert')).toBeNull();
     expect(input()).toHaveDisplayValue('');
   });
 
@@ -135,7 +143,7 @@ describe('meetup chat (§3.6)', () => {
     await fireEvent.press(sendButton());
     await flush();
     await fireEvent.press(screen.getByRole('button', { name: 'Edit' }));
-    expect(screen.queryByText("You haven't met yet. It's fine to wait until after.")).toBeNull();
+    expect(screen.queryByRole('alert')).toBeNull();
     expect(input()).toHaveDisplayValue('mia@example.com');
     expect(sendButton()).toBeEnabled();
     expect(mockCall).toHaveBeenCalledTimes(1);
@@ -154,7 +162,7 @@ describe('meetup chat (§3.6)', () => {
     mockPod = podWithMeetup(-30 * HOUR, 'happened');
     mockMessages = [message('m1', 'anna', 'Tak for i dag!')];
     await renderChat();
-    expect(screen.getByText('Closed')).toBeOnTheScreen();
+    expect(screen.getByText('Chat closed')).toBeOnTheScreen();
     expect(screen.getByText('This chat closed 24 hours after the meetup. Messages are deleted about 3 days after it.')).toBeOnTheScreen();
     expect(screen.getByText('Tak for i dag!')).toBeOnTheScreen();
     expect(input()).toBeDisabled();
@@ -177,7 +185,7 @@ describe('meetup chat (§3.6)', () => {
   it('stays closed before the window, and when the meetup was moved', async () => {
     mockPod = podWithMeetup(30 * HOUR);
     await renderChat();
-    expect(screen.getByText(/^Opens /)).toBeOnTheScreen();
+    expect(screen.getByText(/^Chat opens /)).toBeOnTheScreen();
     expect(input()).toBeDisabled();
 
     mockPod = { ...podWithMeetup(2 * HOUR, 'planning'), planning: { deadline: ts(Date.now() + 48 * HOUR) } };
@@ -204,8 +212,11 @@ describe('meetup chat (§3.6)', () => {
       message('m3', 'gone', 'Jeg er her'),
     ];
     await renderChat();
-    expect(screen.getByText('Anna')).toBeOnTheScreen();
-    expect(screen.getByText('Former member')).toBeOnTheScreen();
+    // "Anna · 15:02": the author line is one run of text.
+    expect(screen.getByText(/^Anna · /)).toBeOnTheScreen();
+    expect(screen.getByText(/^Former member · /)).toBeOnTheScreen();
+    // The note above the messages: who can read them, when they go, and how to report.
+    expect(screen.getByText(/^Only your pod can read this\. Messages are deleted about 3 days after the meetup\. Press and hold a message to report it\.$/)).toBeOnTheScreen();
 
     await fireEvent(screen.getByLabelText(/^Anna, .*: Jeg tager kage med$/), 'longPress');
     expect(mockRouter.push).toHaveBeenCalledWith({ pathname: '/sheets/report', params: { podId: POD_ID, messageId: 'm1' } });

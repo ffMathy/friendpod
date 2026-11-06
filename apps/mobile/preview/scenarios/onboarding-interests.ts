@@ -3,6 +3,7 @@ import { Timestamp } from '../runtime/timestamp';
 import {
   areaDoc,
   CAST_PHOTOS,
+  DEFAULT_PREFS,
   interestDocs,
   ME,
   now,
@@ -10,6 +11,13 @@ import {
   sensitiveInterestDocs,
   userDoc,
 } from './_kit';
+
+const POPULAR_IN_AARHUS = [
+  { conceptId: 'seed_running', da: 'løb', en: 'løb' },
+  { conceptId: 'seed_climbing', da: 'klatring', en: 'climbing' },
+  { conceptId: 'seed_cooking', da: 'madlavning', en: 'madlavning' },
+  { conceptId: 'seed_book_club', da: 'læseklub', en: 'book club' },
+];
 
 /**
  * Onboarding steps after the consent (storyboards 1.5–1.7): Art. 9 consent given, four interests (one private).
@@ -23,10 +31,13 @@ const scenario: Scenario = {
   photos: CAST_PHOTOS,
   onboardingFinished: false,
   docs: ({ locale }) => ({
-    [`users/${ME}`]: userDoc({ locale, interestCount: 4, photo: false, aboutMe: null }),
+    // Fresh from completeOnboarding in an alpha-profile city (§6.10): "open to anyone" starts on. The ages stay at the
+    // storyboard's 28–42.
+    [`users/${ME}`]: userDoc({ locale, interestCount: 4, photo: false, aboutMe: null, prefs: { ...DEFAULT_PREFS, openToAnyone: true } }),
     ...Object.fromEntries(Object.entries(interestDocs()).filter(([path]) => !path.endsWith('inttrailrunninga'))),
     ...sensitiveInterestDocs(),
-    'areas/aarhus': areaDoc('aarhus', 'live', 412),
+    // "Popular in Aarhus" as storyboard 1.5 shows it: people's own words, so the English list mixes in Danish ones.
+    'areas/aarhus': { ...areaDoc('aarhus', 'live', 412), chips: POPULAR_IN_AARHUS },
   }),
   callables: {
     addInterests: ({ items }, { store, now: at }) => ({

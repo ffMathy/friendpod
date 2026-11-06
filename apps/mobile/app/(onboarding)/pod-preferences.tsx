@@ -1,27 +1,42 @@
+import type { Prefs } from '@grouper/core';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Body, Heading, Loading, Screen } from '@/components/ui';
+import { Button, Loading } from '@/components/ui';
 import { useUserDoc } from '@/data/docs';
-import { PreferencesForm } from '@/features/profile/PreferencesForm';
+import { OnboardingStep, useStepBack } from '@/features/onboarding/OnboardingStep';
+import { PreferencesFields, usePreferencesForm } from '@/features/profile/PreferencesForm';
 import { useUid } from '@/features/session/SessionProvider';
 import { currentLocale } from '@/i18n';
 
-/** §3.1 step 8: defaults come from completeOnboarding (own age ±7, or ±10 in the alpha profile). */
+/**
+ * Step 5 of 6, "Who would you like to meet?" (onb-prefs; DESIGN §3.1 step 9). The defaults come from
+ * completeOnboarding and the area's profile (own age ±7, or ±13 in the alpha profile, which also turns "open to anyone"
+ * on; §6.10); Continue saves them. As on the storyboard, "open to anyone" is not asked here: it keeps the profile's
+ * default and can be changed in Settings → Preferences.
+ */
 export default function PodPreferences() {
   const { t } = useTranslation();
-  const router = useRouter();
   const user = useUserDoc(useUid());
   if (!user.data) return <Loading label={t('common.loading')} />;
+  return <PreferencesStep initial={user.data.prefs} />;
+}
+
+function PreferencesStep({ initial }: { readonly initial: Prefs }) {
+  const { t } = useTranslation();
+  const router = useRouter();
+  const back = useStepBack();
+  const controller = usePreferencesForm({ initial, onSaved: () => router.push('/almost-done') });
   return (
-    <Screen>
-      <Heading>{t('onboarding.prefs.title')}</Heading>
-      <Body muted>{t('onboarding.prefs.body')}</Body>
-      <PreferencesForm
-        initial={user.data.prefs}
-        locale={currentLocale()}
-        submitLabel={t('common.continue')}
-        onSaved={() => router.push('/photo')}
-      />
-    </Screen>
+    <OnboardingStep
+      step={5}
+      title={t('onboarding.prefs.title')}
+      gap={18}
+      onBack={back}
+      // Continue follows the same-gender card, as onb-prefs draws it, so a pinned button never covers that card.
+      footerPinned={false}
+      footer={<Button testID="prefs-continue" label={t('common.continue')} busy={controller.saving} onPress={controller.save} />}
+    >
+      <PreferencesFields controller={controller} locale={currentLocale()} showOpenToAnyone={false} />
+    </OnboardingStep>
   );
 }

@@ -2,15 +2,21 @@ import { REPORT_CATEGORIES, REPORT_TEXT_MAX, type ReportCategory } from '@groupe
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Body, Button, ChipRow, ErrorText, Field, Screen, Toggle } from '@/components/ui';
-import { usePodCard } from '@/data/docs';
+import { StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Layout } from '@/components/theme';
+import { Banner, Button, CloseButton, ErrorText, Label, Radio, Screen, Text, Title } from '@/components/ui';
+import { usePod, usePodCard } from '@/data/docs';
 import { useCallable } from '@/data/useCallable';
+import { NoteField, useTopPadding } from '@/features/after/parts';
+import { isConfirmedMember } from '@/features/pods/membership';
 import { useUid } from '@/features/session/SessionProvider';
 import { errorMessageKey } from '@/lib/errors';
 
 /**
- * Report (§3.7) of a member, an option or a chat message: the reporter is never revealed; "not a genuine member"
- * only in sensitive-themed pods (S7); safety reports point to 112. Replay-protected App Check (§9) via the
+ * Report (§3.7, after-report) of a member, an option or a chat message: "In danger right now? Call 112." on top,
+ * one category, optional text (max 500) with a warning not to include sensitive details. The reporter is never
+ * revealed; "not a genuine member" only in sensitive-themed pods (S7). Replay-protected App Check (§9) via the
  * callable registry. A message report names no uid: the server takes the author from the message and keeps a copy.
  */
 export default function Report() {
@@ -23,10 +29,26 @@ export default function Report() {
     messageId?: string;
   }>();
   const card = usePodCard(useUid(), podId);
+  const pod = usePod(podId, isConfirmedMember(card.data));
   const report = useCallable('report');
+  const top = useTopPadding();
+  const insets = useSafeAreaInsets();
+  // The storyboard leaves 28 px under "Send report" where Screen leaves 32; above a home indicator both use the inset.
+  const footerNudge = Math.max(insets.bottom, STORYBOARD_BOTTOM) - Math.max(insets.bottom, Layout.bottom);
   const [category, setCategory] = useState<ReportCategory | null>(null);
   const [text, setText] = useState('');
   const categories = REPORT_CATEGORIES.filter((c) => c !== 'notGenuine' || card.data?.themeSensitive === true);
+  // The reported member's first name as this pod shows it (user reports, and option reports that name the author).
+  const name = !messageId && targetUid ? pod.data?.roster[targetUid]?.firstName : undefined;
+  const title = messageId
+    ? t('report.titleMessage')
+    : optionId
+      ? t('report.titleOption')
+      : name
+        ? t('report.titleName', { name })
+        : t('report.titleMember');
+
+  const close = () => router.back();
 
   const send = () => {
     if (!category) return;
@@ -35,23 +57,70 @@ export default function Report() {
       : optionId
         ? { type: 'option' as const, podId, optionId, ...(targetUid ? { uid: targetUid } : {}) }
         : { type: 'user' as const, podId, uid: targetUid ?? '' };
-    report.mutate({ target, category, ...(text.trim() ? { text: text.trim() } : {}) }, { onSuccess: () => router.back() });
+    report.mutate({ target, category, ...(text.trim() ? { text: text.trim() } : {}) }, { onSuccess: close });
   };
 
   return (
-    <Screen>
-      <Body>{t('report.intro')}</Body>
-      {messageId ? <Body muted>{t('report.messageCopy')}</Body> : null}
-      <ChipRow>
+    <Screen
+      safeTop
+      gutter="compact"
+      gap={14}
+      contentStyle={{ paddingTop: top }}
+      footer={
+        <View style={[styles.footer, { marginBottom: footerNudge }]}>
+          {report.error ? <ErrorText>{t(errorMessageKey(report.error))}</ErrorText> : null}
+          <Button testID="report-send" variant="dark" label={t('report.send')} disabled={!category} busy={report.isPending} onPress={send} />
+        </View>
+      }
+    >
+      <View style={styles.header}>
+        <Title size="modal" style={styles.title}>
+          {title}
+        </Title>
+        <CloseButton onPress={close} accessibilityLabel={t('common.close')} testID="report-close" />
+      </View>
+
+      <Banner tone="danger" testID="report-112">
+        <Text variant="small" weight="700" color="dangerInk" style={styles.bannerText}>
+          {t('report.danger')}
+        </Text>
+      </Banner>
+
+      {messageId ? (
+        <Banner tone="info">
+          {t('report.messageCopy')}
+        </Banner>
+      ) : null}
+
+      <View style={styles.categories} accessibilityRole="radiogroup" accessibilityLabel={t('report.question')}>
+        <Label style={styles.legend}>{t('report.question')}</Label>
         {categories.map((c) => (
-          <Toggle key={c} label={t(`report.categories.${c}`)} value={category === c} onChange={() => setCategory(c)} />
+          <Radio key={c} testID={`report-${c}`} label={t(`report.categories.${c}`)} selected={category === c} onPress={() => setCategory(c)} />
         ))}
-      </ChipRow>
-      {category === 'safety' ? <ErrorText>{t('report.emergency')}</ErrorText> : null}
-      <Field label={t('report.textLabel')} value={text} onChangeText={setText} multiline maxLength={REPORT_TEXT_MAX} />
-      <Body muted>{t('report.textWarning')}</Body>
-      {report.error ? <ErrorText>{t(errorMessageKey(report.error))}</ErrorText> : null}
-      <Button label={t('report.send')} disabled={!category} busy={report.isPending} onPress={send} />
+      </View>
+
+      <NoteField
+        testID="report-text"
+        label={t('report.textLabel')}
+        value={text}
+        onChangeText={setText}
+        maxLength={REPORT_TEXT_MAX}
+        placeholder={t('report.textPlaceholder')}
+        helper={name ? t('report.textWarningName', { name }) : t('report.textWarning')}
+      />
     </Screen>
   );
 }
+
+/** Space under the storyboard's bottom button. */
+const STORYBOARD_BOTTOM = 28;
+
+const styles = StyleSheet.create({
+  footer: { gap: 12 },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
+  title: { flexShrink: 1 },
+  bannerText: { lineHeight: 20 },
+  categories: { gap: 8 },
+  // The storyboard's legend at the browser's "normal" line height for 15 px.
+  legend: { lineHeight: 19 },
+});

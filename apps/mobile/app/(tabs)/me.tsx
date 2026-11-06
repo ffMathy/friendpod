@@ -1,89 +1,98 @@
-import type { SetParticipationMode } from '@grouper/core';
 import { useRouter } from 'expo-router';
+import { Tabs } from 'expo-router/js-tabs';
 import { useTranslation } from 'react-i18next';
-import { Body, Card, ChipRow, ErrorText, Heading, LinkRow, Loading, Screen, Toggle } from '@/components/ui';
+import { usePalette } from '@/components/theme';
+import { Banner, Button, Card, ErrorText, Icon, ListRow, ListSection, Loading, PageHeader, Screen } from '@/components/ui';
 import { useUserDoc } from '@/data/docs';
-import { useCallable } from '@/data/useCallable';
-import { PhotoCard } from '@/features/photos/PhotoCard';
-import { AboutMeField } from '@/features/profile/AboutMeField';
+import { useNow } from '@/features/drop/time';
 import { useUid } from '@/features/session/SessionProvider';
-import { currentLocale, initI18n } from '@/i18n';
-import { errorMessageKey } from '@/lib/errors';
+import { AboutMeCard } from '@/features/shell/AboutMeCard';
+import { GearIcon, usePageTop } from '@/features/shell/parts';
+import { prefsSummary } from '@/features/shell/prefsSummary';
+import { ProfileCard } from '@/features/shell/ProfileCard';
+import { WeeklyDropsCard } from '@/features/shell/WeeklyDropsCard';
 import { isUserSettingReason } from '@/lib/reasons';
 
-const MODES: readonly SetParticipationMode[] = ['auto', 'manual', 'skipNext', 'pause'];
-
-/** Me (§11): profile (photo, "About me", D4), preferences, participation, the user's own reliability record, blocking setting. */
+/**
+ * Me (§11): the profile (photo, name, area, the user's own attendance record, "About me", D4), weekly drops, a hint
+ * when a setting keeps the user out of pods, and the way to preferences, privacy, messages from Grouper and settings
+ * (language, notifications, the legal documents, sign out). No storyboard draws it; it follows priv-settings (whose
+ * "Me" eyebrow points here) and onb-final. The private-interests page carries the purple lock of private interests.
+ */
 export default function Me() {
   const { t } = useTranslation();
   const router = useRouter();
+  const p = usePalette();
   const uid = useUid();
   const user = useUserDoc(uid);
-  const participation = useCallable('setParticipation');
-  const updateProfile = useCallable('updateProfile');
-  if (!user.data) return <Loading label={t('common.loading')} />;
+  const now = useNow();
+  const top = usePageTop(40);
+  const hideHeader = <Tabs.Screen options={{ headerShown: false }} />;
+  if (!user.data) {
+    return (
+      <>
+        {hideHeader}
+        {user.error ? (
+          <Screen safeTop gutter="compact" contentStyle={{ paddingTop: top }}>
+            <PageHeader title={t('tabs.me')} />
+            <Card>
+              <ErrorText>{t('common.loadFailed')}</ErrorText>
+            </Card>
+          </Screen>
+        ) : (
+          <Loading label={t('common.loading')} />
+        )}
+      </>
+    );
+  }
   const u = user.data;
-  const locale = currentLocale();
-  const attended = u.stats.attended;
-  const meetups = attended + u.stats.noShows;
   const lastReason = u.lastDrop?.outcome === 'unmatched' ? u.lastDrop.reason : undefined;
   const blocking = isUserSettingReason(lastReason) ? lastReason : null;
-  const paused = u.participation.pausedUntil !== undefined || u.status === 'paused';
-  const activeMode: SetParticipationMode = paused ? 'pause' : u.participation.mode;
 
   return (
-    <Screen>
-      <Heading>{u.firstName}</Heading>
-      <Body muted>{u.area.label}</Body>
+    <Screen safeTop gutter="compact" contentStyle={{ paddingTop: top }} testID="me">
+      {hideHeader}
+      <PageHeader title={t('tabs.me')} />
 
-      <PhotoCard uid={uid} version={u.photo?.v ?? null} />
+      <ProfileCard uid={uid} user={u} />
 
-      <Card>
-        <Body muted>{t('aboutMe.intro')}</Body>
-        <AboutMeField initial={u.aboutMe ?? ''} />
-      </Card>
+      <AboutMeCard initial={u.aboutMe ?? ''} />
 
-      <Card>
-        <Body bold>{t('me.participation')}</Body>
-        <ChipRow>
-          {MODES.map((mode) => (
-            <Toggle key={mode} label={t(`me.modes.${mode}`)} value={activeMode === mode} onChange={() => participation.mutate({ mode })} />
-          ))}
-        </ChipRow>
-        {participation.data ? <Body muted>{t('me.effectiveFrom', { week: participation.data.effectiveWeekId })}</Body> : null}
-        {participation.error ? <ErrorText>{t(errorMessageKey(participation.error))}</ErrorText> : null}
-      </Card>
-
-      <Card>
-        <Body bold>{t('me.record')}</Body>
-        <Body>{meetups === 0 ? t('me.noMeetupsYet') : t('me.attended', { attended, total: meetups })}</Body>
-      </Card>
+      <WeeklyDropsCard user={u} now={now} />
 
       {blocking ? (
-        <Card>
-          <Body>{t(`blockingSetting.${blocking}`)}</Body>
-        </Card>
+        <Banner
+          tone="warning"
+          icon="info"
+          testID="blocking-setting"
+          actions={<Button label={t('me.changePreferences')} variant="outline" size="xs" onPress={() => router.push('/settings/preferences')} />}
+        >
+          {t(`blockingSetting.${blocking}`)}
+        </Banner>
       ) : null}
 
-      <Card>
-        <Body bold>{t('me.language')}</Body>
-        <ChipRow>
-          {(['da', 'en'] as const).map((l) => (
-            <Toggle
-              key={l}
-              label={t(`languages.${l}`)}
-              value={locale === l}
-              onChange={() => updateProfile.mutate({ locale: l }, { onSuccess: () => initI18n(l) })}
-            />
-          ))}
-        </ChipRow>
-      </Card>
+      <ListSection>
+        <ListRow
+          icon="people"
+          label={t('me.preferences')}
+          detail={prefsSummary(t, u.prefs)}
+          testID="me-preferences"
+          onPress={() => router.push('/settings/preferences')}
+        />
+        <ListRow icon="lock" label={t('me.privacy')} detail={t('me.privacyDetail')} testID="me-privacy" onPress={() => router.push('/settings/privacy')} />
+        <ListRow icon="chat" label={t('notices.title')} detail={t('me.noticesDetail')} testID="me-notices" onPress={() => router.push('/settings/notices')} />
+        <ListRow leading={<GearIcon />} label={t('me.settings')} detail={t('me.settingsDetail')} testID="me-settings" onPress={() => router.push('/settings')} />
+      </ListSection>
 
-      <LinkRow label={t('me.preferences')} onPress={() => router.push('/settings/preferences')} />
-      <LinkRow label={t('me.settings')} onPress={() => router.push('/settings')} />
-      <LinkRow label={t('notices.title')} onPress={() => router.push('/settings/notices')} />
-      <LinkRow label={t('info.howMatchingWorks.title')} onPress={() => router.push('/info/how-matching-works')} />
-      <LinkRow label={t('info.safety.title')} onPress={() => router.push('/info/safety')} />
+      <ListSection title={t('me.goodToKnow')}>
+        <ListRow icon="info" label={t('info.howMatchingWorks.title')} onPress={() => router.push('/info/how-matching-works')} />
+        <ListRow icon="shield" label={t('info.safety.title')} onPress={() => router.push('/info/safety')} />
+        <ListRow
+          leading={<Icon name="lock" size={22} color={p.privateText} />}
+          label={t('info.sensitive.title')}
+          onPress={() => router.push('/info/sensitive-interests')}
+        />
+      </ListSection>
     </Screen>
   );
 }

@@ -1,4 +1,4 @@
-import { DAY_MS, fromLocal, ymdDateSchema, type Place } from '@grouper/core';
+import { DAY_MS, fromLocal, toLocal, ymdDateSchema, type Place } from '@grouper/core';
 
 /** Planner limits (§3.5, §4.3): within 14 days, 08:00–22:00 local time. */
 export const OPTION_WINDOW_DAYS = 14;
@@ -30,4 +30,34 @@ export function validateOptionForm(v: OptionFormValues, now: number): OptionForm
   if (startsAt <= now || startsAt > now + OPTION_WINDOW_DAYS * DAY_MS || !inHours) return { ok: false, error: 'WINDOW' };
   if (!v.place) return { ok: false, error: 'PLACE' };
   return { ok: true, startsAt, place: v.place };
+}
+
+const pad = (n: number) => String(n).padStart(2, '0');
+
+/** The times "Suggest a time" offers: every half hour from 08:00 to 22:00 ("HH:MM", Copenhagen time). */
+export const OPTION_TIME_SLOTS: readonly string[] = Array.from({ length: 29 }, (_, i) => `${pad(8 + Math.floor(i / 2))}:${i % 2 === 1 ? '30' : '00'}`);
+
+/** "2026-11-15" and "15:00" as a moment, in Copenhagen time. */
+export function slotStartsAt(date: string, time: string): number {
+  const [year = 0, month = 0, day = 0] = date.split('-').map(Number);
+  const [hour = 0, minute = 0] = time.split(':').map(Number);
+  return fromLocal({ year, month, day, hour, minute });
+}
+
+/** Whether a day and time can still be suggested: later than now and within the 14-day window. */
+export function slotOpen(date: string, time: string, now: number): boolean {
+  const at = slotStartsAt(date, time);
+  return at > now && at <= now + OPTION_WINDOW_DAYS * DAY_MS;
+}
+
+/** The days with at least one open time, from today (if it still has one) to 14 days ahead, as "YYYY-MM-DD". */
+export function optionDays(now: number): string[] {
+  const today = toLocal(now);
+  const days: string[] = [];
+  for (let i = 0; i <= OPTION_WINDOW_DAYS; i += 1) {
+    const d = new Date(Date.UTC(today.year, today.month - 1, today.day + i));
+    const ymd = `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`;
+    if (OPTION_TIME_SLOTS.some((time) => slotOpen(ymd, time, now))) days.push(ymd);
+  }
+  return days;
 }

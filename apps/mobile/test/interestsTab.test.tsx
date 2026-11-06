@@ -19,13 +19,14 @@ jest.mock('@/firebase/callables', () => ({
 const live = (data: unknown) => ({ data, error: null, isLoading: false });
 type Row = { id: string; data: Record<string, unknown> };
 let mockOrdinary: Row[] = [];
+let mockSensitive: Row[] = [];
 let mockConsent = false;
 jest.mock('@/data/docs', () => ({
   useUserDoc: () =>
     live({ area: { areaId: null }, legal: mockConsent ? { art9: { textVersion: 'art9-blanket-en-v1', textSha256: 'x', at: { toMillis: () => 0 } } } : {} }),
   useAreaDoc: () => live(null),
   useInterests: () => live(mockOrdinary),
-  useSensitiveInterests: () => live([]),
+  useSensitiveInterests: () => live(mockSensitive),
 }));
 
 const ordinary = (id: string, display: string, extra: Record<string, unknown> = {}): Row => ({
@@ -58,21 +59,26 @@ beforeEach(() => {
   mockRouter.push.mockClear();
   mockConsent = false;
   mockOrdinary = [ordinary('aaaaaaaaaaaaaaaa', 'Brætspil'), ordinary('bbbbbbbbbbbbbbbb', 'Kaffe')];
+  mockSensitive = [];
 });
 afterEach(() => client.clear());
 
 describe('Interests tab (§11)', () => {
-  it('removes an interest', async () => {
+  it('shows "n of 20" and removes an interest from its "…"', async () => {
     mockCall.mockResolvedValue({ ok: true });
     await renderTab();
-    await fireEvent.press(screen.getAllByRole('button', { name: 'Remove' })[1]!);
+    expect(screen.getByText('2 of 20')).toBeOnTheScreen();
+    expect(screen.queryByRole('button', { name: 'Remove Kaffe' })).toBeNull();
+    await fireEvent.press(screen.getByRole('button', { name: 'More for Kaffe' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Remove Kaffe' }));
     expect(mockCall).toHaveBeenCalledWith('removeInterest', { interestId: 'bbbbbbbbbbbbbbbb' });
   });
 
   it('stars and unstars, up to 3', async () => {
     mockCall.mockResolvedValue({ ok: true });
     await renderTab();
-    await fireEvent.press(screen.getAllByRole('switch', { name: 'Star' })[0]!);
+    expect(screen.getByRole('togglebutton', { name: 'Star Brætspil' }).props.accessibilityState).toMatchObject({ checked: false });
+    await fireEvent.press(screen.getByRole('togglebutton', { name: 'Star Brætspil' }));
     expect(mockCall).toHaveBeenCalledWith('updateInterest', { interestId: 'aaaaaaaaaaaaaaaa', starred: true });
     client.clear();
     mockCall.mockClear();
@@ -84,10 +90,11 @@ describe('Interests tab (§11)', () => {
       ordinary('dddddddddddddddd', 'D'),
     ];
     await renderTab();
-    await fireEvent.press(screen.getAllByRole('switch', { name: 'Star' })[3]!);
+    expect(screen.getByRole('togglebutton', { name: 'Star A' }).props.accessibilityState).toMatchObject({ checked: true });
+    await fireEvent.press(screen.getByRole('togglebutton', { name: 'Star D' }));
     expect(mockCall).not.toHaveBeenCalled();
     expect(screen.getByText('You can star up to 3 interests.')).toBeOnTheScreen();
-    await fireEvent.press(screen.getAllByRole('switch', { name: 'Star' })[0]!);
+    await fireEvent.press(screen.getByRole('togglebutton', { name: 'Star A' }));
     expect(mockCall).toHaveBeenCalledWith('updateInterest', { interestId: 'aaaaaaaaaaaaaaaa', starred: false });
   });
 
@@ -97,17 +104,29 @@ describe('Interests tab (§11)', () => {
       .mockResolvedValueOnce({ ok: true });
     await renderTab();
     await add('braetspil');
-    expect(screen.getByText('Did you mean “brætspil”?')).toBeOnTheScreen();
-    await fireEvent.press(screen.getByRole('button', { name: 'Yes, use that' }));
+    expect(screen.getByText(/^Did you mean brætspil by “braetspil”\? Saying yes puts you with more people\.$/)).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('button', { name: 'Yes, same thing' }));
     expect(mockCall).toHaveBeenLastCalledWith('confirmSuggestion', { interestId: 'eeeeeeeeeeeeeeee', conceptId: 'c_boardgames01' });
-    expect(screen.queryByText('Did you mean “brætspil”?')).toBeNull();
+    expect(screen.queryByText(/^Did you mean/)).toBeNull();
+  });
+
+  it('"No, keep it" keeps the own wording and sends nothing', async () => {
+    mockCall.mockResolvedValueOnce({
+      results: [{ status: 'added', interestId: 'eeeeeeeeeeeeeeee', suggestion: { conceptId: 'c_boardgames01', label: 'brætspil' } }],
+    });
+    await renderTab();
+    await add('braetspil');
+    await fireEvent.press(screen.getByRole('button', { name: 'No, keep it' }));
+    expect(mockCall).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText(/^Did you mean/)).toBeNull();
   });
 
   it('"Keep this private" resends the holding with selfFlagPrivate (with consent)', async () => {
     mockConsent = true;
     mockCall.mockResolvedValue({ results: [{ status: 'madePrivate', interestId: 'aaaaaaaaaaaaaaaa', private: true }] });
     await renderTab();
-    await fireEvent.press(screen.getAllByRole('button', { name: 'Keep this private' })[0]!);
+    await fireEvent.press(screen.getByRole('button', { name: 'More for Brætspil' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Keep this private' }));
     await act(async () => {
       await Promise.resolve();
     });
@@ -118,13 +137,61 @@ describe('Interests tab (§11)', () => {
     expect(screen.getByText('This interest is now private.')).toBeOnTheScreen();
   });
 
+  it('an interest made ordinary ("This isn\'t sensitive for me") keeps "Keep this private" at hand', async () => {
+    mockConsent = true;
+    mockOrdinary = [ordinary('aaaaaaaaaaaaaaaa', 'Far på barsel', { notSensitiveForMe: true })];
+    mockCall.mockResolvedValue({ ok: true });
+    await renderTab();
+    expect(screen.getByRole('button', { name: 'Keep this private' })).toBeOnTheScreen();
+    // The pill takes the place of "…" (priv-interests); the interest's name opens the row's actions instead.
+    expect(screen.getAllByRole('button', { name: 'More for Far på barsel' })).toHaveLength(1);
+    await fireEvent.press(screen.getByRole('button', { name: 'More for Far på barsel' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Remove Far på barsel' }));
+    expect(mockCall).toHaveBeenCalledWith('removeInterest', { interestId: 'aaaaaaaaaaaaaaaa' });
+  });
+
+  it('keeps the standing notice on sensitive interests, under the lists', async () => {
+    await renderTab();
+    expect(screen.getByText(/^Tip: interests that say something about your health/)).toBeOnTheScreen();
+  });
+
   it('"Keep this private" without consent is refused on the phone and sends nothing', async () => {
     await renderTab();
-    await fireEvent.press(screen.getAllByRole('button', { name: 'Keep this private' })[0]!);
+    await fireEvent.press(screen.getByRole('button', { name: 'More for Brætspil' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Keep this private' }));
     await act(async () => {
       await Promise.resolve();
     });
     expect(mockCall).not.toHaveBeenCalled();
     expect(screen.getByRole('button', { name: 'Sensitive interests: give consent' })).toBeOnTheScreen();
+    // The private card says the consent is off and links to it.
+    await fireEvent.press(screen.getByRole('link', { name: 'Agree to sensitive interests' }));
+    expect(mockRouter.push).toHaveBeenCalledWith('/settings/sensitive-consent');
+  });
+
+  it('lists private interests with their consent date; "Remove & withdraw" withdraws that one in a tap (PRIVACY §3.5)', async () => {
+    mockConsent = true;
+    mockCall.mockResolvedValue({ ok: true });
+    mockSensitive = [{ id: 'pppppppppppppppp', data: { display: 'Gravid', starred: false, consentedAt: { toMillis: () => Date.UTC(2026, 10, 4, 19, 15) } } }];
+    await renderTab();
+    expect(screen.getByText('3 of 20')).toBeOnTheScreen();
+    expect(screen.getByLabelText('Gravid, private')).toBeOnTheScreen();
+    expect(screen.getByText('Consent given 4 Nov 2026')).toBeOnTheScreen();
+    expect(screen.getByText('Only used to form pods about this interest. Never on a profile, never in a notification.')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('button', { name: 'Remove Gravid and withdraw consent for it' }));
+    expect(mockCall).toHaveBeenCalledWith('removeInterest', { interestId: 'pppppppppppppppp' });
+  });
+
+  it('"This isn\'t sensitive for me" on a private interest resends it with that flag', async () => {
+    mockConsent = true;
+    mockCall.mockResolvedValue({ results: [{ status: 'madeOrdinary', interestId: 'pppppppppppppppp' }] });
+    mockSensitive = [{ id: 'pppppppppppppppp', data: { display: 'Gravid', starred: false, consentedAt: { toMillis: () => 0 } } }];
+    await renderTab();
+    await fireEvent.press(screen.getByRole('button', { name: "This isn't sensitive for me" }));
+    await act(async () => {
+      await Promise.resolve();
+    });
+    const input = mockCall.mock.calls[0]?.[1] as { items: Record<string, unknown>[] };
+    expect(input.items[0]).toMatchObject({ text: 'Gravid', notSensitiveForMe: true });
   });
 });
