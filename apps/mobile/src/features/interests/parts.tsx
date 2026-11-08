@@ -100,7 +100,7 @@ const PILLS: Record<PillTone, { bg: PaletteKey; fg: PaletteKey; border: PaletteK
   /** "Keep this private": white, lilac border, purple text. */
   private: { bg: 'surface', fg: 'privateText', border: 'privateBorder' },
   /** "Remove & withdraw", "Remove": red tint. */
-  danger: { bg: 'dangerBg', fg: 'dangerText', border: 'dangerBorder' },
+  danger: { bg: 'surface', fg: 'danger', border: 'danger' },
   /** "This isn't sensitive for me". */
   neutral: { bg: 'surface', fg: 'text', border: 'borderStrong' },
 };
@@ -163,7 +163,7 @@ export function StarButton({ name, starred, onPress, testID }: { name: string; s
       hitSlop={2}
       style={({ pressed }) => [styles.iconButton, styles.starButton, { opacity: pressed ? 0.6 : 1 }]}
     >
-      {starred ? <Icon name="starFilled" size={20} /> : <Icon name="star" size={20} color={p.textFaint} />}
+      {starred ? <Icon name="starFilled" size={20} /> : <Icon name="star" size={20} color={p.field} />}
     </Pressable>
   );
 }
@@ -192,12 +192,12 @@ export function SuggestionBanner({ label, typed, onYes, onNo }: { label: string;
   const { t } = useTranslation();
   return (
     <Banner
-      tone="warning"
+      tone="needsYou"
       icon={null}
       testID="interest-suggestion"
       actions={
         <>
-          <Button variant="dark" size="xs" label={t('interests.useSuggestion')} onPress={onYes} />
+          <Button variant="primary" size="xs" label={t('interests.useSuggestion')} onPress={onYes} />
           <Button variant="outline" size="xs" label={t('interests.keepOwnWording')} onPress={onNo} />
         </>
       }

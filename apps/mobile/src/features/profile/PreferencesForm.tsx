@@ -218,7 +218,7 @@ function SwitchCard({
         </Text>
       </View>
       <View style={[styles.track, { backgroundColor: value ? p.primary : p.borderStrong }]}>
-        <View style={[styles.thumb, { backgroundColor: p.onHero }, value ? styles.thumbOn : null]} />
+        <View style={[styles.thumb, { backgroundColor: p.switchThumb }, value ? styles.thumbOn : null]} />
       </View>
     </Pressable>
   );

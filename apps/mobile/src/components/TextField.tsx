@@ -1,10 +1,12 @@
 /**
  * Text input with its label (15/700), an optional "(optional)" suffix, a character counter, helper text and an
- * error. 54 px, r14, 1 px input border; 2 px green when focused.
+ * error (blend spec §6.2). White, radius 14, 1.5 px Field border; focused: 2 px Skov deep; error: 2 px Danger.
+ * Placeholders are Muted, never the platform default. `AddField` is the one input + Add pattern.
  */
 import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, TextInput, View, type TextInputProps } from 'react-native';
+import { Button } from './Button';
 import { Icon, type IconName } from './Icon';
 import { ErrorText, Text } from './Text';
 import { BorderWidth, Radius, Size, typeStyle, usePalette } from './theme';
@@ -23,8 +25,11 @@ export interface TextFieldProps extends Omit<TextInputProps, 'style'> {
   readonly error?: string | null;
   /** Shows "52 / 140" at the right of the label (needs `maxLength`). */
   readonly showCount?: boolean;
-  /** `lg` 54 px / 17 px text (default), `md` 52 px / 16 px (search, add-interest, date and time). */
-  readonly size?: 'lg' | 'md';
+  /**
+   * `lg` 54 px / 16 px text (default, standalone inputs), `md` 52 px / 16 px (search, date and time), `add` 52 px /
+   * 15 px (the input of the input + Add pair, so "Add an interest in your own words" fits beside the button).
+   */
+  readonly size?: 'lg' | 'md' | 'add';
   /** A leading 20 px icon inside the input ("search"). */
   readonly icon?: IconName;
   /** Beside the input, in the same row (the "Add" button). */
@@ -52,10 +57,10 @@ export function TextField({
   const p = usePalette();
   const { t } = useTranslation();
   const [focused, setFocused] = useState(false);
-  const height = size === 'md' ? Size.inputCompact : Size.input;
-  const borderColor = error ? p.dangerText : focused ? p.primary : p.borderStrong;
-  const borderWidth = focused || error ? BorderWidth.strong : BorderWidth.hairline;
-  const padH = icon ? 44 : 16;
+  const height = size === 'lg' ? Size.input : Size.inputCompact;
+  const borderColor = error ? p.danger : focused ? p.link : p.field;
+  const borderWidth = focused || error ? BorderWidth.strong : BorderWidth.control;
+  const padH = icon ? 44 : size === 'lg' ? 14 : 12;
   const count = showCount && maxLength ? `${(value ?? '').length} / ${maxLength}` : null;
   return (
     <View style={labelStyle === 'sub' ? styles.subField : styles.field}>
@@ -70,7 +75,7 @@ export function TextField({
             ) : null}
           </Text>
           {count ? (
-            <Text variant="caption" color={maxLength && (value ?? '').length >= maxLength ? 'dangerText' : 'textMuted'}>
+            <Text variant="microStrong" color={maxLength && (value ?? '').length >= maxLength ? 'danger' : 'textMuted'}>
               {count}
             </Text>
           ) : null}
@@ -96,7 +101,7 @@ export function TextField({
               onBlur?.(e);
             }}
             style={[
-              typeStyle(size === 'md' ? 'lede' : 'input'),
+              typeStyle(size === 'add' ? 'bodySmall' : 'input'),
               styles.input,
               multiline ? styles.multiline : { height },
               {
@@ -104,9 +109,10 @@ export function TextField({
                 backgroundColor: p.surface,
                 borderColor,
                 borderWidth,
-                paddingLeft: padH - (borderWidth - 1),
-                paddingRight: 16 - (borderWidth - 1),
-                lineHeight: multiline ? 22 : undefined,
+                // The text stays put when the border thickens on focus.
+                paddingLeft: padH - (borderWidth - BorderWidth.control),
+                paddingRight: 12 - (borderWidth - BorderWidth.control),
+                lineHeight: multiline ? 24 : undefined,
               },
             ]}
             {...input}
@@ -123,6 +129,49 @@ export function TextField({
 /** The older name; same component. */
 export const Field = TextField;
 export type FieldProps = TextFieldProps;
+
+export interface AddFieldProps extends Omit<TextFieldProps, 'trailing' | 'size'> {
+  /** The button's label ("Add", "Send"). */
+  readonly addLabel: string;
+  readonly onAdd: () => void;
+  /** Disable the button (e.g. while the input is empty). */
+  readonly addDisabled?: boolean;
+  /** Show the button's spinner. */
+  readonly busy?: boolean;
+  /** Read by screen readers instead of `addLabel` ("Add interest"). */
+  readonly addAccessibilityLabel?: string;
+  readonly addTestID?: string;
+}
+
+/**
+ * The one input + Add pattern (decision 7): a separate 52 px input (15 px text) and a 52 px Skov button with radius
+ * 14, gap 8. The label is for screen readers only unless `labelHidden={false}`.
+ *
+ *   <AddField label={label} placeholder={placeholder} value={text} onChangeText={setText}
+ *     addLabel={addLabel} onAdd={add} addDisabled={!text.trim()} />
+ */
+export function AddField({ addLabel, onAdd, addDisabled = false, busy = false, addAccessibilityLabel, addTestID, labelHidden = true, ...field }: AddFieldProps) {
+  return (
+    <TextField
+      {...field}
+      labelHidden={labelHidden}
+      size="add"
+      returnKeyType={field.returnKeyType ?? 'done'}
+      onSubmitEditing={field.onSubmitEditing ?? (() => (addDisabled || busy ? undefined : onAdd()))}
+      trailing={
+        <Button
+          size="input"
+          label={addLabel}
+          accessibilityLabel={addAccessibilityLabel}
+          onPress={onAdd}
+          disabled={addDisabled}
+          busy={busy}
+          testID={addTestID}
+        />
+      }
+    />
+  );
+}
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },

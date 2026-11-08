@@ -54,7 +54,7 @@ export function AboutMeInput({ state, helper }: { readonly state: AboutMeState; 
           {t('aboutMe.label')}
           <Text variant="heading" weight="500" color="textMuted" style={styles.normal15}>{` ${t('common.optional')}`}</Text>
         </Label>
-        <Text variant="caption" color={full ? 'dangerText' : 'textMuted'} style={styles.normal13}>
+        <Text variant="caption" color={full ? 'danger' : 'textMuted'} style={styles.normal13}>
           {`${state.value.length} / ${ABOUT_ME_MAX}`}
         </Text>
       </View>
@@ -76,7 +76,7 @@ export function AboutMeInput({ state, helper }: { readonly state: AboutMeState; 
           {
             color: p.text,
             backgroundColor: p.surface,
-            borderColor: error ? p.dangerText : focused ? p.primary : p.borderStrong,
+            borderColor: error ? p.danger : focused ? p.primary : p.borderStrong,
             borderWidth,
             paddingHorizontal: 14 - (borderWidth - 1),
             lineHeight: undefined,

@@ -4,8 +4,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { Text as RNText, StyleSheet, View, type LayoutChangeEvent } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Banner, Button, Display, Lede, Logo, Screen, SegmentedControl, Text } from '@/components/ui';
-import { BorderWidth, Layout, Radius, Size, usePalette, type PaletteKey } from '@/components/theme';
+import { Banner, Button, Display, Lede, Logo, PodMark, Screen, SegmentedControl, Text } from '@/components/ui';
+import { BorderWidth, Layout, Radius, Size, usePalette } from '@/components/theme';
 import { consumeAccountDeleted } from '@/features/account/account';
 import { isAppleSignInAvailable, signInWithApple } from '@/features/auth/apple';
 import { AuthCancelled } from '@/features/auth/errors';
@@ -95,7 +95,7 @@ export default function Welcome() {
 
         {deleted ? (
           <View onLayout={measure('banner')}>
-            <Banner tone="mint" icon="check">
+            <Banner tone="info" icon="check">
               {t('settings.delete.done')}
             </Banner>
           </View>
@@ -112,12 +112,12 @@ export default function Welcome() {
 
         <View style={styles.actions} onLayout={measure('actions')}>
           {failed ? (
-            <Banner tone="danger" icon="info" alert>
+            <Banner tone="safety" icon="info" alert>
               {t('auth.signIn.failed')}
             </Banner>
           ) : null}
           {apple ? (
-            <Button variant="dark" label={t('auth.signIn.apple')} busy={busy === 'apple'} disabled={busy !== null} onPress={() => void run('apple')} />
+            <Button variant="apple" label={t('auth.signIn.apple')} busy={busy === 'apple'} disabled={busy !== null} onPress={() => void run('apple')} />
           ) : null}
           <Button variant="outline" label={t('auth.signIn.google')} busy={busy === 'google'} disabled={busy !== null} onPress={() => void run('google')} />
           <Button variant="outline" label={t('auth.signIn.email')} disabled={busy !== null} onPress={() => router.push('/email')} />
@@ -128,44 +128,20 @@ export default function Welcome() {
   );
 }
 
-type Dot = { x: number; y: number; d: number; color: PaletteKey };
-
-/** Main.dc.html's five people-dots on mint, positions on the 342 × 220 artboard. */
-const DOTS: readonly Dot[] = [
-  { x: 56, y: 42, d: 72, color: 'primary' },
-  { x: 150, y: 24, d: 92, color: 'accent' },
-  { x: 260, y: 70, d: 64, color: 'sage' },
-  { x: 96, y: 128, d: 84, color: 'accentSoft' },
-  { x: 204, y: 132, d: 70, color: 'leaf' },
-];
-
 /**
- * The welcome hero. The DS `Illustration` keeps its dots at full size and clips them when it is made shorter, so this
- * one scales the dot group about the hero's centre line instead: at 220 px it is the storyboard exactly.
+ * The welcome hero: the poster mark (people around a sun, your seat saved) on the Skov house field, scaled to the
+ * height the layout leaves it (160–220 px). The blend's full poster welcome is drawn by the welcome screen's rebuild.
  */
 function Hero({ height }: { height: number }) {
   const p = usePalette();
-  const s = height / HERO.height;
   return (
     <View
       accessible={false}
       importantForAccessibility="no-hide-descendants"
       accessibilityElementsHidden
-      style={[styles.hero, { height, backgroundColor: p.mint }]}
+      style={[styles.hero, { height, backgroundColor: p.house }]}
     >
-      {DOTS.map((dot) => {
-        const d = dot.d * s;
-        const centre = HERO.width / 2 + (dot.x + dot.d / 2 - HERO.width / 2) * s;
-        return (
-          <View
-            key={dot.color}
-            style={[
-              styles.dot,
-              { left: `${(centre / HERO.width) * 100}%`, marginLeft: -d / 2, top: dot.y * s, width: d, height: d, borderRadius: d / 2, backgroundColor: p[dot.color] },
-            ]}
-          />
-        );
-      })}
+      <PodMark variant="poster" ground="skov" size={Math.round(((height - 32) * 120) / 112)} />
     </View>
   );
 }
@@ -198,8 +174,7 @@ const styles = StyleSheet.create({
   topRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
   intro: { flexGrow: 1, justifyContent: 'center', gap: INTRO_GAP },
   copy: { gap: INTRO_GAP },
-  hero: { alignSelf: 'stretch', borderRadius: Radius.panel, overflow: 'hidden' },
-  dot: { position: 'absolute' },
+  hero: { alignSelf: 'stretch', borderRadius: Radius.panel, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
   badge: {
     alignSelf: 'flex-start',
     height: Size.badge + 2 * BorderWidth.hairline,

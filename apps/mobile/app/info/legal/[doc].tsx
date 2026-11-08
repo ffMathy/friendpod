@@ -48,7 +48,7 @@ export default function LegalDoc() {
     return (
       <ShellPage title={t('info.legalTitle')}>
         <Card>
-          <Text variant="body" color="textBody">
+          <Text variant="body" color="text">
             {t('info.legalUnknown')}
           </Text>
         </Card>
@@ -61,14 +61,14 @@ export default function LegalDoc() {
     <ShellPage title={t(`info.legal.${doc}.title`)} testID={`legal-${doc}`}>
       <Card gap={12}>
         <View style={styles.meta}>
-          <Badge tone="warning" size="sm" label={t('info.legalDraft')} />
+          <Badge tone="outline" size="sm" label={t('info.legalDraft')} />
           {month ? (
             <Text variant="caption" color="textMuted">
               {t('info.legalVersion', { month })}
             </Text>
           ) : null}
         </View>
-        <Text variant="body" color="textBody">
+        <Text variant="body" color="text">
           {t(`info.legal.${doc}.body`)}
         </Text>
       </Card>
@@ -88,10 +88,10 @@ function Licences() {
 
       <Card gap={6} testID="licence-postcodes">
         <Heading>{t('info.legalPostcodes')}</Heading>
-        <Text variant="small" color="textBody">
+        <Text variant="small" color="text">
           {t('info.legalPostcodesUse')}
         </Text>
-        <Text variant="small" color="textBody">
+        <Text variant="small" color="text">
           <InlineLink onPress={open(GEONAMES_URL)}>{POSTCODE_SOURCE}</InlineLink>
           {', '}
           <InlineLink onPress={open(CC_BY_4_URL)}>CC BY 4.0</InlineLink>
@@ -100,7 +100,7 @@ function Licences() {
 
       <Card gap={6} testID="licence-font">
         <Heading>{t('info.legalFont')}</Heading>
-        <Text variant="small" color="textBody">
+        <Text variant="small" color="text">
           {`${FONT_CREDIT.name}, ${FONT_CREDIT.licence}`}
         </Text>
         <Text variant="caption" color="textMuted">

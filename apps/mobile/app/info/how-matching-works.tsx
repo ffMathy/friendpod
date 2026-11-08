@@ -70,10 +70,10 @@ export default function HowMatchingWorks() {
 
       <Card gap={8}>
         <Heading>{t('info.howMatchingWorks.reviewTitle')}</Heading>
-        <Text variant="small" color="textBody">
+        <Text variant="small" color="text">
           {t('info.howMatchingWorks.noReview')}
         </Text>
-        <Text variant="small" color="textBody">
+        <Text variant="small" color="text">
           {t('info.howMatchingWorks.humanReview')}
         </Text>
       </Card>
@@ -87,7 +87,7 @@ export default function HowMatchingWorks() {
           onPress={() => router.dismissTo('/me')}
         />
       ) : (
-        <Banner tone="mint" icon="pause">
+        <Banner tone="info" icon="pause">
           {t('info.howMatchingWorks.pause')}
         </Banner>
       )}

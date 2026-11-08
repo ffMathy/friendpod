@@ -55,7 +55,7 @@ export function ProposalCard({ podId, card, confirmationMin, onDone }: ProposalC
   const error = respond.error ?? leave.error;
 
   const badge = accepted ? (
-    <Badge tone="mint" icon="check" label={t('pods.youreIn')} />
+    <Badge tone="status" icon="check" label={t('pods.youreIn')} />
   ) : invited ? (
     isPrivate ? (
       // The private badge is drawn 2 px taller than the others (30 px, r15), as on the storyboard.
@@ -66,7 +66,7 @@ export function ProposalCard({ podId, card, confirmationMin, onDone }: ProposalC
         </Text>
       </View>
     ) : (
-      <Badge tone="accent" label={t('pods.newPod')} />
+      <Badge tone="status" label={t('pods.newPod')} />
     )
   ) : (
     <Badge tone="outline" label={t('pods.saidNo')} />
@@ -129,10 +129,10 @@ export function ProposalCard({ podId, card, confirmationMin, onDone }: ProposalC
 
             {isPrivate ? (
               <View style={[styles.privateNote, { backgroundColor: p.privateBg }]}>
-                <Text variant="caption" color="privateInk" style={styles.note}>
+                <Text variant="caption" color="text" style={styles.note}>
                   {t('pods.privateNote')}
                 </Text>
-                <Text variant="caption" color="privateInk" style={styles.note}>
+                <Text variant="caption" color="text" style={styles.note}>
                   {t('pods.privateReveal')}
                 </Text>
               </View>
@@ -176,7 +176,7 @@ export function ProposalCard({ podId, card, confirmationMin, onDone }: ProposalC
             <Button label={t('pods.decline')} variant="outline" grow={1} style={styles.pairButton} onPress={() => setDeclining(true)} />
             <Button
               label={t('pods.accept')}
-              variant={isPrivate ? 'private' : 'primary'}
+              variant="primary"
               grow={1.4}
               style={styles.pairButton}
               busy={respond.isPending}
@@ -199,7 +199,7 @@ export function ProposalCard({ podId, card, confirmationMin, onDone }: ProposalC
               <Button label={t('common.cancel')} variant="outline" grow={1} style={styles.pairButton} onPress={() => setDeclining(false)} />
               <Button
                 label={t('pods.confirmDecline')}
-                variant="dark"
+                variant="primary"
                 grow={1.4}
                 style={styles.pairButton}
                 busy={respond.isPending}
@@ -209,7 +209,7 @@ export function ProposalCard({ podId, card, confirmationMin, onDone }: ProposalC
           </View>
         ) : null}
 
-        {accepted && onDone ? <Button label={t('pods.okay')} variant="dark" onPress={onDone} /> : null}
+        {accepted && onDone ? <Button label={t('pods.okay')} variant="primary" onPress={onDone} /> : null}
       </Card>
 
       {invited && !isPrivate ? (

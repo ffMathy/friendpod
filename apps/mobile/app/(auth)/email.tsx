@@ -84,12 +84,12 @@ export default function EmailSignIn() {
         }}
       />
       {state === 'sent' ? (
-        <Banner tone="mint" icon="check" title={t('auth.email.sentTitle')} alert>
+        <Banner tone="info" icon="check" title={t('auth.email.sentTitle')} alert>
           {t('auth.email.sent', { email: sentTo })}
         </Banner>
       ) : null}
       {state === 'failed' ? (
-        <Banner tone="danger" icon="info" alert>
+        <Banner tone="safety" icon="info" alert>
           {t('auth.email.failed')}
         </Banner>
       ) : null}

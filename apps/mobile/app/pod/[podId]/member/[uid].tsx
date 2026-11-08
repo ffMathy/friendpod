@@ -126,7 +126,7 @@ export default function MemberSheet() {
             <Text variant="captionBold" color="textMuted">
               {t('member.aboutMe')}
             </Text>
-            <Text variant="body" color="textBody">
+            <Text variant="body" color="text">
               {entry.aboutMe}
             </Text>
           </Card>

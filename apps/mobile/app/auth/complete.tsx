@@ -116,7 +116,7 @@ export default function CompleteEmailLink() {
           />
         ) : null}
         {askEmail && error ? (
-          <Banner tone="danger" icon="info" alert>
+          <Banner tone="safety" icon="info" alert>
             {error}
           </Banner>
         ) : null}

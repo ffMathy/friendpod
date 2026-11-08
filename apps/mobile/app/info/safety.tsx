@@ -24,7 +24,7 @@ export default function Safety() {
   return (
     <ShellPage title={t('info.safety.title')} testID="safety">
       <PageLede>{t('info.safety.lede')}</PageLede>
-      <Banner tone="danger" title={t('info.safety.emergency')} />
+      <Banner tone="safety" title={t('info.safety.emergency')} />
       <IconListCard title={t('info.safety.beforeTitle')}>
         {BEFORE.map((tip) => (
           <IconBullet key={tip} icon={DONT.has(tip) ? 'block' : 'check'} tone={DONT.has(tip) ? 'neutral' : 'mint'}>
@@ -40,12 +40,12 @@ export default function Safety() {
         ))}
       </IconListCard>
       {signedIn ? (
-        <Card variant="mint" gap={8} testID="safety-pledge">
+        <Card gap={8} testID="safety-pledge">
           <View style={styles.pledgeTitle}>
-            <Icon name="shield" size={20} color={p.onMint} />
+            <Icon name="shield" size={20} color={p.textSecondary} />
             <Heading>{t('onboarding.final.pledgeTitle')}</Heading>
           </View>
-          <Text variant="small" color="mintBody">
+          <Text variant="small" color="textSecondary">
             {t('onboarding.final.pledge')}
           </Text>
         </Card>

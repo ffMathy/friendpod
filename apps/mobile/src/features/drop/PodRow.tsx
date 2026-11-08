@@ -56,13 +56,13 @@ export function PodRow({ uid, card, now }: { uid: string; card: WithId<PodCardDo
       accessibilityRole="link"
       accessibilityLabel={`${theme}${c.themeSensitive ? `, ${t('pods.privateInterest')}` : ''}. ${detail}`}
       onPress={() => router.push({ pathname: '/pod/[podId]', params: { podId: card.id } })}
-      style={({ pressed }) => [styles.row, { backgroundColor: pressed ? p.surfaceMuted : p.surface, borderColor: c.themeSensitive ? p.privateBorder : p.border }]}
+      style={({ pressed }) => [styles.row, { backgroundColor: pressed ? p.inset : p.surface, borderColor: c.themeSensitive ? p.privateBorder : p.border }]}
     >
       {others.length > 0 ? (
         <AvatarStack people={others} size={32} overlap={10} />
       ) : (
-        <View style={[styles.placeholder, { backgroundColor: c.themeSensitive ? p.privateBg : p.mint }]}>
-          <Icon name={c.themeSensitive ? 'lock' : 'people'} size={18} color={c.themeSensitive ? p.privateText : p.onMint} />
+        <View style={[styles.placeholder, { backgroundColor: c.themeSensitive ? p.privateBg : p.inset }]}>
+          <Icon name={c.themeSensitive ? 'lock' : 'people'} size={18} color={c.themeSensitive ? p.privateText : p.textSecondary} />
         </View>
       )}
       <View style={styles.text}>

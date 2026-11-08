@@ -55,7 +55,7 @@ export function AboutMeCard({ initial }: { readonly initial: string }) {
       ) : saved ? (
         <View style={styles.saved} testID="about-me-saved">
           <Icon name="check" size={16} color={p.primary} />
-          <Text variant="captionStrong" color="onMint">
+          <Text variant="captionStrong" color="textSecondary">
             {t('aboutMe.saved')}
           </Text>
         </View>

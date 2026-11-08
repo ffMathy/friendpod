@@ -92,8 +92,8 @@ function reasonLines(t: TFunction, reasons: readonly PodReason[]): Line[] {
 }
 
 const MARKS: Record<Line['kind'], { icon: IconName; bg: PaletteKey; fg: PaletteKey; stroke: number }> = {
-  match: { icon: 'check', bg: 'mint', fg: 'onMint', stroke: 2.4 },
-  priority: { icon: 'clock', bg: 'warningBg', fg: 'warningText', stroke: 2.2 },
+  match: { icon: 'check', bg: 'inset', fg: 'textSecondary', stroke: 2.4 },
+  priority: { icon: 'clock', bg: 'inset', fg: 'textSecondary', stroke: 2.2 },
 };
 
 /** "Why this pod" (drop-why): the reasons, what we never use, and a link to how matching works. */

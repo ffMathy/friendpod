@@ -33,7 +33,7 @@ export function Composer({ value, onChangeText, onSend, enabled, busy, holdSend 
         <Text
           accessibilityLabel={t('chat.counterLabel', { length, max: CHAT_MESSAGE_MAX })}
           variant="micro"
-          color={length >= CHAT_MESSAGE_MAX ? 'dangerText' : 'textMuted'}
+          color={length >= CHAT_MESSAGE_MAX ? 'danger' : 'textMuted'}
           align="right"
           style={styles.counter}
         >

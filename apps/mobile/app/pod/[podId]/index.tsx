@@ -157,7 +157,7 @@ export default function PodScreen() {
           {chatRow}
         </Text>
       </View>
-      {unread > 0 ? <Badge size="sm" tone="accent" label={t('pod.newMessages', { count: unread })} /> : null}
+      {unread > 0 ? <Badge size="sm" tone="unread" label={t('pod.newMessages', { count: unread })} /> : null}
     </Pressable>
   ) : null;
 
@@ -193,7 +193,7 @@ export default function PodScreen() {
         gap={14}
         footer={
           <>
-            <Button testID={step ? 'next-step' : 'open-planner'} label={t('pod.planTheMeetup')} variant="dark" onPress={() => go('/pod/[podId]/plan')} />
+            <Button testID={step ? 'next-step' : 'open-planner'} label={t('pod.planTheMeetup')} variant="primary" onPress={() => go('/pod/[podId]/plan')} />
             {caption ? (
               <Text variant="caption" color="textMuted" align="center" style={styles.footCaption}>
                 {caption}
@@ -207,7 +207,7 @@ export default function PodScreen() {
         <ConfirmedHero podId={podId} theme={theme} sensitive={c.themeSensitive} subtitle={subtitle} members={members} viewer={uid} />
         {pod.error ? <ErrorText>{t('common.loadFailed')}</ErrorText> : null}
         {d?.planning.extended ? (
-          <Banner tone="warning" icon="clock" title={t('plan.extendedTitle')} alert>
+          <Banner tone="needsYou" icon="clock" title={t('plan.extendedTitle')} alert>
             {t('plan.extendedBody', { when: weekdayAt(t, d.planning.deadline.toMillis(), locale) })}
           </Banner>
         ) : null}
@@ -231,20 +231,20 @@ export default function PodScreen() {
   } else if (step === 'chat') {
     nextStep = (
       <NextStepCard title={t('pod.next.chat')}>
-        <Button testID="next-step" label={t('pod.next.chatAction')} variant="light" size="md" grow={1} onPress={() => go('/pod/[podId]/chat')} />
+        <Button testID="next-step" label={t('pod.next.chatAction')} variant="primary" size="md" grow={1} onPress={() => go('/pod/[podId]/chat')} />
       </NextStepCard>
     );
   } else if (step === 'feedback') {
     nextStep = (
       <NextStepCard title={t('pod.next.feedback')}>
-        <Button testID="next-step" label={t('pod.giveFeedback')} variant="light" size="md" grow={1} onPress={() => go('/pod/[podId]/feedback')} />
+        <Button testID="next-step" label={t('pod.giveFeedback')} variant="primary" size="md" grow={1} onPress={() => go('/pod/[podId]/feedback')} />
       </NextStepCard>
     );
   } else if (step === 'vote' || step === 'addOption') {
     // A reschedule round sends a scheduled pod back to planning; the card catches up before the reveal shows.
     nextStep = (
       <NextStepCard title={d?.planning.extended ? t('plan.extendedTitle') : t('pod.planTheMeetup')}>
-        <Button testID="next-step" label={t('pod.next.voteAction')} variant="light" size="md" grow={1} onPress={() => go('/pod/[podId]/plan')} />
+        <Button testID="next-step" label={t('pod.next.voteAction')} variant="primary" size="md" grow={1} onPress={() => go('/pod/[podId]/plan')} />
       </NextStepCard>
     );
   }

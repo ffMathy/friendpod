@@ -90,7 +90,7 @@ export default function Privacy() {
         {sameGender ? (
           <View style={[styles.inlineAction, { borderBottomWidth: BorderWidth.hairline, borderBottomColor: p.separator }]}>
             <Button
-              variant="dangerSoft"
+              variant="danger"
               size="xs"
               label={t('privacy.sameGenderWithdraw')}
               busy={updateProfile.isPending}
@@ -133,7 +133,7 @@ export default function Privacy() {
 
       <Button
         testID="privacy-delete"
-        variant="dangerSoft"
+        variant="danger"
         icon="trash"
         label={t('privacy.deleteAccount')}
         onPress={() => router.push('/settings/delete-account')}

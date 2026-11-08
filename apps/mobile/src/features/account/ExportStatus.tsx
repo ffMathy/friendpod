@@ -80,7 +80,7 @@ export function ExportButton({ label, onPress, busy = false, testID, style }: Ex
       accessibilityState={{ disabled: busy, busy }}
       disabled={busy}
       onPress={onPress}
-      style={({ pressed }) => [styles.wide, { backgroundColor: pressed ? p.surfaceMuted : p.surface, borderColor: p.borderStrong }, style]}
+      style={({ pressed }) => [styles.wide, { backgroundColor: pressed ? p.inset : p.surface, borderColor: p.borderStrong }, style]}
     >
       {busy ? (
         <ActivityIndicator color={p.text} />

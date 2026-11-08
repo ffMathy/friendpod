@@ -92,54 +92,82 @@ the phone and never sent.
 
 ## Design system
 
-The app looks like the design storyboards (390 × 844 artboards; React Native units equal CSS px at that width, so
-the numbers are the storyboards' own). Everything lives in `src/components/` and is imported from one place:
+Direction E "Blend" (founder-approved; spec `blend-spec.md`): **a pod colour for every group, a poster for every
+ritual, a seat saved for you.** Storyboards are 390 × 844 artboards and React Native units equal CSS px at that width, so
+the numbers are the spec's own. Everything lives in `src/components/` and is imported from one place:
 
 ```tsx
-import { Screen, StepHeader, Title, Lede, TextField, Button } from '@/components/ui';
-import { usePalette, Type, font } from '@/components/theme';
+import { Screen, PageHeader, Button, Chip, HeroCard, SeatRow } from '@/components/ui';
+import { usePalette, usePodColors, Type, font, fontDisplay } from '@/components/theme';
+import { podColorFor } from '@/lib/podColor';
 ```
 
-**Tokens** (`theme.ts`). `usePalette()` returns the light or dark palette for the system appearance. Light mode is
-the storyboard palette exactly: `page` #F3F5F1, `surface` #FFFFFF, `text` #18211D, `textMuted` #55605A, `primary`
-#1E6B58 (pressed #174F42), `border` #DCE2DC, `borderStrong` #C9D1CA (inputs, outline buttons), `mint` #E1EFE9,
-`ink`/`hero` #18211D (dark buttons and cards), `accent` #F2B544, plus warning (amber), danger (red), private
-(purple) and avatar colours. Dark mode keeps the brand with a lighter green primary (dark text on it) on warm
-green-greys. `Layout` (gutters 24/20, gaps), `Radius` (14 inputs, 20 cards, 28 panels, `pill`), `BorderWidth`,
-`Size` (54 buttons, 44 hit target) and `Space` hold the rest. Never hard-code a colour in a screen.
+**Chrome tokens** (`theme.ts`, `usePalette()`, light and dark): `page` Paper #F6F3EC, `surface` White, `inset` (a note
+in a card), `text` Ink #18211D, `textSecondary` Ink 2 #3A423D (text on tints), `textMuted` #4A514C (never on a tint),
+`border` Line, `separator` Divider, `borderStrong` Outline (secondary buttons, suggestion chips), `field` #8A857A (input
+borders, open seats), `track`, `primary` Skov #1B6452 (**everything you tap**; pressed `primaryPressed`), `link` Skov
+deep, `tabActive`/`tabActiveBg`/`tabInactive`, `house` (the Skov poster field), `ink`/`onInk` (status pills, You,
+unread, selected choice, Apple), `needsYou` Solsikke + `needsYouBorder` Ink, `danger` #C41E3A (outline only, never a
+fill), `privateBg`/`privateBorder`/`privateText`/`privateFill` (quiet: white, Ink ring), `scrim`, `disabled*`,
+`switchThumb`. Dark mode (spec §12): Paper → Night #131916, Skov light #7FCDB0 with Ink labels, the house field stays
+Skov. `Layout`, `Radius` (14 inputs, 22 cards, 28 hero/band/sheet, `pill`), `BorderWidth` (1, 1.5 `control`, 2),
+`Size` (54/48/44 buttons, 52 input + Add, 44 seats and targets, 48 pod badge) and `Space` hold the rest. Never
+hard-code a colour in a screen.
 
-**Typography.** Plus Jakarta Sans 400–800, loaded by the root layout (`fonts.ts`, splash held until ready) and
-embedded natively by the `expo-font` plugin in `app.config.ts`. A custom font needs one family per weight, so
-**never set `fontWeight`** (a test enforces it): use `<Text variant="heading">`, the named primitives (`Display`,
-`Title`, `Headline`, `Heading`, `Body`, `Lede`, `Muted`, `Small`, `Label`, `Overline`, `Eyebrow`), `<Strong>` for
-inline bold, or in a StyleSheet `Type.body` / `typeStyle('body', '700')` / `font('600')`. The type scale
-(`TypeScale`) names every size/weight/tracking/leading the storyboards use: `display` 36/800/−3%, `title` 30/800/−2%,
-`headline` 24/800, `heading` 15/700, `body` 15/400/1.5, `lede` 16/1.5, `caption` 13/1.5, `overline` 13/700 caps, …
+**Pod colours.** Six, in index order: Solsikke, Blad, Bær, Tomat, Fjord, Blomme (`POD_PALETTE`: base, deep, tint,
+onBase, tintBorder). Which one a pod or interest gets comes from its **concept id**, never the word a member sees:
+`podColorFor({ conceptId, sensitive })` (FNV-1a 32 of `"grouper:" + id`, `floor(h × 6 / 2³²)`; open-to-anyone pods use
+the pod id; private gets `null`). `usePodColors(color)` resolves the roles for the scheme (`field`, `onField`,
+`surface`, `surfaceBorder`, `name`, `icon`, `dot`, `dotRing`, `avatar`, …; `null` gives the quiet private set). On a
+pod's own screens another interest in the pod's colour is a plain chip (`colorOnPodScreen`).
 
-**Primitives** (`ui.tsx`): layout (`Screen` with `header`/`footer`, `StepHeader`, `PageHeader`, `Sheet`, `Loading`),
-`Button` (primary, dark, outline, ghost, danger, dangerSoft, private, light/outlineOnDark/outlineOnMint; sizes lg 54,
-md 48, sm 44, xs 40), `IconButton`, `BackButton`, `CloseButton`, `TextLink`, `InlineLink`, `Card` (default, mint,
-highlighted, panel, hero, brand, inset), `Banner`, `EmptyState`, `Illustration`, `Divider`, `SectionHeader`,
-`ListSection`/`ListRow`/`LinkRow`, `TextField`, `Checkbox`, `Radio`, `Switch`, `ChoiceChip`, `Toggle`,
-`SegmentedControl`, `Chip`, `ChipButton`, `ChipRow`, `Tag`, `Badge`, `Avatar`, `AvatarStack`, `ProgressBar`,
-`ProgressSegments`, `Logo`. Every control keeps a 44 px touch target and its accessibility role and state.
+**Typography.** Bricolage Grotesque 700/800 (display, static opsz 14) and Plus Jakarta Sans 400–800 (everything you
+read), loaded by the root layout (`fonts.ts`, splash held until ready) and embedded natively by the `expo-font` plugin
+in `app.config.ts`. A custom font needs one family per weight, so **never set `fontWeight`** (a test enforces it): use
+`<Text variant="…">`, the named primitives (`Display` L/XL, `Title`, `Headline`, `PodName`, `Heading`, `Body`, `Lede`,
+`Small`, `Label`, `Eyebrow`, `Overline`), `<Strong>`, or in a StyleSheet `Type.body` / `typeStyle('body', '700')` /
+`font('600')` / `fontDisplay('800')`. Display roles: `displayXL` 56/58 (fit steps 52, 48, 40; `fitDisplay()`),
+`displayL` 44/46, `title` 30/32, `titleModal` 26, `headline` 22/26 (700), `podName` 18/22, `wordmark`. Reading roles:
+`body` 16/24, `bodySmall` 15/22, `heading` 15/700, `small` 14/20, `chip`, `caption` 13/20, `captionBold` 13/700 (pills,
+status), `eyebrow` 12/800 caps, `badge` 12/800, `micro` 12/16.
 
-**Icons** (`Icon.tsx`): `<Icon name="lock" size={14} color={p.privateText} />`, decorative unless given an
-`accessibilityLabel`. Names: back, chevronRight, close, check, plus, calendar, calendarAdd, people, tag, person, pin,
-clock, lock, camera, bell, info, shield, star, starFilled, send, search, chat, download, share, more, pause, trash,
-block, flag.
+**Primitives** (`ui.tsx`): layout (`Screen`, `StepHeader` with 6 segments, `PageHeader`, `Sheet`, `Loading`);
+`Button` (primary, secondary/outline, danger = outline + trash icon + word, apple, ghost, dashed, link, quietLink;
+sizes lg 54, md 48, sm 44, xs 40, input 52/r14), `IconButton`, `BackButton`, `CloseButton`, `TextLink`, `InlineLink`;
+`TextField` and `AddField` (the one input + Add pattern); `Chip` (pod, private, unsettled, clash; removable with a
+44 px ×), `ChipButton` (suggestion "+ word"), `ChipRow`, `Tag`, `PodDot`; `Badge` (status, needsYou, onField, unread,
+outline, private, danger), `UnreadBadge`, `UnreadDot`, `StatusText` (quiet "Hasn't confirmed"); `Note`/`Banner`
+(needsYou with the ringed marker, info, inset, safety, private), `Card` (default, highlighted, panel, inset, private),
+`ListSection`/`ListRow`, `SectionHeader`, `Divider`, `EmptyState`, `Illustration`; `Avatar` (pod deep, You ring,
+pending dashed, open seat) and `AvatarStack`; pod pieces `HeroCard` + `PodTintBand`, `PodBand`, `SeatRow`/`Seat`,
+`PosterField` + `PosterFoot` (+ `useFieldColors`), `TintDisc`, `OptionCard`; `PodMark` (dots, badge, poster; applies
+the sun rule) and `Logo` (lowercase "grouper" lockup); controls `Checkbox`, `Radio`, `Switch`, `ChoiceChip`, `Toggle`,
+`SegmentedControl`; `ProgressBar`, `ProgressSegments`. Every control keeps a 44 px touch target and its accessibility
+role and state; marks, seats and avatars are decorative.
 
-**Navigation chrome** (`navigation.tsx`): every Stack uses `useStackScreenOptions()` (page-coloured header, no
-hairline, minimal back chevron); the tab bar uses `useTabScreenOptions()` and the storyboard tab icons. A screen that
-draws its own header hides the native one with `<Stack.Screen options={{ headerShown: false }} />`.
+**Rules.** Poster fields only for the three rituals (welcome, the Thursday drop on This week, the pod-confirmed
+reveal); display type only on a field, small text on the white foot. Colour grows with commitment: proposal = tint
+band, waiting = lit seats, confirmed = base field. Private stays quiet (no colour anywhere). Needs-you (Solsikke + Ink
+ring) only for your own deadlines; others' states are quiet `StatusText`. Danger is an outline. Unread is Ink.
 
-**Identity.** The mark is "pod dots" (`Logo`, `PodDots`); the app icon, Android adaptive layers and splash marks in
-`assets/images/` and the iOS `assets/expo.icon` were rendered from it (`assets/images/source/*.svg`).
+**Icons** (`Icon.tsx`, decorative unless given an `accessibilityLabel`): back, chevronRight, close, check, plus,
+calendar, calendarAdd, people, tag, person, pin, clock, lock, camera, bell, info, help, phone, alert, shield, star,
+starFilled (Ink), send, search, chat, download, share, more, pause, trash, block, flag.
+
+**Navigation chrome** (`navigation.tsx`): every Stack uses `useStackScreenOptions()` (Paper header, no hairline, Ink
+chevron, Bricolage title); the tab bar uses `useTabScreenOptions()` and `TabBarIcon` (Skov-tint pill behind the active
+icon, Ink unread dot), also used by the bars under pushed pages (`MainTabBar`, `PodTabBar`).
+
+**Identity.** The mark is people around a sun with your seat saved (`PodMark`). The app icon (`assets/images/icon.png`,
+Skov square, poster mark at 75 %, your seat solid), the Android adaptive layers (mark inside the 66 dp safe circle,
+Skov background, monochrome), the splash (`splash-icon.png` on Skov, 200 dp, same in dark mode) and the iOS Icon
+Composer layer (`assets/expo.icon/Assets/mark.svg`, Skov fill) are rendered from the SVGs in `assets/images/source/`
+with Playwright at 1024 × 1024.
 
 **Copy.** `src/i18n/{en,da}/<area>.json`, deep-merged at start (`resources.ts`): common, auth, onboarding, drop, pod,
 after, privacy, shell. Key paths are unchanged (`t('pod.next.voteBody')`); a key lives in one file only and both
 languages have the same keys per file (test/i18n.test.ts). Danish copy is written as Danish, not translated word for
-word.
+word. In the app the tagline is "Der er plads til dig." / "There's room for you." (posters keep the seat line).
 
 ## On-device embedding (D1)
 

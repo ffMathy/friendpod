@@ -1,13 +1,13 @@
 {
   "fill" : {
-    "automatic-gradient" : "extended-srgb:0.11765,0.41961,0.34510,1.00000"
+    "automatic-gradient" : "extended-srgb:0.10588,0.39216,0.32157,1.00000"
   },
   "groups" : [
     {
       "layers" : [
         {
-          "image-name" : "pod-dots.svg",
-          "name" : "pod-dots",
+          "image-name" : "mark.svg",
+          "name" : "mark",
           "position" : {
             "scale" : 1,
             "translation-in-points" : [

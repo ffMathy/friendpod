@@ -201,7 +201,7 @@ export function InterestManager({ uid, locale, mode }: Props) {
       ) : null}
       {unavailableReason ? (
         <Banner
-          tone="danger"
+          tone="safety"
           icon="info"
           alert
           actions={<Button testID="model-retry" label={t('common.retry')} variant="outline" size="xs" onPress={() => void embedder.retry()} />}
@@ -212,7 +212,7 @@ export function InterestManager({ uid, locale, mode }: Props) {
       {message && CONFIRMATIONS.has(message) && !(message === 'interests.added' && suggestion) ? <Confirmation text={t(message)} /> : null}
       {message && !CONFIRMATIONS.has(message) ? (
         <Banner
-          tone="warning"
+          tone="info"
           icon="info"
           alert
           actions={

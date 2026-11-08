@@ -41,7 +41,7 @@ export function AttendanceCard({ podId, when, mine, ask }: AttendanceCardProps) 
       <>
         <NextStepCard title={t('attendance.stillComing', { when })} testID="attendance-ask">
           <YesButton testID="attendance-coming" label={t('attendance.yesComing')} busy={comingBusy} disabled={confirm.isPending} onPress={() => confirm.mutate({ podId, coming: true })} />
-          <Button testID="attendance-cant" label={t('attendance.cantMakeIt')} variant="outlineOnDark" size="md" grow={1} busy={cantBusy} onPress={cantMakeIt} style={styles.pairPadding} />
+          <Button testID="attendance-cant" label={t('attendance.cantMakeIt')} variant="secondary" size="md" grow={1} busy={cantBusy} onPress={cantMakeIt} style={styles.pairPadding} />
         </NextStepCard>
         {error}
       </>
@@ -86,12 +86,12 @@ function YesButton({ label, busy, disabled, onPress, testID }: { label: string; 
       accessibilityState={{ disabled, busy }}
       disabled={disabled}
       onPress={onPress}
-      style={({ pressed }) => [styles.yes, { backgroundColor: p.onHero, opacity: pressed ? 0.85 : 1 }]}
+      style={({ pressed }) => [styles.yes, { backgroundColor: pressed ? p.primaryPressed : p.primary, opacity: pressed ? 0.85 : 1 }]}
     >
       {busy ? (
-        <ActivityIndicator color={p.hero} />
+        <ActivityIndicator color={p.onPrimary} />
       ) : (
-        <Text variant="heading" weight="800" color="hero" numberOfLines={1}>
+        <Text variant="heading" weight="800" color="onPrimary" numberOfLines={1}>
           {label}
         </Text>
       )}

@@ -60,7 +60,7 @@ export function Art9ConsentBody({ locale, onReadMore }: { readonly locale: Local
   const { copy } = art9BlanketCopy(locale);
   return (
     <View style={styles.body}>
-      <Text variant="small" color="textBody" style={styles.prose}>
+      <Text variant="small" color="text" style={styles.prose}>
         {copy.intro}
       </Text>
       <Text variant="smallBold" style={styles.prose}>
@@ -69,20 +69,20 @@ export function Art9ConsentBody({ locale, onReadMore }: { readonly locale: Local
       <View style={styles.list}>
         {copy.bullets.map((bullet) => (
           <View key={bullet} style={styles.bullet}>
-            <Text variant="small" color="textBody" style={[styles.prose, styles.dot]} accessibilityElementsHidden importantForAccessibility="no">
+            <Text variant="small" color="text" style={[styles.prose, styles.dot]} accessibilityElementsHidden importantForAccessibility="no">
               {'•'}
             </Text>
-            <Text variant="small" color="textBody" style={[styles.prose, styles.flex]}>
+            <Text variant="small" color="text" style={[styles.prose, styles.flex]}>
               {bullet}
             </Text>
           </View>
         ))}
       </View>
       <Note label={copy.note.label} text={copy.note.text} />
-      <Text variant="small" color="textBody" style={styles.prose}>
+      <Text variant="small" color="text" style={styles.prose}>
         {copy.override}
       </Text>
-      <Text variant="small" color="textBody" style={styles.prose}>
+      <Text variant="small" color="text" style={styles.prose}>
         {copy.withdrawal}
       </Text>
       <TextLink testID="art9-read-more" label={copy.readMore} onPress={onReadMore} />
@@ -94,7 +94,7 @@ function Note({ label, text }: { readonly label: string; readonly text: string }
   const p = usePalette();
   return (
     <View style={[styles.note, { backgroundColor: p.surface, borderColor: p.border }]}>
-      <Text variant="small" color="textBody" style={styles.prose}>
+      <Text variant="small" color="text" style={styles.prose}>
         <Strong color="text">{label}</Strong> {text}
       </Text>
     </View>

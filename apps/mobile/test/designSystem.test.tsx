@@ -3,8 +3,35 @@ import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { FONT_FILES } from '../app.config';
 import { FONT_ASSETS } from '@/components/fonts';
-import { Colors, FontFamily, Type, TypeScale, typeStyle } from '@/components/theme';
-import { Button, Checkbox, ChoiceChip, Chip, Icon, ICONS, ListRow, ListSection, Radio, SegmentedControl, StepHeader, Switch, TextField } from '@/components/ui';
+import { Colors, DisplayFontFamily, displayTextWidth, fitDisplay, FontFamily, POD_PALETTE, podColors, Type, TypeScale, typeStyle } from '@/components/theme';
+import {
+  AddField,
+  Avatar,
+  Badge,
+  Button,
+  Checkbox,
+  ChipButton,
+  ChoiceChip,
+  Chip,
+  HeroCard,
+  Icon,
+  ICONS,
+  ListRow,
+  ListSection,
+  Logo,
+  Note,
+  OptionCard,
+  PodBand,
+  PodMark,
+  PosterField,
+  Radio,
+  SeatRow,
+  SegmentedControl,
+  StatusText,
+  StepHeader,
+  Switch,
+  TextField,
+} from '@/components/ui';
 
 const root = join(__dirname, '..');
 
@@ -20,25 +47,71 @@ describe('design tokens', () => {
     expect(Object.keys(Colors.dark).sort()).toEqual(Object.keys(Colors.light).sort());
   });
 
-  it('light mode is the storyboard palette', () => {
-    expect(Colors.light).toMatchObject({ page: '#F3F5F1', surface: '#FFFFFF', text: '#18211D', textMuted: '#55605A', primary: '#1E6B58', primaryPressed: '#174F42', border: '#DCE2DC', borderStrong: '#C9D1CA', mint: '#E1EFE9', accent: '#F2B544' });
+  it('light mode is the blend palette (spec §2.1)', () => {
+    expect(Colors.light).toMatchObject({
+      page: '#F6F3EC',
+      surface: '#FFFFFF',
+      text: '#18211D',
+      textSecondary: '#3A423D',
+      textMuted: '#4A514C',
+      primary: '#1B6452',
+      primaryPressed: '#174F42',
+      link: '#174F42',
+      border: '#E4DFD4',
+      separator: '#EEEAE2',
+      borderStrong: '#C9C3B6',
+      field: '#8A857A',
+      track: '#DDD8CD',
+      needsYou: '#FFD84D',
+      danger: '#C41E3A',
+      privateBorder: '#18211D',
+    });
   });
 
-  it('maps every weight to its own family and never sets fontWeight', () => {
+  it('dark mode is the blend night palette (spec §12.1)', () => {
+    expect(Colors.dark).toMatchObject({ page: '#131916', surface: '#1D2521', text: '#F2EFE8', primary: '#7FCDB0', onPrimary: '#18211D', danger: '#F69B96', house: '#1B6452' });
+  });
+
+  it('six pod colours with refined deep tones; dark mode goes deep with white type and a tint ring', () => {
+    expect(Object.keys(POD_PALETTE)).toEqual(['solsikke', 'blad', 'baer', 'tomat', 'fjord', 'blomme']);
+    expect(Object.values(POD_PALETTE).map((c) => c.deep)).toEqual(['#6A4900', '#395500', '#90124D', '#8C2107', '#124593', '#4F2272']);
+    expect(podColors('tomat', 'light')).toMatchObject({ field: '#F26A4B', surface: '#FDE2D9', surfaceBorder: 'rgba(242, 106, 75, 0.4)', name: '#8C2107', avatar: '#8C2107' });
+    expect(podColors('tomat', 'dark')).toMatchObject({ field: '#8C2107', onField: '#FFFFFF', surface: '#8C2107', name: '#FDE2D9', dotRing: '#FDE2D9' });
+    // Private stays quiet: no pod colour anywhere.
+    expect(podColors(null, 'light')).toMatchObject({ color: null, surface: '#FFFFFF', surfaceBorder: '#18211D', name: '#18211D', avatar: '#3A423D' });
+  });
+
+  it('maps every weight to its own family (Bricolage for display roles) and never sets fontWeight', () => {
     for (const variant of Object.keys(TypeScale) as (keyof typeof TypeScale)[]) {
-      expect(Type[variant].fontFamily).toBe(FontFamily[TypeScale[variant].weight]);
+      const spec: { weight: keyof typeof FontFamily; display?: boolean } = TypeScale[variant];
+      const family = spec.display ? DisplayFontFamily[spec.weight as '700' | '800'] : FontFamily[spec.weight];
+      expect(Type[variant].fontFamily).toBe(family);
       expect(Type[variant]).not.toHaveProperty('fontWeight');
     }
-    expect(typeStyle('title')).toMatchObject({ fontSize: 30, fontFamily: 'PlusJakartaSans_800ExtraBold', letterSpacing: -0.6 });
+    expect(typeStyle('title')).toMatchObject({ fontSize: 30, lineHeight: 32, fontFamily: 'BricolageGrotesque_800ExtraBold', letterSpacing: -0.6 });
+    expect(typeStyle('displayXL')).toMatchObject({ fontSize: 56, lineHeight: 58, letterSpacing: -1.96 });
+    expect(typeStyle('headline')).toMatchObject({ fontSize: 22, lineHeight: 26, fontFamily: 'BricolageGrotesque_700Bold' });
+    expect(typeStyle('body')).toMatchObject({ fontSize: 16, lineHeight: 24, fontFamily: 'PlusJakartaSans_400Regular' });
     expect(typeStyle('body', '700').fontFamily).toBe('PlusJakartaSans_700Bold');
   });
 
-  it('loads exactly the five families at start, and embeds the same files natively', () => {
-    expect(Object.keys(FONT_ASSETS).sort()).toEqual(Object.values(FontFamily).sort());
-    expect(FONT_FILES).toHaveLength(5);
+  it('display fit rule: steps 56 → 52 → 48 → 40 by the longest word and two lines at most', () => {
+    // The spec's measurement with the app's opsz-14 cut: "Thursday brætspil" at 52 px is 444 px.
+    expect(Math.round(displayTextWidth('Thursday brætspil', 52))).toBe(444);
+    expect(fitDisplay('brætspil', 342)).toBe('displayXL');
+    expect(fitDisplay('far på barsel', 342)).toBe('displayXL');
+    // drop-home: "Thursday" beside the 128 px poster mark.
+    expect(fitDisplay('Thursday 18:00', 214)).toBe('displayXL48');
+    expect(fitDisplay('Fællesspisningsaften', 342)).toBe('displayXL40');
+  });
+
+  it('loads exactly the seven families at start (Jakarta 400–800, Bricolage 700/800), and embeds the same files natively', () => {
+    const families = [...Object.values(FontFamily), ...Object.values(DisplayFontFamily)];
+    expect(Object.keys(FONT_ASSETS).sort()).toEqual(families.sort());
+    expect(FONT_FILES).toHaveLength(7);
     for (const file of FONT_FILES) {
       expect(existsSync(join(root, file))).toBe(true);
-      expect(Object.values(FontFamily)).toContain(file.split('/').pop()?.replace('.ttf', ''));
+      expect(families).toContain(file.split('/').pop()?.replace('.ttf', ''));
     }
   });
 
@@ -117,6 +190,95 @@ describe('primitives', () => {
     expect(onChange).toHaveBeenCalledWith('da');
     await fireEvent.press(screen.getByRole('link', { name: /Private interests/ }));
     expect(onPress).toHaveBeenCalled();
+  });
+
+  it('Button: the danger variant is an outline with a decorative trash icon and the word as its label', async () => {
+    const onPress = jest.fn();
+    await render(<Button variant="danger" size="sm" label="Remove & withdraw" onPress={onPress} />);
+    await fireEvent.press(screen.getByRole('button', { name: 'Remove & withdraw' }));
+    expect(onPress).toHaveBeenCalled();
+    await render(<Button variant="link" label="Why this pod?" onPress={onPress} />);
+    expect(screen.getByRole('link', { name: 'Why this pod?' })).toBeOnTheScreen();
+  });
+
+  it('AddField: one labelled input and a separate Add button', async () => {
+    const onAdd = jest.fn();
+    await render(<AddField label="Add an interest" placeholder="In your own words" value="løb" addLabel="Add" onAdd={onAdd} />);
+    expect(screen.getByLabelText('Add an interest')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('button', { name: 'Add' }));
+    expect(onAdd).toHaveBeenCalledTimes(1);
+  });
+
+  it('Chip kinds: pod, private (lock announced), unsettled, clash; star and remove are labelled', async () => {
+    const onRemove = jest.fn();
+    await render(
+      <>
+        <Chip label="brætspil" color="tomat" starred starredLabel="Main interest" onRemove={onRemove} removeLabel="Remove brætspil" />
+        <Chip label="gravid" kind="private" privateLabel="Private" />
+        <Chip label="brætspilsaften" kind="unsettled" />
+        <Chip label="climbing" kind="clash" />
+        <ChipButton label="+ løb" accessibilityLabel="Add løb" onPress={jest.fn()} />
+      </>,
+    );
+    expect(screen.getByLabelText('Main interest')).toBeOnTheScreen();
+    expect(screen.getByLabelText('Private')).toBeOnTheScreen();
+    expect(screen.getByText('løb')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('button', { name: 'Remove brætspil' }));
+    expect(onRemove).toHaveBeenCalled();
+  });
+
+  it('Badges, quiet status and notes render their words', async () => {
+    await render(
+      <>
+        <Badge tone="needsYou" label="Answer by Sat 18:00" />
+        <Badge tone="unread" label="3 new" />
+        <StatusText icon="clock" label="Hasn't confirmed" />
+        <Note tone="needsYou" alert>
+          Did you mean brætspil?
+        </Note>
+        <Note tone="safety">In danger right now? Call 112.</Note>
+      </>,
+    );
+    expect(screen.getByText('Answer by Sat 18:00')).toBeOnTheScreen();
+    expect(screen.getByText('3 new')).toBeOnTheScreen();
+    expect(screen.getByText("Hasn't confirmed")).toBeOnTheScreen();
+    expect(screen.getByText('Did you mean brætspil?')).toBeOnTheScreen();
+    expect(screen.getByText('In danger right now? Call 112.')).toBeOnTheScreen();
+  });
+
+  it('pod pieces: band header, hero card, seats (hidden), poster field, marks, avatars, option card', async () => {
+    const onBack = jest.fn();
+    const onPick = jest.fn();
+    await render(
+      <>
+        <PodBand title="brætspil" subtitle="5 people near Aarhus C" color="tomat" onBack={onBack} />
+        <PodBand title="gravid" color={null} />
+        <HeroCard color="tomat" name="brætspil" eyebrow="A pod around" pillRight={<Badge tone="needsYou" label="Answer by Sat 18:00" />}>
+          <SeatRow total={5} lit={2} color="tomat" youLabel="You" needed={4} neededLabel="4 needed" testID="seats" />
+        </HeroCard>
+        <PosterField>
+          <PodMark variant="poster" ground="skov" size={128} />
+        </PosterField>
+        <PodMark variant="badge" color="private" />
+        <PodMark size={20} />
+        <Logo />
+        <Avatar name="Mette" color="tomat" />
+        <Avatar name="Sofie" color="tomat" pending />
+        <Avatar you youLabel="You" size={44} />
+        <OptionCard selected onPress={onPick} accessibilityLabel="[Board game café]">
+          <StatusText label="Selected" />
+        </OptionCard>
+      </>,
+    );
+    // The band's Title and the hero card's Display L name are both headers.
+    expect(screen.getAllByRole('header', { name: 'brætspil' })).toHaveLength(2);
+    expect(screen.getByLabelText('Private')).toBeOnTheScreen();
+    expect(screen.queryByText('4 needed')).toBeNull();
+    expect(screen.getByText('4 needed', { includeHiddenElements: true })).toBeTruthy();
+    expect(screen.getByRole('image', { name: 'Grouper' })).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('button', { name: 'Back' }));
+    expect(onBack).toHaveBeenCalled();
+    expect(screen.getByRole('radio', { name: '[Board game café]' })).toBeChecked();
   });
 
   it('renders every icon; icons are hidden unless labelled', async () => {

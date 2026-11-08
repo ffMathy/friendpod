@@ -97,8 +97,8 @@ export function PlanOptionCard({ id, startsAt, place, yesVoters, yesCount, viewe
 function LeadingTag({ label }: { label: string }) {
   const p = usePalette();
   return (
-    <View style={[styles.leading, { backgroundColor: p.mint }]}>
-      <Text variant="microHeavy" color="onMint" style={styles.leadingText}>
+    <View style={[styles.leading, { backgroundColor: p.ink }]}>
+      <Text variant="microHeavy" color="onInk" style={styles.leadingText}>
         {label}
       </Text>
     </View>
@@ -139,7 +139,7 @@ export function SuggestTimeButton({ label, hint, onPress, testID }: { label: str
       accessibilityRole="button"
       accessibilityLabel={`${label} ${hint}`}
       onPress={onPress}
-      style={({ pressed }) => [styles.suggest, { borderColor: p.borderDashed, backgroundColor: pressed ? p.surfaceMuted : 'transparent' }]}
+      style={({ pressed }) => [styles.suggest, { borderColor: p.field, backgroundColor: pressed ? p.inset : 'transparent' }]}
     >
       <Icon name="plus" size={20} color={p.text} strokeWidth={2.2} />
       <Text variant="heading">{label}</Text>

@@ -95,7 +95,7 @@ export function TipRow({ label, onPress, testID }: { label: string; onPress: () 
       accessibilityRole="link"
       accessibilityLabel={label}
       onPress={onPress}
-      style={({ pressed }) => [styles.tip, { borderColor: p.borderStrong, backgroundColor: pressed ? p.surfaceMuted : p.surface }]}
+      style={({ pressed }) => [styles.tip, { borderColor: p.borderStrong, backgroundColor: pressed ? p.inset : p.surface }]}
     >
       <Text variant="bodyStrong" style={[styles.flex, styles.tipLabel]}>
         {label}
@@ -137,7 +137,7 @@ export function TipSwitch({
       onPress={() => onChange(!value)}
       style={({ pressed }) => [
         styles.tipSwitch,
-        { borderColor: p.borderStrong, backgroundColor: pressed ? p.surfaceMuted : p.surface, opacity: disabled ? 0.5 : 1 },
+        { borderColor: p.borderStrong, backgroundColor: pressed ? p.inset : p.surface, opacity: disabled ? 0.5 : 1 },
       ]}
     >
       <View style={styles.tipSwitchText}>
@@ -150,7 +150,7 @@ export function TipSwitch({
       </View>
       <View style={[styles.track, { backgroundColor: value ? p.primary : p.borderStrong }]}>
         {/* White in both colour schemes, like the design-system switch's knob. */}
-        <View style={[styles.thumb, { backgroundColor: p.onBrand }, value ? styles.thumbOn : null]} />
+        <View style={[styles.thumb, { backgroundColor: p.switchThumb }, value ? styles.thumbOn : null]} />
       </View>
     </Pressable>
   );

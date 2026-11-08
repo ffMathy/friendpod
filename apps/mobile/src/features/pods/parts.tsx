@@ -145,11 +145,11 @@ export function PodMenu({ onLeave }: { onLeave?: () => void }) {
 export function NextStepCard({ title, children, testID }: { title: string; children?: ReactNode; testID?: string }) {
   const { t } = useTranslation();
   return (
-    <Card variant="hero" padding={20} gap={14} testID={testID}>
+    <Card padding={16} gap={12} testID={testID}>
       <Eyebrow compact style={styles.eyebrow}>
         {t('pod.nextStep')}
       </Eyebrow>
-      <Text accessibilityRole="header" variant="headlineCompact" color="onHero" style={styles.nextTitle}>
+      <Text accessibilityRole="header" variant="headlineCompact" color="text" style={styles.nextTitle}>
         {title}
       </Text>
       {children ? <View style={styles.actions}>{children}</View> : null}
@@ -229,7 +229,7 @@ export function SmallLink({ label, onPress, accessibilityLabel, accessibilityRol
 export function SystemNote({ children }: { children: ReactNode }) {
   const p = usePalette();
   return (
-    <View style={[styles.note, { backgroundColor: p.surfaceMuted }]}>
+    <View style={[styles.note, { backgroundColor: p.inset }]}>
       <Text variant="micro" color="textMuted" align="center" style={styles.noteText}>
         {children}
       </Text>

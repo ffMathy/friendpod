@@ -71,7 +71,7 @@ export default function Report() {
       footer={
         <View style={[styles.footer, { marginBottom: footerNudge }]}>
           {report.error ? <ErrorText>{t(errorMessageKey(report.error))}</ErrorText> : null}
-          <Button testID="report-send" variant="dark" label={t('report.send')} disabled={!category} busy={report.isPending} onPress={send} />
+          <Button testID="report-send" variant="primary" label={t('report.send')} disabled={!category} busy={report.isPending} onPress={send} />
         </View>
       }
     >
@@ -82,8 +82,8 @@ export default function Report() {
         <CloseButton onPress={close} accessibilityLabel={t('common.close')} testID="report-close" />
       </View>
 
-      <Banner tone="danger" testID="report-112">
-        <Text variant="small" weight="700" color="dangerInk" style={styles.bannerText}>
+      <Banner tone="safety" testID="report-112">
+        <Text variant="small" weight="700" color="text" style={styles.bannerText}>
           {t('report.danger')}
         </Text>
       </Banner>

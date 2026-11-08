@@ -46,7 +46,7 @@ export function ProfileCard({ uid, user }: { readonly uid: string; readonly user
             photo={<AuthenticatedPhoto owner={uid} version={version} size="thumb" accessibilityLabel={t('me.yourPhoto')} style={styles.photo} />}
           />
         ) : (
-          <View style={[styles.camera, { backgroundColor: p.mint }]} accessible={false}>
+          <View style={[styles.camera, { backgroundColor: p.inset }]} accessible={false}>
             <Icon name="camera" size={28} color={p.primary} />
           </View>
         )}
@@ -64,7 +64,7 @@ export function ProfileCard({ uid, user }: { readonly uid: string; readonly user
             {meetups === 0 ? (
               <Badge tone="outline" size="sm" label={t('me.noMeetupsYet')} />
             ) : (
-              <Badge tone="mint" size="sm" icon="check" label={t('me.attended', { attended, total: meetups })} />
+              <Badge tone="status" size="sm" icon="check" label={t('me.attended', { attended, total: meetups })} />
             )}
           </View>
         </View>
@@ -86,7 +86,7 @@ export function ProfileCard({ uid, user }: { readonly uid: string; readonly user
           <DangerTextButton testID="photo-delete" label={t('me.deletePhoto')} icon="trash" busy={remove.isPending} onPress={confirmDelete} />
         ) : null}
       </View>
-      {state === 'done' && version === null ? <Small color="onMint">{t('me.photoUploaded')}</Small> : null}
+      {state === 'done' && version === null ? <Small color="textSecondary">{t('me.photoUploaded')}</Small> : null}
       {state === 'failed' ? <ErrorText>{t('me.photoFailed')}</ErrorText> : null}
       {remove.error ? <ErrorText>{t(errorMessageKey(remove.error))}</ErrorText> : null}
     </Card>

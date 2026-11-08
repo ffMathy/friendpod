@@ -83,11 +83,11 @@ export function PageLede({ children }: { readonly children: ReactNode }) {
 export type BulletTone = 'mint' | 'warning' | 'private' | 'neutral' | 'danger';
 
 const BULLET_TONES: Record<BulletTone, { readonly bg: PaletteKey; readonly fg: PaletteKey }> = {
-  mint: { bg: 'mint', fg: 'onMint' },
-  warning: { bg: 'warningBg', fg: 'warningText' },
+  mint: { bg: 'inset', fg: 'textSecondary' },
+  warning: { bg: 'inset', fg: 'text' },
   private: { bg: 'privateBg', fg: 'privateText' },
-  neutral: { bg: 'surfaceMuted', fg: 'textSecondary' },
-  danger: { bg: 'dangerBg', fg: 'dangerText' },
+  neutral: { bg: 'inset', fg: 'textSecondary' },
+  danger: { bg: 'inset', fg: 'danger' },
 };
 
 /** A 28 px tinted circle with a 16 px icon (drop-why's reason bullets). Decorative. */
@@ -126,8 +126,8 @@ export function BulletCard({ title, items, children, testID }: { readonly title:
       <View style={styles.list}>
         {items.map((item) => (
           <View key={item} style={styles.listItem}>
-            <View style={[styles.bulletMark, { backgroundColor: p.textBody }]} />
-            <Text variant="small" color="textBody" style={styles.flex}>
+            <View style={[styles.bulletMark, { backgroundColor: p.text }]} />
+            <Text variant="small" color="text" style={styles.flex}>
               {item}
             </Text>
           </View>
@@ -155,7 +155,7 @@ export function IconListCard({ title, children, testID }: { readonly title: stri
 export function NoteBox({ title, children, testID }: { readonly title: string; readonly children: ReactNode; readonly testID?: string }) {
   const p = usePalette();
   return (
-    <View testID={testID} style={[styles.note, { backgroundColor: p.surfaceMuted }]}>
+    <View testID={testID} style={[styles.note, { backgroundColor: p.inset }]}>
       <Text variant="smallBold">{title}</Text>
       <Text variant="caption" color="textSecondary">
         {children}
@@ -222,14 +222,14 @@ export function DangerTextButton({
       disabled={busy}
       onPress={onPress}
       hitSlop={(Size.hitTarget - Size.buttonSmall) / 2}
-      style={({ pressed }) => [styles.dangerButton, { backgroundColor: pressed ? p.dangerBg : 'transparent' }]}
+      style={({ pressed }) => [styles.dangerButton, { backgroundColor: pressed ? p.dangerPressedBg : 'transparent' }]}
     >
       {busy ? (
-        <ActivityIndicator color={p.dangerText} />
+        <ActivityIndicator color={p.danger} />
       ) : (
         <>
-          {icon ? <Icon name={icon} size={16} color={p.dangerText} /> : null}
-          <Text variant="smallBold" color="dangerText">
+          {icon ? <Icon name={icon} size={16} color={p.danger} /> : null}
+          <Text variant="smallBold" color="danger">
             {label}
           </Text>
         </>

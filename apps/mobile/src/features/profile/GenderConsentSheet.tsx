@@ -59,8 +59,8 @@ export function GenderConsentSheet({ visible, locale, onDone }: GenderConsentShe
         </View>
         {copy ? (
           <View style={styles.copy}>
-            <Body color="textBody">{copy.sheet.body}</Body>
-            {copy.sheet.nonbinaryAddendum ? <Body color="textBody">{copy.sheet.nonbinaryAddendum}</Body> : null}
+            <Body color="text">{copy.sheet.body}</Body>
+            {copy.sheet.nonbinaryAddendum ? <Body color="text">{copy.sheet.nonbinaryAddendum}</Body> : null}
             {copy.fallback ? <Small>{t('gender.englishOnly')}</Small> : null}
             <Checkbox testID="gender-consent" variant="card" label={copy.sheet.checkbox} checked={checked} onChange={setChecked} />
           </View>

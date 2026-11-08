@@ -2,9 +2,8 @@ import { useRouter, type Href } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { TAB_ICONS, TabLabel } from '@/components/navigation';
+import { TAB_ICONS, TabBarIcon, TabLabel } from '@/components/navigation';
 import { BorderWidth, Size, usePalette } from '@/components/theme';
-import { Icon } from '@/components/ui';
 
 type TabKey = keyof typeof TAB_ICONS;
 
@@ -35,7 +34,7 @@ export function PodTabBar() {
     >
       {TABS.map((tab) => {
         const selected = tab.key === 'pods';
-        const color = selected ? p.primary : p.textMuted;
+        const color = selected ? p.tabActive : p.tabInactive;
         const label = t(tab.label);
         return (
           <Pressable
@@ -46,7 +45,7 @@ export function PodTabBar() {
             onPress={() => router.dismissTo(tab.href)}
             style={({ pressed }) => [styles.tab, { opacity: pressed ? 0.6 : 1 }]}
           >
-            <Icon name={TAB_ICONS[tab.key]} size={Size.icon} color={color} />
+            <TabBarIcon name={TAB_ICONS[tab.key]} focused={selected} color={color} />
             <TabLabel focused={selected} color={color}>
               {label}
             </TabLabel>

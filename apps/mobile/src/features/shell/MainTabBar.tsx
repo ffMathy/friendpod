@@ -2,9 +2,8 @@ import { useRouter, type Href } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { TAB_ICONS, TabLabel } from '@/components/navigation';
+import { TAB_ICONS, TabBarIcon, TabLabel } from '@/components/navigation';
 import { BorderWidth, Size, usePalette } from '@/components/theme';
-import { Icon } from '@/components/ui';
 
 export type MainTab = keyof typeof TAB_ICONS;
 
@@ -82,7 +81,7 @@ export function MainTabBar({ selected }: { readonly selected: MainTab }) {
     >
       {TABS.map((tab) => {
         const active = tab.key === selected;
-        const color = active ? p.primary : p.textMuted;
+        const color = active ? p.tabActive : p.tabInactive;
         const label = t(tab.label);
         return (
           <Pressable
@@ -94,7 +93,7 @@ export function MainTabBar({ selected }: { readonly selected: MainTab }) {
             onPress={() => router.dismissTo(tab.href)}
             style={({ pressed }) => [styles.tab, { opacity: pressed ? 0.6 : 1 }]}
           >
-            <Icon name={TAB_ICONS[tab.key]} size={Size.icon} color={color} />
+            <TabBarIcon name={TAB_ICONS[tab.key]} focused={active} color={color} />
             <TabLabel focused={active} color={color}>
               {label}
             </TabLabel>

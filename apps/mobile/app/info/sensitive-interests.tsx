@@ -28,13 +28,13 @@ export default function SensitiveInterests() {
         {SECTIONS.map((s) => (
           <View key={s} style={styles.section}>
             <Heading>{t(`info.sensitive.headings.${s}`)}</Heading>
-            <Text variant="small" color="textBody">
+            <Text variant="small" color="text">
               {t(`info.sensitive.${s}`)}
             </Text>
           </View>
         ))}
       </Card>
-      <Banner tone="warning" icon="info">
+      <Banner tone="info" icon="info">
         {t('info.sensitive.risk')}
       </Banner>
     </ShellPage>

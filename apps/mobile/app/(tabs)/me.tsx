@@ -62,7 +62,7 @@ export default function Me() {
 
       {blocking ? (
         <Banner
-          tone="warning"
+          tone="info"
           icon="info"
           testID="blocking-setting"
           actions={<Button label={t('me.changePreferences')} variant="outline" size="xs" onPress={() => router.push('/settings/preferences')} />}

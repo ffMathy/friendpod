@@ -19,7 +19,7 @@ export function PhotoStepCard({ uid, version }: { readonly uid: string; readonly
   const { state, choose } = usePhotoUpload(uid);
   return (
     <Card style={styles.row} gap={14}>
-      <View style={[styles.avatar, { backgroundColor: p.mint }]}>
+      <View style={[styles.avatar, { backgroundColor: p.inset }]}>
         {version !== null ? (
           <AuthenticatedPhoto owner={uid} version={version} size="thumb" accessibilityLabel={t('onboarding.final.yourPhoto')} style={styles.photo} />
         ) : (
@@ -42,7 +42,7 @@ export function PhotoStepCard({ uid, version }: { readonly uid: string; readonly
           busy={state === 'uploading'}
           onPress={() => void choose()}
         />
-        {state === 'done' && version === null ? <Small color="onMint">{t('onboarding.photo.uploaded')}</Small> : null}
+        {state === 'done' && version === null ? <Small color="textSecondary">{t('onboarding.photo.uploaded')}</Small> : null}
         {state === 'failed' ? <ErrorText>{t('onboarding.photo.failed')}</ErrorText> : null}
       </View>
     </Card>
@@ -95,10 +95,10 @@ export function NotificationsStepCard() {
         </Text>
         {status === 'on' ? (
           <View testID="notifications-on">
-            <Badge label={t('onboarding.final.notifOn')} tone="mint" icon="check" />
+            <Badge label={t('onboarding.final.notifOn')} tone="status" icon="check" />
           </View>
         ) : (
-          <Button testID="notifications-enable" label={t('onboarding.final.notifEnable')} variant="dark" size="xs" busy={busy} onPress={() => void enable()} />
+          <Button testID="notifications-enable" label={t('onboarding.final.notifEnable')} variant="secondary" size="xs" busy={busy} onPress={() => void enable()} />
         )}
         {status === 'off' ? <Small>{t('onboarding.final.notifOff')}</Small> : null}
       </View>
@@ -111,9 +111,9 @@ export function PledgeCard({ agreed, onChange }: { readonly agreed: boolean; rea
   const { t } = useTranslation();
   const p = usePalette();
   return (
-    <Card variant="mint" gap={12}>
+    <Card gap={12}>
       <View style={styles.pledgeTitle}>
-        <Icon name="shield" size={20} color={p.onMint} />
+        <Icon name="shield" size={20} color={p.textSecondary} />
         <Heading>{t('onboarding.final.pledgeTitle')}</Heading>
       </View>
       <PledgeCheckbox label={t('onboarding.final.pledge')} checked={agreed} onChange={onChange} />

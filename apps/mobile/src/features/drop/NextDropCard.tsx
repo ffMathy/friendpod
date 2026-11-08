@@ -39,19 +39,19 @@ export function NextDropCard({ user, now }: { user: Pick<UserDoc, 'status' | 'pa
 
   return (
     <>
-      <Card variant="hero" radius={24} gap={16} testID="next-drop">
-        <Badge tone="accent" label={t('home.nextDrop')} />
+      <Card radius={24} gap={16} testID="next-drop">
+        <Badge tone="status" label={t('home.nextDrop')} />
         <View style={styles.when}>
-          <Text variant="countdown" color="onHero" style={styles.countdown}>
+          <Text variant="countdown" color="text" style={styles.countdown}>
             {t('home.dropAt', { day: capitalize(weekday(releaseAt, locale)), time: clock(releaseAt, locale) })}
           </Text>
-          <Text variant="body" color="onHeroMuted" style={styles.natural15}>
+          <Text variant="body" color="textMuted" style={styles.natural15}>
             {countdown(t, now, releaseAt)}
           </Text>
         </View>
         <View style={styles.status}>
-          <Icon name={status.icon} size={18} color={p.onHeroBody} />
-          <Text variant="small" color="onHeroBody" style={[styles.flex, styles.natural14]}>
+          <Icon name={status.icon} size={18} color={p.textSecondary} />
+          <Text variant="small" color="textSecondary" style={[styles.flex, styles.natural14]}>
             {status.text}
           </Text>
         </View>

@@ -125,7 +125,7 @@ export function PlacePicker({ language, gh5, value, onChange }: PlacePickerProps
                   onPress={() => void pick(r)}
                   style={({ pressed }) => [
                     styles.row,
-                    { backgroundColor: selected ? p.mint : pressed ? p.surfaceMuted : p.surface },
+                    { backgroundColor: selected ? p.inset : pressed ? p.inset : p.surface },
                     i < rows.length - 1 ? { borderBottomWidth: BorderWidth.hairline, borderBottomColor: p.separator } : null,
                   ]}
                 >

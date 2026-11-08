@@ -18,7 +18,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BackButton, CloseButton } from './Button';
-import { ProgressBar } from './Progress';
+import { ProgressSegments } from './Progress';
 import { Text } from './Text';
 import { Layout, Radius, Size, usePalette } from './theme';
 
@@ -91,7 +91,7 @@ export function Screen({
   );
 }
 
-/** Onboarding header: 44 px back chevron, "Step n of N", 6 px progress bar (onb-*.dc.html). */
+/** Onboarding step header (spec §6.12 B): 44 px back chevron, "Step n of N" 13/600 Muted, then N segments (done Skov). */
 export function StepHeader({ step, total, onBack }: { step: number; total: number; onBack?: () => void }) {
   const { t } = useTranslation();
   return (
@@ -102,7 +102,7 @@ export function StepHeader({ step, total, onBack }: { step: number; total: numbe
           {t('common.stepOf', { step, total })}
         </Text>
       </View>
-      <ProgressBar value={step / total} decorative />
+      <ProgressSegments total={total} filled={step} />
     </View>
   );
 }
@@ -120,14 +120,18 @@ export interface PageHeaderProps {
   readonly backLabel?: string;
 }
 
-/** The in-page header of tab and pod screens: 30/800 title (drop-home, priv-settings, pod-plan). */
+/**
+ * The in-page header of tab screens and plain pushed screens (spec §6.12 A and D): Title (Bricolage 30/32) in Ink at the
+ * left, meta ("Week 46", "5 of 20") 14/600 Muted at the right on the baseline; optional eyebrow above ("Me") and a
+ * line under it. With `onBack` the 44 px back chevron sits above the title.
+ */
 export function PageHeader({ title, eyebrow, meta, subtitle, onBack, backLabel }: PageHeaderProps) {
   const { t } = useTranslation();
   return (
     <View style={styles.pageHeader}>
       {onBack ? <BackButton onPress={onBack} accessibilityLabel={backLabel ?? t('common.back')} /> : null}
       {eyebrow ? (
-        <Text variant="smallStrong" color="textMuted">
+        <Text variant="eyebrow" color="textMuted">
           {eyebrow}
         </Text>
       ) : null}
@@ -163,7 +167,11 @@ export interface SheetProps {
   readonly scroll?: boolean;
 }
 
-/** Bottom-sheet layout for app/sheets (drop-why, after-member): white, handle, 24/800 title, close cross. */
+/**
+ * Bottom-sheet layout for app/sheets (drop-why, after-member; spec §6.14): white, top radius 28, a 36 × 5 Outline handle,
+ * the title in Headline (Bricolage 22/26), the close cross. A destructive confirm ends with the Danger outline button and
+ * a secondary Cancel; never two filled buttons in one sheet.
+ */
 export function Sheet({ title, onClose, closeLabel, leading, subtitle, children, footer, scroll = true }: SheetProps) {
   const p = usePalette();
   const { t } = useTranslation();
@@ -218,15 +226,15 @@ const styles = StyleSheet.create({
   grow: { flexGrow: 1 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: Layout.gutter },
   footer: { paddingTop: 12, gap: 12 },
-  stepHeader: { gap: 14, paddingTop: 8 },
+  stepHeader: { gap: 12, paddingTop: 8 },
   stepRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   backSpacer: { height: Size.hitTarget },
   pageHeader: { gap: 4 },
   titleRow: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: 12 },
   sheet: { borderTopLeftRadius: Radius.panel, borderTopRightRadius: Radius.panel },
-  handle: { width: 44, height: 5, borderRadius: 3, alignSelf: 'center', marginTop: 10 },
-  sheetScroll: { paddingHorizontal: Layout.gutter, paddingTop: 18, paddingBottom: Layout.bottom },
+  handle: { width: 36, height: 5, borderRadius: 3, alignSelf: 'center', marginTop: 12 },
+  sheetScroll: { paddingHorizontal: Layout.gutterCompact, paddingTop: 18, paddingBottom: Layout.bottom },
   sheetBody: { gap: 18 },
   sheetTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
-  sheetFooter: { paddingHorizontal: Layout.gutter, paddingTop: 12, gap: 12 },
+  sheetFooter: { paddingHorizontal: Layout.gutterCompact, paddingTop: 12, gap: 12 },
 });

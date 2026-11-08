@@ -1,7 +1,10 @@
 /**
- * Every icon the storyboards draw, as react-native-svg on a 24 × 24 grid (stroke icons, round caps and joins).
- * Decorative by default (hidden from screen readers); pass `accessibilityLabel` when the icon carries meaning on
- * its own, such as the lock on a private interest.
+ * Every icon of the blend spec (§6.16), as react-native-svg on a 24 × 24 grid (stroke 2, round caps and joins; 14 px in
+ * pills, 16–18 in fact lists, 20 in cards, 24 in nav and back). Decorative by default (hidden from screen readers);
+ * pass `accessibilityLabel` when the icon carries meaning on its own, such as the lock on a private interest.
+ *
+ * Colours: Ink 2 for neutral icons, the pod's deep tone for fact and row icons inside a pod, Ink beside a button
+ * label, Skov only on Skov things you tap, Danger only in danger buttons and the safety alert. The star is Ink.
  */
 import type { ColorValue, StyleProp, ViewStyle } from 'react-native';
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
@@ -47,18 +50,24 @@ export const ICONS = {
   person: { strokeWidth: 2, shapes: [{ cx: 12, cy: 8, r: 4 }, { d: 'M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8' }] },
   /** Area / place. */
   pin: { strokeWidth: 2, shapes: [{ d: 'M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z' }, { cx: 12, cy: 10, r: 2.5 }] },
-  /** Deadlines, priority, quick chat notes. */
+  /** Needs you, "Hasn't confirmed", "Open until …", deadlines. */
   clock: { strokeWidth: 2, shapes: [{ cx: 12, cy: 12, r: 9 }, { d: 'M12 7v5l3 2' }] },
   /** Private interests. */
   lock: { strokeWidth: 2.2, shapes: [{ x: 5, y: 11, width: 14, height: 10, rx: 2 }, { d: 'M8 11V8a4 4 0 0 1 8 0v3' }] },
   camera: { strokeWidth: 1.8, shapes: [{ d: 'M4 8h3l2-3h6l2 3h3v11H4z' }, { cx: 12, cy: 13, r: 3.5 }] },
   bell: { strokeWidth: 1.8, shapes: [{ d: 'M6 16V11a6 6 0 0 1 12 0v5l2 2H4z' }, { d: 'M10 20a2 2 0 0 0 4 0' }] },
   info: { strokeWidth: 2, shapes: [{ cx: 12, cy: 12, r: 9 }, { d: 'M12 11v5M12 8h.01' }] },
+  /** The question marker of a needs-you note ("Did you mean …?"). */
+  help: { strokeWidth: 2, shapes: [{ cx: 12, cy: 12, r: 9 }, { d: 'M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .8-1 1.5V14M12 17h.01' }] },
+  /** The safety alert ("In danger right now? Call 112."). */
+  phone: { strokeWidth: 2, shapes: [{ d: 'M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z' }] },
+  /** A warning triangle (errors and alerts that are not about safety). */
+  alert: { strokeWidth: 2, shapes: [{ d: 'M12 4l9 16H3z' }, { d: 'M12 10v4.5M12 17.5h.01' }] },
   /** Safety pledge, meeting safely, 112. */
   shield: { strokeWidth: 2, shapes: [{ d: 'M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z' }] },
   /** Star outline (not starred). */
   star: { strokeWidth: 1.8, shapes: [{ d: STAR }] },
-  /** Starred: filled with `fill` (default accent), outlined with `color` (default the star stroke). */
+  /** Starred (main interest): filled and outlined in Ink (`color`, `fill`). Never yellow. */
   starFilled: { strokeWidth: 1.5, shapes: [{ d: STAR }] },
   /** Chat send. */
   send: { strokeWidth: 2.2, shapes: [{ d: 'M5 12h13M13 6l6 6-6 6' }] },
@@ -72,8 +81,8 @@ export const ICONS = {
   more: { strokeWidth: 0, solid: true, shapes: [{ cx: 5, cy: 12, r: 1.8 }, { cx: 12, cy: 12, r: 1.8 }, { cx: 19, cy: 12, r: 1.8 }] },
   /** Pause matching. */
   pause: { strokeWidth: 2, shapes: [{ d: 'M9 5v14M15 5v14' }] },
-  /** Delete account. */
-  trash: { strokeWidth: 2, shapes: [{ d: 'M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13' }] },
+  /** Remove, withdraw, delete (danger buttons). */
+  trash: { strokeWidth: 2, shapes: [{ d: 'M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v5.5M14 11v5.5' }] },
   /** Block / blocked people. */
   block: { strokeWidth: 2, shapes: [{ cx: 12, cy: 12, r: 9 }, { d: 'M5.6 5.6l12.8 12.8' }] },
   /** Report. */
@@ -84,11 +93,11 @@ export type IconName = keyof typeof ICONS;
 
 export interface IconProps {
   readonly name: IconName;
-  /** Rendered size in px (the storyboards use 14, 16, 18, 20, 22, 24 and 28). Default 24. */
+  /** Rendered size in px (14 in pills, 16–18 in fact lists, 20 in cards, 24 in nav). Default 24. */
   readonly size?: number;
   /** Stroke colour (solid icons: fill colour). Default: the text colour. */
   readonly color?: ColorValue;
-  /** Fill for `starFilled` (default: accent). */
+  /** Fill for `starFilled` (default: the stroke colour, Ink). */
   readonly fill?: ColorValue;
   /** Overrides the storyboard stroke width. */
   readonly strokeWidth?: number;
@@ -102,9 +111,9 @@ export function Icon({ name, size = 24, color, fill, strokeWidth, accessibilityL
   const p = usePalette();
   const spec: IconSpec = ICONS[name];
   const starred = name === 'starFilled';
-  const stroke = color ?? (starred ? p.starStroke : p.text);
+  const stroke = color ?? p.text;
   const solid = spec.solid === true;
-  const shapeFill = solid ? stroke : starred ? (fill ?? p.accent) : 'none';
+  const shapeFill = solid ? stroke : starred ? (fill ?? stroke) : 'none';
   const common = {
     fill: shapeFill,
     stroke: solid ? 'none' : stroke,

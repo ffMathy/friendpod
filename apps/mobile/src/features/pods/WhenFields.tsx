@@ -122,7 +122,7 @@ function PickerField({ label, value, spokenValue, placeholder, icon, onPress, te
         accessibilityRole="button"
         accessibilityLabel={`${label}, ${spokenValue ?? value ?? placeholder}`}
         onPress={onPress}
-        style={({ pressed }) => [styles.box, { backgroundColor: pressed ? p.surfaceMuted : p.surface, borderColor: p.borderStrong }]}
+        style={({ pressed }) => [styles.box, { backgroundColor: pressed ? p.inset : p.surface, borderColor: p.borderStrong }]}
       >
         <Text variant="lede" color={value ? 'text' : 'textMuted'} numberOfLines={1} style={styles.value}>
           {value ?? placeholder}

@@ -81,10 +81,10 @@ export default function DeleteAccount() {
         <View style={styles.list}>
           {WHAT_HAPPENS.map((key) => (
             <View key={key} style={styles.item}>
-              <Text variant="small" color="textBody" style={styles.dot} accessibilityElementsHidden importantForAccessibility="no">
+              <Text variant="small" color="text" style={styles.dot} accessibilityElementsHidden importantForAccessibility="no">
                 {'•'}
               </Text>
-              <Text variant="small" color="textBody" style={styles.flex}>
+              <Text variant="small" color="text" style={styles.flex}>
                 {t(`deleteAccount.${key}`)}
               </Text>
             </View>

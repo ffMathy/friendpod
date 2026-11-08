@@ -50,7 +50,7 @@ type ActionTone = 'neutral' | 'danger';
 
 const ACTION_TONES: Record<ActionTone, { bg: PaletteKey; border: PaletteKey; title: PaletteKey; body: PaletteKey; icon: PaletteKey }> = {
   neutral: { bg: 'surface', border: 'borderStrong', title: 'text', body: 'textMuted', icon: 'text' },
-  danger: { bg: 'dangerBg', border: 'dangerBorder', title: 'dangerText', body: 'dangerInk', icon: 'dangerText' },
+  danger: { bg: 'surface', border: 'danger', title: 'danger', body: 'textSecondary', icon: 'danger' },
 };
 
 export interface ActionRowProps {
@@ -268,7 +268,7 @@ export function NoteField({ label, value, maxLength, helper, onFocus, onBlur, ..
             {` ${t('common.optional')}`}
           </Text>
         </Text>
-        <Text variant="caption" color={value.length >= maxLength ? 'dangerText' : 'textMuted'} style={styles.noteLine}>
+        <Text variant="caption" color={value.length >= maxLength ? 'danger' : 'textMuted'} style={styles.noteLine}>
           {`${value.length} / ${maxLength}`}
         </Text>
       </View>

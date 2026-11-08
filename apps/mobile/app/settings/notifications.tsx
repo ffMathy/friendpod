@@ -57,12 +57,12 @@ export default function NotificationSettings() {
           {granted === true ? (
             <>
               <View testID="notifications-on">
-                <Badge tone="mint" icon="check" label={t('settings.notifications.on')} />
+                <Badge tone="status" icon="check" label={t('settings.notifications.on')} />
               </View>
               <Button testID="notifications-off" label={t('settings.notifications.turnOff')} variant="outline" size="xs" onPress={() => void disable()} />
             </>
           ) : (
-            <Button testID="notifications-on-button" label={t('settings.notifications.turnOn')} variant="dark" size="xs" onPress={() => void enable()} />
+            <Button testID="notifications-on-button" label={t('settings.notifications.turnOn')} variant="primary" size="xs" onPress={() => void enable()} />
           )}
           {failed ? <ErrorText>{t('settings.notifications.failed')}</ErrorText> : null}
         </View>

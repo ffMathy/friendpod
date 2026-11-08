@@ -107,7 +107,7 @@ export default function Plan() {
     <PodPage
       top={32}
       gap={14}
-      footer={<Button testID="plan-done" label={rows.length > 0 ? t('plan.doneVoting') : t('plan.backToPod')} variant="dark" onPress={() => goBack(router)} />}
+      footer={<Button testID="plan-done" label={rows.length > 0 ? t('plan.doneVoting') : t('plan.backToPod')} variant="primary" onPress={() => goBack(router)} />}
     >
       <View style={styles.header}>
         <BackButton onPress={() => goBack(router)} accessibilityLabel={t('chat.backToPod')} />
@@ -123,7 +123,7 @@ export default function Plan() {
       </View>
 
       {pod.data?.planning.extended ? (
-        <Banner tone="warning" icon="clock" title={t('plan.extendedTitle')}>
+        <Banner tone="needsYou" icon="clock" title={t('plan.extendedTitle')}>
           {t('plan.extendedBody', { when: weekdayAt(t, pod.data.planning.deadline.toMillis(), locale) })}
         </Banner>
       ) : null}

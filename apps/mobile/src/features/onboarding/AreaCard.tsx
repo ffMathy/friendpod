@@ -20,8 +20,8 @@ export function AreaCard({ name, area }: AreaCardProps) {
   const badge: StatusPillProps = !area
     ? { label: t('onboarding.area.notOpen'), bg: 'surface', fg: 'text', border: 'border' }
     : area.status === 'live'
-      ? { label: t('onboarding.area.live', { city: area.label }), bg: 'mint', fg: 'onMint' }
-      : { label: t('onboarding.area.opensSoon', { city: area.label }), bg: 'warningBg', fg: 'warningText', border: 'warningBorder' };
+      ? { label: t('onboarding.area.live', { city: area.label }), bg: 'ink', fg: 'onInk' }
+      : { label: t('onboarding.area.opensSoon', { city: area.label }), bg: 'surface', fg: 'text', border: 'border' };
   return (
     <Card testID="area-card" padding={18} accessibilityLabel={t('onboarding.area.yourArea')}>
       <View style={styles.top}>
@@ -49,8 +49,8 @@ const pct = (n: number) => `${(n / MAP_WIDTH) * 100}%` as const;
 function AreaMap() {
   const p = usePalette();
   return (
-    <View accessible={false} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden style={[styles.map, { backgroundColor: p.surfaceMuted }]}>
-      <View style={[styles.abs, styles.cell, { left: pct(120), width: pct(100), backgroundColor: p.sage, borderColor: p.primary }]} />
+    <View accessible={false} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden style={[styles.map, { backgroundColor: p.inset }]}>
+      <View style={[styles.abs, styles.cell, { left: pct(120), width: pct(100), backgroundColor: p.track, borderColor: p.primary }]} />
       <View style={[styles.abs, styles.street, { left: pct(20), width: pct(300), backgroundColor: p.surface }]} />
       <View style={[styles.abs, styles.avenue, { left: pct(190), backgroundColor: p.surface }]} />
     </View>

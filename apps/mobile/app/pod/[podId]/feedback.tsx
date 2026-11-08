@@ -203,9 +203,9 @@ export default function Feedback() {
           </View>
         ) : null}
 
-        <Card variant="mint" gap={10} testID="feedback-keep">
+        <Card gap={10} testID="feedback-keep">
           <Heading style={styles.heading}>{t('feedback.keepTitle')}</Heading>
-          <Text variant="caption" color="mintBody" style={styles.keepBody}>
+          <Text variant="caption" color="textSecondary" style={styles.keepBody}>
             {t('feedback.keepBody')}
           </Text>
           <View style={styles.buttons}>
@@ -224,7 +224,7 @@ export default function Feedback() {
               size="md"
               grow={1}
               style={styles.pairButton}
-              variant="outlineOnMint"
+              variant="secondary"
               label={t('feedback.notForMe')}
               busy={submit.isPending && keepPressed === false}
               disabled={submit.isPending}

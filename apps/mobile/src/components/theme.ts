@@ -1,207 +1,152 @@
 /**
- * Design tokens, taken from the storyboards (design-canvas `*.dc.html`, 390 × 844 CSS px; React Native layout
- * units equal CSS px at that width, so every number here is the storyboard's own).
+ * Design tokens for direction E "Blend" (blend-spec.md; storyboards are 390 × 844 CSS px, and React Native layout
+ * units equal CSS px at that width, so every number here is the spec's own).
  *
- * Light mode matches the storyboards exactly. Dark mode keeps the brand: the green stays the primary (lighter,
- * with dark text on it so it stays readable), surfaces are warm green-greys, accents keep their hue.
+ * One line: a pod colour for every group, a poster for every ritual, a seat saved for you.
  *
- * Typography: Plus Jakarta Sans, one font family per weight (React Native needs that for custom fonts). Never
- * set `fontWeight` in a style; use `font(weight)` or a `Type` variant, which map the weight to its family.
+ * - **Chrome** (identical in every pod): warm Paper ground, white cards, Ink text, and Skov green for everything you
+ *   tap. Small text never sits on a mid-tone colour field.
+ * - **Six pod colours** (`POD_PALETTE`): Solsikke, Blad, Bær, Tomat, Fjord, Blomme, each with base / deep / tint.
+ *   Which one a pod gets comes from its concept id (`@/lib/podColor`); `usePodColors(color)` gives the roles.
+ * - **Dark mode** (decision 10): Paper → Night, Skov light for actions, pod fields and tints go deep with white type,
+ *   dots and seats get a tint ring.
+ *
+ * Typography: Bricolage Grotesque shouts (display, screen titles, pod names), Plus Jakarta Sans reads (everything
+ * else). One font family per weight (React Native needs that for custom fonts): never set `fontWeight` in a style;
+ * use `font(weight)`, `fontDisplay(weight)` or a `Type` variant, which map the weight to its family.
  */
 import { useColorScheme, type TextStyle } from 'react-native';
+import { POD_COLORS, type PodColor } from '@/lib/podColor';
+
+export { POD_COLORS, type PodColor };
 
 // ---------------------------------------------------------------------------------------------------------------
-// Colour
+// Colour: chrome
 // ---------------------------------------------------------------------------------------------------------------
 
 const light = {
-  /** Page background (every screen). */
-  page: '#F3F5F1',
-  /** Cards, inputs, tab bar, sheets. */
+  /** Paper: the page ground of every screen. */
+  page: '#F6F3EC',
+  /** White: cards, inputs, sheets, the tab bar, foot panels, private chips, pills on fields. */
   surface: '#FFFFFF',
-  /** Illustration panels, chat system notes, empty avatar slots. */
-  surfaceMuted: '#E9EEE8',
-  /** A grey note inside a white card ("Names and photos appear…"). Same as the page in light mode. */
-  inset: '#F3F5F1',
+  /** A note inside a white card (Paper fill, no border). Same as the page in light mode. */
+  inset: '#F6F3EC',
 
-  /** Headings and primary text. */
+  /** Ink: headings and text. */
   text: '#18211D',
-  /** Secondary copy inside cards (places, body text on cards). */
-  textSecondary: '#3E4943',
-  /** Long-form prose (consent text, deletion list). */
-  textBody: '#2C3631',
-  /** Helper text, captions, inactive tabs, "Step 2 of 6". */
-  textMuted: '#55605A',
-  /** Unfilled star outline, dashed empty circles. Too light for text (placeholders use `textMuted`). */
-  textFaint: '#9AA59D',
+  /** Ink 2: secondary text, text on tints, quiet links, neutral icons, "Hasn't confirmed". */
+  textSecondary: '#3A423D',
+  /** Muted: meta, counts, eyebrows, placeholders, inactive tab. Never on a tint (use textSecondary there). */
+  textMuted: '#4A514C',
 
-  /** Card borders, dividers, progress tracks. */
-  border: '#DCE2DC',
-  /** Inputs and outline buttons, sheet handle. */
-  borderStrong: '#C9D1CA',
-  /** Row separators inside a card. */
-  separator: '#EEF1ED',
-  /** Dashed outlines ("Suggest another time", empty seats). */
-  borderDashed: '#B7C1B9',
+  /** Line: card borders (decorative). */
+  border: '#E4DFD4',
+  /** Divider: rows inside a card. */
+  separator: '#EEEAE2',
+  /** Outline: the 1.5 px border of secondary buttons, suggestion chips, plain-clash chips, the sheet handle. */
+  borderStrong: '#C9C3B6',
+  /** Field: input borders, open (dashed) seats, unsettled chips, unchecked boxes. Non-text, >= 3:1. */
+  field: '#8A857A',
+  /** Track: empty progress segments, the off switch. */
+  track: '#DDD8CD',
 
-  /** Brand green: primary buttons, links, progress, selected states. */
-  primary: '#1E6B58',
-  /** Pressed primary, link hover, text on mint. */
+  /** Skov: everything you tap (primary buttons, Add, progress, switches/checkbox/radio "on"). */
+  primary: '#1B6452',
+  /** Skov deep: pressed primary. */
   primaryPressed: '#174F42',
+  /** White on Skov (7.0:1). */
   onPrimary: '#FFFFFF',
+  /** Skov deep: links, focused input border. */
+  link: '#174F42',
+  /** Active tab label and icon. */
+  tabActive: '#174F42',
+  /** Skov tint: the active tab pill only. */
+  tabActiveBg: '#E1EFE9',
+  tabInactive: '#4A514C',
 
-  /** The green hero card ("Confirmed"). */
-  brand: '#1E6B58',
-  onBrand: '#FFFFFF',
-  onBrandMuted: '#D9EBE4',
+  /** The house poster field (welcome, the Thursday drop) and the app icon: Skov in both modes. */
+  house: '#1B6452',
+  /** Display type and pills' text on the house field. */
+  onHouse: '#FFFFFF',
 
-  /** Mint tint: tags, "safety pledge" and "meet again" cards, the welcome illustration panel. */
-  mint: '#E1EFE9',
-  onMint: '#174F42',
-  mintBody: '#2C4A40',
-  mintBorder: '#A9C8BD',
-
-  /** Near-black: dark buttons, selected chips, the selected language, the "You" avatar. */
+  /** Ink fill: status pills, You, unread badge, selected segment/choice, the Apple button. */
   ink: '#18211D',
   onInk: '#FFFFFF',
 
-  /** The dark hero card ("Next drop", "Next step", waitlist). */
-  hero: '#18211D',
-  onHero: '#FFFFFF',
-  onHeroMuted: '#C9D1CA',
-  onHeroBody: '#E1EFE9',
-  heroTrack: '#3A4540',
-  heroBorder: '#55605A',
+  /** Needs you (your own deadline): Solsikke pill/marker, always with a 1.5 px Ink border. */
+  needsYou: '#FFD84D',
+  onNeedsYou: '#18211D',
+  needsYouBorder: '#18211D',
 
-  /** Sun yellow: "Next drop" / "New pod" badges, the waitlist bar, eyebrows on dark cards, the star. */
-  accent: '#F2B544',
-  onAccent: '#18211D',
-  accentSoft: '#F7D58E',
-  sage: '#8DBFAE',
-  leaf: '#2F8A72',
+  /** Danger: text, icon and 1.5 px border of destructive outline buttons and the safety alert. Never a fill. */
+  danger: '#C41E3A',
+  /** Pressed destructive outline button. */
+  dangerPressedBg: '#F6F3EC',
 
-  /** Amber notices: chat "You haven't met yet", "Did you mean", priority, "Hasn't confirmed". */
-  warningBg: '#FFF6E3',
-  warningBorder: '#F2D9A0',
-  warningText: '#7A5200',
-  warningInk: '#4A3A12',
-  warningControlBorder: '#C9A85B',
-  starStroke: '#C88A12',
-
-  /** Red: report, delete, withdraw, 112. `danger` is the solid destructive button. */
-  danger: '#A8361B',
-  onDanger: '#FFFFFF',
-  dangerBg: '#FFF4F1',
-  dangerBorder: '#E8B4A6',
-  dangerText: '#8A2E17',
-  dangerInk: '#6E2B1A',
-
-  /** Purple: private (sensitive) interests and pods about them. `private` is the solid chip/button. */
-  private: '#4B3A8F',
-  privatePressed: '#36296B',
-  onPrivate: '#FFFFFF',
-  privateBg: '#EEEAF7',
-  privateBorder: '#D9D2EE',
-  privateText: '#4B3A8F',
-  privateInk: '#2F2459',
+  /** Private stays quiet: white fill, 1.5 px Ink border, Ink lock and word. */
+  privateBg: '#FFFFFF',
+  privateBorder: '#18211D',
+  privateText: '#18211D',
+  /** Avatars and lit seats in a private pod (Ink 2, white initial). */
+  privateFill: '#3A423D',
 
   /** Behind a bottom sheet. */
-  scrim: '#59615C',
+  scrim: 'rgba(24, 33, 29, 0.5)',
   /** Disabled buttons. */
-  disabledBg: '#DCE2DC',
-  disabledText: '#55605A',
-  /** The round knob of a switch (on the green track when on, the grey track when off). */
+  disabledBg: '#DDD8CD',
+  disabledText: '#4A514C',
+  /** The round knob of a switch. */
   switchThumb: '#FFFFFF',
-
-  /** Initials avatars (the "You" avatar uses ink). Text on them is `onAvatar`. */
-  avatar1: '#F7D58E',
-  avatar2: '#8DBFAE',
-  avatar3: '#CFC6EE',
-  avatar4: '#F4C2B0',
-  onAvatar: '#18211D',
 };
 
 export type PaletteKey = keyof typeof light;
 export type Palette = { readonly [K in PaletteKey]: string };
 
 const dark: Palette = {
-  page: '#111513',
-  surface: '#1A1F1C',
-  surfaceMuted: '#252C28',
-  inset: '#151A17',
+  page: '#131916',
+  surface: '#1D2521',
+  inset: '#131916',
 
-  text: '#EDF1EC',
-  textSecondary: '#C5CEC7',
-  textBody: '#D6DDD7',
-  textMuted: '#A0ABA4',
-  textFaint: '#6E7972',
+  text: '#F2EFE8',
+  textSecondary: '#C9CFCB',
+  textMuted: '#AEB5B0',
 
-  border: '#2C3531',
-  borderStrong: '#3D4843',
-  separator: '#242B27',
-  borderDashed: '#4C5852',
+  border: '#2E3833',
+  separator: '#262E2A',
+  borderStrong: '#56625C',
+  field: '#858C87',
+  track: '#2E3833',
 
-  primary: '#5FC2A1',
-  primaryPressed: '#4BAA8A',
-  onPrimary: '#0B1F18',
+  primary: '#7FCDB0',
+  primaryPressed: '#A3DCC6',
+  onPrimary: '#18211D',
+  link: '#7FCDB0',
+  tabActive: '#7FCDB0',
+  tabActiveBg: '#1F3B33',
+  tabInactive: '#AEB5B0',
 
-  brand: '#1D5747',
-  onBrand: '#FFFFFF',
-  onBrandMuted: '#C6E2D7',
+  house: '#1B6452',
+  onHouse: '#FFFFFF',
 
-  mint: '#1C3830',
-  onMint: '#A9DCC8',
-  mintBody: '#C1DBD1',
-  mintBorder: '#3C6A5C',
+  ink: '#F2EFE8',
+  onInk: '#18211D',
 
-  ink: '#EDF1EC',
-  onInk: '#141917',
+  needsYou: '#FFD84D',
+  onNeedsYou: '#18211D',
+  needsYouBorder: '#18211D',
 
-  hero: '#232C28',
-  onHero: '#FFFFFF',
-  onHeroMuted: '#B8C3BB',
-  onHeroBody: '#D3E5DD',
-  heroTrack: '#3A4641',
-  heroBorder: '#606C66',
+  danger: '#F69B96',
+  dangerPressedBg: '#131916',
 
-  accent: '#F2B544',
-  onAccent: '#18211D',
-  accentSoft: '#E9C67D',
-  sage: '#7FB3A2',
-  leaf: '#3A9A80',
-
-  warningBg: '#2D2614',
-  warningBorder: '#5C4A22',
-  warningText: '#F0C46C',
-  warningInk: '#EADDBD',
-  warningControlBorder: '#8C7238',
-  starStroke: '#E0A93A',
-
-  danger: '#C9482B',
-  onDanger: '#FFFFFF',
-  dangerBg: '#331C17',
-  dangerBorder: '#6E3628',
-  dangerText: '#F3A893',
-  dangerInk: '#EDCBC1',
-
-  private: '#6E5AC8',
-  privatePressed: '#5A47AE',
-  onPrivate: '#FFFFFF',
-  privateBg: '#29233F',
-  privateBorder: '#463C6E',
-  privateText: '#BCAEF2',
-  privateInk: '#DDD6F7',
+  privateBg: '#1D2521',
+  privateBorder: '#F2EFE8',
+  privateText: '#F2EFE8',
+  privateFill: '#C9CFCB',
 
   scrim: 'rgba(0, 0, 0, 0.6)',
-  disabledBg: '#2C3531',
-  disabledText: '#97A29B',
-  switchThumb: '#F4F7F3',
-
-  avatar1: '#E9C67D',
-  avatar2: '#86B9A8',
-  avatar3: '#C3B9EA',
-  avatar4: '#E8B6A4',
-  onAvatar: '#18211D',
+  disabledBg: '#2E3833',
+  disabledText: '#AEB5B0',
+  switchThumb: '#F2EFE8',
 };
 
 export const Colors: { readonly light: Palette; readonly dark: Palette } = { light, dark };
@@ -217,21 +162,172 @@ export function usePalette(): Palette {
   return Colors[useColorSchemeName()];
 }
 
-/** The four initials-avatar colours, in order; pick one with `avatarColor(seed)`. */
-export const AVATAR_KEYS = ['avatar1', 'avatar2', 'avatar3', 'avatar4'] as const satisfies readonly PaletteKey[];
+// ---------------------------------------------------------------------------------------------------------------
+// Colour: the six pod colours
+// ---------------------------------------------------------------------------------------------------------------
 
-/** A stable avatar colour for a uid or name (same person, same colour, on every screen). */
-export function avatarColorKey(seed: string): (typeof AVATAR_KEYS)[number] {
-  let h = 0;
-  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
-  return AVATAR_KEYS[h % AVATAR_KEYS.length] ?? 'avatar1';
+export interface PodSwatch {
+  /** Danish and English names ("seks podfarver"). */
+  readonly da: string;
+  readonly en: string;
+  /** Fields (the reveal), lit seats, dot fill, the sun. Text on it: display type only, in `onBase`. */
+  readonly base: string;
+  /** Avatars, dot/seat rings, icons, the pod name on its tint (>= 7.3:1). White text on it. */
+  readonly deep: string;
+  /** Chips, bands, card tops, the chat disc, your chat bubble. Ink or Ink 2 text only. */
+  readonly tint: string;
+  /** Display type on the base field: Ink on Solsikke/Blad/Bær/Tomat, white on Fjord/Blomme. */
+  readonly onBase: string;
+  /** The 1 px border every tint surface carries (base at 40%), so Tomat and Bær tints never rely on tint alone. */
+  readonly tintBorder: string;
 }
+
+/** Index order = colour index (see `@/lib/podColor`). Light-mode values; `podColors()` derives dark. */
+export const POD_PALETTE: { readonly [K in PodColor]: PodSwatch } = {
+  solsikke: { da: 'Solsikke', en: 'Sunflower', base: '#FFD84D', deep: '#6A4900', tint: '#FFF1C2', onBase: '#18211D', tintBorder: 'rgba(255, 216, 77, 0.4)' },
+  blad: { da: 'Blad', en: 'Leaf', base: '#9FD05E', deep: '#395500', tint: '#E6F3D4', onBase: '#18211D', tintBorder: 'rgba(159, 208, 94, 0.4)' },
+  baer: { da: 'Bær', en: 'Berry', base: '#F48AB3', deep: '#90124D', tint: '#FDE2EC', onBase: '#18211D', tintBorder: 'rgba(244, 138, 179, 0.4)' },
+  tomat: { da: 'Tomat', en: 'Tomato', base: '#F26A4B', deep: '#8C2107', tint: '#FDE2D9', onBase: '#18211D', tintBorder: 'rgba(242, 106, 75, 0.4)' },
+  fjord: { da: 'Fjord', en: 'Fjord', base: '#2F6FD6', deep: '#124593', tint: '#DDE7FB', onBase: '#FFFFFF', tintBorder: 'rgba(47, 111, 214, 0.4)' },
+  blomme: { da: 'Blomme', en: 'Plum', base: '#6C3399', deep: '#4F2272', tint: '#EDE1F6', onBase: '#FFFFFF', tintBorder: 'rgba(108, 51, 153, 0.4)' },
+};
+
+/**
+ * The roles a pod colour plays, resolved for light or dark mode. `null` (a private pod or interest) gives the quiet
+ * set: no colour anywhere, Ink/white with a lock.
+ */
+export interface PodColors {
+  /** The colour, or null for private. */
+  readonly color: PodColor | null;
+  /** The reveal field (light: base; dark: deep). Private: none (the private reveal is a white card). */
+  readonly field: string;
+  /** Display type on the field. */
+  readonly onField: string;
+  /** Tint surfaces: chips, bands, card tops, the chat disc, your chat bubble (dark: deep). */
+  readonly surface: string;
+  /** The 1 px border of a tint surface (light: base @ 40%; dark: base). Private: the 1.5 px Ink border colour. */
+  readonly surfaceBorder: string;
+  /** Text on the tint surface (light: Ink; dark: white). */
+  readonly onSurface: string;
+  /** Secondary text on the tint surface (light: Ink 2; dark: white). */
+  readonly onSurfaceMuted: string;
+  /** The pod name on its band (light: deep; dark: tint). Private: text. */
+  readonly name: string;
+  /** Leading icons of facts and rows inside the pod (light: deep; dark: tint). Private: Ink 2. */
+  readonly icon: string;
+  /** Dot and lit-seat fill (base). Private: privateFill. */
+  readonly dot: string;
+  /** Dot and lit-seat ring (light: deep; dark: tint). Private: none (same as the dot). */
+  readonly dotRing: string;
+  /** Named member avatar fill (deep) and its initial (white). Private: Ink 2 / white (dark: light grey / Ink). */
+  readonly avatar: string;
+  readonly onAvatar: string;
+  /** Dark mode: the 2 px tint ring around a named avatar; light: transparent. */
+  readonly avatarRing: string;
+  /** "Not confirmed" avatar: fill, dashed border, initial. */
+  readonly pendingBg: string;
+  readonly pendingBorder: string;
+  readonly pendingText: string;
+  /** The pod badge (PodMark): people, sun, sun ring. */
+  readonly markPeople: string;
+  readonly markSun: string;
+  readonly markSunRing: string;
+}
+
+function rgba(hex: string, alpha: number): string {
+  const n = parseInt(hex.slice(1), 16);
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
+}
+
+/** The pod colour roles for a colour (or `null`, private) in a scheme. */
+export function podColors(color: PodColor | null | undefined, scheme: ColorScheme): PodColors {
+  const p = Colors[scheme];
+  if (color === null || color === undefined) {
+    return {
+      color: null,
+      field: p.surface,
+      onField: p.text,
+      surface: p.privateBg,
+      surfaceBorder: p.privateBorder,
+      onSurface: p.text,
+      onSurfaceMuted: p.textSecondary,
+      name: p.text,
+      icon: p.textSecondary,
+      dot: p.privateFill,
+      dotRing: p.privateFill,
+      avatar: p.privateFill,
+      onAvatar: scheme === 'dark' ? '#18211D' : '#FFFFFF',
+      avatarRing: 'transparent',
+      pendingBg: p.surface,
+      pendingBorder: p.field,
+      pendingText: p.text,
+      markPeople: p.text,
+      markSun: 'transparent',
+      markSunRing: p.text,
+    };
+  }
+  const s = POD_PALETTE[color];
+  if (scheme === 'dark') {
+    return {
+      color,
+      field: s.deep,
+      onField: '#FFFFFF',
+      surface: s.deep,
+      surfaceBorder: s.base,
+      onSurface: '#FFFFFF',
+      onSurfaceMuted: '#FFFFFF',
+      name: s.tint,
+      icon: s.tint,
+      dot: s.base,
+      dotRing: s.tint,
+      avatar: s.deep,
+      onAvatar: '#FFFFFF',
+      avatarRing: s.tint,
+      pendingBg: p.page,
+      pendingBorder: s.tint,
+      pendingText: p.text,
+      markPeople: s.tint,
+      markSun: s.base,
+      markSunRing: s.tint,
+    };
+  }
+  return {
+    color,
+    field: s.base,
+    onField: s.onBase,
+    surface: s.tint,
+    surfaceBorder: rgba(s.base, 0.4),
+    onSurface: p.text,
+    onSurfaceMuted: p.textSecondary,
+    name: s.deep,
+    icon: s.deep,
+    dot: s.base,
+    dotRing: s.deep,
+    avatar: s.deep,
+    onAvatar: '#FFFFFF',
+    avatarRing: 'transparent',
+    pendingBg: s.tint,
+    pendingBorder: s.deep,
+    pendingText: p.text,
+    markPeople: s.deep,
+    markSun: s.base,
+    markSunRing: s.deep,
+  };
+}
+
+/** `podColors()` for the system appearance: `const c = usePodColors(podColorFor({ conceptId }))`. */
+export function usePodColors(color: PodColor | null | undefined): PodColors {
+  return podColors(color, useColorSchemeName());
+}
+
+/** Solsikke base and deep: the sun of the mark (deep is its ring on light grounds, decision 6). */
+export const SUN = { base: '#FFD84D', deep: '#6A4900' } as const;
 
 // ---------------------------------------------------------------------------------------------------------------
 // Space, radius, borders, sizes
 // ---------------------------------------------------------------------------------------------------------------
 
-/** The spacing steps the storyboards use (gaps and paddings), keyed by their pixel value. */
+/** The spacing steps (gaps and paddings), keyed by their pixel value. */
 export const Space = {
   2: 2,
   4: 4,
@@ -252,7 +348,7 @@ export const Space = {
 
 /** Page layout. */
 export const Layout = {
-  /** Side padding of onboarding, sign-in and form screens. */
+  /** Side padding of the welcome, onboarding, sign-in and form screens. */
   gutter: 24,
   /** Side padding of tab screens and pod screens. */
   gutterCompact: 20,
@@ -262,69 +358,83 @@ export const Layout = {
   gapLoose: 24,
   /** Bottom padding under the pinned action area (also the minimum safe-area inset). */
   bottom: 32,
+  /** Top padding of a tab screen's content (the title starts here). */
+  tabTop: 40,
   /** Padding inside a standard card. */
   cardPadding: 16,
-  /** Padding inside hero cards (proposal, next drop, confirmed). */
-  heroPadding: 22,
+  /** Side padding inside hero cards (proposal, waiting) and their tint band. */
+  heroPadding: 20,
+  /** How far the foot panel overlaps the bottom of a poster field. */
+  footOverlap: 28,
 } as const;
 
 export const Radius = {
   /** Thin tracks (age slider). */
   track: 2,
-  /** Progress bars: half their height. */
+  /** Progress segments: half their height. */
   bar: 3,
   /** Availability grid cells, chat system note. */
   sm: 10,
-  /** Inputs, rating buttons, notes inside cards, square "Add" button. */
+  /** Inputs, the Add button, notes inside cards, tiles. */
   md: 14,
-  /** Notices, list-link rows, consent checkbox card. */
+  /** Notes, info cards, option cards. */
   lg: 16,
   /** Member action rows, places list. */
   xl: 18,
-  /** Standard card. */
-  card: 20,
-  /** Plan option / plan / chat cards. */
+  /** Cards and foot panels. */
+  card: 22,
+  /** Plan option / plan / chat cards (same as card). */
   cardLg: 22,
-  /** Hero cards (next drop, next step, waitlist). */
-  hero: 26,
-  /** Proposal card, confirmed card, sheets (top corners), the welcome illustration. */
+  /** Hero cards (proposal, waiting), the pod band's bottom corners, sheets' top corners. */
+  hero: 28,
+  /** Same as hero (kept name). */
   panel: 28,
   /** Pills: buttons, chips, badges, avatars. */
   pill: 999,
 } as const;
 
 export const BorderWidth = {
-  /** Card, input and outline-button borders. */
+  /** Card borders, Divider rows, tint borders. */
   hairline: 1,
-  /** Selected option card, focused input, dashed outlines, avatar ring. */
+  /** Inputs, secondary buttons, chips, the private ring, needs-you pill. */
+  control: 1.5,
+  /** Selected option card, focused input, dashed seats, avatar rings. */
   strong: 2,
 } as const;
 
 export const Size = {
   /** Minimum touch target (DESIGN accessibility rule). */
   hitTarget: 44,
-  /** Full-width primary/secondary button. */
+  /** Full-width primary/secondary button (screen CTA). */
   button: 54,
-  /** Hero-card button ("Yes, I'm coming", "Keep pod"). */
+  /** Button in a card. */
   buttonMedium: 48,
-  /** Half-width pill ("Skip this week", "Add to calendar", "5 km"). */
+  /** Small button (half-width pairs, in rows). */
   buttonCompact: 44,
-  /** Inline small pill ("Add a photo", "Yes"/"No" vote). Gets hitSlop up to 44. */
+  /** Inline small pill; gets hitSlop up to 44. Prefer 44. */
   buttonSmall: 40,
-  /** Text input. */
+  /** Standalone text input. */
   input: 54,
-  /** Interest add field, search field, date and time inputs. */
+  /** The input + Add pair, search field, date and time inputs. */
   inputCompact: 52,
-  /** Selectable / removable interest chip. */
+  /** Removable chip and suggestion chip (visual; the target is 44). */
   chip: 36,
-  /** Static mint tag. */
-  tag: 30,
-  /** Badge ("Next drop", "18+ only"). */
+  /** Display chip (pod, private, unsettled, clash). */
+  tag: 32,
+  /** Status pill, pill on a field. */
   badge: 28,
-  /** Small badge ("Leading", "3 new"). */
+  /** Needs-you pill (incl. its 1.5 px border). */
+  badgeNeedsYou: 30,
+  /** Unread badge ("3 new"). */
   badgeSmall: 24,
-  /** Onboarding progress bar. */
+  /** Onboarding progress segments. */
   progress: 6,
+  /** Seats on proposal/waiting. */
+  seat: 44,
+  /** The pod badge in bands. */
+  podBadge: 48,
+  /** Pod dot in chips and rows. */
+  dot: 10,
   /** Tab bar height without the bottom safe-area inset. */
   tabBar: 64,
   icon: 24,
@@ -335,8 +445,10 @@ export const Size = {
 // ---------------------------------------------------------------------------------------------------------------
 
 export type FontWeight = '400' | '500' | '600' | '700' | '800';
+/** Bricolage Grotesque ships 700 and 800 in the app. */
+export type DisplayWeight = '700' | '800';
 
-/** One family per weight; the names are the keys `useFonts` registers (see `fonts.ts`). */
+/** Plus Jakarta Sans, one family per weight; the names are the keys `useFonts` registers (see `fonts.ts`). */
 export const FontFamily: Readonly<Record<FontWeight, string>> = {
   '400': 'PlusJakartaSans_400Regular',
   '500': 'PlusJakartaSans_500Medium',
@@ -345,106 +457,151 @@ export const FontFamily: Readonly<Record<FontWeight, string>> = {
   '800': 'PlusJakartaSans_800ExtraBold',
 };
 
-/** The style for a weight: its family, never `fontWeight`. */
+/** Bricolage Grotesque (static opsz 14 cut), one family per weight. */
+export const DisplayFontFamily: Readonly<Record<DisplayWeight, string>> = {
+  '700': 'BricolageGrotesque_700Bold',
+  '800': 'BricolageGrotesque_800ExtraBold',
+};
+
+/** The style for a Plus Jakarta Sans weight: its family, never `fontWeight`. */
 export function font(weight: FontWeight = '400'): { fontFamily: string } {
   return { fontFamily: FontFamily[weight] };
 }
 
+/** The style for a Bricolage Grotesque weight (display type): its family, never `fontWeight`. */
+export function fontDisplay(weight: DisplayWeight = '800'): { fontFamily: string } {
+  return { fontFamily: DisplayFontFamily[weight] };
+}
+
 interface TypeSpec {
   readonly size: number;
+  /** Line height in px (from the spec's table). */
+  readonly line: number;
   readonly weight: FontWeight;
-  /** letter-spacing in em, as in the storyboards. */
+  /** Bricolage Grotesque (display) instead of Plus Jakarta Sans. Display specs use weight 700 or 800. */
+  readonly display?: boolean;
+  /** letter-spacing in em, as in the spec (converted to px). */
   readonly tracking?: number;
-  /** line-height as a multiple of the size; the storyboards' `normal` is about 1.26. */
-  readonly leading?: number;
   readonly upper?: boolean;
 }
 
-/** Every size/weight/tracking/leading combination the storyboards use. */
+/**
+ * Every type role. Display roles (Bricolage): displayXL, displayL, title*, headline*, podName, wordmark and the older
+ * names mapped onto them (counter, theme, themeCompact, display, countdown). Everything else is Plus Jakarta Sans.
+ */
 export const TypeScale = {
-  /** 48/800 waitlist counter. */
-  counter: { size: 48, weight: '800', tracking: -0.03, leading: 1.1 },
-  /** 40/800 pod theme on the proposal card. */
-  theme: { size: 40, weight: '800', tracking: -0.03, leading: 1.05 },
-  /** 36/800 welcome headline. */
-  display: { size: 36, weight: '800', tracking: -0.03, leading: 1.1 },
-  /** 34/800 pod theme on the confirmed card. */
-  themeCompact: { size: 34, weight: '800', tracking: -0.03, leading: 1.05 },
-  /** 32/800 "Thursday 18:00". */
-  countdown: { size: 32, weight: '800', tracking: -0.02, leading: 1.2 },
-  /** 30/800 screen title (h1). */
-  title: { size: 30, weight: '800', tracking: -0.02, leading: 1.15 },
-  /** 28/800 long screen title (consent). */
-  titleCompact: { size: 28, weight: '800', tracking: -0.02, leading: 1.15 },
-  /** 26/800 title of a full-screen form with a close button ("Suggest a time", "Report Jonas"). */
-  titleModal: { size: 26, weight: '800', tracking: -0.02, leading: 1.2 },
-  /** 24/800 sheet title, empty-state title, pod name in a header. */
-  headline: { size: 24, weight: '800', tracking: -0.02, leading: 1.25 },
-  /** 22/800 question on a hero card ("Still coming tomorrow at 14:00?"). */
-  headlineCompact: { size: 22, weight: '800', leading: 1.2 },
-  /** 22/800 the wordmark. */
-  wordmark: { size: 22, weight: '800', tracking: -0.02, leading: 1.2 },
-  /** 20/800 a value on a card ("Aarhus C"). */
-  stat: { size: 20, weight: '800', leading: 1.25 },
-  /** 18/800 card title (plan option date). */
-  cardTitle: { size: 18, weight: '800', leading: 1.3 },
-  /** 17/800 numbers ("28–42", "3 of 5 said yes", rating digits). */
-  numeral: { size: 17, weight: '800', leading: 1.3 },
-  /** 17/400 text inputs. */
-  input: { size: 17, weight: '400', leading: 1.3 },
-  /** 16/400 lede paragraph under a title. */
-  lede: { size: 16, weight: '400', leading: 1.5 },
-  /** 16/700 button label. */
-  button: { size: 16, weight: '700', leading: 1.25 },
-  /** 16/600 list row title. */
-  rowTitle: { size: 16, weight: '600', leading: 1.3 },
-  /** 15/700 section heading (h2), field label, legend. */
-  heading: { size: 15, weight: '700', leading: 1.35 },
-  /** 15/400 body text. */
-  body: { size: 15, weight: '400', leading: 1.5 },
-  /** 15/600 emphasised body: member names, link rows, selected radio. */
-  bodyStrong: { size: 15, weight: '600', leading: 1.4 },
-  /** 14/400 small text on cards. */
-  small: { size: 14, weight: '400', leading: 1.5 },
-  /** 14/600 chips, row links. */
-  smallStrong: { size: 14, weight: '600', leading: 1.4 },
-  /** 14/700 small button labels, inline links. */
-  smallBold: { size: 14, weight: '700', leading: 1.3 },
-  /** 13/400 helper text and captions. */
-  caption: { size: 13, weight: '400', leading: 1.5 },
-  /** 13/600 "Step 2 of 6", deadlines, column headers. */
-  captionStrong: { size: 13, weight: '600', leading: 1.4 },
-  /** 13/700 badge labels, small links, member status. */
-  captionBold: { size: 13, weight: '700', leading: 1.3 },
-  /** 13/800 accent badges ("Next drop"). */
-  badge: { size: 13, weight: '800', leading: 1.3 },
-  /** 13/700 uppercase section label inside a card ("WHAT YOU'VE AGREED TO"). */
-  overline: { size: 13, weight: '700', tracking: 0.04, leading: 1.3, upper: true },
-  /** 13/800 uppercase eyebrow on a dark card ("ODENSE WAITLIST"). */
-  eyebrow: { size: 13, weight: '800', tracking: 0.06, leading: 1.3, upper: true },
-  /** 12/800 uppercase eyebrow, compact ("NEXT STEP"). */
-  eyebrowCompact: { size: 12, weight: '800', tracking: 0.06, leading: 1.3, upper: true },
-  /** 12/400 fine print (feedback explainer, chat system note). */
-  micro: { size: 12, weight: '400', leading: 1.45 },
-  /** 12/600 tab label. */
-  microStrong: { size: 12, weight: '600', leading: 1.3 },
-  /** 12/700 chat author line, column headers. */
-  microBold: { size: 12, weight: '700', leading: 1.3 },
-  /** 12/800 active tab label, small badges ("Leading", "3 new"). */
-  microHeavy: { size: 12, weight: '800', leading: 1.3 },
+  // Display: Bricolage Grotesque ------------------------------------------------------------------------------
+  /** Display XL 56/58/800, −3.5%: the pod name on the reveal field. Fit steps: displayXL52, displayXL48, displayXL40. */
+  displayXL: { size: 56, line: 58, weight: '800', display: true, tracking: -0.035 },
+  displayXL52: { size: 52, line: 54, weight: '800', display: true, tracking: -0.035 },
+  /** "Thursday 18:00" on the drop field. */
+  displayXL48: { size: 48, line: 50, weight: '800', display: true, tracking: -0.035 },
+  displayXL40: { size: 40, line: 42, weight: '800', display: true, tracking: -0.035 },
+  /** Display L 44/46/800, −3.5%: the welcome headline; the pod name in the proposal/waiting band. */
+  displayL: { size: 44, line: 46, weight: '800', display: true, tracking: -0.035 },
+  /** Title 30/32/800, −2%: screen titles; the pod name in the pod band. */
+  title: { size: 30, line: 32, weight: '800', display: true, tracking: -0.02 },
+  /** 28/30 title for long screen titles (consent). */
+  titleCompact: { size: 28, line: 30, weight: '800', display: true, tracking: -0.02 },
+  /** 26/28 title of a full-screen form with a close button, and of full-screen sheets. */
+  titleModal: { size: 26, line: 28, weight: '800', display: true, tracking: -0.02 },
+  /** Headline 22/26/700, −1.5%: field sublines ("Next drop"), card questions, sheet titles, "3 of 5 said yes". */
+  headline: { size: 22, line: 26, weight: '700', display: true, tracking: -0.015 },
+  /** Same as headline (kept name: the question on a card). */
+  headlineCompact: { size: 22, line: 26, weight: '700', display: true, tracking: -0.015 },
+  /** Pod name in rows and cards 18/22/800. */
+  podName: { size: 18, line: 22, weight: '800', display: true, tracking: -0.015 },
+  /** The lowercase "grouper" next to the dot mark (welcome). */
+  wordmark: { size: 29, line: 29, weight: '800', display: true, tracking: -0.035 },
+  /** Kept names, mapped to display roles: counter and theme = Display L; themeCompact = Display XL 40; display =
+   * Display L (welcome headline); countdown = Display XL 48 ("Thursday 18:00"). */
+  counter: { size: 44, line: 46, weight: '800', display: true, tracking: -0.035 },
+  theme: { size: 44, line: 46, weight: '800', display: true, tracking: -0.035 },
+  themeCompact: { size: 40, line: 42, weight: '800', display: true, tracking: -0.035 },
+  display: { size: 44, line: 46, weight: '800', display: true, tracking: -0.035 },
+  countdown: { size: 48, line: 50, weight: '800', display: true, tracking: -0.035 },
+
+  // Reading and UI: Plus Jakarta Sans ---------------------------------------------------------------------------
+  /** Card title 18/24/800: dates and times ("Saturday 15 Nov, 14:00"). */
+  cardTitle: { size: 18, line: 24, weight: '800' },
+  /** 20/26/800 a value on a card ("Aarhus C"). */
+  stat: { size: 20, line: 26, weight: '800' },
+  /** 17/22/800 numbers ("28–42"). */
+  numeral: { size: 17, line: 22, weight: '800' },
+  /** Body 16/24/400: paragraphs, row labels, standalone inputs. */
+  body: { size: 16, line: 24, weight: '400' },
+  /** Same as body: the paragraph under a title. */
+  lede: { size: 16, line: 24, weight: '400' },
+  /** Row label 16/24/600. */
+  rowTitle: { size: 16, line: 24, weight: '600' },
+  /** Text inputs 16/22. */
+  input: { size: 16, line: 22, weight: '400' },
+  /** Body S 15/22/400: fact lists, secondary paragraphs, the input + Add field. */
+  bodySmall: { size: 15, line: 22, weight: '400' },
+  /** Body S 700: section headings (h2), field labels. */
+  heading: { size: 15, line: 22, weight: '700' },
+  /** 15/22/600: member names, emphasised body. */
+  bodyStrong: { size: 15, line: 22, weight: '600' },
+  /** Button 16/20/700 (54 and 48 px buttons). */
+  button: { size: 16, line: 20, weight: '700' },
+  /** Button 15/20/700 (44 px buttons, standalone links). */
+  buttonSmall: { size: 15, line: 20, weight: '700' },
+  /** Small 14/20/400: card text. */
+  small: { size: 14, line: 20, weight: '400' },
+  /** Small 14/20/600: "A pod around", row links. */
+  smallStrong: { size: 14, line: 20, weight: '600' },
+  /** 14/18/700: buttons in tight rows, danger labels in cards. */
+  smallBold: { size: 14, line: 18, weight: '700' },
+  /** Chip 14/18/600 (32 px chips). */
+  chip: { size: 14, line: 18, weight: '600' },
+  /** Chip 15/20/600 (36 px removable chips). */
+  chipLarge: { size: 15, line: 20, weight: '600' },
+  /** 13/20/400: helper text, explanations (13/1.5). */
+  caption: { size: 13, line: 20, weight: '400' },
+  /** Label 13/18/600: meta, "Step 2 of 6", deadlines. */
+  captionStrong: { size: 13, line: 18, weight: '600' },
+  /** Label 13/18/700: pills, status ("Hasn't confirmed"), small links. */
+  captionBold: { size: 13, line: 18, weight: '700' },
+  /** Badge 12/16/800: unread "3 new", small status. */
+  badge: { size: 12, line: 16, weight: '800' },
+  /** Eyebrow 12/16/800, +6%, uppercase: NEXT STEP, PLAN, MEMBERS. */
+  eyebrow: { size: 12, line: 16, weight: '800', tracking: 0.06, upper: true },
+  /** Same as eyebrow (kept names). */
+  eyebrowCompact: { size: 12, line: 16, weight: '800', tracking: 0.06, upper: true },
+  overline: { size: 12, line: 16, weight: '800', tracking: 0.06, upper: true },
+  /** Fine print 12/16/400 ("Consent given 4 Nov 2026"). */
+  micro: { size: 12, line: 16, weight: '400' },
+  /** Tab label 12/16/600 (inactive). */
+  microStrong: { size: 12, line: 16, weight: '600' },
+  /** 12/16/700: chat author/time. */
+  microBold: { size: 12, line: 16, weight: '700' },
+  /** Tab label 12/16/800 (active). */
+  microHeavy: { size: 12, line: 16, weight: '800' },
 } as const satisfies Record<string, TypeSpec>;
 
 export type TypeVariant = keyof typeof TypeScale;
+
+/** The family for a type spec at a weight: Bricolage for display roles at 700/800, else Plus Jakarta Sans. */
+function familyFor(spec: TypeSpec, weight: FontWeight): string {
+  if (spec.display && (weight === '700' || weight === '800')) return DisplayFontFamily[weight];
+  return FontFamily[weight];
+}
+
+/** True for the Bricolage (display) roles. */
+export function isDisplayVariant(variant: TypeVariant): boolean {
+  return (TypeScale[variant] as TypeSpec).display === true;
+}
 
 /** The text style for a variant, optionally at another weight (family swapped, size and spacing kept). */
 export function typeStyle(variant: TypeVariant, weight?: FontWeight): TextStyle {
   const spec: TypeSpec = TypeScale[variant];
   return {
-    fontFamily: FontFamily[weight ?? spec.weight],
+    fontFamily: familyFor(spec, weight ?? spec.weight),
     fontSize: spec.size,
-    lineHeight: Math.round(spec.size * (spec.leading ?? 1.26)),
+    lineHeight: spec.line,
     ...(spec.tracking ? { letterSpacing: Math.round(spec.size * spec.tracking * 100) / 100 } : {}),
     ...(spec.upper ? { textTransform: 'uppercase' as const } : {}),
+    ...(spec.display ? { includeFontPadding: false } : {}),
   };
 }
 
@@ -452,3 +609,51 @@ export function typeStyle(variant: TypeVariant, weight?: FontWeight): TextStyle 
 export const Type = Object.fromEntries(Object.keys(TypeScale).map((v) => [v, typeStyle(v as TypeVariant)])) as Readonly<
   Record<TypeVariant, TextStyle>
 >;
+
+/**
+ * Advance widths of Bricolage Grotesque 800 (the app's static opsz 14 cut) in thousandths of an em, letter-spacing
+ * −3.5% included, measured in a browser from the font file (e.g. "Thursday brætspil" at 52 px = 444 px, as the spec
+ * measured). Characters not listed count as 0.62 em.
+ */
+const DISPLAY_ADVANCE: Readonly<Record<string, number>> = {
+  a: 560, b: 613, c: 536, d: 614, e: 552, f: 373, g: 572, h: 608, i: 251, j: 253, k: 570, l: 248, m: 928, n: 608, o: 577,
+  p: 613, q: 614, r: 411, s: 514, t: 371, u: 599, v: 550, w: 846, x: 552, y: 573, z: 502, æ: 902, ø: 577, å: 560, é: 552,
+  ü: 599, ö: 577, ä: 560, A: 677, B: 657, C: 650, D: 670, E: 597, F: 566, G: 694, H: 695, I: 268, J: 347, K: 662, L: 474,
+  M: 920, N: 755, O: 690, P: 619, Q: 691, R: 653, S: 623, T: 544, U: 698, V: 647, W: 966, X: 684, Y: 627, Z: 541, Æ: 937,
+  Ø: 701, Å: 677, '0': 635, '1': 325, '2': 578, '3': 576, '4': 603, '5': 580, '6': 627, '7': 482, '8': 626, '9': 623,
+  ':': 227, '-': 324, '–': 510, '.': 217, ',': 177, ' ': 190,
+};
+
+/** The width in px of `text` set in Bricolage 800 at `size` px (display roles, −3.5% tracking). */
+export function displayTextWidth(text: string, size: number): number {
+  let units = 0;
+  for (const ch of text) units += DISPLAY_ADVANCE[ch] ?? 620;
+  return (units / 1000) * size;
+}
+
+export type DisplayStep = 'displayXL' | 'displayXL52' | 'displayXL48' | 'displayXL40';
+
+/**
+ * The display fit rule (spec §4): the largest Display XL step (56 → 52 → 48 → 40) at which every word of `text` fits
+ * in `width` and the text wraps (at spaces only) into at most `maxLines` lines. Never hyphenate: render the result
+ * with `numberOfLines={maxLines}`. `fitDisplay('far på barsel', 342)` → 'displayXL'.
+ */
+export function fitDisplay(text: string, width: number, maxLines = 2): DisplayStep {
+  const words = text.trim().split(/\s+/);
+  const steps: readonly DisplayStep[] = ['displayXL', 'displayXL52', 'displayXL48', 'displayXL40'];
+  for (const step of steps) {
+    const size = TypeScale[step].size;
+    if (words.some((w) => displayTextWidth(w, size) > width)) continue;
+    let lines = 1;
+    let line = '';
+    for (const w of words) {
+      const next = line ? `${line} ${w}` : w;
+      if (displayTextWidth(next, size) > width) {
+        lines += 1;
+        line = w;
+      } else line = next;
+    }
+    if (lines <= maxLines) return step;
+  }
+  return 'displayXL40';
+}

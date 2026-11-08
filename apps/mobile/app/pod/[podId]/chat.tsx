@@ -206,13 +206,13 @@ export default function Chat() {
               </Text>
             )}
             {warning ? (
-              <View testID="chat-warning" style={[styles.warning, { backgroundColor: p.warningBg, borderColor: p.warningBorder }]}>
-                <Text accessibilityRole="alert" variant="small" color="warningInk" style={styles.warningText}>
+              <View testID="chat-warning" style={[styles.warning, { backgroundColor: p.surface, borderColor: p.border }]}>
+                <Text accessibilityRole="alert" variant="small" color="text" style={styles.warningText}>
                   <Strong>{t('chat.contactWarning')}</Strong> {t('chat.contactWarningDetail')}
                 </Text>
                 <View style={styles.warningActions}>
-                  <Button label={t('chat.sendAnyway')} variant="dark" size="xs" busy={pending} disabled={!open} onPress={() => void sendDraft(true)} />
-                  <Button label={t('chat.edit')} variant="outline" size="xs" onPress={editWarned} style={{ borderColor: p.warningControlBorder }} />
+                  <Button label={t('chat.sendAnyway')} variant="secondary" size="xs" busy={pending} disabled={!open} onPress={() => void sendDraft(true)} />
+                  <Button label={t('chat.edit')} variant="primary" size="xs" onPress={editWarned} />
                 </View>
               </View>
             ) : null}

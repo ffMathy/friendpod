@@ -80,14 +80,14 @@ export function NoticeCard({ uid, notice, exportReady }: NoticeCardProps) {
           <Text variant="bodyStrong" accessibilityRole="header">
             {noticeTitle(t, notice)}
           </Text>
-          <Text variant="small" color="textBody">
+          <Text variant="small" color="text">
             {noticeText(t, notice)}
           </Text>
         </View>
       </View>
-      {dangerLine ? <Banner tone="danger" alert title={t('report.danger')} /> : null}
+      {dangerLine ? <Banner tone="safety" alert title={t('report.danger')} /> : null}
       {reasons ? (
-        <Banner tone="neutral" icon="info">
+        <Banner tone="inset" icon="info">
           <Text variant="caption" color="textSecondary">
             {t('notices.automated')}
           </Text>

@@ -48,18 +48,17 @@ export function ConfirmedHero({ podId, theme, sensitive, subtitle, members, view
   const router = useRouter();
   const p = usePalette();
   const size = members.length > 5 ? 44 : 52;
-  const on: PaletteKey = sensitive ? 'onPrivate' : 'onBrand';
+  const on: PaletteKey = 'text';
   return (
-    <Card variant="brand" testID="pod-confirmed" style={sensitive ? { backgroundColor: p.private } : null}>
-      <Badge tone="accent" label={t('pod.confirmed')} />
+    <Card variant="panel" tone={sensitive ? 'private' : undefined} testID="pod-confirmed">
+      <Badge tone="status" icon="check" label={t('pod.confirmed')} />
       <View style={styles.themeRow}>
-        {sensitive ? <Icon name="lock" size={24} color={p.onPrivate} accessibilityLabel={t('pods.privateInterest')} /> : null}
+        {sensitive ? <Icon name="lock" size={24} color={p.text} accessibilityLabel={t('pods.privateInterest')} /> : null}
         <Text accessibilityRole="header" variant="themeCompact" color={on} style={styles.flexShrink}>
           {theme}
         </Text>
       </View>
-      {/* On purple the muted line is full white: the green card's mint-grey has no purple twin in both themes. */}
-      <Text variant="small" color={sensitive ? 'onPrivate' : 'onBrandMuted'} style={styles.heroLine}>
+      <Text variant="small" color="textSecondary" style={styles.heroLine}>
         {subtitle}
       </Text>
       <View style={styles.grid}>
@@ -158,7 +157,7 @@ export function PodInterestsCard({ interests }: { interests: readonly string[] }
 const STATUS_COLOR: Readonly<Record<'coming' | 'notComing' | 'unconfirmed', PaletteKey>> = {
   coming: 'primary',
   notComing: 'textMuted',
-  unconfirmed: 'warningText',
+  unconfirmed: 'textSecondary',
 };
 
 export interface MembersCardProps {

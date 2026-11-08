@@ -86,7 +86,7 @@ export default function SettingsSensitiveConsent() {
           {withdraw.error ? <ErrorText>{t(errorMessageKey(withdraw.error))}</ErrorText> : null}
           <Button
             testID="art9-withdraw"
-            variant="dangerSoft"
+            variant="danger"
             label={t('sensitiveConsent.withdraw')}
             busy={withdraw.isPending}
             onPress={confirmWithdraw}
@@ -97,11 +97,11 @@ export default function SettingsSensitiveConsent() {
       <Stack.Screen options={{ headerShown: false }} />
       <BackButton onPress={back} accessibilityLabel={t('common.back')} />
       <Art9ConsentHeading locale={locale} />
-      <Card variant="mint" gap={6}>
-        <Text variant="bodyStrong" color="onMint">
+      <Card variant="default" gap={6}>
+        <Text variant="bodyStrong" color="textSecondary">
           {t('sensitiveConsent.givenOn', { date: formatDay(art9.at.toMillis(), locale) })}
         </Text>
-        <Text variant="small" color="mintBody">
+        <Text variant="small" color="textSecondary">
           {t('sensitiveConsent.privateCount', { count: sensitive.length })}
         </Text>
         <TextLink compact label={t('sensitiveConsent.seeThem')} onPress={() => router.push('/interests')} />

@@ -65,13 +65,13 @@ export function WaitlistScreen({ areaId, city, count, goal }: WaitlistScreenProp
     <Screen safeTop gutter="compact" gap={16} contentStyle={{ paddingTop: 16 + top }}>
       <PageHeader eyebrow={t('waitlist.eyebrow')} title={t('waitlist.title', { city })} />
 
-      <Card variant="hero" testID="waitlist-card">
+      <Card variant="panel" testID="waitlist-card">
         <Eyebrow>{t('waitlist.cardTitle', { city })}</Eyebrow>
         <View style={styles.counter} accessible accessibilityLabel={counter}>
-          <Text variant="counter" color="onHero" style={styles.counterNumber}>
+          <Text variant="counter" color="text" style={styles.counterNumber}>
             {String(shown)}
           </Text>
-          <Text variant="cardTitle" weight="400" color="onHeroMuted">
+          <Text variant="cardTitle" weight="400" color="textMuted">
             {t('waitlist.ofGoal', { goal })}
           </Text>
         </View>
@@ -79,12 +79,12 @@ export function WaitlistScreen({ areaId, city, count, goal }: WaitlistScreenProp
           testID="waitlist-progress"
           value={progress}
           height={10}
-          color="accent"
-          trackColor="heroTrack"
+          color="primary"
+          trackColor="track"
           accessibilityLabel={t('waitlist.progressLabel', { city })}
           accessibilityValue={{ min: 0, max: goal, now: Math.min(count, goal) }}
         />
-        <Text variant="small" color="onHeroBody">
+        <Text variant="small" color="textSecondary">
           {t('waitlist.next', { city, goal })}
         </Text>
       </Card>
