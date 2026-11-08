@@ -11,8 +11,9 @@ const MIN_INTERESTS = 3;
 
 /**
  * Step 4 of 6, "What are you into?" (onb-interests; DESIGN §3.1 step 8): free-text interests, minimum 3 (nudged to 5).
- * Continue follows the content, as the storyboard draws it, so the "Did you mean" card and "Popular in …" are never
- * under a pinned button.
+ * The list itself is InterestManager's (input + Add, chips in their pod colours from the concept id, private ones
+ * quiet). Continue is pinned at the bottom, as the storyboard draws it: the locked interest notice is longer than the
+ * storyboard's note, so the list, the "Did you mean" card and "Popular in …" scroll above it.
  */
 export default function AddInterests() {
   const { t } = useTranslation();
@@ -29,10 +30,7 @@ export default function AddInterests() {
       step={4}
       title={t('onboarding.interests.title')}
       lede={t('onboarding.interests.lede')}
-      ledeSize="body"
-      gap={18}
       onBack={back}
-      footerPinned={false}
       footer={<Button testID="interests-continue" label={t('common.continue')} disabled={!enough} onPress={() => router.push('/pod-preferences')} />}
     >
       <InterestManager uid={uid} locale={currentLocale()} mode="onboarding" />

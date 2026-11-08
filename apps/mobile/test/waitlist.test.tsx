@@ -2,6 +2,7 @@ import { getLaunchArea } from '@grouper/core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import * as Clipboard from 'expo-clipboard';
+import type * as ReactModule from 'react';
 import { Share } from 'react-native';
 import ThisWeek from '../app/(tabs)/index';
 import Area from '../app/(onboarding)/area';
@@ -9,7 +10,10 @@ import Area from '../app/(onboarding)/area';
 const mockRouter = { push: jest.fn(), replace: jest.fn(), back: jest.fn(), canGoBack: () => true, canDismiss: () => true, dismissAll: jest.fn() };
 // WaitlistScreen hides the tab header and the tab bar through the tab's options; there is no navigator in these tests.
 const mockNavigation = { setOptions: jest.fn() };
-jest.mock('expo-router', () => ({ useRouter: () => mockRouter, useNavigation: () => mockNavigation }));
+jest.mock('expo-router', () => {
+  const { useEffect } = jest.requireActual<typeof ReactModule>('react');
+  return { useRouter: () => mockRouter, useNavigation: () => mockNavigation, useFocusEffect: (effect: () => void | (() => void)) => useEffect(effect, [effect]) };
+});
 jest.mock('expo-router/js-tabs', () => ({ Tabs: { Screen: () => null } }));
 jest.mock('expo-clipboard', () => ({ setStringAsync: jest.fn(async () => true) }));
 jest.mock('expo-location', () => ({ requestForegroundPermissionsAsync: jest.fn(), getCurrentPositionAsync: jest.fn(), Accuracy: { Lowest: 1 } }));
@@ -93,7 +97,8 @@ describe('in-app waitlist (§3.1 step 12)', () => {
     await act(async () => await fireEvent.press(screen.getByTestId('waitlist-share')));
     expect(share).toHaveBeenCalledTimes(1);
     const [content] = share.mock.calls[0]!;
-    const link = 'https://grouper-staging.firebaseapp.com/c/vejle';
+    // The public brand host, not the Firebase Hosting domain the email sign-in links use (grouper-staging.firebaseapp.com here).
+    const link = 'https://grouper.dk/c/vejle';
     expect(content).toMatchObject({ url: link });
     expect((content as { message: string }).message).toContain(link);
     expect((content as { message: string }).message).toContain('Vejle');
@@ -102,11 +107,10 @@ describe('in-app waitlist (§3.1 step 12)', () => {
     await act(async () => await fireEvent.press(screen.getByTestId('waitlist-copy')));
     expect(Clipboard.setStringAsync).toHaveBeenCalledWith(link);
     expect(screen.getByText('Copied')).toBeTruthy();
-    // The link is shown without the scheme, as on the storyboard; this long one puts the host and the city on two
-    // lines, so neither is cut off.
-    expect(screen.getByLabelText('grouper-staging.firebaseapp.com/c/vejle')).toBeTruthy();
-    expect(screen.getByText('grouper-staging.firebaseapp.com')).toBeTruthy();
-    expect(screen.getByText('/c/vejle').props.numberOfLines).toBe(1);
+    expect(JSON.stringify(content)).not.toContain('firebaseapp.com');
+    // The link is shown without the scheme, on one line, as on the storyboard.
+    expect(screen.getByLabelText('grouper.dk/c/vejle')).toBeTruthy();
+    expect(screen.getByText('grouper.dk/c/vejle').props.numberOfLines).toBe(1);
   });
 
   it('stands alone like the storyboard: no tab bar while waitlisted, with a way to Me, and the bar comes back after', async () => {

@@ -9,7 +9,7 @@ import { usePhotoUpload } from './upload';
 
 /**
  * Me → Photo (§3.1 step 10, §9 Photos): the user's own current version, add or change it (a new upload replaces the
- * old version once `onPhotoUploaded` has checked it) and delete it.
+ * old version once `onPhotoUploaded` has checked it) and delete it (a Danger outline button, decision 4).
  */
 export function PhotoCard({ uid, version }: { uid: string; version: number | null }) {
   const { t } = useTranslation();
@@ -47,7 +47,7 @@ export function PhotoCard({ uid, version }: { uid: string; version: number | nul
       {state === 'done' ? <Body>{t('onboarding.photo.uploaded')}</Body> : null}
       {state === 'failed' ? <ErrorText>{t('me.photoFailed')}</ErrorText> : null}
       {version !== null ? (
-        <Button testID="photo-delete" label={t('settings.privacy.deletePhoto')} variant="secondary" busy={remove.isPending} onPress={confirmDelete} />
+        <Button testID="photo-delete" label={t('settings.privacy.deletePhoto')} variant="danger" busy={remove.isPending} onPress={confirmDelete} />
       ) : null}
       {remove.error ? <ErrorText>{t(errorMessageKey(remove.error))}</ErrorText> : null}
     </Card>

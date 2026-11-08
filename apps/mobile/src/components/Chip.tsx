@@ -199,7 +199,7 @@ export function ChipRow({ children, tight = false }: { children: ReactNode; tigh
  * A static 32 px chip ("What we'll match on", "More than one of you also likes"). Kept name: the same as
  * `<Chip size="sm" />`. `tone`: `private` (quiet lock chip), `neutral` (plain), or a pod chip when `color` is given.
  */
-export function Tag({ label, tone, color, privateLabel }: { label: string; tone?: 'neutral' | 'private' | 'mint'; color?: PodColor | null; privateLabel?: string }) {
+export function Tag({ label, tone, color, privateLabel }: { label: string; tone?: 'neutral' | 'private'; color?: PodColor | null; privateLabel?: string }) {
   return <Chip label={label} size="sm" kind={tone === 'private' ? 'private' : color ? 'pod' : 'clash'} color={color} privateLabel={privateLabel} />;
 }
 
@@ -212,7 +212,10 @@ export type BadgeTone =
   | 'status'
   /** Solsikke + 1.5 px Ink ring + clock: your own deadline (Answer by Sat 18:00, Pick a time by …, Next step). */
   | 'needsYou'
-  /** White pill with Ink text on a poster field: Week 46, 18+ only, Confirmed on the reveal. */
+  /**
+   * White pill with Ink text on a poster field: Week 46, 18+ only, Confirmed on the reveal. White/Ink in both schemes
+   * (the house field stays Skov in dark; pod fields go deep), never a dark-card pill (blend-spec 12.1).
+   */
   | 'onField'
   /** Ink "3 new" (12/800, 24 px). Never the pod's colour. */
   | 'unread'
@@ -226,7 +229,7 @@ export type BadgeTone =
 const BADGES: Record<BadgeTone, { bg: PaletteKey; fg: PaletteKey; border?: PaletteKey; borderWidth?: number; type: TypeVariant; height: number; icon?: IconName }> = {
   status: { bg: 'ink', fg: 'onInk', type: 'captionBold', height: Size.badge },
   needsYou: { bg: 'needsYou', fg: 'onNeedsYou', border: 'needsYouBorder', borderWidth: BorderWidth.control, type: 'captionBold', height: Size.badgeNeedsYou, icon: 'clock' },
-  onField: { bg: 'surface', fg: 'text', type: 'captionBold', height: Size.badge },
+  onField: { bg: 'fieldPill', fg: 'onFieldPill', type: 'captionBold', height: Size.badge },
   unread: { bg: 'ink', fg: 'onInk', type: 'badge', height: Size.badgeSmall },
   outline: { bg: 'surface', fg: 'text', border: 'border', borderWidth: BorderWidth.hairline, type: 'captionBold', height: Size.badge },
   private: { bg: 'privateBg', fg: 'privateText', border: 'privateBorder', borderWidth: BorderWidth.control, type: 'captionBold', height: Size.badge, icon: 'lock' },

@@ -10,7 +10,8 @@ import { errorMessageKey } from '@/lib/errors';
 /**
  * "About me" on Me (D4): onb-final's field ("About me (optional)", "53 / 140", the helper line), but three lines tall
  * so the whole sentence can be read back. Save appears only once the text differs from what is saved (contact details
- * and blocklisted words are refused here and again on the server; an empty field clears it), then "Saved.".
+ * and blocklisted words are refused here and again on the server; an empty field clears it), then a quiet "Saved."
+ * (Ink 2 check: a calm fact, not an action).
  */
 export function AboutMeCard({ initial }: { readonly initial: string }) {
   const { t } = useTranslation();
@@ -46,7 +47,7 @@ export function AboutMeCard({ initial }: { readonly initial: string }) {
           <Button
             testID="about-me-save"
             label={t('aboutMe.save')}
-            size="xs"
+            size="sm"
             busy={save.isPending}
             disabled={state.problem !== null}
             onPress={() => state.text !== null && save.mutate({ aboutMe: state.text })}
@@ -54,7 +55,7 @@ export function AboutMeCard({ initial }: { readonly initial: string }) {
         </View>
       ) : saved ? (
         <View style={styles.saved} testID="about-me-saved">
-          <Icon name="check" size={16} color={p.primary} />
+          <Icon name="check" size={16} strokeWidth={2.4} color={p.textSecondary} />
           <Text variant="captionStrong" color="textSecondary">
             {t('aboutMe.saved')}
           </Text>

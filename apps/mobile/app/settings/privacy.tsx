@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import { ActivityIndicator, Linking, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BorderWidth, usePalette } from '@/components/theme';
-import { Button, ErrorText, Icon, InlineLink, ListSection, Loading, Overline, Screen, Text, Title, type IconName } from '@/components/ui';
+import { Button, ErrorText, Eyebrow, Icon, InlineLink, ListSection, Loading, Overline, Screen, Text, Title, type IconName } from '@/components/ui';
 import { useBlocks, useSensitiveInterests, useUserDoc } from '@/data/docs';
 import { useCallable } from '@/data/useCallable';
 import { ExportRequestStatus, ExportStatus, useLatestExport, useRequestExport, type ExportRequestState } from '@/features/account/ExportStatus';
@@ -15,9 +15,10 @@ import { formatDateTime } from '@/lib/format';
 
 /**
  * Me → Privacy (priv-settings; §11, PRIVACY.md §6). "What you've agreed to": private interests (the blanket Art. 9
- * consent, given or withdrawn on its own screen), same-gender pods (with the way to turn it off and delete the gender
- * while it is on) and the photo (changed or deleted under Me). "Your data and matching": pause, the export with its
- * authenticated download, blocked people and how matching works. Then delete account and the right to complain.
+ * consent, given or withdrawn on its own screen; the row carries the quiet Ink lock), same-gender pods (with the way to
+ * turn it off and delete the gender while it is on) and the photo (changed or deleted under Me). "Your data and
+ * matching": pause, the export with its authenticated download, blocked people and how matching works, with neutral
+ * Ink 2 icons. Then "Delete account" as the full-width danger outline (never a red fill) and the right to complain.
  */
 export default function Privacy() {
   const { t } = useTranslation();
@@ -63,7 +64,7 @@ export default function Privacy() {
       {hideHeader}
       <View style={styles.header}>
         <ParentLink label={t('tabs.me')} backLabel={t('common.back')} onBack={back} />
-        <Title style={styles.title}>{t('privacy.title')}</Title>
+        <Title>{t('privacy.title')}</Title>
       </View>
 
       {user.error ? <ErrorText>{t('common.loadFailed')}</ErrorText> : null}
@@ -71,6 +72,7 @@ export default function Privacy() {
         <CardTitle>{t('privacy.agreedTo')}</CardTitle>
         <Row
           testID="privacy-sensitive"
+          labelIcon="lock"
           label={t('privacy.privateInterests')}
           detail={hasArt9Consent ? t('privacy.privateOn', { count: sensitive.length }) : t('privacy.privateOff')}
           chevron
@@ -91,7 +93,7 @@ export default function Privacy() {
           <View style={[styles.inlineAction, { borderBottomWidth: BorderWidth.hairline, borderBottomColor: p.separator }]}>
             <Button
               variant="danger"
-              size="xs"
+              size="sm"
               label={t('privacy.sameGenderWithdraw')}
               busy={updateProfile.isPending}
               onPress={() => updateProfile.mutate({ prefs: { sameGenderOnly: false } })}
@@ -134,12 +136,12 @@ export default function Privacy() {
       <Button
         testID="privacy-delete"
         variant="danger"
-        icon="trash"
+        size="md"
+        fullWidth
         label={t('privacy.deleteAccount')}
         onPress={() => router.push('/settings/delete-account')}
-        style={styles.delete}
       />
-      {/* Not on priv-settings, but PRIVACY.md §6 requires the complaint path: a link to datatilsynet.dk. */}
+      {/* PRIVACY.md §6 requires the complaint path (priv-settings draws it under "Delete account"): a link to datatilsynet.dk. */}
       <Text variant="caption" color="textMuted" align="center">
         <Trans
           i18nKey="privacy.complaint"
@@ -155,26 +157,22 @@ const DATATILSYNET_URL = 'https://www.datatilsynet.dk';
 const LINK_ROW = 56 + BorderWidth.hairline;
 
 /**
- * "Me" above the title (priv-settings). The storyboard has no separate back chevron: the parent's name is the way
- * back, so with history it becomes "‹ Me" with a 44 px touch target from hitSlop, keeping the storyboard's layout.
+ * The "ME" eyebrow above the title (priv-settings). The storyboard has no separate back chevron: the parent's name is
+ * the way back, so with history it becomes "‹ ME" with a 44 px touch target from hitSlop, keeping the layout.
  */
 function ParentLink({ label, backLabel, onBack }: { label: string; backLabel: string; onBack?: () => void }) {
   const p = usePalette();
-  const text = (
-    <Text variant="smallStrong" color="textMuted" style={styles.parentText}>
-      {label}
-    </Text>
-  );
+  const text = <Eyebrow>{label}</Eyebrow>;
   if (!onBack) return text;
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={`${backLabel}: ${label}`}
       onPress={onBack}
-      hitSlop={{ top: 12, bottom: 12, left: 12, right: 24 }}
+      hitSlop={{ top: 14, bottom: 14, left: 12, right: 24 }}
       style={({ pressed }) => [styles.parent, { opacity: pressed ? 0.6 : 1 }]}
     >
-      <Icon name="back" size={16} color={p.textMuted} strokeWidth={2.4} />
+      <Icon name="back" size={14} color={p.textMuted} strokeWidth={2.6} />
       {text}
     </Pressable>
   );
@@ -184,6 +182,8 @@ interface RowProps {
   readonly label: string;
   readonly detail?: string;
   readonly icon?: IconName;
+  /** A 16 px Ink icon inline before the label (the lock of "Private interests"). */
+  readonly labelIcon?: IconName;
   readonly trailing?: ReactNode;
   readonly chevron?: boolean;
   /** A 1 px separator at the bottom, inside `minHeight`. */
@@ -198,10 +198,10 @@ interface RowProps {
 
 /**
  * A row of the priv-settings cards, on the storyboard's metrics: 56 px (57 for the link rows with a separator), the
- * 16/600 title and the 13 px detail on a 16 px line, 2 px under it (ListRow's 20 px detail line put the title 2 px
- * high and the detail 2 px low), a 22 px green icon or a 20 px chevron.
+ * 16/600 title on a 22 px line and the 13 px Muted detail on an 18 px line, 2 px under it (ListRow's 24/20 lines are
+ * taller), a 20 px neutral Ink 2 icon (Skov is only for what you tap) or a 20 px Muted chevron.
  */
-function Row({ label, detail, icon, trailing, chevron = false, separator = false, minHeight = 56, role = 'link', onPress, testID }: RowProps) {
+function Row({ label, detail, icon, labelIcon, trailing, chevron = false, separator = false, minHeight = 56, role = 'link', onPress, testID }: RowProps) {
   const p = usePalette();
   return (
     <Pressable
@@ -215,11 +215,14 @@ function Row({ label, detail, icon, trailing, chevron = false, separator = false
         { opacity: pressed ? 0.7 : 1 },
       ]}
     >
-      {icon ? <Icon name={icon} size={22} color={p.primary} /> : null}
+      {icon ? <Icon name={icon} size={20} color={p.textSecondary} /> : null}
       <View style={styles.rowText}>
-        <Text variant="rowTitle">
-          {label}
-        </Text>
+        <View style={styles.rowLabel}>
+          {labelIcon ? <Icon name={labelIcon} size={16} strokeWidth={2.2} color={p.privateText} /> : null}
+          <Text variant="rowTitle" style={styles.rowTitle}>
+            {label}
+          </Text>
+        </View>
         {detail ? (
           <Text variant="caption" color="textMuted" style={styles.rowDetail}>
             {detail}
@@ -268,20 +271,15 @@ function ExportBlock({ uid, state, onRequest }: { uid: string; state: ExportRequ
 
 const styles = StyleSheet.create({
   header: { gap: 4 },
-  parent: { flexDirection: 'row', alignItems: 'center', gap: 2, alignSelf: 'flex-start', marginLeft: -4 },
-  /**
-   * The storyboard's text keeps Plus Jakarta Sans' normal line height, which the browser rounds to whole pixels:
-   * 18 at 14 px ("Me"), 38 at 30 px (h1, Title's is 35), 16 at 13 px (the card titles and row details), 21 at 16 px.
-   */
-  parentText: { lineHeight: 18 },
-  title: { lineHeight: 38 },
+  parent: { flexDirection: 'row', alignItems: 'center', gap: 2, alignSelf: 'flex-start', marginLeft: -3 },
   cardTitle: { marginTop: 10, marginBottom: 2, lineHeight: 16 },
   /** The padding only shows when a long (Danish) detail wraps to a third line. */
   row: { paddingVertical: 6, flexDirection: 'row', alignItems: 'center', gap: 12 },
   rowText: { flex: 1, gap: 2 },
-  rowDetail: { lineHeight: 16 },
+  rowLabel: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  rowTitle: { lineHeight: 22, flexShrink: 1 },
+  rowDetail: { lineHeight: 18 },
   inlineAction: { paddingBottom: 12, paddingLeft: 0 },
-  exportStatus: { paddingLeft: 34, gap: 8, paddingBottom: 14 },
-  /** The storyboard's link: min-height 52 plus its 1 px border, top and bottom. */
-  delete: { minHeight: 54, borderRadius: 18 },
+  /** Under "Download my data": in line with its text (the 20 px icon and the 12 px gap). */
+  exportStatus: { paddingLeft: 32, gap: 8, paddingBottom: 14 },
 });

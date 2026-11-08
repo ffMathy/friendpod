@@ -4,7 +4,10 @@ import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import type { ReactElement } from 'react';
 import { Alert } from 'react-native';
 import WhyThisPod from '../app/sheets/why-this-pod';
+import { Colors, POD_PALETTE } from '@/components/theme';
+import { cardColor } from '@/features/drop/color';
 import { ProposalCard } from '@/features/pods/ProposalCard';
+import { podColorFor, type PodColor } from '@/lib/podColor';
 
 const POD_ID = 'abcdefghijklmnopqrst';
 const mockRouter = { push: jest.fn(), back: jest.fn() };
@@ -51,7 +54,11 @@ function card(over: Record<string, unknown> = {}) {
 const privateCard = () =>
   card({ themeLabel: 'gravid', themeSensitive: true, ageSpan: undefined, reasons: [{ code: 'THEME', yourWording: 'gravid' }, { code: 'NEAR_YOU', km: 5 }] });
 let mockCard: unknown = null;
-jest.mock('@/data/docs', () => ({ usePodCard: () => ({ data: mockCard, error: null, isLoading: false }) }));
+let mockInterests: unknown[] = [];
+jest.mock('@/data/docs', () => ({
+  usePodCard: () => ({ data: mockCard, error: null, isLoading: false }),
+  useInterests: () => ({ data: mockInterests, error: null, isLoading: false }),
+}));
 
 let client: QueryClient;
 async function renderWith(ui: ReactElement) {
@@ -59,6 +66,7 @@ async function renderWith(ui: ReactElement) {
   await render(<QueryClientProvider client={client}>{ui}</QueryClientProvider>);
 }
 beforeEach(() => {
+  mockInterests = [];
   mockCall.mockReset();
   mockRouter.push.mockClear();
   mockRouter.back.mockClear();
@@ -135,7 +143,9 @@ describe('proposal card (§3.2, §3.3; drop-proposal)', () => {
     await renderWith(<ProposalCard podId={POD_ID} card={card({ myStatus: 'accepted', acceptedCount: 3 })} confirmationMin={4} onDone={onDone} />);
     expect(screen.getByText("You're in")).toBeOnTheScreen();
     expect(screen.getByText('3 of 5 said yes')).toBeOnTheScreen();
-    expect(screen.getByText('4 needed')).toBeOnTheScreen();
+    // The seats and the "4 needed" bracket are hidden from screen readers; the count says both.
+    expect(screen.getByLabelText('3 of 5 said yes. 4 needed.')).toBeOnTheScreen();
+    expect(screen.getByText('4 needed', { includeHiddenElements: true })).toBeOnTheScreen();
     expect(screen.getByText(/^Open until /)).toBeOnTheScreen();
     expect(screen.queryByRole('button', { name: "I'm in" })).toBeNull();
     expect(screen.queryByText('5 people, ages 30–41')).toBeNull();
@@ -165,7 +175,7 @@ describe('proposal card (§3.2, §3.3; drop-proposal)', () => {
     expect(screen.getByText('You also share kaffe and gåture with some of them.')).toBeOnTheScreen();
     expect(screen.getByText('Everyone lives about 10 km or less from you, near Aarhus C.')).toBeOnTheScreen();
     expect(screen.getByText("Ages 30–41: everyone is inside everyone else's age range.")).toBeOnTheScreen();
-    expect(screen.getByText('You waited 2 weeks, so you got priority this time.')).toBeOnTheScreen();
+    expect(screen.getByText('You waited 2 weeks, so you got priority this\u00a0time.')).toBeOnTheScreen();
     expect(screen.getByText('What we never use')).toBeOnTheScreen();
     await fireEvent.press(screen.getByRole('link', { name: 'How matching works' }));
     expect(mockRouter.push).toHaveBeenCalledWith('/info/how-matching-works');
@@ -197,5 +207,55 @@ describe('proposal card (§3.2, §3.3; drop-proposal)', () => {
     expect(screen.getByText('Everyone lives about 5 km or less from you.')).toBeOnTheScreen();
     expect(screen.queryByText(/also share/)).toBeNull();
     expect(screen.queryByText(/age range/)).toBeNull();
+  });
+});
+
+describe('proposal colour (blend decisions 1, 5 and 9)', () => {
+  const interest = (display: string, conceptId: string) => ({ id: `i_${conceptId}`, data: { display, norm: display, conceptId, starred: false, createdAt: ts(1) } });
+  const colorOf = (conceptId: string) => podColorFor({ conceptId }) as PodColor;
+
+  it('takes the colour from the concept id of the interest the pod is about, never from the word', async () => {
+    // Two concept ids in different colour buckets (seed_board_games: Solsikke, seed_trail_running: Tomat).
+    expect(colorOf('seed_board_games')).not.toBe(colorOf('seed_trail_running'));
+    mockInterests = [interest('brætspil', 'seed_board_games')];
+    await renderWith(<ProposalCard podId={POD_ID} card={card()} confirmationMin={4} />);
+    expect(screen.getByRole('header', { name: 'brætspil' })).toHaveStyle({ color: POD_PALETTE[colorOf('seed_board_games')].deep });
+    client.clear();
+
+    // The same word held under another concept: another colour.
+    mockInterests = [interest('brætspil', 'seed_trail_running')];
+    await renderWith(<ProposalCard podId={POD_ID} card={card()} confirmationMin={4} />);
+    expect(screen.getByRole('header', { name: 'brætspil' })).toHaveStyle({ color: POD_PALETTE[colorOf('seed_trail_running')].deep });
+  });
+
+  it('a pod about a private interest has no colour: the name in Ink, the quiet chip, no seats', async () => {
+    mockInterests = [interest('gravid', 'seed_board_games')];
+    await renderWith(<ProposalCard podId={POD_ID} card={privateCard()} confirmationMin={4} />);
+    expect(screen.getByRole('header', { name: 'gravid' })).toHaveStyle({ color: Colors.light.text });
+    expect(screen.getByText('Private interest')).toBeOnTheScreen();
+    expect(screen.queryByText('You', { includeHiddenElements: true })).toBeNull();
+  });
+
+  it('when the interest is gone the card is drawn without a colour, but not as private', async () => {
+    mockInterests = [];
+    await renderWith(<ProposalCard podId={POD_ID} card={card()} confirmationMin={4} />);
+    expect(screen.getByRole('header', { name: 'brætspil' })).toHaveStyle({ color: Colors.light.text });
+    expect(screen.queryByText('Private interest')).toBeNull();
+    expect(screen.getByRole('link', { name: 'Why this pod?' })).toBeOnTheScreen();
+  });
+
+  it('an open-to-anyone pod takes its colour from the pod id', async () => {
+    await renderWith(<ProposalCard podId={POD_ID} card={card({ themeLabel: null, reasons: [{ code: 'OPEN_TO_ANYONE' }] })} />);
+    const color = podColorFor({ podId: POD_ID }) as PodColor;
+    expect(screen.getByRole('header', { name: 'Open to anyone' })).toHaveStyle({ color: POD_PALETTE[color].deep });
+  });
+
+  it('once confirmed the shared pod document decides; a private theme stays quiet whatever it says', () => {
+    const word = card();
+    const fromPod = (conceptId: string, sensitive = false) => ({ theme: { kind: 'concept' as const, conceptId, sensitive } });
+    expect(cardColor(POD_ID, word, fromPod('seed_trail_running'), [interest('brætspil', 'seed_board_games')] as never)).toBe(colorOf('seed_trail_running'));
+    expect(cardColor(POD_ID, word, fromPod('seed_trail_running', true), [])).toBe('private');
+    expect(cardColor(POD_ID, privateCard(), undefined, [interest('gravid', 'seed_board_games')] as never)).toBe('private');
+    expect(cardColor(POD_ID, word, undefined, undefined)).toBe('plain');
   });
 });

@@ -1,6 +1,6 @@
 import { LEGAL_TEXT_SHA256, setArt9ConsentInput } from '@grouper/core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen, within } from '@testing-library/react-native';
 import { Art9BlanketConsent } from '@/features/consent/Art9BlanketConsent';
 import { appVersion } from '@/lib/appVersion';
 import SensitiveConsentStep from '../app/(onboarding)/sensitive-consent';
@@ -79,6 +79,39 @@ describe('blanket Art. 9 consent (D3, PRIVACY.md §3.3)', () => {
       expect(screen.getByText('Private interests')).toBeOnTheScreen();
       expect(screen.getByRole('header', { name: 'Sensitive interests' })).toBeOnTheScreen();
       expect(screen.queryByRole('button', { name: 'Back' })).toBeNull();
+    });
+
+    it('keeps the locked copy in its own scrolling box, with the consent box and the actions outside it', async () => {
+      await renderStep();
+      const box = screen.getByTestId('art9-text');
+      expect(within(box).getByText(/short meetup chat, open from 24 hours before/)).toBeOnTheScreen();
+      expect(within(box).getByRole('link', { name: 'Read more about sensitive interests' })).toBeOnTheScreen();
+      expect(within(box).queryByTestId('art9-checkbox')).toBeNull();
+      expect(within(box).queryByRole('button', { name: 'Not now' })).toBeNull();
+    });
+
+    it('where the box gets too little room to read in, the copy and the actions flow in one scrolling column', async () => {
+      await renderStep();
+      // The box scrolls inside itself while it has the room.
+      expect(within(screen.getByTestId('art9-text')).getByTestId('art9-text-scroll')).toBeOnTheScreen();
+      await fireEvent.press(screen.getByTestId('art9-checkbox'));
+      await fireEvent(screen.getByTestId('art9-text'), 'layout', { nativeEvent: { layout: { x: 0, y: 0, width: 342, height: 120 } } });
+      // Then the copy runs at its full height, and nothing already answered is lost.
+      expect(screen.queryByTestId('art9-text-scroll')).toBeNull();
+      expect(within(screen.getByTestId('art9-text')).getByText(/short meetup chat, open from 24 hours before/)).toBeOnTheScreen();
+      expect(screen.getByTestId('art9-checkbox')).toBeChecked();
+      expect(screen.getByRole('button', { name: 'I agree' })).toBeEnabled();
+    });
+
+    it('"Not now" waits while the consent is being sent', async () => {
+      mockCall.mockReturnValue(new Promise(() => undefined));
+      await renderStep();
+      expect(screen.getByRole('button', { name: 'Not now' })).toBeEnabled();
+      await fireEvent.press(screen.getByTestId('art9-checkbox'));
+      await act(async () => await fireEvent.press(screen.getByRole('button', { name: 'I agree' })));
+      expect(screen.getByRole('button', { name: 'Not now' })).toBeDisabled();
+      await fireEvent.press(screen.getByRole('button', { name: 'Not now' }));
+      expect(mockRouter.push).not.toHaveBeenCalled();
     });
 
     it('"Not now" carries on to the interests and records nothing, so saying no keeps the app usable', async () => {

@@ -6,24 +6,29 @@ import {
   INTEREST_IDS,
   interestDocs,
   ME,
+  MEMBERS,
   now,
   ONBOARDED_USER,
   place,
   POD_SOURDOUGH,
   profileWorld,
   roster,
+  SOURDOUGH_CONCEPT,
   SOURDOUGH_MEMBERS,
   ts,
   VIEWER,
 } from './_kit';
 
 const POD_CLIMBING = 'climbingpodaarhus42a';
+/** The past climbing pod's theme concept: podColorIndex gives Bær, so the Pods tab shows two pods in two colours. */
+const CLIMBING_CONCEPT = 'seed_rock_climbing';
 
 /**
  * An ordinary Tuesday in week 46 (storyboard 2.1 and the Me/Privacy screens 5.2–5.4): next drop Thursday 18:00, one
  * active pod (sourdough, Saturday 14:00 at a bakery café in Frederiksbjerg), a past pod, 5 interests of which one is
  * private, one blocked person, two notices and a ready data export.
  */
+const climbingMembers = [MEMBERS.sofie, SOURDOUGH_MEMBERS.kasper, { uid: ME, firstName: VIEWER.firstName }];
 const sourdoughMembers = [SOURDOUGH_MEMBERS.laura, SOURDOUGH_MEMBERS.kasper, SOURDOUGH_MEMBERS.nadia, { uid: ME, firstName: VIEWER.firstName }];
 
 const scenario: Scenario = {
@@ -61,7 +66,7 @@ const scenario: Scenario = {
       state: 'scheduled',
       weekId: '2026-W45',
       areaLabel: 'Aarhus C',
-      theme: { kind: 'concept', conceptId: 'seed_sourdough', sensitive: false },
+      theme: { kind: 'concept', conceptId: SOURDOUGH_CONCEPT, sensitive: false },
       memberUids: sourdoughMembers.map((m) => m.uid),
       roster: roster(sourdoughMembers),
       podInterests: { da: ['kaffe'], en: ['coffee'] },
@@ -87,6 +92,20 @@ const scenario: Scenario = {
       reasons: [{ code: 'THEME', yourWording: 'climbing' }],
       areaLabel: 'Aarhus C',
       ageSpan: { min: 27, max: 39 },
+    },
+    // The past pod's shared document (members may still read it): the Pods tab draws it in its concept's colour with
+    // the remaining members' avatars. Rasmus left on 31 Oct (the viewer blocked him; see the notice below).
+    [`pods/${POD_CLIMBING}`]: {
+      state: 'archived',
+      weekId: '2026-W43',
+      areaLabel: 'Aarhus C',
+      theme: { kind: 'concept', conceptId: CLIMBING_CONCEPT, sensitive: false },
+      memberUids: climbingMembers.map((m) => m.uid),
+      roster: roster(climbingMembers),
+      podInterests: { da: ['løb'], en: ['running'] },
+      planning: { deadline: ts('2026-10-27 18:00'), meetupAt: ts('2026-10-31 14:00'), planLockedAt: ts('2026-10-27 18:00') },
+      confirmedAt: ts('2026-10-23 19:40'),
+      archivedAt: ts('2026-11-03 14:00'),
     },
     [`users/${ME}/blocks/${BLOCKED.uid}`]: { firstName: BLOCKED.firstName, podId: POD_CLIMBING, since: ts('2026-10-31 21:00') },
     [`users/${ME}/notices/noticeExport`]: {

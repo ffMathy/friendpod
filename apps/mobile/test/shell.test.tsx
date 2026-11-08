@@ -1,6 +1,8 @@
-import { nextDropWeek } from '@grouper/core';
+import { readFileSync } from 'node:fs';
+import { nextDropWeek, type Prefs } from '@grouper/core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import i18next from 'i18next';
 import type { ReactElement } from 'react';
 import { Alert, Linking, type AlertButton } from 'react-native';
 import Me from '../app/(tabs)/me';
@@ -10,9 +12,13 @@ import Safety from '../app/info/safety';
 import SensitiveInterests from '../app/info/sensitive-interests';
 import Settings from '../app/settings/index';
 import NotificationSettings from '../app/settings/notifications';
+import { Colors, POD_PALETTE } from '@/components/theme';
+import { FONT_CREDITS } from '@/features/shell/licences';
 import { MainTabBar, tabUnder } from '@/features/shell/MainTabBar';
 import { formatDay } from '@/features/shell/parts';
+import { prefsSummary } from '@/features/shell/prefsSummary';
 import { initI18n } from '@/i18n';
+import { podColorFor } from '@/lib/podColor';
 
 const mockRouter = { push: jest.fn(), back: jest.fn(), dismissTo: jest.fn(), canGoBack: jest.fn(() => true) };
 let mockParams: Record<string, string> = {};
@@ -44,10 +50,16 @@ jest.mock('@/features/notifications/push', () => ({
 const live = (data: unknown) => ({ data, error: null, isLoading: false });
 let mockUser: Record<string, unknown> = {};
 let mockBlocks: unknown[] = [];
+let mockInterests: unknown[] = [];
+let mockSensitive: unknown[] = [];
 jest.mock('@/data/docs', () => ({
   useUserDoc: () => live(mockUser),
   useBlocks: () => live(mockBlocks),
+  useInterests: () => live(mockInterests),
+  useSensitiveInterests: () => live(mockSensitive),
 }));
+
+const interest = (id: string, display: string, conceptId: string, starred = false) => ({ id, data: { display, norm: display, conceptId, starred } });
 
 function user(over: Record<string, unknown> = {}) {
   return {
@@ -76,6 +88,8 @@ beforeEach(() => {
   mockCall.mockResolvedValue({ ok: true });
   mockUser = user();
   mockBlocks = [];
+  mockInterests = [interest('i1', 'brætspil', 'seed_board_games', true), interest('i2', 'sourdough', 'seed_sourdough')];
+  mockSensitive = [{ id: 's1', data: { display: 'gravid', norm: 'gravid', conceptId: 'c_private', starred: false } }];
   mockParams = {};
   mockPhase = 'ready';
   mockPush.granted = false;
@@ -95,6 +109,33 @@ describe('Me', () => {
     expect(screen.getByText('Attended 2 of 3 meetups')).toBeOnTheScreen();
     expect(screen.getByDisplayValue('Always up for a game')).toBeOnTheScreen();
     expect(screen.getByText(/In pods about a private interest, you choose per pod/)).toBeOnTheScreen();
+  });
+
+  it('shows the interests as pod chips in their concept\'s colour, the main one starred; private ones only as a quiet count', async () => {
+    await renderWith(<Me />);
+    // The colour comes from the concept id, never the word: seed_board_games is Solsikke, seed_sourdough Bær.
+    expect(podColorFor({ conceptId: 'seed_board_games' })).toBe('solsikke');
+    expect(screen.getByTestId('me-interest-i1')).toHaveStyle({ backgroundColor: POD_PALETTE.solsikke.tint });
+    expect(screen.getByTestId('me-interest-i2')).toHaveStyle({ backgroundColor: POD_PALETTE.baer.tint });
+    expect(screen.getByLabelText('Main interest')).toBeOnTheScreen();
+    // Private interests are never named here: a count with the lock.
+    expect(screen.queryByText('gravid')).toBeNull();
+    expect(screen.getByText('1 private interest')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('link', { name: 'Edit your interests' }));
+    expect(mockRouter.push).toHaveBeenCalledWith('/interests');
+  });
+
+  it('says when there are no interests yet', async () => {
+    mockInterests = [];
+    mockSensitive = [];
+    await renderWith(<Me />);
+    expect(screen.getByText('No interests yet. Add a few so we can find you a pod.')).toBeOnTheScreen();
+    expect(screen.queryByTestId('me-private-count')).toBeNull();
+  });
+
+  it('deletes the photo with a Danger outline button', async () => {
+    await renderWith(<Me />);
+    expect(screen.getByTestId('photo-delete')).toHaveStyle({ borderColor: Colors.light.danger, backgroundColor: Colors.light.surface });
   });
 
   it('says when there are no meetups yet, and offers to add a photo when there is none', async () => {
@@ -165,14 +206,15 @@ describe('Me', () => {
   it('names a setting that keeps the user out of pods, with a way to change it', async () => {
     mockUser = user({ lastDrop: { weekId: '2026-W45', outcome: 'unmatched', reason: 'RADIUS' } });
     await renderWith(<Me />);
-    expect(screen.getByText('Your distance is small for your area. A larger distance would help.')).toBeOnTheScreen();
+    expect(screen.getByText('Your distance is short for your area. Going a little further would help.')).toBeOnTheScreen();
     await fireEvent.press(screen.getByRole('button', { name: 'Change preferences' }));
     expect(mockRouter.push).toHaveBeenCalledWith('/settings/preferences');
   });
 
   it('links to preferences (with a summary), privacy, messages, settings and the info pages', async () => {
     await renderWith(<Me />);
-    expect(screen.getByText('Ages 28–42 · about 10 km · Dansk, English')).toBeOnTheScreen();
+    // Two lines: the ages and distance, then the languages (the matcher folds the line break into a space).
+    expect(screen.getByText('Ages 28–42 · about 10 km Danish, English')).toBeOnTheScreen();
     expect(screen.getByText('Language, notifications, legal, sign out')).toBeOnTheScreen();
     await fireEvent.press(screen.getByRole('link', { name: /Pod preferences/ }));
     await fireEvent.press(screen.getByRole('link', { name: /^Privacy/ }));
@@ -196,12 +238,18 @@ describe('Me', () => {
     initI18n('da');
     try {
       await renderWith(<Me />);
-      expect(screen.getByText('28–42 år · ca. 10 km · Dansk, English')).toBeOnTheScreen();
+      expect(screen.getByText('28–42 år · ca. 10 km Dansk, Engelsk')).toBeOnTheScreen();
     } finally {
       await act(async () => {
         initI18n('en');
       });
     }
+  });
+
+  it('the summary puts the languages on their own line, so no "·" is left at the end of a line', () => {
+    const prefs: Pick<Prefs, 'ageMin' | 'ageMax' | 'maxKm' | 'languages'> = { ageMin: 28, ageMax: 42, maxKm: 10, languages: ['da', 'en'] };
+    // Spaces inside a part don't break (NBSP); the only break is before the languages.
+    expect(prefsSummary(i18next.t, prefs)).toBe('Ages\u00a028–42 · about\u00a010\u00a0km\nDanish, English');
   });
 
   it('"About me" offers Save only once the text has changed, then saves it', async () => {
@@ -384,6 +432,9 @@ describe('info pages', () => {
     mockParams = { doc: 'terms' };
     await renderWith(<LegalDoc />);
     expect(screen.getByText('Draft')).toBeOnTheScreen();
+    // The Ink status pill (blend-spec 6.4), not an ad-hoc outline badge.
+    expect(screen.getByTestId('legal-draft')).toHaveStyle({ backgroundColor: Colors.light.ink });
+    expect(screen.getByText('Draft')).toHaveStyle({ color: Colors.light.onInk });
     expect(screen.getByText('Version of November 2026')).toBeOnTheScreen();
     expect(screen.queryByText(/draft-1/)).toBeNull();
     mockParams = { doc: 'nope' };
@@ -391,7 +442,7 @@ describe('info pages', () => {
     expect(screen.getByText('This page does not exist.')).toBeOnTheScreen();
   });
 
-  it('licences credit the postcode data, the bundled font with its full licence, and the open-source software', async () => {
+  it('licences credit the postcode data, both bundled fonts with their full licences, and the open-source software', async () => {
     const open = jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
     mockParams = { doc: 'licences' };
     await renderWith(<LegalDoc />);
@@ -399,13 +450,24 @@ describe('info pages', () => {
     await fireEvent.press(screen.getByText('CC BY 4.0'));
     expect(open.mock.calls.map((c) => c[0])).toEqual(['https://www.geonames.org', 'https://creativecommons.org/licenses/by/4.0/']);
     expect(screen.getByText('Plus Jakarta Sans, SIL Open Font License 1.1')).toBeOnTheScreen();
-    expect(screen.queryByTestId('font-licence-text')).toBeNull();
-    await fireEvent.press(screen.getByRole('link', { name: 'Show the licence' }));
-    expect(screen.getByTestId('font-licence-text')).toHaveTextContent(/SIL OPEN FONT LICENSE Version 1\.1/);
+    expect(screen.getByText('Bricolage Grotesque, SIL Open Font License 1.1')).toBeOnTheScreen();
+    expect(screen.queryByTestId('font-licence-text-bricolage-grotesque')).toBeNull();
+    await fireEvent.press(screen.getByRole('link', { name: 'Show the licence for Bricolage Grotesque' }));
+    expect(screen.getByTestId('font-licence-text-bricolage-grotesque')).toHaveTextContent(/SIL OPEN FONT LICENSE Version 1\.1/);
+    expect(screen.getByTestId('font-licence-text-bricolage-grotesque')).toHaveTextContent(/The Bricolage Grotesque Project Authors/);
+    expect(screen.getByRole('link', { name: 'Hide the licence for Bricolage Grotesque' })).toBeOnTheScreen();
+    expect(screen.queryByTestId('font-licence-text-plus-jakarta-sans')).toBeNull();
     expect(screen.getByText('React Native Firebase')).toBeOnTheScreen();
     expect(screen.getByText('React and React Native')).toBeOnTheScreen();
     expect(screen.getByText('EmbeddingGemma 2 (the on-device model)')).toBeOnTheScreen();
     open.mockRestore();
+  });
+
+  it('the font licences are the packages\' LICENSE_FONT files, verbatim', () => {
+    const file = (pkg: string) => readFileSync(require.resolve(`@expo-google-fonts/${pkg}/LICENSE_FONT`), 'utf8').trimEnd();
+    expect(FONT_CREDITS.map((f) => f.name)).toEqual(['Plus Jakarta Sans', 'Bricolage Grotesque']);
+    expect(FONT_CREDITS[0]?.licenceText).toBe(file('plus-jakarta-sans'));
+    expect(FONT_CREDITS[1]?.licenceText).toBe(file('bricolage-grotesque'));
   });
 
   it('licences: in Danish the names are joined and the model described in Danish', async () => {

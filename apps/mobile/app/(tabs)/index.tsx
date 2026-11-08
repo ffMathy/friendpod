@@ -16,14 +16,15 @@ import { Tabs } from 'expo-router/js-tabs';
 import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
-import { Card, ErrorText, Loading, Screen, Text } from '@/components/ui';
+import { Card, ErrorText, Icon, Loading, Screen, Text, TextLink } from '@/components/ui';
+import { Layout, usePalette } from '@/components/theme';
 import { useAreaDoc, useInterests, usePodCards, useUserDoc } from '@/data/docs';
 import type { WithId } from '@/data/live';
 import { useTabTopPadding } from '@/features/drop/layout';
 import { MatchOnCard } from '@/features/drop/MatchOnCard';
-import { NextDropCard } from '@/features/drop/NextDropCard';
+import { NextDropField, ParticipationActions } from '@/features/drop/NextDropCard';
 import { NoPodCard } from '@/features/drop/NoPodCard';
-import { SmallLink, TabTitle } from '@/features/drop/parts';
+import { SectionTitle, TabTitle } from '@/features/drop/parts';
 import { PodRow } from '@/features/drop/PodRow';
 import { clock, useNow, weekday, weekNumber } from '@/features/drop/time';
 import { ProposalCard } from '@/features/pods/ProposalCard';
@@ -34,10 +35,12 @@ import { currentLocale } from '@/i18n';
 
 /**
  * "This week" (§3.2). Three states, each with its own storyboard:
- * - after the drop with a proposal: "Your weekly drop" with the proposal card (drop-proposal, priv-sensitive), or
- *   "3 of 5 said yes" once the viewer is in (drop-waiting);
- * - after the drop without one: "No pod for you this week", the reason and tips (drop-none);
- * - otherwise: the next drop with a countdown, skip or pause, what we match on, and the viewer's pods (drop-home).
+ * - after the drop with a proposal: "Your weekly drop" with the proposal card in the pod's tint (drop-proposal; quiet
+ *   white and Ink for a private interest, priv-sensitive), or "3 of 5 said yes" with lit seats once the viewer is in
+ *   (drop-waiting);
+ * - after the drop without one: "No pod for you this week", the reason and tips, in a calm card (drop-none);
+ * - otherwise the ritual (drop-home): the Thursday drop on the Skov poster field with the countdown on its foot, then
+ *   skip or pause, what we match on (pod chips) and the viewer's pods.
  * While the user's launch area is not live, Home is the per-city waitlist screen instead (§3.1 step 13), on every
  * open, until `areas/{areaId}.status` turns live (a live read, so it switches without a restart).
  */
@@ -103,6 +106,7 @@ function HomeScreen({ title, now, children }: { title: string; now: number; chil
 function Home({ uid, user, cards, profileId }: { uid: string; user: UserDoc; cards: readonly WithId<PodCardDoc>[]; profileId: MatchingProfileId | null }) {
   const { t } = useTranslation();
   const router = useRouter();
+  const p = usePalette();
   const now = useNow();
   const interests = useInterests(uid);
   // Waiting cards the viewer has acknowledged with "Okay" in this session: they move to "Your pods".
@@ -139,9 +143,13 @@ function Home({ uid, user, cards, profileId }: { uid: string; user: UserDoc; car
     return (
       <HomeScreen title={t('home.title')} now={now}>
         <NoPodCard reason={last.reason} prefs={user.prefs} />
-        <Text variant="small" color="textMuted" align="center" style={styles.nextDrop}>
-          {t('home.nextDropAt', { day: weekday(nextRelease, locale), time: clock(nextRelease, locale) })}
-        </Text>
+        {/* Not a needs-you: there is nothing to do but wait. */}
+        <View style={styles.nextDrop}>
+          <Icon name="clock" size={14} strokeWidth={2.2} color={p.textMuted} />
+          <Text variant="captionStrong" color="textMuted">
+            {t('home.nextDropAt', { day: weekday(nextRelease, locale), time: clock(nextRelease, locale) })}
+          </Text>
+        </View>
       </HomeScreen>
     );
   }
@@ -149,26 +157,25 @@ function Home({ uid, user, cards, profileId }: { uid: string; user: UserDoc; car
   const active = cards.filter((c) => c.data.myStatus === 'accepted' && ACTIVE_POD_STATES.includes(c.data.state));
   const waiting = proposed.filter((c) => c.data.myStatus === 'accepted' && acknowledged.includes(c.id));
   const mine = [...waiting, ...active];
+  const howMatching = () => router.push('/info/how-matching-works');
   return (
-    <HomeScreen title={t('home.title')} now={now}>
-      <NextDropCard user={user} now={now} />
-      <MatchOnCard interests={interests.data} prefs={user.prefs} areaLabel={user.area.label} />
-      {mine.length > 0 ? (
-        <View style={styles.section}>
-          {/* As tall as its text, like the storyboard's h2 (SectionHeader keeps a 24 px row for a trailing action). */}
-          <Text accessibilityRole="header" variant="heading" style={styles.sectionTitle}>
-            {`${t('home.yourPods')} `}
-            <Text variant="heading" weight="500" color="textMuted" style={styles.sectionTitle}>
-              {`· ${t('home.activeCount', { active: active.length, max: profile.params.maxActivePods })}`}
-            </Text>
-          </Text>
-          {mine.map((c) => (
-            <PodRow key={c.id} uid={uid} card={c} now={now} />
-          ))}
-        </View>
-      ) : null}
-      <SmallLink label={t('home.howMatching')} onPress={() => router.push('/info/how-matching-works')} />
-    </HomeScreen>
+    // The poster field runs full-bleed from the top edge and brings its own safe-area inset.
+    <Screen gutter="none" gap={0} contentStyle={styles.fieldPage}>
+      <NextDropField title={t('home.title')} week={t('home.week', { week: weekNumber(now) })} user={user} now={now} onPress={howMatching} />
+      <View style={styles.below}>
+        <ParticipationActions user={user} now={now} />
+        <MatchOnCard interests={interests.data} prefs={user.prefs} areaLabel={user.area.label} />
+        {mine.length > 0 ? (
+          <View style={styles.section}>
+            <SectionTitle title={t('home.yourPods')} count={t('home.activeCount', { active: active.length, max: profile.params.maxActivePods })} />
+            {mine.map((c) => (
+              <PodRow key={c.id} uid={uid} card={c} now={now} />
+            ))}
+          </View>
+        ) : null}
+        <TextLink align="center" label={t('home.howMatching')} onPress={howMatching} />
+      </View>
+    </Screen>
   );
 }
 
@@ -178,9 +185,8 @@ const RESPONDABLE: ReadonlySet<PodState> = new Set<PodState>(['proposed', 'plann
 const styles = StyleSheet.create({
   proposal: { gap: 16 },
   section: { gap: 10 },
-  // 15 px at the font's natural line height (1.26), as the storyboard sets none; the muted part too, or its own
-  // 20 px line box would make the row a pixel taller.
-  sectionTitle: { lineHeight: 19 },
-  // 14 px at the font's natural line height.
-  nextDrop: { lineHeight: 18 },
+  nextDrop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
+  fieldPage: { paddingTop: 0 },
+  // Under the foot: 14 px, then the blocks 14 px apart (spec §8, drop-home).
+  below: { paddingHorizontal: Layout.gutterCompact, paddingTop: 14, gap: 14 },
 });

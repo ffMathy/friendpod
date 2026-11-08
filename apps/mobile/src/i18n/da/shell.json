@@ -35,10 +35,18 @@
     "deletePhoto": "Slet billede",
     "deletePhotoTitle": "Vil du slette dit billede?",
     "deletePhotoBody": "Dit billede bliver slettet, og medlemmerne af dine pods kan ikke længere se det.",
-    "photoUploaded": "Tak! Dit billede dukker op om lidt."
+    "photoUploaded": "Tak! Dit billede dukker op om lidt.",
+    "yourAccount": "Din konto",
+    "interestsTitle": "Dine interesser",
+    "editInterests": "Ret",
+    "editInterestsLabel": "Ret dine interesser",
+    "noInterests": "Ingen interesser endnu. Tilføj et par stykker, så vi kan finde en pod til dig.",
+    "privateInterests_one": "{{count}} privat interesse",
+    "privateInterests_other": "{{count}} private interesser"
   },
   "settings": {
     "title": "Indstillinger",
+    "general": "Generelt",
     "signOut": "Log ud",
     "reauthLinkSent": "For at bekræfte, at det er dig, har vi sendt et login-link til din e-mail. Åbn det, og prøv igen.",
     "privacy": {
@@ -111,7 +119,7 @@
     },
     "howMatchingWorks": {
       "title": "Sådan matcher vi",
-      "notUsed": "Billeder, din »Om mig« eller noget, vi udleder om dig. Køn kun, hvis du slår pods med samme køn til.",
+      "notUsed": "Billeder, din »Om mig« eller noget, vi udleder om dig. Køn bruger vi kun, hvis du har slået »Kun pods med samme køn« til.",
       "sensitive": "Private interesser bruges kun, hvis du har sagt ja til følsomme interesser, kun som tema for en pod, hvor alle medlemmer har tilføjet dem, og først når din konto er 14 dage gammel, og du har været til et møde.",
       "pauses": "Nogle pauser sker automatisk efter faste regler. Hver pause kommer med en forklaring i Beskeder fra Grouper og slutter af sig selv.",
       "humanReview": "Du kan stadig bruge dine rettigheder efter databeskyttelsesreglerne ved at kontakte vores privatlivsteam (se privatlivserklæringen).",
@@ -175,13 +183,15 @@
     "legalDraft": "Udkast",
     "legalPostcodes": "Postnumre",
     "legalPostcodesUse": "Danske postnumre og deres placering, som vi bruger, når du vælger dit område.",
-    "legalFont": "Skrifttype",
     "legalShowLicence": "Vis licensen",
     "legalHideLicence": "Skjul licensen",
     "legalSoftware": "Open source-software",
     "legalSoftwareNote": "Den fulde licenstekst følger med hver pakkes kildekode.",
     "legalAnd": "{{list}} og {{last}}",
-    "legalOnDeviceModel": "{{name}} (modellen på telefonen)"
+    "legalOnDeviceModel": "{{name}} (modellen på telefonen)",
+    "legalFonts": "Skrifttyper",
+    "legalShowLicenceFor": "Vis licensen for {{name}}",
+    "legalHideLicenceFor": "Skjul licensen for {{name}}"
   },
   "notices": {
     "title": "Beskeder fra Grouper",
@@ -221,10 +231,10 @@
     "unknownTitle": "Besked fra Grouper"
   },
   "blockingSetting": {
-    "RADIUS": "Din afstand er lille for dit område. En større afstand vil hjælpe.",
-    "AGE": "Dit aldersinterval er smalt for dit område.",
+    "RADIUS": "Din afstand er kort i forhold til dit område. Det hjælper at sætte den op.",
+    "AGE": "Dit aldersinterval er smalt i forhold til dit område.",
     "GENDER_POOL": "Pods med samme køn er sjældne i dit område lige nu.",
-    "LANGUAGE": "Få i nærheden deler dine sprog ved møder.",
+    "LANGUAGE": "Få i nærheden kan mødes på dine sprog.",
     "AVAILABILITY": "Få i nærheden kan mødes på dine tidspunkter."
   },
   "errors": {

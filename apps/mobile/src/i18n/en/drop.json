@@ -32,9 +32,14 @@
     "noInterests": "Add a few interests so we can find your pod.",
     "aboutKm": "about {{km}} km",
     "ages": "ages {{min}}–{{max}}",
+    "language": {
+      "da": "Danish",
+      "en": "English"
+    },
     "yourPods": "Your pods",
     "activeCount": "{{active}} of {{max}} active",
     "howMatching": "How matching works",
+    "dropLinkHint": "Shows how the weekly drop works",
     "noPodTitle": "No pod for you this week",
     "noPodBody": "We couldn't fit you into a pod this time.",
     "priorityNext": "You'll get priority next week.",
@@ -53,7 +58,7 @@
     "nextDropAt": "Next drop: {{day}} {{time}}"
   },
   "unmatched": {
-    "NO_THEME_BUCKET": "Not enough people near you shared one of your interests and fit everyone's settings this time.",
+    "NO_THEME_BUCKET": "Not enough people near you shared one of your interests and fit everyone's settings this\u00a0time.",
     "RADIUS": "Your distance setting leaves too few people near you to form a pod.",
     "AGE": "Your age range leaves too few people near you to form a pod.",
     "GENDER": "With same-gender pods, too few people near you had the same setting this time.",
@@ -122,8 +127,8 @@
       "AREA": "Everyone lives near {{label}}.",
       "AGE_SPAN": "Ages {{min}}–{{max}}: everyone is inside everyone else's age range.",
       "OPEN_TO_ANYONE": "You're open to meeting anyone near you.",
-      "PRIORITY_one": "You waited {{count}} week, so you got priority this time.",
-      "PRIORITY_other": "You waited {{count}} weeks, so you got priority this time.",
+      "PRIORITY_one": "You waited {{count}} week, so you got priority this\u00a0time.",
+      "PRIORITY_other": "You waited {{count}} weeks, so you got priority this\u00a0time.",
       "neverTitle": "What we never use",
       "neverBody": "Photos, looks, or anything you haven't told us. Gender only if you chose same-gender pods. Private interests only as the theme of a pod about them."
     },

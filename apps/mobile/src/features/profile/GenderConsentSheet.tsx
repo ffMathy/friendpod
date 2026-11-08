@@ -16,9 +16,10 @@ export interface GenderConsentSheetProps {
 
 /**
  * Same-gender pods (§3.1 step 9, PRIVACY.md §3.6): gender picker with its own unticked consent checkbox. Drawn as the
- * app's other sheets are (drop-why, after-member): a content-height panel with a handle over the dimmed page, the
- * 24/800 title with the close cross, and the actions right under the consent box. The consent copy is verbatim from
- * @grouper/core; gender is sent only with the consent proof.
+ * app's other sheets are (spec §6.14): a content-height white panel with a handle over the dimmed page, the Headline
+ * title with the close cross, the choices as pills (selected Ink), and the actions right under the consent box: the
+ * primary, then the secondary "Cancel" every sheet with a primary or destructive action ends with. The
+ * consent copy is verbatim from @grouper/core; gender is sent only with the consent proof.
  */
 export function GenderConsentSheet({ visible, locale, onDone }: GenderConsentSheetProps) {
   const { t } = useTranslation();
@@ -47,7 +48,6 @@ export function GenderConsentSheet({ visible, locale, onDone }: GenderConsentShe
             <ChoiceChip
               key={g}
               testID={`gender-${g}`}
-              fill
               label={t(`gender.options.${g}`)}
               selected={gender === g}
               onPress={() => {
@@ -70,7 +70,7 @@ export function GenderConsentSheet({ visible, locale, onDone }: GenderConsentShe
         {update.error ? <ErrorText>{t(errorMessageKey(update.error))}</ErrorText> : null}
         <View style={styles.actions}>
           <Button testID="gender-confirm" label={t('gender.confirm')} disabled={!gender || !checked} busy={update.isPending} onPress={confirm} />
-          <Button label={t('common.cancel')} variant="ghost" size="md" fullWidth onPress={cancel} />
+          <Button testID="gender-cancel" label={t('common.cancel')} variant="secondary" fullWidth onPress={cancel} />
         </View>
       </BottomSheet>
     </Modal>
@@ -80,8 +80,9 @@ export function GenderConsentSheet({ visible, locale, onDone }: GenderConsentShe
 const styles = StyleSheet.create({
   titleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
   title: { flexShrink: 1 },
-  choices: { flexDirection: 'row', gap: 8 },
+  // Each option as wide as its word (Non-binary, Nonbinær never break), wrapping if the sheet is narrow.
+  choices: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   copy: { gap: 12 },
-  // The sheet's 18 px rhythm, minus the ghost button's own room under the primary.
-  actions: { gap: 4 },
+  // Spec §6.14: the primary (54), then a secondary "Cancel" (54), 10 apart, as in the app's other confirm sheets.
+  actions: { gap: 10 },
 });

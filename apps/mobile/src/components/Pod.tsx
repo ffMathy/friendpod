@@ -12,7 +12,7 @@
  */
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Pressable, StyleSheet, useWindowDimensions, View, type StyleProp, type ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle, Path } from 'react-native-svg';
 import type { PodColor } from '@/lib/podColor';
@@ -21,7 +21,7 @@ import { BackButton } from './Button';
 import { Icon, type IconName } from './Icon';
 import { PodMark } from './Logo';
 import { Text } from './Text';
-import { BorderWidth, Layout, Radius, Size, usePalette, usePodColors } from './theme';
+import { BorderWidth, displayTextWidth, Layout, Radius, Size, TypeScale, usePalette, usePodColors } from './theme';
 
 // ---------------------------------------------------------------------------------------------------------------
 // Poster field and foot
@@ -142,27 +142,54 @@ export function PodBand({ title, subtitle, color, onBack, backLabel, trailing, s
   );
 }
 
+/**
+ * A hero card's colour: a pod colour; `null` for a private pod (white top, Line bottom border, Ink name, the private
+ * badge, a 1.5 px Ink card border); or `plain` for a pod whose colour cannot be known yet (white top, Ink name, the
+ * neutral dot mark; not private, so the card keeps its 1 px Line border).
+ */
+export type HeroColor = PodColor | null | 'plain';
+
 export interface PodTintBandProps {
-  /** The pod's colour; `null` for a private pod (white top, Line bottom border, Ink name, private badge). */
-  readonly color: PodColor | null;
-  /** The pod name, set in Display L in the pod's deep tone (Ink when private). */
+  readonly color: HeroColor;
+  /** The pod name, set in Display L in the pod's deep tone (Ink when private or plain); it steps down to fit. */
   readonly name: string;
   /** "A pod around", above the name. */
   readonly eyebrow?: string;
-  /** The pill row: a status pill at the left, a needs-you pill (or a quiet status) at the right. */
+  /**
+   * The pill row, as children of one wrapping row (space-between, gap 8): a status pill (or the private chip) first,
+   * the needs-you pill or a quiet status last. A pill never truncates: the row wraps instead (the private chip and
+   * the needs-you pill do not fit side by side, nor does any pair at large text sizes).
+   */
+  readonly pills?: ReactNode;
+  /** Shorthand for a two-pill row: a status pill at the left, a needs-you pill (or a quiet status) at the right. */
   readonly pillLeft?: ReactNode;
   readonly pillRight?: ReactNode;
   readonly nameTestID?: string;
 }
 
+/** Display L (44), then smaller steps, until every word of the name fits beside the badge. Never hyphenated. */
+const NAME_STEPS = [44, 40, 36, 32] as const;
+const NAME_SMALLEST = 28;
+
+function bandNameSize(name: string, width: number): number {
+  const words = name.trim().split(/\s+/);
+  return NAME_STEPS.find((size) => words.every((w) => displayTextWidth(w, size) <= width)) ?? NAME_SMALLEST;
+}
+
 /** The top of the proposal and waiting hero card: the pod tint, a 1 px base-@-40% bottom border, name and badge. */
-export function PodTintBand({ color, name, eyebrow, pillLeft, pillRight, nameTestID }: PodTintBandProps) {
+export function PodTintBand({ color, name, eyebrow, pills, pillLeft, pillRight, nameTestID }: PodTintBandProps) {
   const p = usePalette();
-  const c = usePodColors(color);
-  const isPrivate = color === null;
+  const c = usePodColors(color === 'plain' ? null : color);
+  const { width } = useWindowDimensions();
+  const tinted = color !== null && color !== 'plain';
+  // The hero card's inner width (screen gutters and band padding) beside the 48 px badge and its 12 px gap.
+  const size = bandNameSize(name, width - 2 * Layout.gutterCompact - 2 * Layout.heroPadding - Size.podBadge - 12);
+  const display = TypeScale.displayL;
   return (
-    <View style={[styles.tintBand, { backgroundColor: isPrivate ? p.surface : c.surface, borderBottomColor: isPrivate ? p.border : c.surfaceBorder }]}>
-      {pillLeft || pillRight ? (
+    <View style={[styles.tintBand, { backgroundColor: tinted ? c.surface : p.surface, borderBottomColor: tinted ? c.surfaceBorder : p.border }]}>
+      {pills ? (
+        <View style={[styles.pills, styles.pillsWrap]}>{pills}</View>
+      ) : pillLeft || pillRight ? (
         <View style={styles.pills}>
           <View style={styles.shrink}>{pillLeft}</View>
           <View style={styles.shrink}>{pillRight}</View>
@@ -171,16 +198,28 @@ export function PodTintBand({ color, name, eyebrow, pillLeft, pillRight, nameTes
       <View style={styles.nameRow}>
         <View style={styles.nameCol}>
           {eyebrow ? (
-            <Text variant="small" style={{ color: c.onSurfaceMuted }}>
+            <Text variant="small" style={{ color: tinted ? c.onSurfaceMuted : p.textSecondary }}>
               {eyebrow}
             </Text>
           ) : null}
-          <Text testID={nameTestID} accessibilityRole="header" variant="displayL" style={{ color: c.name }}>
+          <Text
+            testID={nameTestID}
+            accessibilityRole="header"
+            variant="displayL"
+            style={[
+              { color: tinted ? c.name : p.text },
+              size === display.size ? null : { fontSize: size, lineHeight: size + 2, letterSpacing: Math.round(size * display.tracking * 100) / 100 },
+            ]}
+          >
             {name}
           </Text>
         </View>
         <View style={styles.badgeNudge}>
-          <PodMark variant="badge" color={color ?? 'private'} size={Size.podBadge} />
+          {color === 'plain' ? (
+            <PodMark variant="dots" ground="light" size={Size.podBadge} />
+          ) : (
+            <PodMark variant="badge" color={color ?? 'private'} size={Size.podBadge} />
+          )}
         </View>
       </View>
     </View>
@@ -188,6 +227,7 @@ export function PodTintBand({ color, name, eyebrow, pillLeft, pillRight, nameTes
 }
 
 export interface HeroCardProps extends PodTintBandProps {
+  /** The body (seat row, facts, a note, buttons); without it the card ends under the band. */
   readonly children?: ReactNode;
   /** Gap between the body's blocks (default 16). */
   readonly gap?: number;
@@ -196,8 +236,9 @@ export interface HeroCardProps extends PodTintBandProps {
 }
 
 /**
- * The proposal / waiting hero card (spec §6.7): white, 1 px Line border (private: 1.5 px Ink), radius 28, the pod tint
- * band on top, then the body (seat row, facts, a note, buttons) with padding 16 20 20.
+ * The proposal / waiting hero card (spec §6.7; drop-proposal, drop-waiting, priv-sensitive): white, 1 px Line border
+ * (private: 1.5 px Ink), radius 28, the pod tint band on top, then the body (seat row, facts, a note, buttons) with
+ * padding 16 20 20.
  */
 export function HeroCard({ children, gap = 16, testID, accessibilityLabel, ...band }: HeroCardProps) {
   const p = usePalette();
@@ -209,7 +250,7 @@ export function HeroCard({ children, gap = 16, testID, accessibilityLabel, ...ba
       style={[styles.hero, { backgroundColor: p.surface, borderColor: isPrivate ? p.privateBorder : p.border, borderWidth: isPrivate ? BorderWidth.control : BorderWidth.hairline }]}
     >
       <PodTintBand {...band} />
-      <View style={[styles.heroBody, { gap }]}>{children}</View>
+      {children ? <View style={[styles.heroBody, { gap }]}>{children}</View> : null}
     </View>
   );
 }
@@ -369,6 +410,7 @@ const styles = StyleSheet.create({
   bandTitle: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   tintBand: { borderBottomWidth: BorderWidth.hairline, paddingTop: 18, paddingHorizontal: Layout.heroPadding, paddingBottom: 20, gap: 14 },
   pills: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 },
+  pillsWrap: { flexWrap: 'wrap' },
   nameRow: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: 12 },
   nameCol: { flex: 1, minWidth: 0, gap: 4 },
   badgeNudge: { marginBottom: 2 },

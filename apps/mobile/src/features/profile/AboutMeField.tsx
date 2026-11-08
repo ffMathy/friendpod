@@ -33,9 +33,10 @@ export function useAboutMe(initial: string): AboutMeState {
 }
 
 /**
- * The field as onb-final draws it: "About me (optional)" with the "52 / 140" counter at the right, a 50 px input in
- * 15 px, 6 px apart, the helper line and the refusal reason. Its own metrics (TextField is 52–54 px in 16–17 px, 8 px
- * apart), with TextField's colours, focus ring and error border.
+ * The field as onb-final draws it (spec §6.15 textarea): "About me (optional)" in 15/700, a two-line input (radius 14,
+ * 1.5 px Field border, 16/24, padding 12/14), and under it the helper (13 Muted) with the "52 / 140" counter (12/600)
+ * at the right, then the refusal reason. Focused: 2 px Skov deep; refused: 2 px Danger. Line breaks are not part of
+ * the text (the schema folds them), so Return closes the keyboard.
  */
 export function AboutMeInput({ state, helper }: { readonly state: AboutMeState; readonly helper?: string }) {
   const { t } = useTranslation();
@@ -46,18 +47,15 @@ export function AboutMeInput({ state, helper }: { readonly state: AboutMeState; 
     problem === 'tooLong' ? t('aboutMe.tooLong', { max: ABOUT_ME_MAX }) : problem === 'CONTACT_INFO' || problem === 'BLOCKLIST' ? t(`aboutMe.${problem}`) : null;
   const help = helper ?? t('aboutMe.helper');
   const full = state.value.length >= ABOUT_ME_MAX;
-  const borderWidth = focused || error ? BorderWidth.strong : BorderWidth.hairline;
+  const borderWidth = focused || error ? BorderWidth.strong : BorderWidth.control;
+  // The text stays put when the border thickens.
+  const inset = (n: number) => n - (borderWidth - BorderWidth.control);
   return (
     <View style={styles.field}>
-      <View style={styles.labelRow}>
-        <Label style={[styles.normal15, styles.shrink]}>
-          {t('aboutMe.label')}
-          <Text variant="heading" weight="500" color="textMuted" style={styles.normal15}>{` ${t('common.optional')}`}</Text>
-        </Label>
-        <Text variant="caption" color={full ? 'danger' : 'textMuted'} style={styles.normal13}>
-          {`${state.value.length} / ${ABOUT_ME_MAX}`}
-        </Text>
-      </View>
+      <Label style={styles.label}>
+        {t('aboutMe.label')}
+        <Text variant="heading" weight="500" color="textMuted" style={styles.label}>{` ${t('common.optional')}`}</Text>
+      </Label>
       <TextInput
         testID="about-me"
         accessibilityLabel={`${t('aboutMe.label')} ${t('common.optional')}`}
@@ -70,22 +68,32 @@ export function AboutMeInput({ state, helper }: { readonly state: AboutMeState; 
         placeholder={t('aboutMe.placeholder')}
         placeholderTextColor={p.textMuted}
         autoCapitalize="sentences"
+        multiline
+        submitBehavior="blurAndSubmit"
+        returnKeyType="done"
         style={[
           typeStyle('body'),
           styles.input,
           {
             color: p.text,
             backgroundColor: p.surface,
-            borderColor: error ? p.danger : focused ? p.primary : p.borderStrong,
+            borderColor: error ? p.danger : focused ? p.link : p.field,
             borderWidth,
-            paddingHorizontal: 14 - (borderWidth - 1),
-            lineHeight: undefined,
+            paddingTop: inset(12),
+            paddingBottom: inset(12),
+            paddingLeft: inset(14),
+            paddingRight: inset(14),
           },
         ]}
       />
-      <Text variant="caption" color="textMuted" style={styles.normal13}>
-        {help}
-      </Text>
+      <View style={styles.under}>
+        <Text variant="caption" color="textMuted" style={[styles.helper, styles.shrink]}>
+          {help}
+        </Text>
+        <Text variant="microStrong" color={full ? 'danger' : 'textMuted'} style={styles.count}>
+          {`${state.value.length} / ${ABOUT_ME_MAX}`}
+        </Text>
+      </View>
       {error ? <ErrorText>{error}</ErrorText> : null}
     </View>
   );
@@ -104,8 +112,8 @@ export function AboutMeField({ initial, onSaved }: { readonly initial: string; r
       <Button
         testID="about-me-save"
         label={t('aboutMe.save')}
-        variant="outline"
-        size="xs"
+        variant="secondary"
+        size="sm"
         busy={save.isPending}
         disabled={!state.changed || state.problem !== null}
         onPress={() => state.text !== null && save.mutate({ aboutMe: state.text }, { onSuccess: () => onSaved?.() })}
@@ -116,11 +124,12 @@ export function AboutMeField({ initial, onSaved }: { readonly initial: string; r
 
 const styles = StyleSheet.create({
   column: { gap: 8 },
-  field: { gap: 6 },
-  labelRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', gap: 12 },
+  field: { gap: 4 },
+  label: { lineHeight: 20 },
+  // Two lines of 16/24 inside 12 px padding and the 1.5 px border (75 px, as drawn).
+  input: { minHeight: 75, borderRadius: Radius.md, textAlignVertical: 'top' },
+  under: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', gap: 12 },
+  helper: { lineHeight: 18 },
   shrink: { flexShrink: 1 },
-  // onb-final sets the label, the counter and the helper at the font's normal line height.
-  normal15: { lineHeight: 19 },
-  normal13: { lineHeight: 16 },
-  input: { height: 50, borderRadius: Radius.md },
+  count: { flexShrink: 0 },
 });

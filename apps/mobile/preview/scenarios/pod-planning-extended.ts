@@ -1,6 +1,6 @@
 import { preview } from '../runtime/state';
 import type { PlaceFixture, Scenario } from '../runtime/types';
-import { CAST_PHOTOS, ME, MEMBERS, now, ONBOARDED_USER, POD_BRAETSPIL, podCard, profileWorld, ts } from './_kit';
+import { BRAETSPIL_MEMBERS, CAST_PHOTOS, ME, MEMBERS, now, ONBOARDED_USER, POD_BRAETSPIL, podCard, profileWorld, roster, ts } from './_kit';
 import { localPlanOptions, placeResults, WEEK46, week46Pod } from './_pod';
 
 /**
@@ -21,7 +21,7 @@ const scenario: Scenario = {
   docs: ({ locale }) => ({
     ...profileWorld({ locale, lastDrop: { weekId: WEEK46.weekId, outcome: 'proposed' } }),
     [`users/${ME}/pods/${POD_BRAETSPIL}`]: podCard({ state: 'planning', myStatus: 'accepted', acceptedCount: 5, acceptBy: ts(WEEK46.acceptBy) }),
-    [`pods/${POD_BRAETSPIL}`]: week46Pod({ planning: { deadline: ts('2026-11-18 18:00'), extended: true } }),
+    [`pods/${POD_BRAETSPIL}`]: week46Pod({ roster: roster(BRAETSPIL_MEMBERS, false), planning: { deadline: ts('2026-11-18 18:00'), extended: true } }),
     ...localPlanOptions(POD_BRAETSPIL, locale, {
       saturday: { [MEMBERS.mette.uid]: 'yes', [MEMBERS.jonas.uid]: 'yes', [MEMBERS.sofie.uid]: 'no', [ME]: 'no' },
       sunday: { [MEMBERS.sofie.uid]: 'yes', [MEMBERS.ahmed.uid]: 'yes', [MEMBERS.jonas.uid]: 'no', [ME]: 'no' },

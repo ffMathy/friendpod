@@ -14,7 +14,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import { usePalette } from '@/components/theme';
-import { Button, ChipRow, ChoiceChip, ErrorText, Heading, Label, Small, Text, TextField } from '@/components/ui';
+import { Button, ChipRow, ChoiceChip, ErrorText, Heading, Small, Text, TextField } from '@/components/ui';
 import { useCallable } from '@/data/useCallable';
 import { signOut } from '@/features/account/account';
 import { AreaCard } from '@/features/onboarding/AreaCard';
@@ -33,7 +33,8 @@ const POSTCODE_SOURCE = POSTCODE_ATTRIBUTION.replace(/^[^:]*:\s*/, '');
  * location (coarse permission). Either is converted to a geohash-5 cell on the device and discarded; the server
  * receives only `gh5`. Continue runs `completeOnboarding` with steps 3–6, plus the optional "Where did you hear about
  * Grouper?" (one choice or none; the server keeps only an aggregate counter per city and week, never the answer on the
- * profile, §6.8).
+ * profile, §6.8). As onb-area draws it: the 52 px postcode field, "or", "Use my approximate location" (secondary, pin), and
+ * the white "Your area" card; the source question and the data credit follow, under what the storyboard shows.
  */
 export default function Area() {
   const { t } = useTranslation();
@@ -112,10 +113,6 @@ export default function Area() {
       title={t('onboarding.area.title')}
       lede={t('onboarding.area.lede')}
       onBack={back}
-      // onb-area spaces its blocks 24 apart, which pushes the area card's last line (the privacy promise) under the
-      // pinned Continue on a 390×844 phone. 20 between blocks, 12 round "or", the standard button height and a
-      // shorter map keep the whole card above the footer.
-      gap={20}
       footer={
         underage ? (
           // The server has already deleted the Auth user (§3.1); this drops the local session and caches.
@@ -125,37 +122,33 @@ export default function Area() {
         )
       }
     >
-      <View style={styles.entry}>
-        <View style={styles.field}>
-          {/* The field's label as TextField draws it, at the storyboard's normal (~19 px) line height. */}
-          <Label style={styles.label}>{t('onboarding.area.postcode')}</Label>
-          <TextField
-            testID="postcode"
-            labelHidden
-            label={t('onboarding.area.postcode')}
-            value={postcode}
-            onChangeText={changePostcode}
-            keyboardType="number-pad"
-            autoComplete="postal-code"
-            textContentType="postalCode"
-            maxLength={4}
-            error={unknownPostcode ? t('onboarding.area.unknownPostcode') : null}
-          />
-        </View>
+      <View style={styles.postcode}>
+        <TextField
+          testID="postcode"
+          size="md"
+          label={t('onboarding.area.postcode')}
+          value={postcode}
+          onChangeText={changePostcode}
+          keyboardType="number-pad"
+          autoComplete="postal-code"
+          textContentType="postalCode"
+          maxLength={4}
+          error={unknownPostcode ? t('onboarding.area.unknownPostcode') : null}
+        />
+      </View>
 
-        <OrDivider label={t('common.or')} />
+      <OrDivider label={t('common.or')} />
 
-        <View style={styles.locate}>
-          <Button
-            testID="use-location"
-            label={t('onboarding.area.useLocation')}
-            variant="outline"
-            icon="pin"
-            busy={locating}
-            onPress={() => void locate()}
-          />
-          {locationFailed ? <ErrorText>{t('onboarding.area.locationFailed')}</ErrorText> : null}
-        </View>
+      <View style={styles.locate}>
+        <Button
+          testID="use-location"
+          label={t('onboarding.area.useLocation')}
+          variant="secondary"
+          icon="pin"
+          busy={locating}
+          onPress={() => void locate()}
+        />
+        {locationFailed ? <ErrorText>{t('onboarding.area.locationFailed')}</ErrorText> : null}
       </View>
 
       {gh5 ? (
@@ -165,7 +158,8 @@ export default function Area() {
         />
       ) : null}
 
-      <View style={styles.section} accessibilityRole="radiogroup" accessibilityLabel={t('onboarding.heardFrom.question')}>
+      {/* The app's own optional question (DESIGN §3.1 step 6, F37), after what the storyboard draws. */}
+      <View style={[styles.block, styles.section]} accessibilityRole="radiogroup" accessibilityLabel={t('onboarding.heardFrom.question')}>
         <Heading>
           {t('onboarding.heardFrom.question')}
           <Text variant="heading" weight="500" color="textMuted">{` ${t('common.optional')}`}</Text>
@@ -198,13 +192,13 @@ export default function Area() {
   );
 }
 
-/** "—— or ——" as onb-area draws it: 1 px lines and a 13 px muted word at its normal (~16 px) line height. */
+/** "—— or ——" as onb-area draws it: 1 px Line rules and a 13/600 Muted word. */
 function OrDivider({ label }: { readonly label: string }) {
   const p = usePalette();
   return (
     <View style={styles.divider}>
       <View style={[styles.line, { backgroundColor: p.border }]} />
-      <Text variant="caption" color="textMuted" style={styles.dividerLabel}>
+      <Text variant="captionStrong" color="textMuted">
         {label}
       </Text>
       <View style={[styles.line, { backgroundColor: p.border }]} />
@@ -213,13 +207,12 @@ function OrDivider({ label }: { readonly label: string }) {
 }
 
 const styles = StyleSheet.create({
-  // Postcode, "or" and the location button are one choice, so they sit closer together than the step's blocks.
-  entry: { gap: 12 },
-  field: { gap: 8 },
-  label: { lineHeight: 19 },
+  // onb-area adds 4 px above the postcode field (16 under the lede with the step's 12) and sets its label 15/20;
+  // TextField's label line is 22, so 2 px here put the field, and everything under it, where the storyboard has them.
+  postcode: { paddingTop: 2 },
+  block: { paddingTop: 4 },
   divider: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   line: { flex: 1, height: 1 },
-  dividerLabel: { lineHeight: 16 },
   locate: { gap: 8 },
   section: { gap: 10 },
 });

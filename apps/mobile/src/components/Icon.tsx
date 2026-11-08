@@ -87,6 +87,8 @@ export const ICONS = {
   block: { strokeWidth: 2, shapes: [{ cx: 12, cy: 12, r: 9 }, { d: 'M5.6 5.6l12.8 12.8' }] },
   /** Report. */
   flag: { strokeWidth: 2, shapes: [{ d: 'M5 21V4M5 4h11l-2 4 2 4H5' }] },
+  /** Leave (a pod): out through a door. */
+  leave: { strokeWidth: 2, shapes: [{ d: 'M14 4h5v16h-5M10 8l-4 4 4 4M6 12h10' }] },
 } as const satisfies Record<string, IconSpec>;
 
 export type IconName = keyof typeof ICONS;

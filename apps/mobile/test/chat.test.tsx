@@ -2,6 +2,7 @@ import { CHAT_MESSAGE_MAX, sendMessageInput } from '@grouper/core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import ChatScreen from '../app/pod/[podId]/chat';
+import { Colors, POD_PALETTE } from '@/components/theme';
 
 const POD_ID = 'abcdefghijklmnopqrst';
 const HOUR = 3_600_000;
@@ -38,11 +39,15 @@ jest.mock('@/firebase/callables', () => ({
 
 const ts = (ms: number) => ({ toMillis: () => ms });
 
+/** The pod's theme (its colour comes from the concept id: `seed_boardgames` is Tomat). */
+const THEME = { kind: 'concept', conceptId: 'seed_boardgames', sensitive: false };
+
 /** A pod whose meetup is `fromNow` ms away (negative: in the past). */
 function podWithMeetup(fromNow: number, state = 'scheduled') {
   const meetupAt = Date.now() + fromNow;
   return {
     state,
+    theme: THEME,
     memberUids: ['me', 'anna', 'bo'],
     roster: { me: { firstName: 'Mia', photoV: null }, anna: { firstName: 'Anna', photoV: null }, bo: { firstName: 'Bo', photoV: null } },
     planning: { deadline: ts(meetupAt - 72 * HOUR), meetupAt: ts(meetupAt) },
@@ -203,6 +208,16 @@ describe('meetup chat (§3.6)', () => {
     }
     expect(screen.queryByRole('toolbar')).toBeNull();
     expect(input()).toBeEnabled();
+  });
+
+  it('wears the pod colour in its band (from the concept id), and none in a pod about a private interest', async () => {
+    await renderChat();
+    expect(screen.getByTestId('chat-band')).toHaveStyle({ backgroundColor: POD_PALETTE.tomat.tint });
+    client.clear();
+
+    mockPod = { ...podWithMeetup(2 * HOUR), theme: { kind: 'concept', conceptId: 'c_9f8e7d6c5b4a39281706_p', sensitive: true } };
+    await renderChat();
+    expect(screen.getByTestId('chat-band')).toHaveStyle({ backgroundColor: Colors.light.privateBg, borderColor: Colors.light.privateBorder });
   });
 
   it('names authors from the roster and reports others’ messages', async () => {

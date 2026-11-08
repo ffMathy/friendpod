@@ -1,5 +1,5 @@
 import type { DocData, Scenario } from '../runtime/types';
-import { CAST_PHOTOS, ME, MEMBERS, now, ONBOARDED_USER, POD_BRAETSPIL, podCard, profileWorld, ts } from './_kit';
+import { BRAETSPIL_MEMBERS, CAST_PHOTOS, ME, MEMBERS, now, ONBOARDED_USER, POD_BRAETSPIL, podCard, profileWorld, roster, ts } from './_kit';
 import { CHAT_CALLABLES, localPlanOptions, LOCKED_VOTES, lockedPlanning, podChat, podMessage, WEEK46, week46Pod } from './_pod';
 
 /**
@@ -23,6 +23,7 @@ const scenario: Scenario = {
     [`users/${ME}/pods/${POD_BRAETSPIL}`]: podCard({ state: 'scheduled', myStatus: 'accepted', acceptedCount: 5, acceptBy: ts(WEEK46.acceptBy) }),
     [`pods/${POD_BRAETSPIL}`]: week46Pod({
       state: 'scheduled',
+      roster: roster(BRAETSPIL_MEMBERS, false),
       planning: lockedPlanning(locale),
       attendance: {
         [ME]: 'pending',

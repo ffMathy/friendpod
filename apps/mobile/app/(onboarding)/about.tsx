@@ -13,7 +13,9 @@ import { TermsAcceptance } from '@/features/onboarding/TermsAcceptance';
 /**
  * Step 1 of 6, "About you" (onb-about; DESIGN §3.1 steps 3–5): first name (seen only by confirmed pod members), date of
  * birth entered on the device (the server keeps only the birth year), and the Terms. Nothing is sent yet: the answers
- * wait in the in-memory draft until completeOnboarding on the next step.
+ * wait in the in-memory draft until completeOnboarding on the next step. As onb-about draws it: 52 px inputs with 15/700
+ * labels, Day / Month / Year sub-labels, the Terms tick (§3.1 step 3: explicit, unticked at first) with the Terms and
+ * privacy notice links under it, Continue (Skov) at the bottom.
  */
 export default function AboutYou() {
   const { t } = useTranslation();
@@ -56,12 +58,10 @@ export default function AboutYou() {
       onBack={back}
       footer={<Button testID="about-continue" label={t('common.continue')} disabled={!ready} onPress={next} />}
     >
-      <View style={styles.field}>
-        {/* The field's label as TextField draws it, at the storyboard's normal (~19 px) line height; the input keeps it as its name. */}
-        <Label style={styles.label}>{t('onboarding.about.firstName')}</Label>
+      <View style={styles.block}>
         <TextField
           testID="first-name"
-          labelHidden
+          size="md"
           label={t('onboarding.about.firstName')}
           helper={t('onboarding.about.firstNameHelp')}
           error={name.length > 0 && !parsedName.success ? t('onboarding.about.firstNameInvalid') : null}
@@ -75,16 +75,17 @@ export default function AboutYou() {
       </View>
 
       <View style={styles.fieldset} accessibilityRole="none">
-        <Label style={styles.label}>{dobLabel}</Label>
+        <Label style={styles.legend}>{dobLabel}</Label>
         <View style={styles.dobRow}>
           {dobParts.map(({ key, value, onChange, maxLength }) => (
             <View key={key} style={styles.dobPart}>
-              {/* The storyboard's 13 px sub-labels sit 4 px above their inputs; the input's own label names both. */}
-              <Text variant="caption" color="textMuted" style={styles.subLabel}>
+              {/* onb-about's 13/600 sub-labels, 6 px over their inputs; each input's own label names both. */}
+              <Text variant="captionStrong" color="textMuted" importantForAccessibility="no" accessibilityElementsHidden>
                 {t(`onboarding.about.${key}`)}
               </Text>
               <TextField
                 testID={`dob-${key}`}
+                size="md"
                 labelHidden
                 label={`${dobLabel}, ${t(`onboarding.about.${key}`)}`}
                 value={value}
@@ -100,17 +101,22 @@ export default function AboutYou() {
         {underage ? <ErrorText>{t('onboarding.about.underage')}</ErrorText> : null}
       </View>
 
-      <TermsAcceptance accepted={accepted} onChange={setAccepted} />
+      <View style={styles.terms}>
+        <TermsAcceptance accepted={accepted} onChange={setAccepted} />
+      </View>
     </OnboardingStep>
   );
 }
 
 const styles = StyleSheet.create({
-  field: { gap: 8 },
+  // onb-about adds 4 px above the first-name block (16 under the lede with the step's 12) and sets its label 15/20;
+  // TextField's label line is 22, so 2 px here put the input, and everything under it, where the storyboard has them.
+  block: { paddingTop: 2 },
+  terms: { paddingTop: 4 },
+  // The date of birth is a fieldset there: its legend (15/20) sits 12 under the first-name block and 12 above Day /
+  // Month / Year.
   fieldset: { gap: 8 },
-  // The storyboard's labels and legend sit at the font's normal line height (15 px → ~19).
-  label: { lineHeight: 19 },
+  legend: { lineHeight: 20, marginBottom: 4 },
   dobRow: { flexDirection: 'row', gap: 10 },
-  dobPart: { flex: 1, gap: 4 },
-  subLabel: { lineHeight: 16 },
+  dobPart: { flex: 1, gap: 6 },
 });

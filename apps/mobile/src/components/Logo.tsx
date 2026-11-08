@@ -49,7 +49,11 @@ const SHOULDERS_OPEN = 'M-12.5 17V14A12.5 12.5 0 0 1 12.5 14V17';
 
 /** The poster mark's colours on each ground (spec §7.2 table). */
 function posterColors(ground: PodMarkGround, color: PodColor | 'private' | null | undefined, scheme: ColorScheme) {
-  if (color === 'private') return { people: INK, sun: 'transparent', sunRing: INK, you: INK };
+  // Private reveal (a white card; the dark card in dark mode): everything in the text colour, the sun only a ring.
+  if (color === 'private') {
+    const ink = Colors[scheme].text;
+    return { people: ink, sun: 'transparent', sunRing: ink, you: ink };
+  }
   if (ground === 'field' && color && scheme === 'light') {
     switch (color) {
       case 'tomat':

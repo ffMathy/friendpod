@@ -7,7 +7,7 @@ import { useSession } from '@/features/session/SessionProvider';
 import { MainTabBar, tabUnder } from '@/features/shell/MainTabBar';
 
 /**
- * Transparency pages (Arts. 13/22), readable signed in or out. Each draws its own header (back chevron above a 30/800
+ * Transparency pages (Arts. 13/22), readable signed in or out. Each draws its own header (back chevron above a Bricolage
  * title, as priv-delete does); the titles below are what the back button and screen readers use.
  *
  * Signed in, a page keeps the main tab bar of the tab it was opened from, as Settings and its pages keep Me's: Me

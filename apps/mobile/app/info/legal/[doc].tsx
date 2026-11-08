@@ -5,8 +5,8 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Linking, StyleSheet, View } from 'react-native';
 import { BorderWidth, Radius, usePalette } from '@/components/theme';
-import { Badge, Card, Heading, InlineLink, ListRow, ListSection, Text, TextLink } from '@/components/ui';
-import { CC_BY_4_URL, FONT_CREDIT, FONT_LICENCE_TEXT, GEONAMES_URL, SOFTWARE, type SoftwareCredit } from '@/features/shell/licences';
+import { Badge, Card, ListRow, ListSection, Overline, Text, TextLink } from '@/components/ui';
+import { CC_BY_4_URL, FONT_CREDITS, GEONAMES_URL, SOFTWARE, type FontCredit, type SoftwareCredit } from '@/features/shell/licences';
 import { ShellPage } from '@/features/shell/parts';
 import { currentLocale } from '@/i18n';
 import { LEGAL_DOC_VERSIONS } from '@/lib/legal';
@@ -37,9 +37,12 @@ function softwareLabel(t: TFunction, s: SoftwareCredit): string {
 
 /**
  * Terms, privacy notice and licences. The legal documents are still drafts (PRIVACY.md §16–17), so these pages show
- * their outline and the month of the draft, marked "Draft", until counsel has approved the text. Licences credits the
- * postcode data (GeoNames, CC BY 4.0), the bundled font with its full SIL Open Font License, and the open-source
- * software and model the app ships. Like every info page, no eyebrow: they open from anywhere, signed in or out.
+ * their outline and the month of the draft, marked with the Ink "Draft" status pill, until counsel has approved the text.
+ * Licences credits the postcode data (GeoNames, CC BY 4.0, two standalone 44 px links), both bundled fonts (Plus Jakarta Sans and Bricolage
+ * Grotesque) each with its full SIL Open Font License, and the open-source software and model the app ships. All three
+ * cards are titled the same way, with the list card's eyebrow (POSTCODES, FONTS, OPEN-SOURCE SOFTWARE), and each
+ * font's "Show the licence" is a standalone 15/700 link. Like every info page, no eyebrow above the title: they open
+ * from anywhere, signed in or out.
  */
 export default function LegalDoc() {
   const { t } = useTranslation();
@@ -61,7 +64,8 @@ export default function LegalDoc() {
     <ShellPage title={t(`info.legal.${doc}.title`)} testID={`legal-${doc}`}>
       <Card gap={12}>
         <View style={styles.meta}>
-          <Badge tone="outline" size="sm" label={t('info.legalDraft')} />
+          {/* The Ink status pill (blend-spec 6.4): a state of the document, not an action or a warning. */}
+          <Badge tone="status" testID="legal-draft" label={t('info.legalDraft')} />
           {month ? (
             <Text variant="caption" color="textMuted">
               {t('info.legalVersion', { month })}
@@ -76,10 +80,43 @@ export default function LegalDoc() {
   );
 }
 
-function Licences() {
+/**
+ * One bundled font: its name and licence, the copyright line, and its full licence behind a toggle (the OFL asks that
+ * notice and licence travel with the font). The toggle's spoken label names the font, as there are two.
+ */
+function FontLicence({ font, separator }: { readonly font: FontCredit; readonly separator: boolean }) {
   const { t } = useTranslation();
   const p = usePalette();
-  const [fontLicence, setFontLicence] = useState(false);
+  const [open, setOpen] = useState(false);
+  const slug = font.name.toLowerCase().replace(/\s+/g, '-');
+  return (
+    <View style={[styles.font, separator ? { borderTopWidth: BorderWidth.hairline, borderTopColor: p.separator, paddingTop: 14 } : null]} testID={`licence-font-${slug}`}>
+      <Text variant="small" color="text">
+        {`${font.name}, ${font.licence}`}
+      </Text>
+      <Text variant="caption" color="textMuted">
+        {font.copyright}
+      </Text>
+      <TextLink
+        compact
+        testID={`font-licence-toggle-${slug}`}
+        label={open ? t('info.legalHideLicence') : t('info.legalShowLicence')}
+        accessibilityLabel={open ? t('info.legalHideLicenceFor', { name: font.name }) : t('info.legalShowLicenceFor', { name: font.name })}
+        onPress={() => setOpen((v) => !v)}
+      />
+      {open ? (
+        <View style={[styles.licence, { backgroundColor: p.inset }]}>
+          <Text variant="micro" color="textSecondary" testID={`font-licence-text-${slug}`}>
+            {font.licenceText}
+          </Text>
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
+function Licences() {
+  const { t } = useTranslation();
   return (
     <ShellPage title={t('info.legal.licences.title')} testID="legal-licences">
       <Text variant="body" color="textSecondary">
@@ -87,39 +124,22 @@ function Licences() {
       </Text>
 
       <Card gap={6} testID="licence-postcodes">
-        <Heading>{t('info.legalPostcodes')}</Heading>
+        <Overline>{t('info.legalPostcodes')}</Overline>
         <Text variant="small" color="text">
           {t('info.legalPostcodesUse')}
         </Text>
-        <Text variant="small" color="text">
-          <InlineLink onPress={open(GEONAMES_URL)}>{POSTCODE_SOURCE}</InlineLink>
-          {', '}
-          <InlineLink onPress={open(CC_BY_4_URL)}>CC BY 4.0</InlineLink>
-        </Text>
+        {/* Standalone links, each with a 44 px touch target (an inline link in a 14 px line would be about 20 px tall). */}
+        <View style={styles.links}>
+          <TextLink label={POSTCODE_SOURCE} onPress={open(GEONAMES_URL)} />
+          <TextLink label="CC BY 4.0" onPress={open(CC_BY_4_URL)} />
+        </View>
       </Card>
 
-      <Card gap={6} testID="licence-font">
-        <Heading>{t('info.legalFont')}</Heading>
-        <Text variant="small" color="text">
-          {`${FONT_CREDIT.name}, ${FONT_CREDIT.licence}`}
-        </Text>
-        <Text variant="caption" color="textMuted">
-          {FONT_CREDIT.copyright}
-        </Text>
-        <TextLink
-          compact
-          size="sm"
-          testID="font-licence-toggle"
-          label={fontLicence ? t('info.legalHideLicence') : t('info.legalShowLicence')}
-          onPress={() => setFontLicence((v) => !v)}
-        />
-        {fontLicence ? (
-          <View style={[styles.licence, { backgroundColor: p.inset, borderColor: p.separator }]}>
-            <Text variant="micro" color="textSecondary" testID="font-licence-text">
-              {FONT_LICENCE_TEXT}
-            </Text>
-          </View>
-        ) : null}
+      <Card gap={14} testID="licence-fonts">
+        <Overline>{t('info.legalFonts')}</Overline>
+        {FONT_CREDITS.map((font, i) => (
+          <FontLicence key={font.name} font={font} separator={i > 0} />
+        ))}
       </Card>
 
       <ListSection title={t('info.legalSoftware')} testID="licence-software">
@@ -136,5 +156,9 @@ function Licences() {
 
 const styles = StyleSheet.create({
   meta: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
-  licence: { marginTop: 6, padding: 12, borderRadius: Radius.sm, borderWidth: BorderWidth.hairline },
+  font: { gap: 6 },
+  // Two 44 px links side by side (wrapping on a narrow screen), far enough apart that their touch areas don't meet.
+  links: { flexDirection: 'row', flexWrap: 'wrap', columnGap: 24 },
+  // A note inside a card: Paper, radius 14, padding 10/12, no border.
+  licence: { marginTop: 6, paddingVertical: 10, paddingHorizontal: 12, borderRadius: Radius.md },
 });

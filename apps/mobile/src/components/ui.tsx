@@ -15,7 +15,7 @@ export { Checkbox, ChoiceChip, Radio, SegmentedControl, Switch, Toggle } from '.
 export { Icon, ICONS, type IconName } from './Icon';
 export { ListRow, ListSection, LinkRow, type ListRowProps } from './ListRow';
 export { Logo, PodMark, type PodMarkGround, type PodMarkProps } from './Logo';
-export { HeroCard, OptionCard, PodBand, PodTintBand, PosterField, PosterFoot, Seat, SeatRow, TintDisc, useFieldColors, type HeroCardProps, type PodBandProps, type SeatRowProps } from './Pod';
+export { HeroCard, OptionCard, PodBand, PodTintBand, PosterField, PosterFoot, Seat, SeatRow, TintDisc, useFieldColors, type HeroCardProps, type HeroColor, type PodBandProps, type SeatRowProps } from './Pod';
 export { ProgressBar, ProgressSegments } from './Progress';
 export { Loading, PageHeader, Screen, Sheet, StepHeader, type ScreenProps } from './Screen';
 export { Body, Display, ErrorText, Eyebrow, Heading, Headline, Label, Lede, Muted, Overline, PodName, Small, Strong, Text, Title, type TextProps } from './Text';

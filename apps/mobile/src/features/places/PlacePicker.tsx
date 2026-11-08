@@ -18,8 +18,8 @@ export interface PlacePickerProps {
 }
 
 /**
- * Meetup place from Google Places (D8, pod-propose): a search field, then the public places it finds as "name" over
- * "Café · Aarhus C", with the picked one in mint and ticked. Public place types only, no free text and so no "public
+ * Meetup place from Google Places (D8, pod-propose): a search field, then the public places it finds as option cards,
+ * "name" over "Café · Aarhus C", the picked one with a 2 px Skov border and a tick. Public place types only, no free text and so no "public
  * place" tick. One Places session per pick, so the typing and the final details call are billed together. Google's
  * attribution line sits under the results, as Places data shown without a map requires.
  */
@@ -87,7 +87,7 @@ export function PlacePicker({ language, gh5, value, onChange }: PlacePickerProps
   return (
     <View style={styles.picker}>
       <View style={styles.search}>
-        <Text variant="smallBold" style={styles.label} accessible={false} importantForAccessibility="no">
+        <Text variant="heading" style={styles.label} accessible={false} importantForAccessibility="no">
           {t('plan.place')}
         </Text>
         <Field
@@ -106,14 +106,15 @@ export function PlacePicker({ language, gh5, value, onChange }: PlacePickerProps
           returnKeyType="search"
           testID="place-search"
         />
-        <Text variant="caption" color="textMuted" style={styles.helper}>
+        <Text variant="captionStrong" weight="400" color="textMuted">
           {t('plan.placeHelper')}
         </Text>
       </View>
       {rows.length > 0 ? (
         <View style={styles.results}>
-          <View accessibilityLabel={t('plan.places')} style={[styles.list, { backgroundColor: p.surface, borderColor: p.border }]}>
-            {rows.map((r, i) => {
+          {/* Each place is a selectable option card (spec §6.6): white, 1.5 px Outline; picked: 2 px Skov and a tick. */}
+          <View accessibilityLabel={t('plan.places')} style={styles.list}>
+            {rows.map((r) => {
               const selected = value?.placeId === r.placeId;
               return (
                 <Pressable
@@ -125,20 +126,21 @@ export function PlacePicker({ language, gh5, value, onChange }: PlacePickerProps
                   onPress={() => void pick(r)}
                   style={({ pressed }) => [
                     styles.row,
-                    { backgroundColor: selected ? p.inset : pressed ? p.inset : p.surface },
-                    i < rows.length - 1 ? { borderBottomWidth: BorderWidth.hairline, borderBottomColor: p.separator } : null,
+                    selected
+                      ? { borderWidth: BorderWidth.strong, borderColor: p.primary, backgroundColor: p.surface, ...PICKED_PADDING }
+                      : { borderWidth: BorderWidth.control, borderColor: p.borderStrong, backgroundColor: pressed ? p.page : p.surface },
                   ]}
                 >
-                  <Icon name="pin" size={20} color={selected ? p.primary : p.textMuted} />
+                  <Icon name="pin" size={20} color={p.textSecondary} />
                   <View style={styles.flex}>
                     <Text variant="heading" style={styles.name}>
                       {r.name}
                     </Text>
-                    <Text variant="caption" color="textMuted" style={styles.line}>
+                    <Text variant="captionStrong" weight="400" color="textMuted">
                       {[kind(r), r.secondary].filter(Boolean).join(' · ')}
                     </Text>
                   </View>
-                  {selected ? <Icon name="check" size={18} strokeWidth={2.6} color={p.primary} accessibilityLabel={t('plan.selected')} /> : null}
+                  {selected ? <Icon name="check" size={20} strokeWidth={2.6} color={p.primary} accessibilityLabel={t('plan.selected')} /> : null}
                 </Pressable>
               );
             })}
@@ -158,16 +160,24 @@ export function PlacePicker({ language, gh5, value, onChange }: PlacePickerProps
   );
 }
 
+/** The option cards' padding: 14 a side inside the 1.5 px Outline (the picked card's 2 px border takes 0.5 of it). */
+const ROW_PADDING = 10.5;
+/**
+ * The picked card's padding, both axes given so they replace the row's own (a bare `padding` loses to
+ * `paddingHorizontal` on native and wins over it on web): the pin and the name stay where they were.
+ */
+const PICKED_PADDING = { paddingVertical: ROW_PADDING - 0.5, paddingHorizontal: ROW_PADDING + 4 - 0.5 } as const;
+
 const styles = StyleSheet.create({
   flex: { flex: 1, gap: 2 },
-  picker: { gap: 16 },
-  // Label, field and helper 6 px apart, the 14 and 13 px lines at their natural line height (the storyboard).
+  // The storyboard's 18 px between the helper line and the results, and 18 above the Place label (the propose screen's
+  // gap is 16, so 2 more here, as the Day and Time row above does).
+  picker: { gap: 18, marginTop: 2 },
+  // Label, field and helper 6 px apart (the storyboard).
   search: { gap: 6 },
-  results: { gap: 6 },
-  label: { lineHeight: 18 },
-  helper: { lineHeight: 16 },
-  name: { lineHeight: 19 },
-  line: { lineHeight: 16 },
-  list: { borderWidth: BorderWidth.hairline, borderRadius: Radius.xl, overflow: 'hidden' },
-  row: { minHeight: 60, paddingVertical: 10, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  results: { gap: 8 },
+  label: { lineHeight: 20 },
+  name: { lineHeight: 20 },
+  list: { gap: 8 },
+  row: { minHeight: 64, borderRadius: Radius.lg, paddingVertical: ROW_PADDING, paddingHorizontal: ROW_PADDING + 4, flexDirection: 'row', alignItems: 'center', gap: 12 },
 });

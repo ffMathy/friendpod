@@ -139,7 +139,8 @@ sizes lg 54, md 48, sm 44, xs 40, input 52/r14), `IconButton`, `BackButton`, `Cl
 outline, private, danger), `UnreadBadge`, `UnreadDot`, `StatusText` (quiet "Hasn't confirmed"); `Note`/`Banner`
 (needsYou with the ringed marker, info, inset, safety, private), `Card` (default, highlighted, panel, inset, private),
 `ListSection`/`ListRow`, `SectionHeader`, `Divider`, `EmptyState`, `Illustration`; `Avatar` (pod deep, You ring,
-pending dashed, open seat) and `AvatarStack`; pod pieces `HeroCard` + `PodTintBand`, `PodBand`, `SeatRow`/`Seat`,
+pending dashed, open seat) and `AvatarStack`; pod pieces `HeroCard` + `PodTintBand` (pod colour, `null` private or
+`plain`; a wrapping pill row; the name steps down from Display L to fit), `PodBand`, `SeatRow`/`Seat`,
 `PosterField` + `PosterFoot` (+ `useFieldColors`), `TintDisc`, `OptionCard`; `PodMark` (dots, badge, poster; applies
 the sun rule) and `Logo` (lowercase "grouper" lockup); controls `Checkbox`, `Radio`, `Switch`, `ChoiceChip`, `Toggle`,
 `SegmentedControl`; `ProgressBar`, `ProgressSegments`. Every control keeps a 44 px touch target and its accessibility

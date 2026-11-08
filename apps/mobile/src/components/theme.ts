@@ -68,6 +68,13 @@ const light = {
   house: '#1B6452',
   /** Display type and pills' text on the house field. */
   onHouse: '#FFFFFF',
+  /**
+   * The pill on a poster field (`Badge tone="onField"`: Week 46, 18+ only, Confirmed on the reveal): White with Ink
+   * text in BOTH schemes, so the poster keeps its white accent on the house field (Skov in dark too) and on the deep
+   * pod fields of dark mode (blend-spec 12.1).
+   */
+  fieldPill: '#FFFFFF',
+  onFieldPill: '#18211D',
 
   /** Ink fill: status pills, You, unread badge, selected segment/choice, the Apple button. */
   ink: '#18211D',
@@ -127,6 +134,8 @@ const dark: Palette = {
 
   house: '#1B6452',
   onHouse: '#FFFFFF',
+  fieldPill: '#FFFFFF',
+  onFieldPill: '#18211D',
 
   ink: '#F2EFE8',
   onInk: '#18211D',

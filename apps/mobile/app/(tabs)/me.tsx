@@ -2,11 +2,12 @@ import { useRouter } from 'expo-router';
 import { Tabs } from 'expo-router/js-tabs';
 import { useTranslation } from 'react-i18next';
 import { usePalette } from '@/components/theme';
-import { Banner, Button, Card, ErrorText, Icon, ListRow, ListSection, Loading, PageHeader, Screen } from '@/components/ui';
+import { Button, Card, ErrorText, Icon, ListRow, ListSection, Loading, Note, PageHeader, Screen } from '@/components/ui';
 import { useUserDoc } from '@/data/docs';
 import { useNow } from '@/features/drop/time';
 import { useUid } from '@/features/session/SessionProvider';
 import { AboutMeCard } from '@/features/shell/AboutMeCard';
+import { InterestsCard } from '@/features/shell/InterestsCard';
 import { GearIcon, usePageTop } from '@/features/shell/parts';
 import { prefsSummary } from '@/features/shell/prefsSummary';
 import { ProfileCard } from '@/features/shell/ProfileCard';
@@ -14,10 +15,12 @@ import { WeeklyDropsCard } from '@/features/shell/WeeklyDropsCard';
 import { isUserSettingReason } from '@/lib/reasons';
 
 /**
- * Me (§11): the profile (photo, name, area, the user's own attendance record, "About me", D4), weekly drops, a hint
- * when a setting keeps the user out of pods, and the way to preferences, privacy, messages from Grouper and settings
- * (language, notifications, the legal documents, sign out). No storyboard draws it; it follows priv-settings (whose
- * "Me" eyebrow points here) and onb-final. The private-interests page carries the purple lock of private interests.
+ * Me (§11), a calm tab screen in direction E: Paper, white cards, list rows, Skov only on what you tap. The profile
+ * (photo, name, area, the user's own attendance record), the user's interests as their pod-coloured chips (private
+ * ones quiet, as a count with a lock), "About me" (D4), weekly drops, a note when a setting keeps the user out of pods,
+ * and the way to preferences, privacy, messages from Grouper and settings (language, notifications, the legal
+ * documents, sign out), then the info pages. No storyboard draws it; the list cards follow priv-settings (whose "Me"
+ * eyebrow points here) and the photo card onb-final.
  */
 export default function Me() {
   const { t } = useTranslation();
@@ -56,22 +59,23 @@ export default function Me() {
 
       <ProfileCard uid={uid} user={u} />
 
+      <InterestsCard uid={uid} />
+
       <AboutMeCard initial={u.aboutMe ?? ''} />
 
       <WeeklyDropsCard user={u} now={now} />
 
       {blocking ? (
-        <Banner
+        <Note
           tone="info"
-          icon="info"
           testID="blocking-setting"
-          actions={<Button label={t('me.changePreferences')} variant="outline" size="xs" onPress={() => router.push('/settings/preferences')} />}
+          actions={<Button label={t('me.changePreferences')} variant="secondary" size="sm" onPress={() => router.push('/settings/preferences')} />}
         >
           {t(`blockingSetting.${blocking}`)}
-        </Banner>
+        </Note>
       ) : null}
 
-      <ListSection>
+      <ListSection title={t('me.yourAccount')}>
         <ListRow
           icon="people"
           label={t('me.preferences')}

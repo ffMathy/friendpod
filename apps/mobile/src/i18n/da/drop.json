@@ -32,13 +32,18 @@
     "noInterests": "Tilføj et par interesser, så vi kan finde din pod.",
     "aboutKm": "ca. {{km}} km",
     "ages": "{{min}}–{{max}} år",
+    "language": {
+      "da": "Dansk",
+      "en": "Engelsk"
+    },
     "yourPods": "Dine pods",
     "activeCount": "{{active}} af {{max}} aktive",
     "howMatching": "Sådan matcher vi",
+    "dropLinkHint": "Viser, hvordan det ugentlige drop fungerer",
     "noPodTitle": "Ingen pod i denne uge",
     "noPodBody": "Vi kunne ikke finde en pod til dig denne gang.",
     "priorityNext": "Du får forrang i næste uge.",
-    "helpTitle": "Det hjælper tit",
+    "helpTitle": "Det hjælper ofte",
     "moreInterests": "Tilføj et par interesser mere",
     "tryKm": "Prøv med ca. {{km}} km",
     "openToAnyone": "Åben for at møde alle",
@@ -53,7 +58,7 @@
     "nextDropAt": "Næste drop: {{day}} kl. {{time}}"
   },
   "unmatched": {
-    "NO_THEME_BUCKET": "Der var ikke nok i nærheden, som delte en af dine interesser og passede til alles indstillinger denne gang.",
+    "NO_THEME_BUCKET": "Der var ikke nok folk i nærheden, der delte en af dine interesser og passede til alles indstillinger denne\u00a0gang.",
     "RADIUS": "Med den afstand, du har valgt, er der for få i nærheden til at samle en pod.",
     "AGE": "Med det aldersinterval, du har valgt, er der for få i nærheden til at samle en pod.",
     "GENDER": "Med pods for samme køn var der for få i nærheden med samme indstilling denne gang.",
@@ -93,7 +98,7 @@
     "privateReveal": "Når poden er bekræftet, kan medlemmerne se hinandens fornavne. Dit billede forbliver skjult, medmindre du selv vælger at vise det i denne pod.",
     "privateHow": "Sådan beskytter vi private interesser",
     "accept": "Jeg er med",
-    "decline": "Ikke denne gang",
+    "decline": "Ikke nu",
     "declineReasonPrompt": "Valgfrit: hvorfor? (bruges kun til anonym statistik)",
     "declineReasons": {
       "notThisWeek": "Ikke i denne uge",
@@ -122,8 +127,8 @@
       "AREA": "Alle bor i nærheden af {{label}}.",
       "AGE_SPAN": "{{min}}–{{max}} år: alle er inden for hinandens aldersinterval.",
       "OPEN_TO_ANYONE": "Du er åben for at møde hvem som helst i nærheden.",
-      "PRIORITY_one": "Du har ventet {{count}} uge, så du fik forrang denne gang.",
-      "PRIORITY_other": "Du har ventet {{count}} uger, så du fik forrang denne gang.",
+      "PRIORITY_one": "Du har ventet {{count}} uge, så du fik forrang denne\u00a0gang.",
+      "PRIORITY_other": "Du har ventet {{count}} uger, så du fik forrang denne\u00a0gang.",
       "neverTitle": "Det bruger vi aldrig",
       "neverBody": "Billeder, udseende eller noget, du ikke har fortalt os. Køn kun, hvis du har valgt pods for samme køn. Private interesser kun som tema for en pod om netop dem."
     },

@@ -21,6 +21,9 @@ jest.mock('@/firebase/callables', () => ({
 }));
 
 const ts = (ms: number) => ({ toMillis: () => ms });
+
+/** The pod's theme (its colour comes from the concept id: `seed_boardgames` is Tomat). */
+const THEME = { kind: 'concept', conceptId: 'seed_boardgames', sensitive: false };
 const place = {
   placeId: 'ChIJstubDokk1Aarhus01',
   name: 'Dokk1',
@@ -43,7 +46,7 @@ jest.mock('@/data/docs', () => ({
 
 function planning(extended = false) {
   mockCard = { state: 'planning', myStatus: 'accepted', themeLabel: 'Brætspil', themeSensitive: false };
-  mockPod = { state: 'planning', planning: { deadline: ts(Date.now() + 20 * HOUR), ...(extended ? { extended: true } : {}) } };
+  mockPod = { state: 'planning', theme: THEME, planning: { deadline: ts(Date.now() + 20 * HOUR), ...(extended ? { extended: true } : {}) } };
 }
 const option = (id: string, authorUid: string, votes: Record<string, string>) => ({
   id,
@@ -96,6 +99,29 @@ describe('planner (§3.5)', () => {
     expect(screen.getByText('No time works yet — add another option')).toBeOnTheScreen();
     expect(screen.getByText(/^You have one more day, until /)).toBeOnTheScreen();
     expect(screen.getByRole('button', { name: 'Suggest another time (2 spots left)' })).toBeOnTheScreen();
+  });
+
+  it('shows the voting deadline as needs-you while the viewer has an option to vote on, and quietly once they are done', async () => {
+    planning();
+    mockOptions = [option('opt1', 'anna', { anna: 'yes', me: 'yes' }), option('opt2', 'bo', { bo: 'yes' })];
+    await renderPlan();
+    expect(screen.getByTestId('deadline-needs-you')).toHaveTextContent(/^Voting closes /);
+    expect(screen.queryByTestId('deadline-quiet')).toBeNull();
+    client.clear();
+
+    // Voted on every option (No on both, the extension round): the banner asks for another option, the deadline is calm.
+    planning(true);
+    mockOptions = [option('opt1', 'anna', { anna: 'yes', me: 'no' }), option('opt2', 'bo', { bo: 'yes', me: 'no' })];
+    await renderPlan();
+    expect(screen.getByTestId('deadline-quiet')).toHaveTextContent(/^Voting closes /);
+    expect(screen.queryByTestId('deadline-needs-you')).toBeNull();
+    client.clear();
+
+    // Nothing to vote on yet: still the viewer's to act on.
+    planning();
+    mockOptions = [];
+    await renderPlan();
+    expect(screen.getByTestId('deadline-needs-you')).toBeOnTheScreen();
   });
 
   it('marks the option ahead as "Leading" and opens "Suggest a time" while spots are left', async () => {
@@ -233,6 +259,7 @@ describe('planner (§3.5)', () => {
     mockCard = { state: 'scheduled', myStatus: 'accepted', themeLabel: 'Brætspil', themeSensitive: false };
     mockPod = {
       state: 'scheduled',
+      theme: THEME,
       memberUids: ['me', 'anna', 'bo', 'cy'],
       roster: { me: { firstName: 'Mia', photoV: null }, anna: { firstName: 'Anna', photoV: null }, bo: { firstName: 'Bo', photoV: null }, cy: { firstName: 'Cy', photoV: null } },
       planning: { deadline: ts(meetupAt - DAY_MS), meetupAt: ts(meetupAt), place, winningOptionId: 'opt1', planLockedAt: ts(meetupAt - DAY_MS) },
@@ -255,11 +282,41 @@ describe('planner (§3.5)', () => {
     openURL.mockRestore();
   });
 
+  it('after the plan locks, asks for the viewer\'s own missing answer as a needs-you note with both answers', async () => {
+    const meetupAt = Date.now() + 3 * DAY_MS;
+    mockCard = { state: 'scheduled', myStatus: 'accepted', themeLabel: 'Brætspil', themeSensitive: false };
+    mockPod = {
+      state: 'scheduled',
+      theme: THEME,
+      memberUids: ['me', 'anna'],
+      roster: { me: { firstName: 'Mia', photoV: null }, anna: { firstName: 'Anna', photoV: null } },
+      planning: { deadline: ts(meetupAt - DAY_MS), meetupAt: ts(meetupAt), place, winningOptionId: 'opt1', planLockedAt: ts(meetupAt - DAY_MS) },
+      attendance: { me: 'pending', anna: 'coming' },
+    };
+    mockOptions = [option('opt1', 'anna', { anna: 'yes', me: 'no' })];
+    await renderPlan();
+    const note = screen.getByTestId('attendance-needs-you');
+    expect(note).toHaveTextContent(/You haven't said if you're coming yet\./);
+    expect(screen.getByTestId('attendance-coming')).toBeOnTheScreen();
+    expect(screen.getByTestId('attendance-cant')).toBeOnTheScreen();
+    mockCall.mockResolvedValue({ status: 'coming' });
+    await fireEvent.press(screen.getByTestId('attendance-coming'));
+    expect(mockCall).toHaveBeenLastCalledWith('confirmAttendance', { podId: POD_ID, coming: true });
+    client.clear();
+
+    // Answered: a calm line, no needs-you.
+    mockPod = { ...mockPod, attendance: { me: 'coming', anna: 'coming' } };
+    await renderPlan();
+    expect(screen.queryByTestId('attendance-needs-you')).toBeNull();
+    expect(screen.getByText("You're coming.")).toBeOnTheScreen();
+  });
+
   it('after the meetup, the locked plan is a record: no map, safety or calendar, and no "your yes" once you cancelled', async () => {
     const meetupAt = Date.now() - DAY_MS;
     mockCard = { state: 'happened', myStatus: 'accepted', themeLabel: 'Brætspil', themeSensitive: false };
     mockPod = {
       state: 'happened',
+      theme: THEME,
       memberUids: ['me', 'anna'],
       roster: { me: { firstName: 'Mia', photoV: null }, anna: { firstName: 'Anna', photoV: null } },
       planning: { deadline: ts(meetupAt - DAY_MS), meetupAt: ts(meetupAt), place, winningOptionId: 'opt1' },

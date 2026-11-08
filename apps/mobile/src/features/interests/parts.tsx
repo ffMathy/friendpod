@@ -1,14 +1,15 @@
 /**
- * The pieces of the interests screens that only this area uses (priv-interests.dc.html, onb-interests.dc.html):
- * the star toggle and the "…" button of a list row, the small pills ("Keep this private", "Remove & withdraw"),
- * the "Did you mean" notice, the purple header of the private-interests card and the "How private interests work" link.
+ * The pieces of the interests screens that only this area uses (priv-interests.dc.html, onb-interests.dc.html, blend
+ * spec §6.3, §6.5, §6.6, §9): the star toggle and the "…" button of an interest row, the 44 px row actions ("Keep this
+ * private", "Remove & withdraw"), the "Did you mean" note, the eyebrow of the private card and the list card's title.
+ * The add row is the design system's `AddField`; chips are its `Chip`.
  */
 import { DROP_TIME_ZONE, type Locale } from '@grouper/core';
-import { useState, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
-import { Pressable, Text as RNText, StyleSheet, TextInput, View } from 'react-native';
-import { BorderWidth, font, Radius, Size, typeStyle, usePalette, type PaletteKey } from '@/components/theme';
-import { Banner, Button, Icon, Overline, Text } from '@/components/ui';
+import { Pressable, Text as RNText, StyleSheet, View } from 'react-native';
+import { BorderWidth, font, Radius, Size, usePalette } from '@/components/theme';
+import { Button, Icon, NeedsYouMarker, Note, Overline, Text, type IconName } from '@/components/ui';
 
 const LOCALE_TAG: Record<Locale, string> = { da: 'da-DK', en: 'en-GB' };
 
@@ -19,108 +20,38 @@ const LOCALE_TAG: Record<Locale, string> = { da: 'da-DK', en: 'en-GB' };
 export function formatDay(ms: number, locale: Locale): string {
   return new Intl.DateTimeFormat(LOCALE_TAG[locale], { day: 'numeric', month: 'short', year: 'numeric', timeZone: DROP_TIME_ZONE })
     .format(new Date(ms))
-    .replace(/ /g, '\u00a0');
+    .replace(/ /g, ' ');
 }
 
-/** The two add rows: the tab's (priv-interests: 50 px, 16 px text) and onboarding's (onb-interests: 52 px, 17 px). */
-const ADD_FIELD = {
-  tab: { height: 50, type: 'lede' },
-  onboarding: { height: Size.inputCompact, type: 'input' },
-} as const;
+type RowActionTone = 'secondary' | 'danger';
 
-export interface AddFieldProps {
-  readonly look: keyof typeof ADD_FIELD;
-  /** The input's accessibility label (the storyboards keep it visually hidden). */
-  readonly label: string;
-  readonly placeholder: string;
-  readonly addLabel: string;
-  readonly value: string;
-  readonly onChangeText: (text: string) => void;
-  readonly onSubmit: () => void;
-  /** False until the on-device model is ready. */
-  readonly ready: boolean;
-  readonly busy: boolean;
-}
-
-/**
- * "Add an interest" with the green r14 "Add" beside it. The input follows the storyboards (14 px inset, input border,
- * 2 px green when focused) and its placeholder uses the muted text colour, which reads on white (the faint grey did not).
- */
-export function AddField({ look, label, placeholder, addLabel, value, onChangeText, onSubmit, ready, busy }: AddFieldProps) {
-  const p = usePalette();
-  const [focused, setFocused] = useState(false);
-  const spec = ADD_FIELD[look];
-  const borderWidth = focused ? BorderWidth.strong : BorderWidth.hairline;
-  return (
-    <View style={styles.addRow}>
-      <TextInput
-        accessibilityLabel={label}
-        placeholder={placeholder}
-        placeholderTextColor={p.textMuted}
-        value={value}
-        onChangeText={onChangeText}
-        maxLength={80}
-        autoCapitalize="none"
-        returnKeyType="done"
-        editable={ready}
-        onSubmitEditing={onSubmit}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
-        style={[
-          typeStyle(spec.type),
-          styles.addInput,
-          {
-            height: spec.height,
-            lineHeight: undefined,
-            color: p.text,
-            backgroundColor: p.surface,
-            borderColor: focused ? p.primary : p.borderStrong,
-            borderWidth,
-            paddingHorizontal: 14 - (borderWidth - 1),
-          },
-        ]}
-      />
-      <Button
-        testID="interest-add"
-        label={addLabel}
-        shape="rounded"
-        fullWidth={false}
-        busy={busy}
-        disabled={!ready}
-        onPress={onSubmit}
-        style={[styles.addButton, { minHeight: spec.height }]}
-      />
-    </View>
-  );
-}
-
-type PillTone = 'private' | 'danger' | 'neutral';
-
-const PILLS: Record<PillTone, { bg: PaletteKey; fg: PaletteKey; border: PaletteKey }> = {
-  /** "Keep this private": white, lilac border, purple text. */
-  private: { bg: 'surface', fg: 'privateText', border: 'privateBorder' },
-  /** "Remove & withdraw", "Remove": red tint. */
-  danger: { bg: 'surface', fg: 'danger', border: 'danger' },
-  /** "This isn't sensitive for me". */
-  neutral: { bg: 'surface', fg: 'text', border: 'borderStrong' },
+const ROW_ACTIONS: Record<RowActionTone, { icon: number; gap: number; padLeft: number; padRight: number; type: 'captionBold' | 'smallBold' }> = {
+  /** "Keep this private": white, 1.5 px Outline, 14 px lock, Ink 13/700 (priv-interests' row button). */
+  secondary: { icon: 14, gap: 5, padLeft: 10, padRight: 12, type: 'captionBold' },
+  /** "Remove & withdraw", "Remove": white, 1.5 px Danger, 16 px trash, Danger 14/700 (spec §6.1, danger outline 44). */
+  danger: { icon: 16, gap: 6, padLeft: 12, padRight: 14, type: 'smallBold' },
 };
 
-export interface PillProps {
+export interface RowActionProps {
   readonly label: string;
   readonly onPress: () => void;
-  readonly tone?: PillTone;
-  /** `sm` 34 px, 12/700 (in a list row); `md` 40 px, 13/700 ("Remove & withdraw"). The touch target is 44 either way. */
-  readonly size?: 'sm' | 'md';
+  readonly tone?: RowActionTone;
+  /** Default: `lock` for secondary, `trash` for danger; `null` for none. */
+  readonly icon?: IconName | null;
   readonly accessibilityLabel?: string;
   readonly disabled?: boolean;
   readonly testID?: string;
 }
 
-/** A small outlined pill action inside a list row. */
-export function Pill({ label, onPress, tone = 'neutral', size = 'sm', accessibilityLabel, disabled = false, testID }: PillProps) {
+/**
+ * A 44 px pill action inside a list row or card, on the storyboard's compact metrics (13/700 or 14/700, a 14 or 16 px
+ * icon). `Button size="sm"` sets its label in 15/700, which does not fit "Keep this private" beside an interest.
+ */
+export function RowAction({ label, onPress, tone = 'secondary', icon, accessibilityLabel, disabled = false, testID }: RowActionProps) {
   const p = usePalette();
-  const look = PILLS[tone];
-  const height = size === 'sm' ? 34 : Size.buttonSmall;
+  const look = ROW_ACTIONS[tone];
+  const glyph = icon === null ? null : (icon ?? (tone === 'danger' ? 'trash' : 'lock'));
+  const fg = disabled ? p.disabledText : tone === 'danger' ? p.danger : p.text;
   return (
     <Pressable
       testID={testID}
@@ -129,27 +60,26 @@ export function Pill({ label, onPress, tone = 'neutral', size = 'sm', accessibil
       accessibilityState={{ disabled }}
       disabled={disabled}
       onPress={onPress}
-      hitSlop={(Size.hitTarget - height) / 2}
       style={({ pressed }) => [
-        styles.pill,
+        styles.rowAction,
         {
-          height,
-          borderRadius: height / 2,
-          paddingHorizontal: size === 'sm' ? 10 : 12,
-          backgroundColor: p[look.bg],
-          borderColor: p[look.border],
-          opacity: disabled ? 0.5 : pressed ? 0.7 : 1,
+          gap: look.gap,
+          paddingLeft: look.padLeft,
+          paddingRight: look.padRight,
+          backgroundColor: pressed ? (tone === 'danger' ? p.dangerPressedBg : p.page) : p.surface,
+          borderColor: disabled ? p.track : tone === 'danger' ? p.danger : p.borderStrong,
         },
       ]}
     >
-      <Text variant={size === 'sm' ? 'microBold' : 'captionBold'} color={look.fg} style={size === 'sm' ? styles.pillTextSm : styles.pillTextMd}>
+      {glyph ? <Icon name={glyph} size={look.icon} strokeWidth={2.2} color={fg} /> : null}
+      <Text variant={look.type} style={[styles.rowActionText, { color: fg }]} numberOfLines={1}>
         {label}
       </Text>
     </Pressable>
   );
 }
 
-/** The 40 px star toggle at the start of a row (yellow when starred, grey outline otherwise). */
+/** The 44 px star toggle at the start of a row: Ink, filled when it is a main interest (never yellow). */
 export function StarButton({ name, starred, onPress, testID }: { name: string; starred: boolean; onPress: () => void; testID?: string }) {
   const p = usePalette();
   const { t } = useTranslation();
@@ -160,15 +90,14 @@ export function StarButton({ name, starred, onPress, testID }: { name: string; s
       accessibilityLabel={t('interests.starNamed', { name })}
       accessibilityState={{ checked: starred }}
       onPress={onPress}
-      hitSlop={2}
       style={({ pressed }) => [styles.iconButton, styles.starButton, { opacity: pressed ? 0.6 : 1 }]}
     >
-      {starred ? <Icon name="starFilled" size={20} /> : <Icon name="star" size={20} color={p.field} />}
+      <Icon name={starred ? 'starFilled' : 'star'} size={20} color={p.text} />
     </Pressable>
   );
 }
 
-/** The 40 px "…" at the end of a row; opens the row's actions under it. */
+/** The 44 px "…" at the end of a row (Muted dots); opens the row's actions under it. */
 export function MoreButton({ name, expanded, onPress, testID }: { name: string; expanded: boolean; onPress: () => void; testID?: string }) {
   const p = usePalette();
   const { t } = useTranslation();
@@ -179,43 +108,50 @@ export function MoreButton({ name, expanded, onPress, testID }: { name: string; 
       accessibilityLabel={t('interests.moreNamed', { name })}
       accessibilityState={{ expanded }}
       onPress={onPress}
-      hitSlop={2}
-      style={({ pressed }) => [styles.iconButton, { opacity: pressed ? 0.6 : 1 }]}
+      style={({ pressed }) => [styles.iconButton, styles.moreButton, { opacity: pressed ? 0.6 : 1 }]}
     >
       <Icon name="more" size={20} color={p.textMuted} />
     </Pressable>
   );
 }
 
-/** "Did you mean brætspil by “brætspilsaften”?" with "Yes, same thing" and "No, keep it" (amber notice). */
-export function SuggestionBanner({ label, typed, onYes, onNo }: { label: string; typed: string; onYes: () => void; onNo: () => void }) {
+/**
+ * "Did you mean brætspil by “brætspilsaften”? Saying yes puts you with more people." (spec §6.5): a needs-you note,
+ * white with the ringed Solsikke marker at the start of the first line and the text wrapping under it (the marker is
+ * an inline view in the text, like the storyboard's inline span), then "Yes, same thing" (Skov) beside "No, keep it"
+ * (secondary). A question only this user can answer, so it is needs-you.
+ */
+export function SuggestionNote({ label, typed, onYes, onNo }: { label: string; typed: string; onYes: () => void; onNo: () => void }) {
   const { t } = useTranslation();
   return (
-    <Banner
+    <Note
       tone="needsYou"
       icon={null}
       testID="interest-suggestion"
       actions={
         <>
-          <Button variant="primary" size="xs" label={t('interests.useSuggestion')} onPress={onYes} />
-          <Button variant="outline" size="xs" label={t('interests.keepOwnWording')} onPress={onNo} />
+          <Button variant="primary" size="sm" label={t('interests.useSuggestion')} onPress={onYes} />
+          <Button variant="secondary" size="sm" label={t('interests.keepOwnWording')} onPress={onNo} />
         </>
       }
     >
-      <Text variant="small" style={styles.suggestion}>
+      <Text variant="small" style={styles.suggestionText}>
+        <View style={styles.marker}>
+          <NeedsYouMarker />
+        </View>
         <Trans i18nKey="interests.didYouMean" values={{ label, typed }} components={{ b: <RNText style={font('700')} /> }} />
       </Text>
-    </Banner>
+    </Note>
   );
 }
 
-/** "🔒 PRIVATE INTERESTS" in purple, the private card's header; `trailing` sits at its end (the "Off" badge). */
+/** "🔒 PRIVATE INTERESTS": the private card's eyebrow, in Ink with a 14 px lock; `trailing` sits at its end ("Off"). */
 export function PrivateHeader({ trailing }: { trailing?: ReactNode }) {
   const p = usePalette();
   const { t } = useTranslation();
   return (
     <View style={styles.privateHeader}>
-      <Icon name="lock" size={14} color={p.privateText} />
+      <Icon name="lock" size={14} strokeWidth={2.2} color={p.privateText} />
       <Overline color="privateText" style={[styles.overline, styles.flex]}>
         {t('interests.privateTitle')}
       </Overline>
@@ -224,74 +160,79 @@ export function PrivateHeader({ trailing }: { trailing?: ReactNode }) {
   );
 }
 
-/**
- * "🔒 How private interests work": one line under the lists that opens /info/sensitive-interests, where the standing
- * notice (interest-notice-*-v2) is shown in full. Purple like the private card it follows; 44 px tall.
- */
-export function PrivateInfoLink({ label, onPress, testID }: { label: string; onPress: () => void; testID?: string }) {
-  const p = usePalette();
+/** The eyebrow at the top of the interests list card ("INTERESTS"), 10 px under the card's edge, 4 px over the rows. */
+export function ListCardTitle({ children }: { children: string }) {
   return (
-    <Pressable
-      testID={testID}
-      accessibilityRole="link"
-      accessibilityLabel={label}
-      onPress={onPress}
-      style={({ pressed }) => [styles.infoLink, { opacity: pressed ? 0.6 : 1 }]}
-    >
-      <Icon name="lock" size={14} color={p.privateText} />
-      <Text variant="smallBold" color="privateText" style={styles.underline}>
-        {label}
-      </Text>
-    </Pressable>
-  );
-}
-
-/** The white r20 list card ("INTERESTS"; private: a lilac border). */
-export function ListCard({ children, tone, testID }: { children: ReactNode; tone?: 'private'; testID?: string }) {
-  const p = usePalette();
-  return (
-    <View
-      testID={testID}
-      style={[
-        tone === 'private' ? styles.privateCard : styles.listCard,
-        { backgroundColor: p.surface, borderColor: tone === 'private' ? p.privateBorder : p.border },
-      ]}
-    >
-      {children}
+    <View style={styles.listTitle}>
+      <Overline style={styles.overline}>
+        {children}
+      </Overline>
     </View>
   );
 }
 
-/** The 13/700 uppercase title at the top of the interests card. */
-export function ListCardTitle({ children }: { children: string }) {
+/** The heading of a group on onb-interests ("Your interests · 5 added", "Popular in Aarhus"): 15/700 on a 20 px line. */
+export function GroupHeading({ title, count }: { title: string; count?: string }) {
   return (
-    <View style={styles.listTitle}>
-      <Overline style={styles.overline}>{children}</Overline>
+    <Text accessibilityRole="header" variant="heading" style={styles.groupHeading}>
+      {title}
+      {count ? (
+        <Text variant="heading" weight="500" color="textMuted" style={styles.groupHeading}>
+          {` · ${count}`}
+        </Text>
+      ) : null}
+    </Text>
+  );
+}
+
+/**
+ * What tapping an interest chip offers in onboarding ("Tap an interest to change that"): a white note (1 px Line; a
+ * private interest's has the quiet 1.5 px Ink border) with one sentence and the one change that applies.
+ */
+export function ChipOptions({ text, isPrivate, children }: { text: string; isPrivate: boolean; children: ReactNode }) {
+  const p = usePalette();
+  return (
+    <View
+      style={[
+        styles.options,
+        {
+          backgroundColor: isPrivate ? p.privateBg : p.surface,
+          borderColor: isPrivate ? p.privateBorder : p.border,
+          borderWidth: isPrivate ? BorderWidth.control : BorderWidth.hairline,
+        },
+      ]}
+    >
+      <Text variant="small" color="textSecondary" style={styles.optionsText}>
+        {text}
+      </Text>
+      <View style={styles.actions}>{children}</View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  addRow: { flexDirection: 'row', gap: 8 },
-  addInput: { flex: 1, minWidth: 0, borderRadius: Radius.md },
-  addButton: { paddingHorizontal: 18, borderRadius: Radius.md },
-  pill: { borderWidth: BorderWidth.hairline, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  /**
-   * The storyboards' small labels and h2s keep the font's normal line height, which the browser rounds to whole
-   * pixels: 15 at 12 px, 16 at 13 px (the type scale's are 16 and 17, which sat the text 1 px low).
-   */
-  pillTextSm: { lineHeight: 15 },
-  pillTextMd: { lineHeight: 16 },
-  overline: { lineHeight: 16 },
-  iconButton: { width: Size.buttonSmall, height: Size.buttonSmall, alignItems: 'center', justifyContent: 'center' },
-  starButton: { marginLeft: -8 },
-  suggestion: { lineHeight: Math.round(14 * 1.45) },
-  privateHeader: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   flex: { flex: 1 },
-  /** Pulled up 4 px so the 44 px target leaves the storyboard-like 16 px gap between the card and the text. */
-  infoLink: { minHeight: Size.hitTarget, flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', marginTop: -4 },
-  underline: { textDecorationLine: 'underline' },
-  listCard: { borderWidth: BorderWidth.hairline, borderRadius: Radius.card, paddingVertical: 6, paddingHorizontal: 16 },
-  privateCard: { borderWidth: BorderWidth.hairline, borderRadius: Radius.card, paddingVertical: 14, paddingHorizontal: 16, gap: 10 },
+  rowAction: {
+    height: Size.hitTarget,
+    borderRadius: Size.hitTarget / 2,
+    borderWidth: BorderWidth.control,
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexShrink: 0,
+  },
+  rowActionText: { flexShrink: 1 },
+  iconButton: { width: Size.hitTarget, height: Size.hitTarget, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  /** The glyph lines up with the card's 16 px inset, as on the storyboard. */
+  starButton: { marginLeft: -12 },
+  moreButton: { marginRight: -10 },
+  suggestionText: { lineHeight: Math.round(14 * 1.45) },
+  /** The 20 px marker and 6 px before the text, at the top of the first line (vertical-align: top on the storyboard). */
+  marker: { width: 26, height: 20, verticalAlign: 'top' },
+  privateHeader: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  overline: { lineHeight: 16 },
   listTitle: { marginTop: 10, marginBottom: 4 },
+  groupHeading: { lineHeight: 20 },
+  options: { borderRadius: Radius.lg, paddingVertical: 12, paddingHorizontal: 14, gap: 10 },
+  optionsText: { lineHeight: Math.round(14 * 1.45) },
+  actions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
 });

@@ -11,7 +11,7 @@
     "no": "No",
     "meetAgainYes": "Yes, meet {{name}} again",
     "meetAgainNo": "No, don't meet {{name}} again",
-    "explainer": "Everyone is ticked; untick anyone who wasn't there. Someone only counts as a no-show if most of you untick them. Meet again: if you both say yes, you can be matched again after 4 weeks; if either says no, never again. Not sure? Leave it blank. Nobody sees your answers.",
+    "explainer": "Everyone is ticked; untick anyone who wasn't there. It only counts as a no-show if most of you do. Meet again: if you both say yes, you can be matched again after 4 weeks. If either of you says no, never again. Not sure? Leave it blank.",
     "notThereMyself": "I wasn't there myself",
     "notThereMyselfBody": "Then you can skip who came and who to meet again. Just tell us about the pod below.",
     "rating": "How was it overall?",

@@ -2,6 +2,7 @@ import type { Scenario } from '../runtime/types';
 import { Timestamp } from '../runtime/timestamp';
 import {
   areaDoc,
+  BRAETSPIL_CONCEPT,
   CAST_PHOTOS,
   DEFAULT_PREFS,
   interestDocs,
@@ -52,7 +53,7 @@ const scenario: Scenario = {
           createdAt: Timestamp.fromMillis(at),
         });
         return display.toLowerCase() === 'brætspilsaften'
-          ? { status: 'added' as const, interestId, suggestion: { conceptId: 'seed_board_games', label: 'brætspil' } }
+          ? { status: 'added' as const, interestId, suggestion: { conceptId: BRAETSPIL_CONCEPT, label: 'brætspil' } }
           : { status: 'added' as const, interestId };
       }),
     }),

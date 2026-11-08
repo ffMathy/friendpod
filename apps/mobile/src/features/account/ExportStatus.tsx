@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
-import { BorderWidth, Radius, usePalette } from '@/components/theme';
-import { Button, ErrorText, Icon, Text, type ButtonSize, type ButtonVariant } from '@/components/ui';
+import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Button, ErrorText, Text, type ButtonSize, type ButtonVariant } from '@/components/ui';
 import { useExports } from '@/data/docs';
 import { toAppError } from '@/firebase/callables';
 import { currentLocale } from '@/i18n';
@@ -67,33 +66,11 @@ export interface ExportButtonProps {
 }
 
 /**
- * priv-delete's "Download my data first": a full-width 52 px white pill with the input border, a 20 px download icon,
- * 8 px and a 15/700 label. (Button's medium size draws its icon at 16 px.)
+ * priv-delete's "Download my data first": the full-width 48 px secondary button (white, 1.5 px Outline, Ink 16/700)
+ * with the download icon.
  */
 export function ExportButton({ label, onPress, busy = false, testID, style }: ExportButtonProps) {
-  const p = usePalette();
-  return (
-    <Pressable
-      testID={testID}
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      accessibilityState={{ disabled: busy, busy }}
-      disabled={busy}
-      onPress={onPress}
-      style={({ pressed }) => [styles.wide, { backgroundColor: pressed ? p.inset : p.surface, borderColor: p.borderStrong }, style]}
-    >
-      {busy ? (
-        <ActivityIndicator color={p.text} />
-      ) : (
-        <>
-          <Icon name="download" size={20} color={p.text} />
-          <Text variant="heading" style={styles.wideLabel}>
-            {label}
-          </Text>
-        </>
-      )}
-    </Pressable>
-  );
+  return <Button testID={testID} variant="secondary" size="md" fullWidth icon="download" label={label} busy={busy} onPress={onPress} style={style} />;
 }
 
 /** The newest export while it has not expired (a file past `expiresAt` is gone or about to be). */
@@ -166,16 +143,4 @@ export function ExportRequestStatus({ state }: { state: ExportRequestState }) {
 
 const styles = StyleSheet.create({
   ready: { gap: 8, alignItems: 'flex-start' },
-  wide: {
-    minHeight: 52,
-    alignSelf: 'stretch',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingHorizontal: 16,
-    borderWidth: BorderWidth.hairline,
-    borderRadius: Radius.pill,
-  },
-  wideLabel: { flexShrink: 1, textAlign: 'center' },
 });

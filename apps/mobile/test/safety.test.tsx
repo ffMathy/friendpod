@@ -32,6 +32,7 @@ jest.mock('@/data/docs', () => ({
   usePod: () =>
     live({
       state: mockState,
+      theme: { kind: 'concept', conceptId: 'seed_boardgames', sensitive: mockSensitive },
       planning: { deadline: ts(0) },
       memberUids: ['me', 'anna'],
       roster: { me: { firstName: 'Mia', photoV: null }, anna: { firstName: 'Anna', photoV: 2, aboutMe: 'New in Aarhus, loves long walks.' } },
@@ -67,6 +68,9 @@ describe('member sheet (§3.7)', () => {
   it('shows the first name and "about me", and blocks after a confirmation in the sheet, removing the member by default', async () => {
     await renderWith(<MemberSheet />);
     expect(screen.getByText('Anna')).toBeOnTheScreen();
+    // "In your x pod" around the pod chip, read as one sentence.
+    expect(screen.getByLabelText('In your x pod')).toBeOnTheScreen();
+    expect(screen.queryByLabelText('Private')).toBeNull();
     expect(screen.getByText('New in Aarhus, loves long walks.')).toBeOnTheScreen();
     expect(screen.getByText(/Anna is taken out of this pod/)).toBeOnTheScreen();
     expect(screen.getByText(/Want to leave instead\?/)).toBeOnTheScreen();
@@ -144,6 +148,13 @@ describe('member sheet (§3.7)', () => {
     await renderWith(<MemberSheet />);
     expect(screen.queryByTestId('member-report')).toBeNull();
     expect(screen.queryByTestId('member-block')).toBeNull();
+  });
+
+  it('keeps a private pod quiet: the theme chip carries a lock, not a colour', async () => {
+    mockSensitive = true;
+    await renderWith(<MemberSheet />);
+    expect(screen.getByLabelText('In your x pod')).toBeOnTheScreen();
+    expect(screen.getByLabelText('Private')).toBeOnTheScreen();
   });
 
   it('closes with the close button', async () => {
