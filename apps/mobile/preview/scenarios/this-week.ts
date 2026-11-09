@@ -20,7 +20,10 @@ import {
 } from './_kit';
 
 const POD_CLIMBING = 'climbingpodaarhus42a';
-/** The past climbing pod's theme concept: podColorIndex gives Bær, so the Pods tab shows two pods in two colours. */
+/**
+ * The past pod's theme word: "bouldering" is Fjord (colours come from the word), so the Pods tab shows two pods in two
+ * colours ("climbing" would be Solsikke, like sourdough).
+ */
 const CLIMBING_CONCEPT = 'seed_rock_climbing';
 
 /**
@@ -84,16 +87,16 @@ const scenario: Scenario = {
     [`users/${ME}/pods/${POD_CLIMBING}`]: {
       state: 'archived',
       myStatus: 'accepted',
-      themeLabel: 'climbing',
+      themeLabel: 'bouldering',
       themeSensitive: false,
       sizeTarget: 4,
       acceptedCount: 4,
       acceptBy: ts('2026-10-24 18:00'),
-      reasons: [{ code: 'THEME', yourWording: 'climbing' }],
+      reasons: [{ code: 'THEME', yourWording: 'bouldering' }],
       areaLabel: 'Aarhus C',
       ageSpan: { min: 27, max: 39 },
     },
-    // The past pod's shared document (members may still read it): the Pods tab draws it in its concept's colour with
+    // The past pod's shared document (members may still read it): the Pods tab draws it in its word's colour with
     // the remaining members' avatars. Rasmus left on 31 Oct (the viewer blocked him; see the notice below).
     [`pods/${POD_CLIMBING}`]: {
       state: 'archived',

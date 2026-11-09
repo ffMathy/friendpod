@@ -11,7 +11,7 @@ const MIN_INTERESTS = 3;
 
 /**
  * Step 4 of 6, "What are you into?" (onb-interests; DESIGN §3.1 step 8): free-text interests, minimum 3 (nudged to 5).
- * The list itself is InterestManager's (input + Add, chips in their pod colours from the concept id, private ones
+ * The list itself is InterestManager's (input + Add, chips in their pod colours from their words, private ones
  * quiet). Continue is pinned at the bottom, as the storyboard draws it: the locked interest notice is longer than the
  * storyboard's note, so the list, the "Did you mean" card and "Popular in …" scroll above it.
  */

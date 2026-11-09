@@ -6,9 +6,9 @@ import type { AttendanceStatus, PodDoc } from '@grouper/core';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { ChipRow, Overline, StatusText, Text, type IconName } from '@/components/ui';
-import { BorderWidth, Radius, Size, usePalette } from '@/components/theme';
-import type { PodColor } from '@/lib/podColor';
+import { Chip, ChipRow, Overline, StatusText, Text, type IconName } from '@/components/ui';
+import { BorderWidth, Radius, usePalette } from '@/components/theme';
+import { colorOnPodScreen, podColorFor, type PodColor } from '@/lib/podColor';
 import { MemberAvatar } from './MemberAvatar';
 import { PodCard } from './parts';
 
@@ -57,13 +57,11 @@ export function AboutMembersCard({ members, viewer, color }: { members: readonly
 
 /**
  * "More than one of you also likes" (pod-confirmed): pod interests in the viewer's language, never attributed to
- * anyone (§3.4). The pod document carries them as words only, without concept ids, and a colour may only come from a
- * concept id (decision 9), so they are neutral chips here: Paper on the white card, a 1 px Line border, no dot. Not the
- * plain-clash chip (white, Outline border, hollow ring), which means "the same colour as this pod".
- * DESIGN-DEVIATION: the storyboard colours them (sourdough Solsikke, coffee Bær, hiking Blomme); that needs the pod
- * document to carry each interest's concept id (`{ conceptId, da, en }`), a founder decision on the core schema.
+ * anyone (§3.4). Each is a pod chip in the colour of its own word (decision 9: the same word has the same colour
+ * everywhere). The pod's colour is reserved on its own screens, so an interest whose colour equals the pod's is the
+ * plain clash chip (`colorOnPodScreen`).
  */
-export function PodInterestsCard({ interests }: { interests: readonly string[] }) {
+export function PodInterestsCard({ interests, color }: { readonly interests: readonly string[]; readonly color: PodColor | null }) {
   const { t } = useTranslation();
   if (interests.length === 0) return null;
   return (
@@ -72,21 +70,16 @@ export function PodInterestsCard({ interests }: { interests: readonly string[] }
         {t('pod.alsoLikes')}
       </Text>
       <ChipRow>
-        {interests.map((i) => (
-          <PlainChip key={i} label={i} />
-        ))}
+        {interests.map((i) => {
+          const shown = colorOnPodScreen(podColorFor({ word: i }), color);
+          return shown === 'clash' || shown === null ? (
+            <Chip key={i} testID="pod-interest-chip" kind="clash" label={i} />
+          ) : (
+            <Chip key={i} testID="pod-interest-chip" kind="pod" color={shown} label={i} />
+          );
+        })}
       </ChipRow>
     </PodCard>
-  );
-}
-
-/** A neutral 32 px interest chip with no colour and no dot (an interest whose concept id the app does not have). */
-function PlainChip({ label }: { label: string }) {
-  const p = usePalette();
-  return (
-    <View testID="pod-interest-chip" style={[styles.plainChip, { backgroundColor: p.inset, borderColor: p.border }]}>
-      <Text variant="chip">{label}</Text>
-    </View>
   );
 }
 
@@ -161,7 +154,6 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   aboutRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
   interests: { paddingBottom: 16 },
-  plainChip: { height: Size.tag, borderRadius: Size.tag / 2, borderWidth: BorderWidth.hairline, paddingHorizontal: 12, justifyContent: 'center', alignSelf: 'flex-start' },
   members: { borderWidth: BorderWidth.hairline, borderRadius: Radius.card, paddingHorizontal: 16 },
   membersTitle: { marginTop: 12 },
   // The storyboard's rows: min-height 46 with the 1 px divider counted in.

@@ -212,20 +212,23 @@ describe('proposal card (§3.2, §3.3; drop-proposal)', () => {
 
 describe('proposal colour (blend decisions 1, 5 and 9)', () => {
   const interest = (display: string, conceptId: string) => ({ id: `i_${conceptId}`, data: { display, norm: display, conceptId, starred: false, createdAt: ts(1) } });
-  const colorOf = (conceptId: string) => podColorFor({ conceptId }) as PodColor;
 
-  it('takes the colour from the concept id of the interest the pod is about, never from the word', async () => {
-    // Two concept ids in different colour buckets (seed_board_games: Solsikke, seed_trail_running: Tomat).
-    expect(colorOf('seed_board_games')).not.toBe(colorOf('seed_trail_running'));
+  it('takes the colour from the theme word on the card, whatever concept the viewer holds it under', async () => {
     mockInterests = [interest('brætspil', 'seed_board_games')];
     await renderWith(<ProposalCard podId={POD_ID} card={card()} confirmationMin={4} />);
-    expect(screen.getByRole('header', { name: 'brætspil' })).toHaveStyle({ color: POD_PALETTE[colorOf('seed_board_games')].deep });
+    expect(screen.getByRole('header', { name: 'brætspil' })).toHaveStyle({ color: POD_PALETTE.tomat.deep });
     client.clear();
 
-    // The same word held under another concept: another colour.
-    mockInterests = [interest('brætspil', 'seed_trail_running')];
+    // Another concept, no interests at all: the same word, the same colour.
+    mockInterests = [];
     await renderWith(<ProposalCard podId={POD_ID} card={card()} confirmationMin={4} />);
-    expect(screen.getByRole('header', { name: 'brætspil' })).toHaveStyle({ color: POD_PALETTE[colorOf('seed_trail_running')].deep });
+    expect(screen.getByRole('header', { name: 'brætspil' })).toHaveStyle({ color: POD_PALETTE.tomat.deep });
+    expect(screen.queryByText('Private interest')).toBeNull();
+    client.clear();
+
+    // Another word: its own colour.
+    await renderWith(<ProposalCard podId={POD_ID} card={card({ themeLabel: 'sourdough', reasons: [{ code: 'THEME', yourWording: 'sourdough' }] })} confirmationMin={4} />);
+    expect(screen.getByRole('header', { name: 'sourdough' })).toHaveStyle({ color: POD_PALETTE.solsikke.deep });
   });
 
   it('a pod about a private interest has no colour: the name in Ink, the quiet chip, no seats', async () => {
@@ -236,26 +239,17 @@ describe('proposal colour (blend decisions 1, 5 and 9)', () => {
     expect(screen.queryByText('You', { includeHiddenElements: true })).toBeNull();
   });
 
-  it('when the interest is gone the card is drawn without a colour, but not as private', async () => {
-    mockInterests = [];
-    await renderWith(<ProposalCard podId={POD_ID} card={card()} confirmationMin={4} />);
-    expect(screen.getByRole('header', { name: 'brætspil' })).toHaveStyle({ color: Colors.light.text });
-    expect(screen.queryByText('Private interest')).toBeNull();
-    expect(screen.getByRole('link', { name: 'Why this pod?' })).toBeOnTheScreen();
-  });
-
   it('an open-to-anyone pod takes its colour from the pod id', async () => {
     await renderWith(<ProposalCard podId={POD_ID} card={card({ themeLabel: null, reasons: [{ code: 'OPEN_TO_ANYONE' }] })} />);
     const color = podColorFor({ podId: POD_ID }) as PodColor;
     expect(screen.getByRole('header', { name: 'Open to anyone' })).toHaveStyle({ color: POD_PALETTE[color].deep });
   });
 
-  it('once confirmed the shared pod document decides; a private theme stays quiet whatever it says', () => {
-    const word = card();
-    const fromPod = (conceptId: string, sensitive = false) => ({ theme: { kind: 'concept' as const, conceptId, sensitive } });
-    expect(cardColor(POD_ID, word, fromPod('seed_trail_running'), [interest('brætspil', 'seed_board_games')] as never)).toBe(colorOf('seed_trail_running'));
-    expect(cardColor(POD_ID, word, fromPod('seed_trail_running', true), [])).toBe('private');
-    expect(cardColor(POD_ID, privateCard(), undefined, [interest('gravid', 'seed_board_games')] as never)).toBe('private');
-    expect(cardColor(POD_ID, word, undefined, undefined)).toBe('plain');
+  it('cardColor: the word, the pod id for open-to-anyone, private stays quiet', () => {
+    expect(cardColor(POD_ID, card())).toBe('tomat');
+    expect(cardColor(POD_ID, card({ themeLabel: 'Brætspil ' }))).toBe('tomat');
+    expect(cardColor(POD_ID, privateCard())).toBe('private');
+    expect(cardColor(POD_ID, card({ themeLabel: null, reasons: [{ code: 'OPEN_TO_ANYONE' }] }))).toBe(podColorFor({ podId: POD_ID }));
+    expect(cardColor(POD_ID, card({ reasons: [{ code: 'OPEN_TO_ANYONE' }] }))).toBe(podColorFor({ podId: POD_ID }));
   });
 });

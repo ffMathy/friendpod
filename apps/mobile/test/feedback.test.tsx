@@ -14,7 +14,7 @@ jest.mock('@/features/photos/AuthenticatedPhoto', () => ({ AuthenticatedPhoto: (
 
 const live = (data: unknown) => ({ data, error: null, isLoading: false });
 jest.mock('@/data/docs', () => ({
-  usePodCard: () => live({ state: 'happened', myStatus: 'accepted', themeLabel: 'brætspil', themeSensitive: false }),
+  usePodCard: () => live({ state: 'happened', myStatus: 'accepted', themeLabel: 'brætspil', themeSensitive: false, reasons: [] }),
   usePod: () =>
     live({
       theme: { kind: 'concept', conceptId: 'seed_boardgames', sensitive: false },

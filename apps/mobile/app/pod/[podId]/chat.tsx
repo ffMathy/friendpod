@@ -48,7 +48,7 @@ export default function Chat() {
   const { send, pending } = useSendMessage();
   const locale = currentLocale();
   const [now] = useState(() => Date.now());
-  const color = podColorOf(podId, pod.data, card.data?.themeSensitive ?? true);
+  const color = podColorOf(podId, card.data);
   const tint = usePodColors(color);
 
   const [draft, setDraft] = useState('');

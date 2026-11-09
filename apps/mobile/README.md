@@ -115,9 +115,13 @@ Skov. `Layout`, `Radius` (14 inputs, 22 cards, 28 hero/band/sheet, `pill`), `Bor
 hard-code a colour in a screen.
 
 **Pod colours.** Six, in index order: Solsikke, Blad, Bær, Tomat, Fjord, Blomme (`POD_PALETTE`: base, deep, tint,
-onBase, tintBorder). Which one a pod or interest gets comes from its **concept id**, never the word a member sees:
-`podColorFor({ conceptId, sensitive })` (FNV-1a 32 of `"grouper:" + id`, `floor(h × 6 / 2³²)`; open-to-anyone pods use
-the pod id; private gets `null`). `usePodColors(color)` resolves the roles for the scheme (`field`, `onField`,
+onBase, tintBorder). Which one a pod or interest gets comes from the **word shown**, normalized (founder decision):
+`podColorFor({ word, podId, sensitive })` (FNV-1a 32 of `"grouper:3410:" + normalizeTag(word).norm`,
+`floor(h × 6 / 2³²)`; the salt reproduces the storyboards: brætspil Tomat, sourdough Solsikke, far på barsel Fjord,
+trail running Blad, coffee Bær, hiking Blomme). The same word has the same colour everywhere, for everyone; interests
+use their own word (`interestColor`), a pod the theme word on the viewer's card (`podColorOf`, `cardColor`).
+Open-to-anyone pods (no theme word) use `"grouper:" + pod id`; private gets `null`. Accepted trade-off: members who
+see a theme in different wordings (or app languages) may see different colours. `usePodColors(color)` resolves the roles for the scheme (`field`, `onField`,
 `surface`, `surfaceBorder`, `name`, `icon`, `dot`, `dotRing`, `avatar`, …; `null` gives the quiet private set). On a
 pod's own screens another interest in the pod's colour is a plain chip (`colorOnPodScreen`).
 

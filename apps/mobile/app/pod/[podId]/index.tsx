@@ -58,7 +58,7 @@ function attendanceAskedAt(pod: PodDoc): number | null {
  * in the pod's tint, one "Next step" card driven by state (confirm attendance → chat during the window → give
  * feedback), then Plan, Chat and Members and nothing more (the pod interests belong to the reveal). Once the meetup is
  * past, the Plan card is a plain record of when and where. "Leave pod" and the safety tips are in the pod menu (§3.8);
- * block and report live in each member's sheet. The colour comes from the theme's concept id; a pod about a private
+ * block and report live in each member's sheet. The colour comes from the theme word on the viewer's card; a pod about a private
  * interest has none (white and Ink with a lock).
  */
 export default function PodScreen() {
@@ -85,7 +85,7 @@ export default function PodScreen() {
   const [now] = useState(() => Date.now());
   const locale = currentLocale();
 
-  // A member's page waits for the shared pod document too: it carries the theme the pod's colour comes from.
+  // A member's page waits for the shared pod document too: it carries the members, the plan and the pod interests.
   if (card.isLoading || (member && pod.isLoading)) {
     return <Loading label={t('common.loading')} />;
   }
@@ -116,7 +116,7 @@ export default function PodScreen() {
 
   const theme = c.themeLabel ?? t('pods.openToAnyone');
   const d = pod.data;
-  const color = podColorOf(podId, d, c.themeSensitive);
+  const color = podColorOf(podId, c);
   const members = d ? podMembers(d.memberUids, d.roster, uid) : [];
   const interests = d ? d.podInterests[locale] : [];
   const subtitle = t('pod.peopleNear', { count: d?.memberUids.length ?? c.acceptedCount, area: d?.areaLabel ?? c.areaLabel });
@@ -228,7 +228,7 @@ export default function PodScreen() {
         ) : null}
         {photoSwitch}
         <AboutMembersCard members={members} viewer={uid} color={color} />
-        <PodInterestsCard interests={interests} />
+        <PodInterestsCard interests={interests} color={color} />
         <SafetyCard />
         {chatCard}
         {leaveError}

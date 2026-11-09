@@ -19,7 +19,7 @@ jest.mock('@/features/photos/AuthenticatedPhoto', () => ({ AuthenticatedPhoto: (
 const live = (data: unknown) => ({ data, error: null, isLoading: false });
 let mockPod: Record<string, unknown> = {};
 let mockMessages: unknown[] = [];
-const mockCard = { state: 'scheduled', myStatus: 'accepted', themeLabel: 'Brætspil', themeSensitive: false };
+const mockCard = { state: 'scheduled', myStatus: 'accepted', themeLabel: 'Brætspil', themeSensitive: false, reasons: [] };
 jest.mock('@/data/docs', () => ({
   usePodCard: () => live(mockCard),
   usePod: () => live(mockPod),
@@ -39,7 +39,7 @@ jest.mock('@/firebase/callables', () => ({
 
 const ts = (ms: number) => ({ toMillis: () => ms });
 
-/** The pod's theme (its colour comes from the concept id: `seed_boardgames` is Tomat). */
+/** The pod's theme (the colour comes from the card's word: "Brætspil" is Tomat). */
 const THEME = { kind: 'concept', conceptId: 'seed_boardgames', sensitive: false };
 
 /** A pod whose meetup is `fromNow` ms away (negative: in the past). */
@@ -210,14 +210,19 @@ describe('meetup chat (§3.6)', () => {
     expect(input()).toBeEnabled();
   });
 
-  it('wears the pod colour in its band (from the concept id), and none in a pod about a private interest', async () => {
+  it('wears the pod colour in its band (from the theme word), and none in a pod about a private interest', async () => {
     await renderChat();
     expect(screen.getByTestId('chat-band')).toHaveStyle({ backgroundColor: POD_PALETTE.tomat.tint });
     client.clear();
 
     mockPod = { ...podWithMeetup(2 * HOUR), theme: { kind: 'concept', conceptId: 'c_9f8e7d6c5b4a39281706_p', sensitive: true } };
-    await renderChat();
-    expect(screen.getByTestId('chat-band')).toHaveStyle({ backgroundColor: Colors.light.privateBg, borderColor: Colors.light.privateBorder });
+    mockCard.themeSensitive = true;
+    try {
+      await renderChat();
+      expect(screen.getByTestId('chat-band')).toHaveStyle({ backgroundColor: Colors.light.privateBg, borderColor: Colors.light.privateBorder });
+    } finally {
+      mockCard.themeSensitive = false;
+    }
   });
 
   it('names authors from the roster and reports others’ messages', async () => {

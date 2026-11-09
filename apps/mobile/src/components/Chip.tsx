@@ -71,7 +71,7 @@ export interface ChipProps {
   readonly label: string;
   /**
    * Default: `private` when `private` is set, `pod` when a `color` is given, otherwise `clash` (the plain chip).
-   * Interests take their colour from their concept id (`podColorFor`); private ones have none.
+   * Interests take their colour from their word (`podColorFor`, `interestColor`); private ones have none.
    */
   readonly kind?: ChipKind;
   /** The pod colour of a `pod` chip. */

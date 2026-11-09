@@ -52,7 +52,7 @@ jest.mock('@/firebase/callables', () => ({
 
 const ts = (ms: number) => ({ toMillis: () => ms });
 
-/** The pod's theme (its colour comes from the concept id: `seed_boardgames` is Tomat). */
+/** The pod's theme document (the colour comes from the card's word: "Brætspil" is Tomat). */
 const THEME = { kind: 'concept', conceptId: 'seed_boardgames', sensitive: false };
 const place = {
   placeId: 'ChIJstubDokk1Aarhus01',
@@ -67,7 +67,7 @@ const roster = { me: { firstName: 'Mia', photoV: null }, anna: { firstName: 'Ann
 
 function scheduled(meetupIn: number, attendance: Record<string, string>, lockedBefore: number = 5 * DAY_MS) {
   const meetupAt = Date.now() + meetupIn;
-  mockCard = { state: 'scheduled', myStatus: 'accepted', themeLabel: 'Brætspil', themeSensitive: false };
+  mockCard = { state: 'scheduled', myStatus: 'accepted', themeLabel: 'Brætspil', themeSensitive: false, reasons: [] };
   mockPod = {
     state: 'scheduled',
     theme: THEME,
@@ -144,17 +144,18 @@ describe('pod screen (D13)', () => {
     expect(screen.getByText("You're coming.")).toBeOnTheScreen();
   });
 
-  it('takes the pod colour from the theme\'s concept id, never the word; open-to-anyone from the pod id; a private pod stays quiet', async () => {
-    // seed_boardgames is Tomat: the pod band is its tint, whatever the viewer calls the theme.
+  it('takes the pod colour from the theme word on the viewer\'s card; open-to-anyone from the pod id; a private pod stays quiet', async () => {
+    // "Brætspil" (normalized "brætspil") is Tomat: the pod band is its tint.
     scheduled(30 * HOUR, { me: 'coming', anna: 'coming', bo: 'coming' });
     await renderPod();
     expect(screen.getByTestId('pod-band')).toHaveStyle({ backgroundColor: POD_PALETTE.tomat.tint });
     client.clear();
 
     scheduled(30 * HOUR, { me: 'coming', anna: 'coming', bo: 'coming' });
+    // Another wording of the same theme is another word, so (accepted trade-off) another colour: "board games" is Bær.
     mockCard.themeLabel = 'board games';
     await renderPod();
-    expect(screen.getByTestId('pod-band')).toHaveStyle({ backgroundColor: POD_PALETTE.tomat.tint });
+    expect(screen.getByTestId('pod-band')).toHaveStyle({ backgroundColor: POD_PALETTE.baer.tint });
     client.clear();
 
     // Open to anyone: no concept, so the colour comes from the pod id.
@@ -191,7 +192,7 @@ describe('pod screen (D13)', () => {
   });
 
   it('during the extension round, the pod says "No time works yet — add another option"', async () => {
-    mockCard = { state: 'planning', myStatus: 'accepted', themeLabel: 'Brætspil', themeSensitive: false };
+    mockCard = { state: 'planning', myStatus: 'accepted', themeLabel: 'Brætspil', themeSensitive: false, reasons: [] };
     mockPod = {
       state: 'planning',
       theme: THEME,
@@ -209,7 +210,7 @@ describe('pod screen (D13)', () => {
   });
 
   it('keeps the extension card when the viewer has voted on every option, and asks for a first option in a new round', async () => {
-    mockCard = { state: 'planning', myStatus: 'accepted', themeLabel: 'Brætspil', themeSensitive: false };
+    mockCard = { state: 'planning', myStatus: 'accepted', themeLabel: 'Brætspil', themeSensitive: false, reasons: [] };
     const planning = (extended: boolean) => ({
       state: 'planning',
       theme: THEME,
@@ -370,7 +371,7 @@ describe('pod screen (D13)', () => {
 
   it('in a pod about a private interest, photos stay hidden until each member shows theirs, and "Show my photo to this pod" calls setPhotoSharing', async () => {
     mockCall.mockResolvedValue({ ok: true });
-    mockCard = { state: 'planning', myStatus: 'accepted', themeLabel: 'gravid', themeSensitive: true, acceptedCount: 3, areaLabel: 'Aarhus C', photoShared: false };
+    mockCard = { state: 'planning', myStatus: 'accepted', themeLabel: 'gravid', themeSensitive: true, reasons: [], acceptedCount: 3, areaLabel: 'Aarhus C', photoShared: false };
     mockPod = {
       state: 'planning',
       theme: { kind: 'concept', conceptId: 'c_9f8e7d6c5b4a39281706_p', sensitive: true },
@@ -394,14 +395,14 @@ describe('pod screen (D13)', () => {
   });
 
   it('while planning shows the reveal: every member opens their sheet, "about me" sentences, pod interests', async () => {
-    mockCard = { state: 'planning', myStatus: 'accepted', themeLabel: 'Brætspil', themeSensitive: false, acceptedCount: 3, areaLabel: 'Aarhus C' };
+    mockCard = { state: 'planning', myStatus: 'accepted', themeLabel: 'Brætspil', themeSensitive: false, reasons: [], acceptedCount: 3, areaLabel: 'Aarhus C' };
     mockPod = {
       state: 'planning',
       theme: THEME,
       areaLabel: 'Aarhus C',
       memberUids: ['me', 'anna', 'bo'],
       roster: { ...roster, anna: { firstName: 'Anna', photoV: null, aboutMe: 'Loves long walks.' } },
-      podInterests: { da: ['surdej'], en: ['sourdough', 'coffee'] },
+      podInterests: { da: ['surdej'], en: ['sourdough', 'coffee', 'brætspilsaften'] },
       planning: { deadline: ts(Date.now() + 20 * HOUR) },
       confirmedAt: ts(Date.now() - DAY_MS),
     };
@@ -413,8 +414,13 @@ describe('pod screen (D13)', () => {
     expect(screen.getByText(/Loves long walks\./)).toBeOnTheScreen();
     expect(screen.getByText('More than one of you also likes')).toBeOnTheScreen();
     expect(screen.getByText('coffee')).toBeOnTheScreen();
-    // Words without concept ids: neutral chips (no colour, and not the plain-clash chip that means "this pod's colour").
-    expect(within(screen.getByTestId('pod-interests')).getAllByTestId('pod-interest-chip')).toHaveLength(2);
+    // Each in its own word's colour (sourdough Solsikke, coffee Bær); "brætspilsaften" is Tomat like this pod, so it is
+    // the plain clash chip (white, Outline border).
+    const chips = within(screen.getByTestId('pod-interests')).getAllByTestId('pod-interest-chip');
+    expect(chips).toHaveLength(3);
+    expect(chips[0]).toHaveStyle({ backgroundColor: POD_PALETTE.solsikke.tint });
+    expect(chips[1]).toHaveStyle({ backgroundColor: POD_PALETTE.baer.tint });
+    expect(chips[2]).toHaveStyle({ backgroundColor: Colors.light.surface, borderColor: Colors.light.borderStrong });
     await fireEvent.press(screen.getByRole('link', { name: 'Bo' }));
     expect(mockRouter.push).toHaveBeenCalledWith({ pathname: '/pod/[podId]/member/[uid]', params: { podId: POD_ID, uid: 'bo' } });
     // "Meeting safely" folds open, with a link to every tip.

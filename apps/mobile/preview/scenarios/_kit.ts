@@ -188,14 +188,14 @@ export function userDoc(o: ProfileOptions = {}): DocData {
 }
 
 /**
- * The concept id of brætspil (interest and pod theme). Pod colours come from the concept id (podColorIndex), and
- * `seed_boardgames` lands on Tomat, the storyboards' brætspil colour.
+ * The concept id of brætspil (interest and pod theme). Pod colours come from the word shown, not the concept id
+ * (`@/lib/podColor`): "brætspil" lands on Tomat, the storyboards' brætspil colour.
  */
 export const BRAETSPIL_CONCEPT = 'seed_boardgames';
 /**
- * The other fixture concepts, chosen so that podColorIndex gives the storyboards' fixed colours (blend spec §3.4):
- * sourdough Solsikke (0), trail running Blad (1), far på barsel Fjord (4). The interest and the sourdough pod share
- * the sourdough concept, so they share its colour.
+ * The other fixture concepts. The colours come from the words (blend spec §3.4, by the salted word hash): sourdough
+ * Solsikke (0), trail running Blad (1), far på barsel Fjord (4). The interest and the sourdough pod share the word, so
+ * they share its colour.
  */
 export const SOURDOUGH_CONCEPT = 'seed_bread_baking';
 export const TRAIL_RUNNING_CONCEPT = 'seed_trail_runs';

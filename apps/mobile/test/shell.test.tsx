@@ -111,12 +111,12 @@ describe('Me', () => {
     expect(screen.getByText(/In pods about a private interest, you choose per pod/)).toBeOnTheScreen();
   });
 
-  it('shows the interests as pod chips in their concept\'s colour, the main one starred; private ones only as a quiet count', async () => {
+  it('shows the interests as pod chips in their word\'s colour, the main one starred; private ones only as a quiet count', async () => {
     await renderWith(<Me />);
-    // The colour comes from the concept id, never the word: seed_board_games is Solsikke, seed_sourdough Bær.
-    expect(podColorFor({ conceptId: 'seed_board_games' })).toBe('solsikke');
-    expect(screen.getByTestId('me-interest-i1')).toHaveStyle({ backgroundColor: POD_PALETTE.solsikke.tint });
-    expect(screen.getByTestId('me-interest-i2')).toHaveStyle({ backgroundColor: POD_PALETTE.baer.tint });
+    // The colour comes from the word: brætspil is Tomat, sourdough Solsikke (whatever their concept ids).
+    expect(podColorFor({ word: 'brætspil' })).toBe('tomat');
+    expect(screen.getByTestId('me-interest-i1')).toHaveStyle({ backgroundColor: POD_PALETTE.tomat.tint });
+    expect(screen.getByTestId('me-interest-i2')).toHaveStyle({ backgroundColor: POD_PALETTE.solsikke.tint });
     expect(screen.getByLabelText('Main interest')).toBeOnTheScreen();
     // Private interests are never named here: a count with the lock.
     expect(screen.queryByText('gravid')).toBeNull();

@@ -119,8 +119,8 @@ export default function Feedback() {
 
   const others = pod.data.memberUids.filter((m) => m !== uid);
   const roster = pod.data.roster;
-  // The pod's colour from its concept id (never the word); a private pod's avatars stay Ink 2.
-  const color = podColorOf(podId, pod.data, card.data?.themeSensitive ?? true);
+  // The pod's colour from its theme word (the viewer's card); a private pod's avatars stay Ink 2.
+  const color = podColorOf(podId, card.data);
 
   const send = (keep: boolean) => {
     setKeepPressed(keep);
