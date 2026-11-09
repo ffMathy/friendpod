@@ -22,6 +22,7 @@
     "sim:thin-market": "npm -w tools/sim run thin-market --",
     "bench:match": "npm -w tools/sim run bench --",
     "admin": "npm -w tools/admin run admin --",
+    "marketing": "node marketing/generate.mjs",
     "mobile:start": "npm -w apps/mobile run start",
     "mobile:config": "npm -w apps/mobile run config",
     "mobile:bundle": "npm -w apps/mobile run build",

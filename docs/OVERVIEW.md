@@ -193,7 +193,7 @@ research/            Embedding calibration and thin-market simulation
 ```
 
 - **Working now:** onboarding with the blanket consent, profile and "about me", participation, adding interests with on-device vectors (the server side is tested with fixture vectors), the matcher, sending meetup-chat messages, the security rules, and the app's main flows.
-- **Stubbed:** the pod lifecycle after the drop (accept, plan, vote, attendance, feedback, the sweeper's asks and nudges), block and report, export and deletion, removing sensitive interests, the offline model tooling (`prototypes.bin`, the nightly calibration) and admin tools. Each stub fails loudly and points to its design section (README, "What is stubbed").
+- **Stubbed:** the pod lifecycle after the drop (accept, plan, vote, attendance, feedback, the sweeper's asks and nudges), block and report, export and deletion, removing sensitive interests, the offline model tooling (`prototypes.bin`, the nightly calibration) and admin tools. Each stub fails loudly and points to its design section (docs/DEVELOPMENT.md, "What is stubbed").
 
 ## Next steps (rest of M0 → M1)
 
