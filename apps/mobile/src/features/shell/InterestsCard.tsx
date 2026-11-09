@@ -3,11 +3,11 @@ import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import { Card, Chip, ChipRow, Overline, StatusText, Text, TextLink } from '@/components/ui';
 import { useInterests, useSensitiveInterests } from '@/data/docs';
-import { podColorFor } from '@/lib/podColor';
+import { interestColor } from '@/lib/podColor';
 
 /**
- * "Your interests" on Me: each interest as its pod chip, in the colour of its concept (never of the word: the same
- * concept has the same colour for everyone), the main ones with the Ink star; "Edit" opens the Interests tab, where
+ * "Your interests" on Me: each interest as its pod chip, in the colour of its word (the same word has the same colour
+ * everywhere, for everyone), the main ones with the Ink star; "Edit" opens the Interests tab, where
  * they are managed. Private interests stay quiet and unnamed here, as a count with the Ink lock: Me is the user's own
  * summary, but it is the page that looks most like a profile, and private interests are never on one.
  */
@@ -38,7 +38,7 @@ export function InterestsCard({ uid }: { readonly uid: string }) {
               key={id}
               testID={`me-interest-${id}`}
               label={data.display}
-              color={podColorFor({ conceptId: data.conceptId })}
+              color={interestColor(data)}
               starred={data.starred}
               starredLabel={t('common.mainInterest')}
             />

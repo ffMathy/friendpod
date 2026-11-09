@@ -25,7 +25,7 @@ import {
 import { useAreaDoc, useInterests, useSensitiveInterests, useUserDoc } from '@/data/docs';
 import { useCallable } from '@/data/useCallable';
 import { errorMessageKey } from '@/lib/errors';
-import { podColorFor, type PodColor } from '@/lib/podColor';
+import { interestColor, type PodColor } from '@/lib/podColor';
 import { ChipOptions, formatDay, GroupHeading, ListCardTitle, MoreButton, PrivateHeader, RowAction, StarButton, SuggestionNote } from './parts';
 import { useAddInterest, type AddInterestOutcome, type HoldingChoice } from './useAddInterest';
 import { useEmbedder } from './useEmbedder';
@@ -96,8 +96,8 @@ interface Row {
   /** When the blanket consent this private holding rests on was given. */
   readonly consentedAt: number | null;
   /**
-   * The pod colour of the interest's concept (decision 9: from the concept id, never from the word, so the same
-   * concept has the same colour for everyone whatever they call it). `null` for private interests.
+   * The pod colour of the interest, from its own normalized word (decision 9: the same word has the same colour
+   * everywhere, for everyone). `null` for private interests.
    */
   readonly color: PodColor | null;
 }
@@ -147,7 +147,7 @@ export function InterestManager({ uid, locale, mode }: Props) {
     locked: false,
     notSensitiveForMe: data.notSensitiveForMe === true,
     consentedAt: null,
-    color: podColorFor({ conceptId: data.conceptId }),
+    color: interestColor(data),
   }));
   const locked: Row[] = (sensitive.data ?? []).map(({ id, data }) => ({
     id,

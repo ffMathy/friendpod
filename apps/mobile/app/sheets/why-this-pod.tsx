@@ -8,7 +8,7 @@ import { CloseButton, Note, Strong, Text, TextLink, type IconName } from '@/comp
 import { usePalette } from '@/components/theme';
 import { usePodCard } from '@/data/docs';
 import { BottomSheet } from '@/features/after/parts';
-import { useCardColor } from '@/features/drop/color';
+import { cardColor } from '@/features/drop/color';
 import { PodDisc } from '@/features/drop/parts';
 import { boldList, richText, slot } from '@/features/drop/richText';
 import { useUid } from '@/features/session/SessionProvider';
@@ -118,16 +118,16 @@ export default function WhyThisPod() {
           </Text>
           <CloseButton onPress={close} accessibilityLabel={t('common.close')} />
         </View>
-        {card.data ? <Reasons uid={uid} podId={podId} card={card.data} /> : <ActivityIndicator accessibilityLabel={t('common.loading')} color={p.primary} style={styles.loading} />}
+        {card.data ? <Reasons podId={podId} card={card.data} /> : <ActivityIndicator accessibilityLabel={t('common.loading')} color={p.primary} style={styles.loading} />}
       </BottomSheet>
     </>
   );
 }
 
-function Reasons({ uid, podId, card }: { uid: string; podId: string; card: PodCardDoc }) {
+function Reasons({ podId, card }: { podId: string; card: PodCardDoc }) {
   const { t } = useTranslation();
   const router = useRouter();
-  const color = useCardColor(uid, podId, card);
+  const color = cardColor(podId, card);
   return (
     <>
       <View style={styles.list}>

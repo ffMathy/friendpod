@@ -7,7 +7,7 @@
  * - **Chrome** (identical in every pod): warm Paper ground, white cards, Ink text, and Skov green for everything you
  *   tap. Small text never sits on a mid-tone colour field.
  * - **Six pod colours** (`POD_PALETTE`): Solsikke, Blad, Bær, Tomat, Fjord, Blomme, each with base / deep / tint.
- *   Which one a pod gets comes from its concept id (`@/lib/podColor`); `usePodColors(color)` gives the roles.
+ *   Which one a pod gets comes from its theme word (`@/lib/podColor`); `usePodColors(color)` gives the roles.
  * - **Dark mode** (decision 10): Paper → Night, Skov light for actions, pod fields and tints go deep with white type,
  *   dots and seats get a tint ring.
  *
@@ -324,7 +324,7 @@ export function podColors(color: PodColor | null | undefined, scheme: ColorSchem
   };
 }
 
-/** `podColors()` for the system appearance: `const c = usePodColors(podColorFor({ conceptId }))`. */
+/** `podColors()` for the system appearance: `const c = usePodColors(podColorFor({ word }))`. */
 export function usePodColors(color: PodColor | null | undefined): PodColors {
   return podColors(color, useColorSchemeName());
 }

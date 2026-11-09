@@ -6,11 +6,10 @@ import { Alert, StyleSheet, View } from 'react-native';
 import { Badge, Button, Chip, ChipRow, ChoiceChip, ErrorText, HeroCard, SeatRow, StatusText, Text, TextLink } from '@/components/ui';
 import { usePalette, usePodColors } from '@/components/theme';
 import { useCallable } from '@/data/useCallable';
-import { dsColor, useCardColor } from '@/features/drop/color';
+import { cardColor, dsColor } from '@/features/drop/color';
 import { FactLine, InsetNote, NoteText } from '@/features/drop/parts';
 import { boldList, richText, slot } from '@/features/drop/richText';
 import { dayTime } from '@/features/drop/time';
-import { useUid } from '@/features/session/SessionProvider';
 import { currentLocale } from '@/i18n';
 import { errorMessageKey } from '@/lib/errors';
 
@@ -46,7 +45,7 @@ export function ProposalCard({ podId, card, confirmationMin, onDone }: ProposalC
   const { t } = useTranslation();
   const router = useRouter();
   const p = usePalette();
-  const color = useCardColor(useUid(), podId, card);
+  const color = cardColor(podId, card);
   const c = usePodColors(dsColor(color));
   const respond = useCallable('respondToPod');
   const leave = useCallable('leavePod');

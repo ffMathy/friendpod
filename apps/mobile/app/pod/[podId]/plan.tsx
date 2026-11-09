@@ -51,7 +51,7 @@ export default function Plan() {
   if (card.isLoading || (member && pod.isLoading) || (planning && options.isLoading)) {
     return <Loading label={t('common.loading')} />;
   }
-  const color = podColorOf(podId, pod.data, card.data?.themeSensitive ?? true);
+  const color = podColorOf(podId, card.data);
   if (!planning) {
     const d = pod.data;
     const locked = d?.planning;

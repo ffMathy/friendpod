@@ -8,7 +8,7 @@ import { usePod } from '@/data/docs';
 import type { WithId } from '@/data/live';
 import { isConfirmedMember } from '@/features/pods/membership';
 import { currentLocale } from '@/i18n';
-import { dsColor, useCardColor } from './color';
+import { cardColor, dsColor } from './color';
 import { PodDisc } from './parts';
 import { capitalize, clock, dayTime, shortDate, weekday } from './time';
 
@@ -31,7 +31,7 @@ export function PodRow({ uid, card, now }: { uid: string; card: WithId<PodCardDo
   const locale = currentLocale();
   const c = card.data;
   const pod = usePod(card.id, isConfirmedMember(c)).data;
-  const color = useCardColor(uid, card.id, c, pod);
+  const color = cardColor(card.id, c);
   const isPrivate = color === 'private';
   const theme = c.themeLabel ?? t('pods.openToAnyone');
   const others = pod

@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import { Badge, Card, Chip, ChipRow, Text } from '@/components/ui';
 import type { WithId } from '@/data/live';
-import { podColorFor } from '@/lib/podColor';
+import { interestColor } from '@/lib/podColor';
 import { RowLink } from './parts';
 
 /** At most this many interests as chips; the rest are counted ("+3"). */
@@ -43,7 +43,7 @@ export function MatchOnCard({ interests, prefs, areaLabel }: { interests: readon
       {shown.length > 0 ? (
         <ChipRow>
           {shown.map((i) => (
-            <Chip key={i.id} label={i.data.display} size="sm" color={podColorFor({ conceptId: i.data.conceptId })} />
+            <Chip key={i.id} label={i.data.display} size="sm" color={interestColor(i.data)} />
           ))}
           {more > 0 ? <Badge tone="outline" label={t('home.moreTags', { count: more })} /> : null}
         </ChipRow>

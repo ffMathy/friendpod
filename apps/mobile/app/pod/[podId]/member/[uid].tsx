@@ -87,8 +87,8 @@ export default function MemberSheet() {
   const canReplan = state === 'scheduled';
   const effective: BlockChoice = !active ? 'removeThem' : choice === 'replan' && !canReplan ? 'removeThem' : choice;
   const sensitive = card.data?.themeSensitive ?? true;
-  // The pod's colour from its concept id (never the word); a private pod has none.
-  const color = podColorOf(podId, pod.data, sensitive);
+  // The pod's colour from its theme word (the viewer's card); a private pod has none.
+  const color = podColorOf(podId, card.data);
   const theme = card.data?.themeLabel;
   const actions = !!pod.data && !isSelf;
 
