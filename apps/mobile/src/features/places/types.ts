@@ -1,4 +1,4 @@
-import type { LatLon, Place, PublicPlaceType } from '@grouper/core';
+import type { LatLon, Place, PublicPlaceType } from '@friendpod/core';
 
 /** One Autocomplete row, already filtered to public place types (D8). */
 export interface PlacePrediction {

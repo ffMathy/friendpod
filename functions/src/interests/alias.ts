@@ -11,7 +11,7 @@ import {
   sensitiveHoldingFromDoc,
   type InterestDoc,
   type SensitiveInterestDoc,
-} from '@grouper/core';
+} from '@friendpod/core';
 import type { Firestore, Transaction } from 'firebase-admin/firestore';
 import { ts } from '../lib/firestore';
 import type { AppDeps } from '../lib/runtime';

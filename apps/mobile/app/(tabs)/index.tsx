@@ -10,7 +10,7 @@ import {
   type PodCardDoc,
   type PodState,
   type UserDoc,
-} from '@grouper/core';
+} from '@friendpod/core';
 import { useRouter } from 'expo-router';
 import { Tabs } from 'expo-router/js-tabs';
 import { useState, type ReactNode } from 'react';

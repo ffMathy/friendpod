@@ -2,7 +2,7 @@
  * Structured, pseudonymised logging (DESIGN.md §13). Entries carry an `event` name and scalar fields chosen by
  * the caller: never request data, tag text, names, emails, tokens, IP addresses or raw uids (use `uidH`).
  */
-import { stackFrames } from '@grouper/core/node';
+import { stackFrames } from '@friendpod/core/node';
 import { logger } from 'firebase-functions/logger';
 
 export type LogValue = string | number | boolean | null | readonly LogValue[] | { readonly [key: string]: LogValue };

@@ -8,7 +8,7 @@
  * So a retried task neither counts anyone twice nor skips the push of a user marked by a run that failed before it
  * notified (a crash between the send and the clear can repeat one push, never lose one).
  */
-import { FUNNEL_MILESTONE_FIELD, getLaunchArea } from '@grouper/core';
+import { FUNNEL_MILESTONE_FIELD, getLaunchArea } from '@friendpod/core';
 import { FieldPath, FieldValue } from 'firebase-admin/firestore';
 import { readAreas } from '../lib/areas';
 import { grpcCode } from '../lib/errors';

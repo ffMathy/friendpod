@@ -10,7 +10,7 @@
  * Other members of an active pod (planning or scheduled) see only "A member left" (a generic notice and push); other pods
  * change silently.
  */
-import { NOTICE_CODES, pairKey } from '@grouper/core';
+import { NOTICE_CODES, pairKey } from '@friendpod/core';
 import { docs, PATHS, podStates } from '../lib/firestore';
 import type { AppDeps } from '../lib/runtime';
 import type { PodTx } from './context';

@@ -1,4 +1,4 @@
-import { DAY_MS, type PodCardDoc, type PodDoc } from '@grouper/core';
+import { DAY_MS, type PodCardDoc, type PodDoc } from '@friendpod/core';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';

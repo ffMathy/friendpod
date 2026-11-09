@@ -1,4 +1,4 @@
-import { nodeHmacSha256 } from '@grouper/core/node';
+import { nodeHmacSha256 } from '@friendpod/core/node';
 
 /** A fixed test HMAC key (production keys come from Secret Manager). */
 export const TEST_UID_HMAC_KEY_B64 = Buffer.alloc(32, 7).toString('base64');

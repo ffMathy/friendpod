@@ -33,7 +33,7 @@ const REASON_MAX = 500;
 function help(): string {
   const rows = COMMANDS.map((c) => `  ${c.usage}\n      ${c.summary}`);
   return [
-    'grouper-admin: Grouper admin CLI (DESIGN.md §9 Admin access)',
+    'friendpod-admin: Friendpod admin CLI (DESIGN.md §9 Admin access)',
     '',
     'Commands:',
     ...rows,

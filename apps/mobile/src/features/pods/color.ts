@@ -1,4 +1,4 @@
-import type { PodCardDoc } from '@grouper/core';
+import type { PodCardDoc } from '@friendpod/core';
 import { podColorFor, type PodColor } from '@/lib/podColor';
 
 /** What of the viewer's pod card the colour needs. */

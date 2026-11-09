@@ -1,4 +1,4 @@
-import { DROP_TIME_ZONE, POSTCODE_ATTRIBUTION, type Locale } from '@grouper/core';
+import { DROP_TIME_ZONE, POSTCODE_ATTRIBUTION, type Locale } from '@friendpod/core';
 import { useLocalSearchParams } from 'expo-router';
 import type { TFunction } from 'i18next';
 import { useState } from 'react';

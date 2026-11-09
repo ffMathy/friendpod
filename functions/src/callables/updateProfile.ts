@@ -18,7 +18,7 @@ import {
   type LegalText,
   type Locale,
   type UserDoc,
-} from '@grouper/core';
+} from '@friendpod/core';
 import type { QueryDocumentSnapshot, Transaction } from 'firebase-admin/firestore';
 import { areaStage, readAreas, writeAreaDeltas } from '../lib/areas';
 import { AppError } from '../lib/errors';

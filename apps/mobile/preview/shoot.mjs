@@ -7,8 +7,8 @@
  *
  * Options
  *   --only <id,id,...> | --all   which screens.json entries (one of them is required)
- *   --out <dir>                  output folder (default: <tmp>/grouper-preview/shots)
- *   --build-dir <dir>            web export folder (default: <tmp>/grouper-preview/build); separate per concurrent caller
+ *   --out <dir>                  output folder (default: <tmp>/friendpod-preview/shots)
+ *   --build-dir <dir>            web export folder (default: <tmp>/friendpod-preview/build); separate per concurrent caller
  *   --skip-build                 reuse the export already in --build-dir
  *   --build-only                 build, then stop
  *   --locale da|en               UI language for every screen (default en)
@@ -61,7 +61,7 @@ function parseArgs(argv) {
   }
   if (!['en', 'da'].includes(opts.locale)) throw new Error('--locale must be en or da');
   if (!['light', 'dark'].includes(opts.colorScheme)) throw new Error('--color-scheme must be light or dark');
-  const tmp = path.join(os.tmpdir(), 'grouper-preview');
+  const tmp = path.join(os.tmpdir(), 'friendpod-preview');
   opts.out = path.resolve(opts.out ?? path.join(tmp, 'shots'));
   opts.buildDir = path.resolve(opts.buildDir ?? path.join(tmp, 'build'));
   if (!opts.buildOnly && !opts.all && !opts.only) throw new Error('pass --only <id,...> or --all (or --build-only)');

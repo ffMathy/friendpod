@@ -9,7 +9,7 @@
  *      `users.photo.v`, every roster `photoV` where the photo is shared and the grants of the user's current pods
  *      (sensitive-themed pods only after the S6 opt-in), then every earlier version is deleted.
  */
-import { podDocSchema } from '@grouper/core';
+import { podDocSchema } from '@friendpod/core';
 import { blockedPairs, pairOf } from '../lib/blocks';
 import { AppError } from '../lib/errors';
 import { DAY_MS, PATHS, docs, ts } from '../lib/firestore';

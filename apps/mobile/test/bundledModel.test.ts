@@ -1,4 +1,4 @@
-import { EMBEDDING_MODEL, deviceModelFiles } from '@grouper/core';
+import { EMBEDDING_MODEL, deviceModelFiles } from '@friendpod/core';
 import { createHash } from 'node:crypto';
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -81,7 +81,7 @@ describe('bundled model build (founder decision 2026-11-04)', () => {
   });
 
   it('stores the ONNX files uncompressed in the APK, once', () => {
-    const gradle = 'android {\n  namespace "dk.grouper.app"\n}\n';
+    const gradle = 'android {\n  namespace "dk.friendpod.app"\n}\n';
     const out = addNoCompress(gradle);
     expect(out).toMatch(/androidResources \{\n\s+noCompress 'onnx', 'onnx_data'\n\s+\}/);
     expect(addNoCompress(out)).toBe(out);
@@ -90,10 +90,10 @@ describe('bundled model build (founder decision 2026-11-04)', () => {
   it('adds models/ to Copy Bundle Resources as a folder reference, once', () => {
     cpSync(join(__dirname, 'fixtures', 'ios-sdk58'), join(root, 'ios'), { recursive: true });
     const project = IOSConfig.XcodeUtils.getPbxproj(root);
-    addModelFolderReference(project, 'GrouperDev');
-    addModelFolderReference(project, 'GrouperDev');
+    addModelFolderReference(project, 'FriendpodDev');
+    addModelFolderReference(project, 'FriendpodDev');
     const out: string = project.writeSync();
-    const refs = out.split('\n').filter((l) => l.includes('isa = PBXFileReference') && l.includes('path = "GrouperDev/models"'));
+    const refs = out.split('\n').filter((l) => l.includes('isa = PBXFileReference') && l.includes('path = "FriendpodDev/models"'));
     expect(refs).toHaveLength(1);
     expect(refs[0]).toContain('lastKnownFileType = folder;');
     expect(refs[0]).not.toContain('undefined');
@@ -104,7 +104,7 @@ describe('bundled model build (founder decision 2026-11-04)', () => {
 describe('fetch-model sources: the models bucket is private (DESIGN.md §8, §9)', () => {
   const hfFile = { path: 'onnx/model_q4.onnx', source: 'hf' as const };
   const mirrorFile = { path: 'prototypes.bin', source: 'mirror' as const };
-  const MIRROR = 'https://storage.googleapis.com/grouper-staging-models/models/eg2-q4-daa72c5';
+  const MIRROR = 'https://storage.googleapis.com/friendpod-staging-models/models/eg2-q4-daa72c5';
 
   it('fetches hf files from Hugging Face at the pinned revision, with HF_TOKEN only there', () => {
     expect(requestFor(pins, hfFile, {})).toEqual({ url: 'https://huggingface.co/example/model/resolve/abcdef0123/onnx/model_q4.onnx', headers: {}, fromMirror: false });

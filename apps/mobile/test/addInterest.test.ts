@@ -1,4 +1,4 @@
-import { EMBEDDING_DIM, EMBEDDING_MODEL_ID, addInterestsInput, isModelVector } from '@grouper/core';
+import { EMBEDDING_DIM, EMBEDDING_MODEL_ID, addInterestsInput, isModelVector } from '@friendpod/core';
 import { act, renderHook } from '@testing-library/react-native';
 import { getEmbedder } from '@/features/interests/embedder';
 import { useAddInterest } from '@/features/interests/useAddInterest';

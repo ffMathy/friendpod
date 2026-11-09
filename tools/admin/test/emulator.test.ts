@@ -3,8 +3,8 @@
  * FIRESTORE_EMULATOR_HOST is not set, so `npm test` stays emulator-free. The task queue is a fake enqueuer.
  */
 import { randomUUID } from 'node:crypto';
-import { getLaunchArea, uidHash } from '@grouper/core';
-import { nodeHmacSha256 } from '@grouper/core/node';
+import { getLaunchArea, uidHash } from '@friendpod/core';
+import { nodeHmacSha256 } from '@friendpod/core/node';
 import { deleteApp, initializeApp, type App } from 'firebase-admin/app';
 import { getFirestore, Timestamp, type Firestore } from 'firebase-admin/firestore';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
@@ -14,7 +14,7 @@ import { createContext, type AdminContext, type EnqueueOutcome } from '../src/co
 import { serverReplayHandlers, type ReplayHandlers } from '../src/replay';
 
 const HOST = process.env.FIRESTORE_EMULATOR_HOST;
-const PROJECT = 'demo-grouper';
+const PROJECT = 'demo-friendpod';
 const NOW = Date.parse('2026-11-12T12:00:00Z'); // 2026-W46
 const RESTORED = 'restored';
 

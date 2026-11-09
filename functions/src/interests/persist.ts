@@ -22,7 +22,7 @@ import {
   type SensitiveHolding,
   type SensitiveInterestDoc,
   type SensitivitySource,
-} from '@grouper/core';
+} from '@friendpod/core';
 import { FieldValue, type DocumentReference, type DocumentSnapshot, type Firestore, type Timestamp, type Transaction } from 'firebase-admin/firestore';
 import { AppError } from '../lib/errors';
 import { COLLECTIONS, docs, ts, type DocOf } from '../lib/firestore';

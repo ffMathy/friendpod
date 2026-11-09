@@ -20,7 +20,7 @@ screen failed to render.
 | `preview:shoot -- <options>` | build (unless `--skip-build`), serve, shoot. Options: `--only a,b` or `--all`, `--out`, `--build-dir`, `--skip-build`, `--build-only`, `--locale en\|da`, `--color-scheme light\|dark`, `--storyboards <dir>` |
 | `preview:build -- --build-dir <dir>` | only the web export |
 | `preview:serve -- --build-dir <dir> [--port 8090]` | serve a build for a normal browser: `http://127.0.0.1:8090/pod/braetspilpodaarhus46?scenario=pod-scheduled&locale=da` |
-| `preview:check` | validates every scenario document against its `@grouper/core` schema, and `screens.json` (runs before every build) |
+| `preview:check` | validates every scenario document against its `@friendpod/core` schema, and `screens.json` (runs before every build) |
 | `preview:typecheck` | type-checks the harness with the app code |
 
 Use your own `--build-dir` and `--out` when several people or agents build at once. A build takes about 20 s with a

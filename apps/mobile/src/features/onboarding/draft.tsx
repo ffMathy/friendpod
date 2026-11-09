@@ -1,4 +1,4 @@
-import type { Gh5 } from '@grouper/core';
+import type { Gh5 } from '@friendpod/core';
 import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
 
 /**

@@ -1,11 +1,11 @@
 <p align="center">
-  <img src="marketing/out/social/hero-banner-en.png" alt="grouper. Small groups. Real meetups. There’s a seat saved for you." width="100%">
+  <img src="marketing/out/social/hero-banner-en.png" alt="friendpod. Small groups. Real meetups. There’s a seat saved for you." width="100%">
 </p>
 
 <h3 align="center">Small groups. Real meetups. &nbsp;·&nbsp; Små grupper. Rigtige møder.</h3>
 
 <p align="center">
-  Every Thursday, Grouper puts together a pod of 4–6 people near you who share something you care about.<br>
+  Every Thursday, Friendpod puts together a pod of 4–6 people near you who share something you care about.<br>
   Then you meet in person. Denmark first, in Danish and English, private by design.
 </p>
 

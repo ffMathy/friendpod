@@ -9,8 +9,8 @@
  * ban` exists only to refuse: `bans/{HMAC(email)}` is not written in the MVP (§8.2, PRIVACY.md §6: a ban needs a
  * human decision, and D2 removed human review).
  */
-import { uidHash, uidSchema } from '@grouper/core';
-import { nodeHmacSha256 } from '@grouper/core/node';
+import { uidHash, uidSchema } from '@friendpod/core';
+import { nodeHmacSha256 } from '@friendpod/core/node';
 import { Timestamp, type Firestore } from 'firebase-admin/firestore';
 import { UsageError } from './args';
 import { recorded } from './audit';
@@ -110,4 +110,4 @@ export function formatLift(uid: string, r: { outcome: LiftOutcome; previousUntil
 }
 
 export const BAN_REFUSAL =
-  'sanctions ban: refused. Grouper writes no bans in the MVP: a ban is permanent and needs a human decision, and there is no human review (F17/D2; DESIGN.md §8.2 `bans`, PRIVACY.md §6 step 5). Every sanction is automatic and expires on its own.';
+  'sanctions ban: refused. Friendpod writes no bans in the MVP: a ban is permanent and needs a human decision, and there is no human review (F17/D2; DESIGN.md §8.2 `bans`, PRIVACY.md §6 step 5). Every sanction is automatic and expires on its own.';

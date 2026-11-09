@@ -1,4 +1,4 @@
-import type { Place } from '@grouper/core';
+import type { Place } from '@friendpod/core';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Linking, StyleSheet, View } from 'react-native';

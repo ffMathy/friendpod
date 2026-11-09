@@ -1,9 +1,9 @@
 /**
  * Shared fixtures for scenarios: one small, consistent world that mirrors the storyboards (Aarhus C, the brætspil pod
  * with Mette, Jonas, Sofie and Ahmed, the viewer's interests). Names and places are placeholders: never real venues
- * or real people. Every document here must parse with its @grouper/core schema (`npm run preview:check`).
+ * or real people. Every document here must parse with its @friendpod/core schema (`npm run preview:check`).
  */
-import { AVAILABILITY, consentProofFor, fromLocal, googleMapsPlaceUrl, type Locale } from '@grouper/core';
+import { AVAILABILITY, consentProofFor, fromLocal, googleMapsPlaceUrl, type Locale } from '@friendpod/core';
 import { Timestamp } from '../runtime/timestamp';
 import type { DocData, PlaceFixture, PreviewUser } from '../runtime/types';
 
@@ -162,7 +162,7 @@ export const ABOUT_ME: Readonly<Record<Locale, string>> = {
 
 export function userDoc(o: ProfileOptions = {}): DocData {
   const art9At = o.art9At === undefined ? '2026-11-04 20:15' : o.art9At;
-  const proof = consentProofFor('art9-blanket-en-v1');
+  const proof = consentProofFor('art9-blanket-en-v2');
   return {
     firstName: VIEWER.firstName,
     locale: o.locale ?? 'en',
@@ -228,7 +228,7 @@ export function sensitiveInterestDocs(): Record<string, DocData> {
       selfFlagged: false,
       source: 'model',
       consentEventId: 'consentEventArt9Grant',
-      consentTextVersion: 'art9-blanket-en-v1',
+      consentTextVersion: 'art9-blanket-en-v2',
       consentedAt: ts('2026-11-04 20:15'),
       starred: false,
     },

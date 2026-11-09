@@ -1,6 +1,6 @@
-# @grouper/mobile
+# @friendpod/mobile
 
-The Grouper app: Expo SDK 58 (expo 58.0.23, React Native 0.88.1, New Architecture) with React Native
+The Friendpod app: Expo SDK 58 (expo 58.0.23, React Native 0.88.1, New Architecture) with React Native
 Firebase 27.1.0, expo-router and TanStack Query. Design: [DESIGN.md §11](../../docs/DESIGN.md), privacy:
 [PRIVACY.md §3, §5, §6](../../docs/PRIVACY.md).
 
@@ -8,7 +8,7 @@ RNFirebase does not run in Expo Go, so the app needs a **development build** (`e
 
 ## Commands
 
-Run `npm ci` at the repo root first (this is a root workspace; `@grouper/core` is consumed as source).
+Run `npm ci` at the repo root first (this is a root workspace; `@friendpod/core` is consumed as source).
 
 | Command (from `apps/mobile`) | What it does |
 |---|---|
@@ -25,7 +25,7 @@ Lint runs from the root (`npm run lint`).
 ## Environments
 
 `app.config.ts` reads `APP_ENV` (`development` default, `staging`, `production`) and sets the app name,
-bundle id / package (`dk.grouper.app[.dev|.staging]`, placeholders until the company domain is fixed),
+bundle id / package (`dk.friendpod.app[.dev|.staging]`, placeholders until the company domain is fixed),
 the email-link domain (`<projectId>.firebaseapp.com`, §11) in `ios.associatedDomains` and the Android
 App Link intent filter, the APNs and App Attest entitlement environments, and blocks unused Android
 permissions.
@@ -39,8 +39,8 @@ permissions.
 | `EXPO_PUBLIC_USE_EMULATORS=1` | `eas.json` development profile, or your shell | Connects Auth, Firestore, Functions and Storage to the Emulator Suite; refused outside development |
 | `EXPO_PUBLIC_EMULATOR_HOST` | your shell | Emulator host for a physical device (default `localhost`; Android emulators are remapped to 10.0.2.2) |
 | `EXPO_PUBLIC_APP_CHECK_DEBUG_TOKEN` | your shell | Optional pre-registered App Check debug token (development only) |
-| `MODEL_MIRROR_URL` | EAS env var or your shell (optional) | Build-time source for `npm run fetch-model` instead of Hugging Face, laid out like the model repo (`https://storage.googleapis.com/grouper-<env>-models/models/eg2-q4-daa72c5/`); required once a `mirror`-only file such as `prototypes.bin` is pinned |
-| `MODEL_MIRROR_TOKEN` | EAS **secret** env var, set right before each build, or your shell | OAuth access token for the private models bucket (DESIGN.md §8, §9), sent by `fetch-model` as `Authorization: Bearer` to the `MODEL_MIRROR_URL` origin only (no redirects followed). Mint it as the build service account, which has object read on that bucket only: `gcloud auth print-access-token --impersonate-service-account=sa-build@grouper-<env>.iam.gserviceaccount.com`. It expires after 1 hour, so set it with `eas env:create --name MODEL_MIRROR_TOKEN --visibility secret --force --environment <preview\|production> --value "$(…)"` immediately before `eas build` (or pass it in the shell to `eas build --local`). A 401/403 from the mirror fails the build and says whether the token was missing or refused |
+| `MODEL_MIRROR_URL` | EAS env var or your shell (optional) | Build-time source for `npm run fetch-model` instead of Hugging Face, laid out like the model repo (`https://storage.googleapis.com/friendpod-<env>-models/models/eg2-q4-daa72c5/`); required once a `mirror`-only file such as `prototypes.bin` is pinned |
+| `MODEL_MIRROR_TOKEN` | EAS **secret** env var, set right before each build, or your shell | OAuth access token for the private models bucket (DESIGN.md §8, §9), sent by `fetch-model` as `Authorization: Bearer` to the `MODEL_MIRROR_URL` origin only (no redirects followed). Mint it as the build service account, which has object read on that bucket only: `gcloud auth print-access-token --impersonate-service-account=sa-build@friendpod-<env>.iam.gserviceaccount.com`. It expires after 1 hour, so set it with `eas env:create --name MODEL_MIRROR_TOKEN --visibility secret --force --environment <preview\|production> --value "$(…)"` immediately before `eas build` (or pass it in the shell to `eas build --local`). A 401/403 from the mirror fails the build and says whether the token was missing or refused |
 | `HF_TOKEN` | EAS secret or your shell (optional) | Sent to huggingface.co by `fetch-model` (the repo is public; only for rate limits) |
 | `EXPO_PUBLIC_EMBEDDER=stub` | your shell | Deterministic fake vectors instead of the bundled model; lets a development prebuild go without `assets/model/` and makes `fetch-model` a no-op; refused outside development, always on in jest |
 | `EXPO_PUBLIC_PLACES_KEY` | EAS env var | Google Places (New) API key, restricted to the app ids and the Places API |
@@ -56,7 +56,7 @@ no FCM auto-init, so no push token exists before the user grants notifications.
 
 ```
 # repo root
-firebase emulators:start --project demo-grouper
+firebase emulators:start --project demo-friendpod
 # apps/mobile
 EXPO_PUBLIC_USE_EMULATORS=1 npm start
 ```
@@ -85,7 +85,7 @@ test/                jest tests
 ```
 
 Consent copy (the blanket Art. 9 consent, gender, standing notice, withdrawal) is rendered verbatim from
-`@grouper/core` legal texts; the client sends `{textVersion, textSha256, appVersion, checked: true}` (`appVersion` from `app.config.ts`, recorded on the consent event).
+`@friendpod/core` legal texts; the client sends `{textVersion, textSha256, appVersion, checked: true}` (`appVersion` from `app.config.ts`, recorded on the consent event).
 The blanket Art. 9 consent (D3) is its own onboarding step after `completeOnboarding` (`(onboarding)/sensitive-consent`)
 and can be given or withdrawn in Settings → Privacy. Without it, a tag that is sensitive for the holding is refused on
 the phone and never sent.
@@ -120,7 +120,7 @@ onBase, tintBorder). Which one a pod or interest gets comes from the **word show
 `floor(h × 6 / 2³²)`; the salt reproduces the storyboards: brætspil Tomat, sourdough Solsikke, far på barsel Fjord,
 trail running Blad, coffee Bær, hiking Blomme). The same word has the same colour everywhere, for everyone; interests
 use their own word (`interestColor`), a pod the theme word on the viewer's card (`podColorOf`, `cardColor`).
-Open-to-anyone pods (no theme word) use `"grouper:" + pod id`; private gets `null`. Accepted trade-off: members who
+Open-to-anyone pods (no theme word) use `"grouper:" + pod id`; private gets `null`. Both `grouper:` salts are historical, kept on purpose after the Friendpod rename. Accepted trade-off: members who
 see a theme in different wordings (or app languages) may see different colours. `usePodColors(color)` resolves the roles for the scheme (`field`, `onField`,
 `surface`, `surfaceBorder`, `name`, `icon`, `dot`, `dotRing`, `avatar`, …; `null` gives the quiet private set). On a
 pod's own screens another interest in the pod's colour is a plain chip (`colorOnPodScreen`).
@@ -146,7 +146,7 @@ outline, private, danger), `UnreadBadge`, `UnreadDot`, `StatusText` (quiet "Hasn
 pending dashed, open seat) and `AvatarStack`; pod pieces `HeroCard` + `PodTintBand` (pod colour, `null` private or
 `plain`; a wrapping pill row; the name steps down from Display L to fit), `PodBand`, `SeatRow`/`Seat`,
 `PosterField` + `PosterFoot` (+ `useFieldColors`), `TintDisc`, `OptionCard`; `PodMark` (dots, badge, poster; applies
-the sun rule) and `Logo` (lowercase "grouper" lockup); controls `Checkbox`, `Radio`, `Switch`, `ChoiceChip`, `Toggle`,
+the sun rule) and `Logo` (lowercase "friendpod" lockup); controls `Checkbox`, `Radio`, `Switch`, `ChoiceChip`, `Toggle`,
 `SegmentedControl`; `ProgressBar`, `ProgressSegments`. Every control keeps a 44 px touch target and its accessibility
 role and state; marks, seats and avatars are decorative.
 
@@ -232,7 +232,7 @@ through the typed callables (`src/firebase/callables.ts`, `useCallable`); nothin
 | Interests (remove, star, did-you-mean, keep private, not sensitive for me) | `InterestManager` | `addInterests`, `removeInterest`, `updateInterest`, `confirmSuggestion` |
 | Privacy: Art. 9 and gender consent, pause / skip, photo, export, blocked, notices, delete | `settings/privacy`, `settings/delete-account` | `setArt9Consent`, `withdrawArt9Consent`, `updateProfile`, `setParticipation`, `deletePhoto`, `exportData`, `deleteAccount`; `users/{uid}/exports` |
 | Photo upload, change and delete | `(onboarding)/photo`, Me → `PhotoCard` | Storage `uploads/{uid}/pending*.jpg` (`onPhotoUploaded`), `deletePhoto` |
-| Messages from Grouper (statements of reasons, report receipts, export ready) | `settings/notices`, `NoticeCard` | `users/{uid}/notices` |
+| Messages from Friendpod (statements of reasons, report receipts, export ready) | `settings/notices`, `NoticeCard` | `users/{uid}/notices` |
 | Push token and taps | `usePushTokenSync`, `useNotificationRouting` | `registerPushToken` |
 | Activity on app open | `useAppOpened` (start and foreground, at most every 6 h) | `appOpened` |
 

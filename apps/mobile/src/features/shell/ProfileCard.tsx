@@ -1,4 +1,4 @@
-import type { UserDoc } from '@grouper/core';
+import type { UserDoc } from '@friendpod/core';
 import { useTranslation } from 'react-i18next';
 import { Alert, StyleSheet, View } from 'react-native';
 import { usePalette } from '@/components/theme';

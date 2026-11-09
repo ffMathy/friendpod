@@ -43,7 +43,7 @@ for (const area of LAUNCH_AREAS) {
   }
 }
 
-/** The launch area containing a home cell, or null ("Grouper isn't in your area yet"). */
+/** The launch area containing a home cell, or null ("Friendpod isn't in your area yet"). */
 export function resolveLaunchArea(gh5: Gh5): LaunchArea | null {
   return areaByCell.get(gh5) ?? null;
 }

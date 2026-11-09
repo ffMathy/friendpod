@@ -20,7 +20,7 @@
  *
  * Pure TypeScript (no React Native): the backend or a script can use the same file.
  */
-import { normalizeTag } from '@grouper/core';
+import { normalizeTag } from '@friendpod/core';
 
 /** The six pod colours in index order (the order is the colour index, so never reorder it). */
 export const POD_COLORS = ['solsikke', 'blad', 'baer', 'tomat', 'fjord', 'blomme'] as const;
@@ -31,7 +31,9 @@ export type PodColor = (typeof POD_COLORS)[number];
 /** 0 Solsikke, 1 Blad, 2 Bær, 3 Tomat, 4 Fjord, 5 Blomme. */
 export type PodColorIndex = 0 | 1 | 2 | 3 | 4 | 5;
 
+// historical salt, kept on purpose after the Friendpod rename
 const PREFIX = 'grouper:';
+// historical salt, kept on purpose after the Friendpod rename
 /** The salt for words (see the header): reproduces the storyboards' colours. */
 const WORD_PREFIX = 'grouper:3410:';
 

@@ -1,5 +1,5 @@
 import { randomBytes } from 'node:crypto';
-import { CHAT_DELETE_AFTER_MS, CHAT_PUSH_THROTTLE_MS, CHAT_RATE_LIMIT_PER_HOUR, getLaunchArea, googleMapsPlaceUrl, type PodDoc } from '@grouper/core';
+import { CHAT_DELETE_AFTER_MS, CHAT_PUSH_THROTTLE_MS, CHAT_RATE_LIMIT_PER_HOUR, getLaunchArea, googleMapsPlaceUrl, type PodDoc } from '@friendpod/core';
 import { expect, it } from 'vitest';
 import { completeOnboarding } from '../../src/callables/completeOnboarding';
 import { CHAT_BUCKET, CHAT_PUSH_BUCKET, sendMessage } from '../../src/callables/sendMessage';

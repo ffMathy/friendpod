@@ -14,7 +14,7 @@ import {
   type Language,
   type MatchingProfile,
   type RadiusKm,
-} from '@grouper/core';
+} from '@friendpod/core';
 import { Rng, Zipf } from './rng';
 
 export interface CityOptions {

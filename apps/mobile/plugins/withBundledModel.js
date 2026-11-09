@@ -19,7 +19,7 @@ const path = require('node:path');
 const { IOSConfig, withAppBuildGradle, withDangerousMod, withXcodeProject } = require('expo/config-plugins');
 const { checkFolder, readPins, sourceDir } = require('./modelPins');
 
-const TAG = 'grouper-bundled-model';
+const TAG = 'friendpod-bundled-model';
 /** Matched as suffixes by AAPT: model_q4.onnx and model_q4.onnx_data. */
 const NO_COMPRESS = ['onnx', 'onnx_data'];
 

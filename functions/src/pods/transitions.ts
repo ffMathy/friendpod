@@ -35,7 +35,7 @@ import {
   type FeedbackAttendance,
   type PlanningRound,
   type WeekId,
-} from '@grouper/core';
+} from '@friendpod/core';
 import { blocksBetween, pairOf } from '../lib/blocks';
 import { COLLECTIONS, DAY_MS, docs, ts } from '../lib/firestore';
 import { applySanction } from '../lib/sanctions';

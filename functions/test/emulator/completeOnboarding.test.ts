@@ -1,4 +1,4 @@
-import { emailHash, encodeGeohash, getLaunchArea, identityHash, participationEffectiveWeek, resolveLaunchArea } from '@grouper/core';
+import { emailHash, encodeGeohash, getLaunchArea, identityHash, participationEffectiveWeek, resolveLaunchArea } from '@friendpod/core';
 import { describe, expect, it } from 'vitest';
 import { ageOn, completeOnboarding } from '../../src/callables/completeOnboarding';
 import { PATHS, UNDERAGE_MARKER_TTL_MS } from '../../src/lib/firestore';

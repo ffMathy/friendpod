@@ -12,7 +12,7 @@ import {
   type AssignThresholds,
   type NearestConcept,
   type Partition,
-} from '@grouper/core';
+} from '@friendpod/core';
 import type { DocumentData, Firestore } from 'firebase-admin/firestore';
 import { CONCEPT_SEARCH_LIMIT } from './config';
 import { dot } from './vectors';

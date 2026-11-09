@@ -1,4 +1,4 @@
-import type { AttendanceStatus } from '@grouper/core';
+import type { AttendanceStatus } from '@friendpod/core';
 import { useTranslation } from 'react-i18next';
 import { Alert, StyleSheet, View } from 'react-native';
 import { ErrorText, Note, StatusText } from '@/components/ui';

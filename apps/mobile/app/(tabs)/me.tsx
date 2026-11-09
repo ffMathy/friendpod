@@ -18,7 +18,7 @@ import { isUserSettingReason } from '@/lib/reasons';
  * Me (§11), a calm tab screen in direction E: Paper, white cards, list rows, Skov only on what you tap. The profile
  * (photo, name, area, the user's own attendance record), the user's interests as their pod-coloured chips (private
  * ones quiet, as a count with a lock), "About me" (D4), weekly drops, a note when a setting keeps the user out of pods,
- * and the way to preferences, privacy, messages from Grouper and settings (language, notifications, the legal
+ * and the way to preferences, privacy, messages from Friendpod and settings (language, notifications, the legal
  * documents, sign out), then the info pages. No storyboard draws it; the list cards follow priv-settings (whose "Me"
  * eyebrow points here) and the photo card onb-final.
  */

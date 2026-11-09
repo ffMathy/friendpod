@@ -2,7 +2,7 @@
  * Installs the selected scenario before any app module runs (imported first by boot.ts):
  * `?scenario=<id>&locale=da|en&platform=ios|android` in the URL, remembered for reloads in sessionStorage.
  */
-import { LOCALES, type Locale } from '@grouper/core';
+import { LOCALES, type Locale } from '@friendpod/core';
 import { DEFAULT_SCENARIO, SCENARIOS } from '../scenarios';
 import { installClock, parseNow } from './clock';
 import { installNetwork } from './network';
@@ -10,7 +10,7 @@ import { reportIssue, setPreviewState, type PreviewIssue } from './state';
 import { PreviewStore } from './store';
 import type { DocData, Scenario } from './types';
 
-const KEY = 'grouper.preview.params';
+const KEY = 'friendpod.preview.params';
 
 function readParams(): URLSearchParams {
   const fromUrl = new URLSearchParams(window.location.search);

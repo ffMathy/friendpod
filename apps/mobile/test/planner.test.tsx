@@ -1,4 +1,4 @@
-import { DAY_MS, googleMapsPlaceUrl, proposeOptionInput, toLocal, voteOptionInput } from '@grouper/core';
+import { DAY_MS, googleMapsPlaceUrl, proposeOptionInput, toLocal, voteOptionInput } from '@friendpod/core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { Linking } from 'react-native';

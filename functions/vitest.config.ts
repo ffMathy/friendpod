@@ -6,8 +6,8 @@ const core = (file: string): string => fileURLToPath(new URL(`../packages/core/s
 export default defineConfig({
   resolve: {
     alias: [
-      { find: /^@grouper\/core\/node$/, replacement: core('node.ts') },
-      { find: /^@grouper\/core$/, replacement: core('index.ts') },
+      { find: /^@friendpod\/core\/node$/, replacement: core('node.ts') },
+      { find: /^@friendpod\/core$/, replacement: core('index.ts') },
     ],
   },
   test: {

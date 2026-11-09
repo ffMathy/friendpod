@@ -12,7 +12,7 @@
       "year": "År",
       "dobHelp": "Vi tjekker, at du er fyldt 18, og gemmer derefter kun dit fødselsår, så vi kan matche dig med folk på din alder.",
       "dobInvalid": "Det er ikke en gyldig dato.",
-      "underage": "Grouper er kun for personer på 18 år og derover.",
+      "underage": "Friendpod er kun for personer på 18 år og derover.",
       "acceptTerms": "Jeg accepterer vilkårene",
       "legalLinks": "Læs <terms>vilkårene</terms>. Hvordan vi behandler dine data, kan du læse i <privacy>privatlivserklæringen</privacy>."
     },
@@ -31,10 +31,10 @@
       "storedNote": "Vi gemmer kun det her område – aldrig din adresse eller præcise placering. Ingen får nogensinde at se, hvor langt væk du bor.",
       "outsideHint": "Du kan stadig tilmelde dig. Vi giver besked, når vi åbner i nærheden af dig.",
       "attribution": "Postnummerdata: {{source}}",
-      "underage": "Grouper er kun for personer på 18 år og derover. Vi har slettet dit login og gemmer intet andet om dig."
+      "underage": "Friendpod er kun for personer på 18 år og derover. Vi har slettet dit login og gemmer intet andet om dig."
     },
     "heardFrom": {
-      "question": "Hvor hørte du om Grouper?",
+      "question": "Hvor hørte du om Friendpod?",
       "hint": "Vi tæller kun svarene pr. by og uge; svaret gemmes ikke på din profil.",
       "dadsGroup": "En fædre- eller forældregruppe",
       "newcomerEvent": "Et arrangement for nytilflyttere",
@@ -141,7 +141,7 @@
     "helper": "Vises for medlemmerne af en bekræftet pod. Bruges ikke til matchning.",
     "tooLong": "Højst {{max}} tegn.",
     "CONTACT_INFO": "Ingen kontaktoplysninger her: I har ikke mødt hinanden endnu. Del dem gerne, når I ses.",
-    "BLOCKLIST": "Teksten indeholder ord, der ikke er tilladt på Grouper.",
+    "BLOCKLIST": "Teksten indeholder ord, der ikke er tilladt på Friendpod.",
     "save": "Gem",
     "saved": "Gemt."
   },
@@ -156,8 +156,8 @@
     "shareTitle": "Hjælp {{city}} med at åbne hurtigere",
     "shareBody": "Kender du nogen, der gerne vil møde nye mennesker? Hver ny tilmelding bringer din første pod tættere på.",
     "share": "Del invitationslink",
-    "shareSheetTitle": "Grouper i {{city}}",
-    "shareMessage": "Grouper samler små grupper af folk tæt på dig om en fælles interesse. Skriv dig på ventelisten for {{city}}: {{link}}",
+    "shareSheetTitle": "Friendpod i {{city}}",
+    "shareMessage": "Friendpod samler små grupper af folk tæt på dig om en fælles interesse. Skriv dig på ventelisten for {{city}}: {{link}}",
     "copy": "Kopiér",
     "copyLink": "Kopiér invitationslink",
     "copied": "Kopieret",

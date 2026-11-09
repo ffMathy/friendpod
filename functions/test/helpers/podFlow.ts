@@ -1,5 +1,5 @@
 /** Pod set-ups through the real callables (respondToPod, proposeOption, voteOption), shared by the newer suites. */
-import { CALLABLES, dropSchedule, type CallableInput, type CallableName, type CallableOutput, type WeekId } from '@grouper/core';
+import { CALLABLES, dropSchedule, type CallableInput, type CallableName, type CallableOutput, type WeekId } from '@friendpod/core';
 import { expect } from 'vitest';
 import * as pods from '../../src/callables/pods';
 import type { CallContext } from '../../src/lib/handler';

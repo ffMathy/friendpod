@@ -1,4 +1,4 @@
-import type { CallableInput } from '@grouper/core';
+import type { CallableInput } from '@friendpod/core';
 import { useMutationState } from '@tanstack/react-query';
 
 /**

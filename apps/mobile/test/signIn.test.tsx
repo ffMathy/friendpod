@@ -132,7 +132,7 @@ describe('email link (F10)', () => {
     });
     expect(screen.getByLabelText('Email address')).toHaveDisplayValue('emil@example.com');
     expect(screen.getByRole('header', { name: 'Sign in with email' })).toBeOnTheScreen();
-    expect(screen.queryByRole('image', { name: 'Grouper' })).toBeNull();
+    expect(screen.queryByRole('image', { name: 'Friendpod' })).toBeNull();
     await fireEvent.press(screen.getByRole('button', { name: 'Back' }));
     expect(mockRouter.back).toHaveBeenCalled();
   });
@@ -159,7 +159,7 @@ describe('email link (F10)', () => {
 });
 
 describe('email link landing (§11)', () => {
-  const link = 'https://grouper.example/__/auth/action?mode=signIn&oobCode=abc';
+  const link = 'https://friendpod.example/__/auth/action?mode=signIn&oobCode=abc';
   afterEach(() => {
     mockParams = {};
     mockPhase = 'signedOut';
@@ -217,7 +217,7 @@ describe('email link landing (§11)', () => {
   });
 
   it('offers a new link for a link that is not a sign-in link at all', async () => {
-    mockParams = { link: 'https://grouper.example/__/auth/action?mode=signIn' };
+    mockParams = { link: 'https://friendpod.example/__/auth/action?mode=signIn' };
     mockPendingEmail.mockResolvedValueOnce('emil@example.com');
     await render(<CompleteEmailLink />);
     await act(async () => {

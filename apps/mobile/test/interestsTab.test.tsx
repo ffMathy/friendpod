@@ -1,4 +1,4 @@
-import { addInterestsInput } from '@grouper/core';
+import { addInterestsInput } from '@friendpod/core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen, within } from '@testing-library/react-native';
 import type * as ReactModule from 'react';
@@ -23,7 +23,7 @@ let mockSensitive: Row[] = [];
 let mockConsent = false;
 jest.mock('@/data/docs', () => ({
   useUserDoc: () =>
-    live({ area: { areaId: null }, legal: mockConsent ? { art9: { textVersion: 'art9-blanket-en-v1', textSha256: 'x', at: { toMillis: () => 0 } } } : {} }),
+    live({ area: { areaId: null }, legal: mockConsent ? { art9: { textVersion: 'art9-blanket-en-v2', textSha256: 'x', at: { toMillis: () => 0 } } } : {} }),
   useAreaDoc: () => live(null),
   useInterests: () => live(mockOrdinary),
   useSensitiveInterests: () => live(mockSensitive),

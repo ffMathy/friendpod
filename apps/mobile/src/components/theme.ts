@@ -520,7 +520,7 @@ export const TypeScale = {
   headlineCompact: { size: 22, line: 26, weight: '700', display: true, tracking: -0.015 },
   /** Pod name in rows and cards 18/22/800. */
   podName: { size: 18, line: 22, weight: '800', display: true, tracking: -0.015 },
-  /** The lowercase "grouper" next to the dot mark (welcome). */
+  /** The lowercase "friendpod" next to the dot mark (welcome). */
   wordmark: { size: 29, line: 29, weight: '800', display: true, tracking: -0.035 },
   /** Kept names, mapped to display roles: counter and theme = Display L; themeCompact = Display XL 40; display =
    * Display L (welcome headline); countdown = Display XL 48 ("Thursday 18:00"). */

@@ -1,4 +1,4 @@
-import { geohashCentroid, type Gh5, type Place } from '@grouper/core';
+import { geohashCentroid, type Gh5, type Place } from '@friendpod/core';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';

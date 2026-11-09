@@ -1,4 +1,4 @@
-# Grouper: privacy and GDPR design
+# Friendpod: privacy and GDPR design
 
 > **Not legal advice.** This is an engineering design meant to make the system compliant by construction. Items marked **[LAWYER]** need review by a Danish data protection lawyer before the private alpha (M1); the whole document should be read by that lawyer once.
 
@@ -30,7 +30,7 @@ Evidence tags are the same as in DESIGN.md:
 
 | Role | Party | Notes |
 |---|---|---|
-| Controller | Grouper, a Danish company (to be incorporated [A]) | Datatilsynet is the lead authority. **[LAWYER]** entity details |
+| Controller | Friendpod, a Danish company (to be incorporated [A]) | Datatilsynet is the lead authority. **[LAWYER]** entity details |
 | Privacy lead | A named founder or employee; not a formal DPO (§8) | Owns this document, the DPIA, the request inbox and breach handling |
 | Processor | Google (Firebase / Google Cloud) | Firestore, Functions, Storage, Cloud Tasks, Scheduler, Secret Manager, Logging, Auth, Hosting, FCM, App Check (§9) |
 | Processor | Google, for Google Maps Platform (Places API) **[LAWYER]** confirm the role | The meetup place picker: search text, session token and the device's IP address go from the app to Google (§9) |
@@ -61,7 +61,7 @@ Evidence tags are the same as in DESIGN.md:
 | P15 | Transactional push | FCM token, installation ID | 6(1)(b). No marketing pushes are planned |
 | P16 | Security and abuse prevention | App Check tokens, rate-limit counters, pseudonymised logs (`uidH`, no IP addresses: Cloud Run request logs are excluded, §5) | 6(1)(f) (Recital 49) |
 | P17 | Accountability records | Consent events, request records, erasure ledger | 6(1)(c) (Arts. 5(2), 7(1), 17) |
-| P18 | Service metrics, including the day-1 funnel (DESIGN F36) and "Where did you hear about Grouper?" (F37) | Aggregate counters per drop and launch area; any cell under 10 suppressed; no gender. **Funnel:** uid-free counters per launch area and ISO week in `funnel/{areaId}_{weekId}` for sign-up, onboarded, waitlisted, eligible for the first drop, first proposal, first confirmed pod, first meetup and second meetup, plus the optional "where did you hear" answer (one fixed choice, counted once, never stored on the user). To count each person once per stage, the server keeps per-user milestone timestamps on the server-only `matchProfiles/{uid}` (erased with the account). Exact counts are stored; the only reader (the admin CLI) shows any cell under 10 as "<10". No analytics SDK, no device identifiers, nothing in share links. Kept 24 months (TTL). The per-city waitlist counter `areas/{areaId}.waitlistCount` is an exact city total shown in the app ("<10" below 10), which reveals nothing about any one person | 6(1)(f) (knowing whether the service works in each city; balancing: aggregates only, small cells suppressed, no new data collected for it except the optional, unlinked source answer) |
+| P18 | Service metrics, including the day-1 funnel (DESIGN F36) and "Where did you hear about Friendpod?" (F37) | Aggregate counters per drop and launch area; any cell under 10 suppressed; no gender. **Funnel:** uid-free counters per launch area and ISO week in `funnel/{areaId}_{weekId}` for sign-up, onboarded, waitlisted, eligible for the first drop, first proposal, first confirmed pod, first meetup and second meetup, plus the optional "where did you hear" answer (one fixed choice, counted once, never stored on the user). To count each person once per stage, the server keeps per-user milestone timestamps on the server-only `matchProfiles/{uid}` (erased with the account). Exact counts are stored; the only reader (the admin CLI) shows any cell under 10 as "<10". No analytics SDK, no device identifiers, nothing in share links. Kept 24 months (TTL). The per-city waitlist counter `areas/{areaId}.waitlistCount` is an exact city total shown in the app ("<10" below 10), which reveals nothing about any one person | 6(1)(f) (knowing whether the service works in each city; balancing: aggregates only, small cells suppressed, no new data collected for it except the optional, unlinked source answer) |
 | P19 | Product improvement: weight tuning and classifier recalibration | `drops` aggregates and simulations. Recalibration uses only synthetic and founder-written sets (no review, so no reviewed real tags). Per-user outcome data only after a DPIA update | 6(1)(f), with a documented balancing test before M4 |
 | P20 | ~~Service emails~~ Removed: there is no email (DESIGN F39). The inactivity warning and Art. 34 notices go in-app and by push (P15, §5, §14) | — | — |
 | P21 | Meetup chat (D§3.6): short messages between current pod members from 24 h before until 24 h after each meetup, with moderation and generic pushes | Message text, author, time; in sensitive-themed pods often Art. 9 data (the theme, health details) | 6(1)(b); in sensitive-themed pods also **9(2)(a)**, under the blanket consent, which names the chat (§3.3). Art. 9 details in ordinary pods' chat or about other members: **[LAWYER]** (§17) |
@@ -98,13 +98,13 @@ Gender has its own consent (§3.6).
 
 ### 3.3 Consent screen: draft copy
 
-**English (`art9-blanket-en-v1`)**
+**English (`art9-blanket-en-v2`)**
 
 > **Sensitive interests**
 >
-> Some interests can reveal your health, religion or beliefs, sexual orientation or sex life, political opinions, ethnic origin or trade union membership, for example "pregnant", "Ramadan" or "queer book club". The law calls this special category data, so we need your explicit consent before we use interests like these. You can say no and still use Grouper with your other interests. We then just won't save interests like these.
+> Some interests can reveal your health, religion or beliefs, sexual orientation or sex life, political opinions, ethnic origin or trade union membership, for example "pregnant", "Ramadan" or "queer book club". The law calls this special category data, so we need your explicit consent before we use interests like these. You can say no and still use Friendpod with your other interests. We then just won't save interests like these.
 >
-> If you agree, Grouper does the following with your interests that may be sensitive, and with any you mark "Keep this private":
+> If you agree, Friendpod does the following with your interests that may be sensitive, and with any you mark "Keep this private":
 > - checks automatically, on your phone and before anything is sent, whether an interest may be sensitive;
 > - saves it privately on your account, apart from your other interests. It is never shown on any profile, and we never show it as a label, suggestion or explanation;
 > - uses it in automated matching to propose pods of 4–6 people near you who added the same interest and also consented;
@@ -118,17 +118,17 @@ Gender has its own consent (§3.6).
 >
 > You can withdraw your consent at any time in Settings → Privacy. We then delete all your sensitive interests at once and take you out of pods built around them. Your other interests are not affected.
 >
-> ☐ **I explicitly consent to Grouper processing interests that may reveal sensitive information about me, for the purposes above.**
+> ☐ **I explicitly consent to Friendpod processing interests that may reveal sensitive information about me, for the purposes above.**
 >
 > [I agree] (disabled until ticked) [Not now] · Read more about sensitive interests
 
-**Danish (`art9-blanket-da-v1`)**
+**Danish (`art9-blanket-da-v2`)**
 
 > **Følsomme interesser**
 >
-> Nogle interesser kan afsløre noget om dit helbred, din religion eller overbevisning, din seksuelle orientering eller dit seksualliv, dine politiske holdninger, din etniske oprindelse eller dit fagforeningsmedlemskab, fx »gravid«, »ramadan« eller »queer læseklub«. Det er særlige kategorier af personoplysninger, så vi skal have dit udtrykkelige samtykke, før vi bruger den slags interesser. Du kan sagtens sige nej og stadig bruge Grouper med dine andre interesser. Så gemmer vi bare ikke interesser som dem.
+> Nogle interesser kan afsløre noget om dit helbred, din religion eller overbevisning, din seksuelle orientering eller dit seksualliv, dine politiske holdninger, din etniske oprindelse eller dit fagforeningsmedlemskab, fx »gravid«, »ramadan« eller »queer læseklub«. Det er særlige kategorier af personoplysninger, så vi skal have dit udtrykkelige samtykke, før vi bruger den slags interesser. Du kan sagtens sige nej og stadig bruge Friendpod med dine andre interesser. Så gemmer vi bare ikke interesser som dem.
 >
-> Hvis du siger ja, gør Grouper følgende med dine interesser, der kan være følsomme, og med dem, du markerer med »Hold den privat«:
+> Hvis du siger ja, gør Friendpod følgende med dine interesser, der kan være følsomme, og med dem, du markerer med »Hold den privat«:
 > - tjekker automatisk på din telefon, før noget bliver sendt, om en interesse kan være følsom;
 > - gemmer den privat på din konto, adskilt fra dine andre interesser. Den vises aldrig på nogen profil, og vi viser den aldrig som etiket, forslag eller forklaring;
 > - bruger den til automatisk matchning, så vi kan foreslå pods med 4–6 personer i nærheden, som har tilføjet samme interesse og også har givet samtykke;
@@ -142,7 +142,7 @@ Gender has its own consent (§3.6).
 >
 > Du kan til enhver tid trække dit samtykke tilbage under Indstillinger → Privatliv. Så sletter vi straks alle dine følsomme interesser og tager dig ud af pods, der er bygget op om dem. Dine andre interesser påvirkes ikke.
 >
-> ☐ **Jeg giver udtrykkeligt samtykke til, at Grouper behandler interesser, der kan afsløre følsomme oplysninger om mig, til de formål, der er beskrevet ovenfor.**
+> ☐ **Jeg giver udtrykkeligt samtykke til, at Friendpod behandler interesser, der kan afsløre følsomme oplysninger om mig, til de formål, der er beskrevet ovenfor.**
 >
 > [Jeg siger ja] (inaktiv indtil afkrydset) [Ikke nu] · Læs mere om følsomme interesser
 
@@ -155,7 +155,7 @@ Gender has its own consent (§3.6).
 - the Danish copy, with a native speaker.
 
 ### 3.4 Recording consent
-- **Versioned texts.** The texts live in `packages/core/src/legal/consent-texts.ts` with ids `art9-blanket-en-v1` and `art9-blanket-da-v1`; `textSha256` is the SHA-256 of the canonical text, locked by a test together with this document (the copy in §3.3 must match the code character for character). Nothing has shipped, so the earlier per-tag texts were replaced, not versioned on.
+- **Versioned texts.** The texts live in `packages/core/src/legal/consent-texts.ts` with ids `art9-blanket-en-v2` and `art9-blanket-da-v2`; `textSha256` is the SHA-256 of the canonical text, locked by a test together with this document (the copy in §3.3 must match the code character for character). Nothing has shipped, so the earlier per-tag texts were replaced, not versioned on. The rename from Grouper to Friendpod (2026-11-09) moved every text that names the app from v1 to v2 (brand name only) and dropped v1 for the same reason.
 - **Server check.** On "I agree" the app calls `setArt9Consent` with `{textVersion, textSha256, appVersion, checked: true}`; the server accepts only a known `art9-blanket-*` pair (`isValidArt9ConsentProof`).
 - **One event.** A Function writes `consentEvents/{id}`: `{uid, scope: 'art9', action: 'grant', textVersion, textSha256, locale, appVersion, method: 'checkbox+button', createdAt}`, and `users.legal.art9 = {textVersion, textSha256, at}`. **No interest is named in any consent event:** every sensitive holding stores the `consentEventId` of that one grant, so the record proves what was shown and accepted without saying which interests or categories it was used for.
 - **Append-only except for minimisation.** Events are never edited, with one exception: on account deletion `uid` is replaced by `uidH`, with `redactedAt` set. What remains (scope, action, text version and hash, locale, app version, method, timestamps) proves that consent was asked and given or withdrawn. **[LAWYER]** Even `scope: 'art9'` linked to a person reveals that they agreed to sensitive interests (not that they hold any); confirm that 3 years is proportionate.
@@ -166,8 +166,8 @@ Gender has its own consent (§3.6).
   - "Remove" on each sensitive interest (`removeInterest`, the effects below for that holding only);
   - "Withdraw consent for sensitive interests" in Settings → Privacy (`withdrawArt9Consent`, every sensitive holding at once, then `users.legal.art9` is removed).
 - **Confirmation copy:**
-  - **EN:** "Withdraw your consent for sensitive interests? We'll delete all your sensitive interests now and take you out of pods built around them. Other members will only see that a member left. You can keep using Grouper with your other interests."
-  - **DA:** "Vil du trække dit samtykke til følsomme interesser tilbage? Vi sletter alle dine følsomme interesser nu og tager dig ud af pods, der er bygget op om dem. De andre medlemmer ser kun, at et medlem er gået. Du kan fortsat bruge Grouper med dine andre interesser."
+  - **EN:** "Withdraw your consent for sensitive interests? We'll delete all your sensitive interests now and take you out of pods built around them. Other members will only see that a member left. You can keep using Friendpod with your other interests."
+  - **DA:** "Vil du trække dit samtykke til følsomme interesser tilbage? Vi sletter alle dine følsomme interesser nu og tager dig ud af pods, der er bygget op om dem. De andre medlemmer ser kun, at et medlem er gået. Du kan fortsat bruge Friendpod med dine andre interesser."
 - **Effects, immediate** (`withdrawArt9Consent` for every sensitive holding, `removeInterest` for one; Art. 7(3) and 17(1)(b) mean processing stops now, not at the next drop). For `withdrawArt9Consent`, steps 6 and 7's consent records come **first**, in one transaction (the `withdraw` event, `users.legal.art9` removed, the ledger entry, the sensitive themes stripped from `matchProfiles`): release revalidation and the backfill check both, so no new sensitive invitation can arrive while steps 1–5 run; step 4 runs again at the end, idempotently:
   1. Delete the holding.
   2. Decrement the tag's count (`refCount`, or `privateAssign.refCount` for a self-flagged holding). At 0, delete the tag text and vector and subtract the vector from its concept.
@@ -182,8 +182,8 @@ Gender has its own consent (§3.6).
 
 ### 3.6 Gender (same-gender pods)
 - **Copy:**
-  - **EN:** "To give you same-gender pods we need to know your gender. We use it only to form same-gender pods, never show it on any profile or use it for statistics, and delete it when you turn the setting off. Note: if you are placed in a same-gender pod, its members will know that everyone in it shares your gender and chose same-gender pods." ☐ "I consent to Grouper using my gender to form same-gender pods."
-  - **DA:** "For at kunne give dig pods med samme køn skal vi kende dit køn. Vi bruger det kun til at danne pods med samme køn, viser det aldrig på nogen profil, bruger det ikke til statistik og sletter det, når du slår indstillingen fra. Bemærk: Hvis du kommer i en pod med samme køn, ved medlemmerne, at alle i poden har samme køn som dig og har valgt pods med samme køn." ☐ "Jeg giver samtykke til, at Grouper bruger mit køn til at danne pods med samme køn."
+  - **EN:** "To give you same-gender pods we need to know your gender. We use it only to form same-gender pods, never show it on any profile or use it for statistics, and delete it when you turn the setting off. Note: if you are placed in a same-gender pod, its members will know that everyone in it shares your gender and chose same-gender pods." ☐ "I consent to Friendpod using my gender to form same-gender pods."
+  - **DA:** "For at kunne give dig pods med samme køn skal vi kende dit køn. Vi bruger det kun til at danne pods med samme køn, viser det aldrig på nogen profil, bruger det ikke til statistik og sletter det, når du slår indstillingen fra. Bemærk: Hvis du kommer i en pod med samme køn, ved medlemmerne, at alle i poden har samme køn som dig og har valgt pods med samme køn." ☐ "Jeg giver samtykke til, at Friendpod bruger mit køn til at danne pods med samme køn."
 - **Options:** woman, man, non-binary. For non-binary users the sheet adds: "Same-gender pods for non-binary people may be rare in your area, and their members will know that everyone in the pod is non-binary." **DA:** »Pods med samme køn for ikke-binære personer kan være sjældne i dit område, og medlemmerne vil vide, at alle i poden er ikke-binære.« **[LAWYER]** native-speaker check. Wider options (e.g. "women and non-binary") are open question D§2.4 Q16.
 - **No second purpose:** gender is not used in fairness metrics or any aggregate (D§6.6). Fairness is monitored for the same-gender option as a group.
 - **Record:** a `consentEvents` entry with `scope: 'gender'`.
@@ -201,7 +201,7 @@ Gender has its own consent (§3.6).
 - **With the consent**, everything is sent, and the server's repeat of the check rests on 9(2)(a).
 
 **What remains.**
-1. **Device-side processing.** Running the check on the user's own phone, with nothing transmitted, is probably not processing by Grouper as controller of the result **[A, LAWYER]**. The app computes it because the user pressed "Add"; the result is used only to decide whether to send.
+1. **Device-side processing.** Running the check on the user's own phone, with nothing transmitted, is probably not processing by Friendpod as controller of the result **[A, LAWYER]**. The app computes it because the user pressed "Add"; the result is used only to decide whether to send.
 2. **Disagreement between phone and server.** The server no longer has its own check (DESIGN F38). It can still refuse a non-consenting user's tag in one case: the text is already stored as sensitive, or another user's phone flagged it more strongly, so the higher stored margin decides. Then it refuses with `ART9_CONSENT_REQUIRED` and persists, caches and logs nothing (memory only, EU, tested). That is a narrow, rare, fail-closed case.
 3. **Detector misses** (R4): a sensitive tag the phone's model misses is stored as ordinary. Nothing else catches it.
 
@@ -306,8 +306,8 @@ Many dating and community apps ask once for consent to sensitive profile data. T
 | Meetup-chat messages | `pods/{id}/messages` | `meetupAt` + 72 h; TTL deletes usually within a further 24 h, so the notice says "about 3 days after the meetup". The writer's messages go at once at erasure, and at withdrawal in pods on that theme | TTL (`expiresAt`), `purgeUser`, `withdrawArt9Consent` |
 | Feedback | `podFeedback` | With the pod, at most until the next Keep round starts (then deleted); only counters remain. Entries about an erased user are deleted at erasure | — |
 | Meet-again pair signals | `pairSignals/{pairKey}` (HMAC pair key; the two `uidH`s, their answers, the meetup week) | Until both outcomes are applied to `recentH`, at the latest when either account is erased [A: TTL 30 days after feedback closes] | `submitFeedback`, `hourlySweeper`, `purgeUser` |
-| Drop input and result snapshots | GCS `grouper-<env>-drops` (EU) | Deleted after release; lifecycle 2 days | `releaseDrop`, lifecycle |
-| Concept snapshots (int8 vectors) | GCS `grouper-<env>-snapshots` (EU) | 14 days | Lifecycle |
+| Drop input and result snapshots | GCS `friendpod-<env>-drops` (EU) | Deleted after release; lifecycle 2 days | `releaseDrop`, lifecycle |
+| Concept snapshots (int8 vectors) | GCS `friendpod-<env>-snapshots` (EU) | 14 days | Lifecycle |
 | Pair history (HMAC) | `matchProfiles.recentH` | 26 weeks [MAT]; 4 weeks after a mutual meet-again "yes"; a meet-again "no" (never again) until either account is erased | Pruned at the weekly `lastDrop` write; profiles not written in a drop are pruned daily (`recentMinUntil`); erasure removes the erased user's `uidH` from every profile |
 | No-show events | `matchProfiles.noShowEvents` | Last 8, at most 26 weeks | Pruned when written |
 | Blocks | `blocks`, `users/{uid}/blocks` | While both accounts exist | Cascade |
@@ -366,7 +366,7 @@ Responses within one month, extendable by two (Art. 12(3)) [GDPR]. Requests from
 - meetup-chat messages the user wrote that still exist (text, pod ID, time). Other members' messages are not included;
 - **derived matching data:** the reliability score and the counters and dated no-show events behind it, `declinesInRow`, `ignoredInRow`, `waitingSinceWeek`, active pod counts, sensitive-theme eligibility and any hold, weekly drop outcomes with unmatched reason codes, and the number of pair-history entries (not who they are, and not whether another member answered "no" about them);
 - blocks the user made (with the first name they saw) and reports the user filed;
-- **reports about the user:** category, date, status and decision, and for a reported meetup-chat message the copy Grouper keeps of it (text, date), which is the user's own message and outlives its TTL; the reporter's identity and the report text are withheld (Art. 15(4); databeskyttelsesloven § 22 for text that could identify the reporter **[LAWYER]**); sanctions and automated pauses with their statements of reasons;
+- **reports about the user:** category, date, status and decision, and for a reported meetup-chat message the copy Friendpod keeps of it (text, date), which is the user's own message and outlives its TTL; the reporter's identity and the report text are withheld (Art. 15(4); databeskyttelsesloven § 22 for text that could identify the reporter **[LAWYER]**); sanctions and automated pauses with their statements of reasons;
 - notices.
 
 It never contains who reported the user, other members' private feedback (their meet-again answers, including a "no" that now keeps the pair apart, and ratings), or other users' interests, names or messages. **[LAWYER]** Confirm that withholding individual meet-again answers and the report text is justified, and document the restriction.
@@ -394,7 +394,7 @@ Residual windows disclosed in the notice: up to 7 days of Firestore backups and 
 ## 7. DPIA
 
 ### 7.1 Screening conclusion: a DPIA is mandatory
-Grouper meets 5 of the 8 items on Datatilsynet's Art. 35(4) list [GDPR]:
+Friendpod meets 5 of the 8 items on Datatilsynet's Art. 35(4) list [GDPR]:
 
 | Item | Why it applies |
 |---|---|
@@ -583,7 +583,7 @@ The order covers storing and reading information on the device in apps. Digitali
 ---
 
 ## 13. DSA notes
-- **Classification.** Pods are closed groups of 4–6 pre-determined people with no public profiles, so Grouper is most likely a **hosting service**, not an online platform [GDPR]. Meetup-chat messages are hosted content shared only within such a closed group, so they do not change this [A]. Adding public features (open events or groups) requires re-assessment.
+- **Classification.** Pods are closed groups of 4–6 pre-determined people with no public profiles, so Friendpod is most likely a **hosting service**, not an online platform [GDPR]. Meetup-chat messages are hosted content shared only within such a closed group, so they do not change this [A]. Adding public features (open events or groups) requires re-assessment.
 - **Applicable duties:**
 
   | Article | Duty |
@@ -594,7 +594,7 @@ The order covers storing and reading information on the device in apps. Digitali
   | Art. 17 | **Still automatic, unchanged by D2:** a statement of reasons for every rejected tag, "about me" or chat message, refused sensitive tag without consent, pause or suspension: the facts, that it was automated, the ground, its end date, and the support address. For input-time rejections the device renders it from the reason code and nothing is stored. The contact-info warning before a meetup is not a restriction: the writer can still send. Persisted notices hold a reason code and non-textual params only |
   | Art. 18 | Notifying the police of threats to life or safety once we become aware of them. With no one reading reports (D2), we may never become aware; safety reports show "call 112" in the app **[LAWYER]** |
 
-- **Exemption.** As a micro or small enterprise, Grouper is exempt from Art. 15 reports [GDPR]. Art. 20 (internal complaint handling) applies to online platforms, not to hosting services.
+- **Exemption.** As a micro or small enterprise, Friendpod is exempt from Art. 15 reports [GDPR]. Art. 20 (internal complaint handling) applies to online platforms, not to hosting services.
 - **What D2 (no human review) loses, stated honestly** (also on "How matching works"):
   - nobody reads reports, report text or the copied chat messages; reports only trigger fixed automatic rules;
   - no permanent sanctions: harassers, fake accounts and suspected minors are paused or held for a fixed time (28 days; no-shows 2 or 8 weeks) and the pause repeats only on new reports; a confirmed minor is never deleted by us, and no ban hash exists;

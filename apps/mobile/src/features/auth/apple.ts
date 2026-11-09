@@ -21,7 +21,7 @@ async function requestApple(): Promise<AppleResult> {
   const rawNonce = Crypto.randomUUID();
   const hashedNonce = await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, rawNonce);
   try {
-    // No scopes: Grouper never asks Apple for the name or email (§11 Auth).
+    // No scopes: Friendpod never asks Apple for the name or email (§11 Auth).
     const credential = await AppleAuthentication.signInAsync({ requestedScopes: [], nonce: hashedNonce });
     if (!credential.identityToken) throw new Error('Apple returned no identity token');
     return { identityToken: credential.identityToken, rawNonce, authorizationCode: credential.authorizationCode };

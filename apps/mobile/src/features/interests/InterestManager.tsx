@@ -1,4 +1,4 @@
-import { currentLegalText, type Locale, type ModerationReason } from '@grouper/core';
+import { currentLegalText, type Locale, type ModerationReason } from '@friendpod/core';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';

@@ -1,8 +1,8 @@
-# Grouper: development
+# Friendpod: development
 
 The technical guide to this repository (moved here from the root README, which now shows the product).
 
-Grouper ("Pods") is friendship dating for groups in Denmark. People describe themselves with free-form interests in
+Friendpod ("Pods") is friendship dating for groups in Denmark. People describe themselves with free-form interests in
 their own words ("madlavning", "on paternity leave", "Fortnite"); every Thursday a weekly **drop** forms local pods of
 4–6 strangers who share one of them, embedded on the phone with a pinned EmbeddingGemma model so different wordings
 meet.
@@ -17,7 +17,7 @@ server function is built and tested; what is still open is listed in [What is st
 
 | Path | What | Kind |
 |---|---|---|
-| `packages/core/` | Shared domain logic consumed as TypeScript source: zod schemas, interest normalization, blocklist and PII patterns, geo, time, ids, consent texts, the pure matcher, app error codes. `@grouper/core/node` adds server-only helpers (HMAC, log-safe parsing) | workspace |
+| `packages/core/` | Shared domain logic consumed as TypeScript source: zod schemas, interest normalization, blocklist and PII patterns, geo, time, ids, consent texts, the pure matcher, app error codes. `@friendpod/core/node` adds server-only helpers (HMAC, log-safe parsing) | workspace |
 | `apps/mobile/` | Expo SDK 58 app with React Native Firebase 27 and expo-router (§11); development builds only | workspace |
 | `functions/` | The one Functions codebase, `default`: callables (`addInterests` included), scheduled, task and event functions (§10.1, §10.3) | standalone npm project |
 | `tests/rules/` | Firestore and Storage security-rules tests and the index validator (§9, §13) | standalone npm project |
@@ -31,7 +31,7 @@ server function is built and tested; what is still open is listed in [What is st
 
 The root is an npm workspace for `apps/*`, `packages/*` and `tools/*`. `functions/` and `tests/rules/` each have their
 own `package-lock.json` (DESIGN.md §14; `tests/rules` deliberately so, unlike the §14 sketch). `functions/` imports
-`@grouper/core` through a tsconfig `paths` alias and esbuild bundles it into `dist/index.js`; core's own dependencies
+`@friendpod/core` through a tsconfig `paths` alias and esbuild bundles it into `dist/index.js`; core's own dependencies
 (zod) resolve from the root `node_modules`, so **install the root first**.
 
 **Embedding happens on the phone (D1).** The app runs the pinned EmbeddingGemma 2 q4 (onnxruntime-react-native, CPU)
@@ -53,20 +53,20 @@ shared by app and server. The former `services/embedder` codebase is retired.
 ### Install (the CI sequence)
 
 ```sh
-npm ci                                  # root workspace, also provides @grouper/core's dependencies
+npm ci                                  # root workspace, also provides @friendpod/core's dependencies
 npm ci --prefix functions
 npm ci --prefix tests/rules
 ```
 
 ### Run the emulators
 
-Emulators always run as the demo project `demo-grouper`, which needs no credentials and cannot reach real services.
+Emulators always run as the demo project `demo-friendpod`, which needs no credentials and cannot reach real services.
 Ports come from `firebase.json`: auth 9099, firestore 8080, functions 5001, storage 9199, tasks 9499, hub 4400,
 logging 4500, UI 4000.
 
 ```sh
 npm run build:functions   # the Functions emulator loads functions/dist/index.js
-npm run emulators         # firebase emulators:start --project demo-grouper
+npm run emulators         # firebase emulators:start --project demo-friendpod
 ```
 
 - **Secrets.** The callables need `UID_HMAC_KEY` and `POD_ID_KEY`, each base64 of at least 32 random bytes. For the
@@ -92,7 +92,7 @@ EXPO_PUBLIC_USE_EMULATORS=1 npm start
 
 `EXPO_PUBLIC_USE_EMULATORS=1` connects Auth, Firestore, Functions and Storage to the ports above and is refused
 outside `APP_ENV=development`. On a physical device set `EXPO_PUBLIC_EMULATOR_HOST` to your machine's address. The
-development build uses the committed `demo-grouper` placeholder Firebase files and the App Check debug provider; the
+development build uses the committed `demo-friendpod` placeholder Firebase files and the App Check debug provider; the
 Auth emulator prints email sign-in links instead of sending them. See [apps/mobile/README.md](../apps/mobile/README.md).
 
 ### Run the tests
@@ -141,10 +141,10 @@ before every native build (local or EAS); see [apps/mobile/README.md](../apps/mo
 
 ## Firebase configuration
 
-- **Projects.** `.firebaserc` has the aliases `staging` (`grouper-staging`) and `prod` (`grouper-prod`), and
+- **Projects.** `.firebaserc` has the aliases `staging` (`friendpod-staging`) and `prod` (`friendpod-prod`), and
   `default` points at staging, so a command without `--project` targets staging, not production. Deploys always
   name the alias (`firebase deploy -P staging …`, as `.github/workflows/deploy.yml` does).
-- **Emulators** always run with `--project demo-grouper`; with `singleProjectMode` they warn about requests for any
+- **Emulators** always run with `--project demo-friendpod`; with `singleProjectMode` they warn about requests for any
   other project id.
 - **Region.** `firebase.json` pins the `(default)` database to `europe-west1`, Standard edition: if the database
   does not exist yet, `firebase deploy --only firestore` creates it, in `nam5` (US) unless a location is set.

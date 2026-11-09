@@ -1,4 +1,4 @@
-import { dropSchedule, nextDropWeek, parseWeekId, type UserDoc } from '@grouper/core';
+import { dropSchedule, nextDropWeek, parseWeekId, type UserDoc } from '@friendpod/core';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';

@@ -1,4 +1,4 @@
-import { AVAILABILITY, MAX_AGE, MIN_AGE, completeOnboardingInput, postcodeToGh5, type Prefs } from '@grouper/core';
+import { AVAILABILITY, MAX_AGE, MIN_AGE, completeOnboardingInput, postcodeToGh5, type Prefs } from '@friendpod/core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { useEffect, type ReactElement } from 'react';
@@ -154,7 +154,7 @@ describe('onboarding step 1, About you', () => {
     await fireEvent.changeText(screen.getByTestId('first-name'), 'Ea');
     await fireEvent.changeText(screen.getByTestId('dob-day'), '1');
     await fireEvent.changeText(screen.getByTestId('dob-year'), String(new Date().getFullYear() - 10));
-    expect(screen.getByText('Grouper is only for people aged 18 and over.')).toBeOnTheScreen();
+    expect(screen.getByText('Friendpod is only for people aged 18 and over.')).toBeOnTheScreen();
     expect(screen.getByTestId('about-continue')).toBeEnabled();
   });
 
@@ -214,7 +214,7 @@ describe('onboarding step 2, Where do you live?', () => {
     expect(mockRouter.replace).toHaveBeenCalledWith('/sensitive-consent');
   });
 
-  it('the area card says whether Grouper runs there: live, opening soon, or not open', async () => {
+  it('the area card says whether Friendpod runs there: live, opening soon, or not open', async () => {
     const view = await renderStep(<AreaCard name="Aarhus C" area={{ label: 'Aarhus', status: 'live' }} />);
     expect(screen.getByText('Aarhus is live')).toBeOnTheScreen();
     await view.rerender(<AreaCard name="Aarhus C" area={{ label: 'Aarhus', status: 'waitlist' }} />);

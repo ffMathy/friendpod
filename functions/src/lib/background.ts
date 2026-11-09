@@ -3,7 +3,7 @@
  * are never logged (task payloads carry uids). Failures are rethrown so the platform's retry policy applies,
  * except invalid task payloads, which a retry cannot fix.
  */
-import { parseSafely, type Schema } from '@grouper/core/node';
+import { parseSafely, type Schema } from '@friendpod/core/node';
 import { HttpsError } from 'firebase-functions/https';
 import { AppError } from './errors';
 import { errorFields, type Log, type LogFields } from './log';

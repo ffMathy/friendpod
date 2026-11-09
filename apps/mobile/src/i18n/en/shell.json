@@ -55,7 +55,7 @@
       "exportRequested": "We're preparing your file and will let you know when it's ready.",
       "sensitiveTitle": "Sensitive interests",
       "withdrawSensitive": "Withdraw consent for sensitive interests",
-      "exportFileTitle": "Your Grouper data",
+      "exportFileTitle": "Your Friendpod data",
       "exportDownload": "Download the file",
       "exportDownloadFailed": "The download didn't work. Try again.",
       "exportPending": "We're preparing your file.",
@@ -65,7 +65,7 @@
     },
     "delete": {
       "title": "Delete account",
-      "done": "Your account has been deleted. Thanks for trying Grouper."
+      "done": "Your account has been deleted. Thanks for trying Friendpod."
     },
     "blocked": {
       "title": "Blocked people",
@@ -90,7 +90,7 @@
         "drop": "Your weekly drop is here",
         "pod": "Your pod is confirmed or changes, or your meetup is coming up",
         "message": "There's a new message in your pod's chat",
-        "notice": "There's a message from Grouper about your account"
+        "notice": "There's a message from Friendpod about your account"
       },
       "neverTitle": "What a notification never says",
       "never": "Who is in a pod, what it's about, your interests or what anyone wrote."
@@ -114,14 +114,14 @@
       },
       "licences": {
         "title": "Licences",
-        "body": "Grouper is built with open data and open-source software. Thank you to the people behind them."
+        "body": "Friendpod is built with open data and open-source software. Thank you to the people behind them."
       }
     },
     "howMatchingWorks": {
       "title": "How matching works",
       "notUsed": "Photos, your “About me”, or anything we infer about you. We use your gender only if you have turned on “Same-gender pods only”.",
       "sensitive": "Private interests are only used if you have agreed to sensitive interests, only as the theme of a pod whose members all added them, and only after your account is 14 days old and you have attended a meetup.",
-      "pauses": "Some pauses happen automatically, by fixed rules. Each comes with an explanation in Messages from Grouper and ends by itself.",
+      "pauses": "Some pauses happen automatically, by fixed rules. Each comes with an explanation in Messages from Friendpod and ends by itself.",
       "humanReview": "You can still use your data protection rights by contacting our privacy team (see the privacy notice).",
       "pause": "You can pause matching at any time.",
       "pausesTitle": "Automatic pauses",
@@ -194,16 +194,16 @@
     "legalHideLicenceFor": "Hide the licence for {{name}}"
   },
   "notices": {
-    "title": "Messages from Grouper",
-    "none": "No messages from Grouper.",
-    "unknown": "You have a message from Grouper. Update the app to read it.",
+    "title": "Messages from Friendpod",
+    "none": "No messages from Friendpod.",
+    "unknown": "You have a message from Friendpod. Update the app to read it.",
     "automated": "This was decided automatically; no person reviewed it. The pause ends on its own.",
     "contact": "Questions? Write to {{email}}.",
     "exportGone": "This file is no longer available. You can ask for a new one in Settings → Privacy.",
     "codes": {
       "PAUSE_REPORTS": "You are paused from drops until {{until}} because two members reported you within 30 days.",
       "PAUSE_SAFETY_REPORT": "You are paused from drops until {{until}} because a member made a safety report.",
-      "PAUSE_UNDERAGE_REPORT": "You are paused from drops until {{until}} because a member reported that you may be under 18. Grouper is for adults only.",
+      "PAUSE_UNDERAGE_REPORT": "You are paused from drops until {{until}} because a member reported that you may be under 18. Friendpod is for adults only.",
       "PAUSE_NO_SHOW": "You are paused from drops until {{until}} because you missed meetups without cancelling. When you're back, we'll ask you to commit to showing up.",
       "SUSPENSION_NO_SHOW": "You are suspended from drops until {{until}} because you missed several meetups without cancelling.",
       "SENSITIVE_HOLD_NOT_GENUINE": "Until {{until}} you won't get pods about private interests, because a member reported that you didn't seem to share the pod's interest.",
@@ -211,7 +211,7 @@
       "REPORT_RECEIVED": "We've received your report. The person you reported won't find out who reported them.",
       "POD_MEMBER_LEFT": "A member left one of your pods.",
       "EXPORT_READY": "Your data is ready to download. The file is deleted within 48 hours.",
-      "INACTIVITY_WARNING": "You haven't used Grouper for a year. Open the app before {{deleteAfter}} to keep your account; otherwise we delete it."
+      "INACTIVITY_WARNING": "You haven't used Friendpod for a year. Open the app before {{deleteAfter}} to keep your account; otherwise we delete it."
     },
     "lede": "Pauses, report receipts and other news about your account. Each message is kept for a year.",
     "noneBody": "If we pause matching, receive your report or have your data ready, you'll find it here.",
@@ -225,10 +225,10 @@
       "SANCTION_ENDED": "Welcome back",
       "REPORT_RECEIVED": "Thanks for your report",
       "POD_MEMBER_LEFT": "Your pod changed",
-      "EXPORT_READY": "Your Grouper data",
+      "EXPORT_READY": "Your Friendpod data",
       "INACTIVITY_WARNING": "Keep your account?"
     },
-    "unknownTitle": "Message from Grouper"
+    "unknownTitle": "Message from Friendpod"
   },
   "blockingSetting": {
     "RADIUS": "Your distance is short for your area. Going a little further would help.",
@@ -243,10 +243,10 @@
     "VALIDATION": "Something in your input isn't valid.",
     "URL": "That link isn't allowed.",
     "CONTACT_INFO": "Contact details aren't allowed here.",
-    "BLOCKLIST": "This contains words that aren't allowed on Grouper, so it wasn't saved.",
-    "PII_CPR": "This looks like a CPR number, so it wasn't saved. Never share CPR numbers on Grouper.",
+    "BLOCKLIST": "This contains words that aren't allowed on Friendpod, so it wasn't saved.",
+    "PII_CPR": "This looks like a CPR number, so it wasn't saved. Never share CPR numbers on Friendpod.",
     "CONTACT_INFO_BEFORE_MEETUP": "You haven't met yet. It's fine to wait until after.",
-    "UNDERAGE": "Grouper is only for people aged 18 and over.",
+    "UNDERAGE": "Friendpod is only for people aged 18 and over.",
     "GENDER_CONSENT": "Same-gender pods need your consent.",
     "STAR_LIMIT": "You can star up to 3 interests.",
     "DEADLINE": "The deadline has passed.",

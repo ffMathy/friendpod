@@ -1,4 +1,4 @@
-import { APP_ERRORS, MODERATION_REASONS, UNMATCHED_REASONS } from '@grouper/core';
+import { APP_ERRORS, MODERATION_REASONS, UNMATCHED_REASONS } from '@friendpod/core';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { AREAS, areaFiles, da, en } from '@/i18n/resources';

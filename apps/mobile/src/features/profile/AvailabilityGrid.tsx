@@ -1,4 +1,4 @@
-import { AVAILABILITY } from '@grouper/core';
+import { AVAILABILITY } from '@friendpod/core';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { BorderWidth, Radius, usePalette } from '@/components/theme';

@@ -2,7 +2,7 @@ import type { DecodedAppCheckToken } from 'firebase-admin/app-check';
 import type { DecodedIdToken } from 'firebase-admin/auth';
 import type { CallableRequestLike } from '../../src/lib/handler';
 
-export const PROJECT_ID = process.env.GCLOUD_PROJECT ?? 'demo-grouper';
+export const PROJECT_ID = process.env.GCLOUD_PROJECT ?? 'demo-friendpod';
 
 export function idToken(uid: string, nowMs: number, claims: Record<string, unknown> = {}): DecodedIdToken {
   const nowS = Math.floor(nowMs / 1000);

@@ -1,4 +1,4 @@
-import { DROP_TIME_ZONE, type Locale } from '@grouper/core';
+import { DROP_TIME_ZONE, type Locale } from '@friendpod/core';
 
 const LOCALE_TAG: Record<Locale, string> = { da: 'da-DK', en: 'en-GB' };
 

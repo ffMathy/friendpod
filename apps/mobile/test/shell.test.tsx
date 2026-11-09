@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { nextDropWeek, type Prefs } from '@grouper/core';
+import { nextDropWeek, type Prefs } from '@friendpod/core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import i18next from 'i18next';
@@ -218,7 +218,7 @@ describe('Me', () => {
     expect(screen.getByText('Language, notifications, legal, sign out')).toBeOnTheScreen();
     await fireEvent.press(screen.getByRole('link', { name: /Pod preferences/ }));
     await fireEvent.press(screen.getByRole('link', { name: /^Privacy/ }));
-    await fireEvent.press(screen.getByRole('link', { name: /Messages from Grouper/ }));
+    await fireEvent.press(screen.getByRole('link', { name: /Messages from Friendpod/ }));
     await fireEvent.press(screen.getByRole('link', { name: /^Settings/ }));
     await fireEvent.press(screen.getByRole('link', { name: 'How matching works' }));
     await fireEvent.press(screen.getByRole('link', { name: 'Meeting safely' }));
@@ -335,9 +335,9 @@ describe('Settings', () => {
     expect(mockRouter.push).toHaveBeenCalledWith('/settings/notifications');
     expect(mockRouter.push).toHaveBeenCalledWith('/settings/privacy');
     expect(mockRouter.push).toHaveBeenCalledWith({ pathname: '/info/legal/[doc]', params: { doc: 'terms' } });
-    // Pod preferences and messages from Grouper are on Me, blocked people under Privacy: not repeated here.
+    // Pod preferences and messages from Friendpod are on Me, blocked people under Privacy: not repeated here.
     expect(screen.queryByRole('link', { name: /Pod preferences/ })).toBeNull();
-    expect(screen.queryByRole('link', { name: /Messages from Grouper/ })).toBeNull();
+    expect(screen.queryByRole('link', { name: /Messages from Friendpod/ })).toBeNull();
     expect(screen.queryByRole('link', { name: /Blocked people/ })).toBeNull();
     await fireEvent.press(screen.getByRole('button', { name: 'Sign out' }));
     expect(mockSignOut).toHaveBeenCalled();

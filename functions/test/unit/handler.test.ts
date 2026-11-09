@@ -1,10 +1,10 @@
-import { uidHash } from '@grouper/core';
+import { uidHash } from '@friendpod/core';
 import { HttpsError } from 'firebase-functions/https';
 import { describe, expect, it } from 'vitest';
 import { AppError, notImplemented } from '../../src/lib/errors';
 import { RECENT_LOGIN_MS, assertRecentLogin, runCallable, type CallableImpl, type HandlerDeps } from '../../src/lib/handler';
 import { log } from '../../src/lib/log';
-import { declaredKeys } from '@grouper/core/node';
+import { declaredKeys } from '@friendpod/core/node';
 import { capturedEntries, forbidInLogs } from '../helpers/logCapture';
 import { testUidHmac } from '../helpers/keys';
 import { appCheck, request } from '../helpers/requests';
@@ -158,7 +158,7 @@ describe('runCallable: validation and error mapping', () => {
 
 describe('declaredKeys', () => {
   it('collects property names through optional, refined, piped and nested schemas', async () => {
-    const { CALLABLES } = await import('@grouper/core');
+    const { CALLABLES } = await import('@friendpod/core');
     const keys = declaredKeys(CALLABLES.submitFeedback.input);
     for (const k of ['podId', 'notThere', 'meetAgain', 'keep']) expect(keys.has(k)).toBe(true);
     const profile = declaredKeys(CALLABLES.updateProfile.input);

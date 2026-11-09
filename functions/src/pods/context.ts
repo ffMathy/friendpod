@@ -21,7 +21,7 @@ import {
   type MatchingProfile,
   type PodState,
   type WeekId,
-} from '@grouper/core';
+} from '@friendpod/core';
 import type { Transaction } from 'firebase-admin/firestore';
 import { blockedPairs, pairOf } from '../lib/blocks';
 import { DAY_MS, docs, PATHS, podOptions, ts, userNotices, type DocOf } from '../lib/firestore';

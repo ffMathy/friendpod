@@ -6,7 +6,7 @@
  * Every grant and withdrawal is a `consentEvents` entry without any interest reference; sensitive holdings point at
  * the grant event (`consentEventId`), which addInterests finds through `users.legal.art9.at`.
  */
-import { getLegalText, isValidArt9ConsentProof, type CallableInput, type CallableOutput } from '@grouper/core';
+import { getLegalText, isValidArt9ConsentProof, type CallableInput, type CallableOutput } from '@friendpod/core';
 import { FieldValue } from 'firebase-admin/firestore';
 import { AppError } from '../lib/errors';
 import { CONSENT_EVENT_RETENTION_MS, ERASURE_LEDGER_TTL_MS, consentEvents, docs, erasureLedger, ts } from '../lib/firestore';

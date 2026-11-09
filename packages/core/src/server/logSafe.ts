@@ -1,6 +1,6 @@
 /**
  * Log-safe summaries for the server's log-scrubbing wrappers (DESIGN.md §13), shared by both Functions codebases
- * through `@grouper/core/node`. Zod parsing keeps issue paths and codes only, never `message` or `received`.
+ * through `@friendpod/core/node`. Zod parsing keeps issue paths and codes only, never `message` or `received`.
  * Record keys come from the request (e.g. uids in `submitFeedback.meetAgain`), so a path segment is kept only
  * when it is an array index or a property name declared by the schema itself.
  */

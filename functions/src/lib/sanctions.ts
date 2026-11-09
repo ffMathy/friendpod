@@ -4,7 +4,7 @@
  * has expired (hourlySweeper). Every sanction has an end date and a statement of reasons; nothing here is permanent
  * and nobody reviews it. The admin CLI can only end one early by moving `until` to now (tools/admin sanctions lift).
  */
-import { NOTICE_CODES, mergeSanction, type SanctionDecision } from '@grouper/core';
+import { NOTICE_CODES, mergeSanction, type SanctionDecision } from '@friendpod/core';
 import type { Firestore, Transaction } from 'firebase-admin/firestore';
 import { docs, matchProfiles, ts, type DocOf } from './firestore';
 import { errorFields } from './log';

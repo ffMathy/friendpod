@@ -1,4 +1,4 @@
-import { nextDropWeek, parseWeekId, type SetParticipationMode, type UserDoc } from '@grouper/core';
+import { nextDropWeek, parseWeekId, type SetParticipationMode, type UserDoc } from '@friendpod/core';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import { usePalette } from '@/components/theme';

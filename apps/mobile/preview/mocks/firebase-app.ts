@@ -9,8 +9,8 @@ const APP: FirebaseApp = {
   options: {
     apiKey: 'preview',
     appId: '1:000000000000:web:preview',
-    projectId: 'demo-grouper',
-    storageBucket: 'demo-grouper.appspot.com',
+    projectId: 'demo-friendpod',
+    storageBucket: 'demo-friendpod.appspot.com',
     messagingSenderId: '000000000000',
   },
 };

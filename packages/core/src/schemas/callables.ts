@@ -51,7 +51,7 @@ export const completeOnboardingInput = z.strictObject({
   // Same-gender pods need gender and its own consent, so they are switched on later via updateProfile.
   prefs: prefsPatchSchema.refine((p) => p.sameGenderOnly !== true, { message: 'use updateProfile for same-gender pods' }).optional(),
   legal: z.strictObject({ terms: legalVersionSchema, privacy: legalVersionSchema }),
-  /** Optional "Where did you hear about Grouper?"; only an aggregate counter is kept, never the answer per user. */
+  /** Optional "Where did you hear about Friendpod?"; only an aggregate counter is kept, never the answer per user. */
   heardFrom: z.enum(HEARD_FROM_SOURCES).optional(),
 });
 export const completeOnboardingOutput = z.object({ areaStatus: z.enum([...LAUNCH_AREA_STATUSES, 'outside']) });

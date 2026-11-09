@@ -30,7 +30,7 @@ import {
   type MatchProfileDoc,
   type Prefs,
   type UserDoc,
-} from '@grouper/core';
+} from '@friendpod/core';
 import { AppError, grpcCode } from '../lib/errors';
 import { areaStage, readAreas, writeAreaDeltas } from '../lib/areas';
 import { docs, PATHS, ts, UNDERAGE_MARKER_TTL_MS } from '../lib/firestore';
@@ -111,7 +111,7 @@ export async function completeOnboarding(deps: AppDeps, call: CallContext, input
       milestones.signupAt = ts(signupAt);
       funnel.stage(areaId, signupAt, 'signup').stage(areaId, now, 'onboarded');
       if (stage) funnel.stage(areaId, now, stage);
-      // "Where did you hear about Grouper?": an aggregate counter only, never stored on the user.
+      // "Where did you hear about Friendpod?": an aggregate counter only, never stored on the user.
       if (input.heardFrom) funnel.source(areaId, now, input.heardFrom);
 
       tx.create(userRef, user);

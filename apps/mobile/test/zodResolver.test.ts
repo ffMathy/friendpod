@@ -1,4 +1,4 @@
-import { prefsSchema, type Prefs } from '@grouper/core';
+import { prefsSchema, type Prefs } from '@friendpod/core';
 import type { ResolverOptions } from 'react-hook-form';
 import { zodResolver } from '@/lib/zodResolver';
 

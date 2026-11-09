@@ -1,4 +1,4 @@
-import { MIN_AGE, ymdDateSchema } from '@grouper/core';
+import { MIN_AGE, ymdDateSchema } from '@friendpod/core';
 
 /** `YYYY-MM-DD` from three fields, or null if it is not a real date. */
 export function composeDob(year: string, month: string, day: string): string | null {

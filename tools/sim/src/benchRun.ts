@@ -1,7 +1,7 @@
 /** Child process of bench.ts: decode the snapshot and run matchComponent once; print timings and peak RSS. */
 import { readFileSync } from 'node:fs';
 import { gunzipSync } from 'node:zlib';
-import { decodeMatchSnapshot, matchComponent } from '@grouper/core';
+import { decodeMatchSnapshot, matchComponent } from '@friendpod/core';
 
 const file = process.argv[2];
 if (!file) throw new Error('usage: benchRun.ts <snapshot.json.gz>');

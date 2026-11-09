@@ -12,14 +12,14 @@ jest.mock('expo-constants', () => ({
   __esModule: true,
   default: {
     expoConfig: {
-      name: 'Grouper Dev',
-      slug: 'grouper',
+      name: 'Friendpod Dev',
+      slug: 'friendpod',
       version: '0.1.0',
-      ios: { bundleIdentifier: 'dk.grouper.app.dev' },
-      android: { package: 'dk.grouper.app.dev' },
+      ios: { bundleIdentifier: 'dk.friendpod.app.dev' },
+      android: { package: 'dk.friendpod.app.dev' },
       extra: {
         appEnv: 'development',
-        emailLinkDomain: 'grouper-staging.firebaseapp.com',
+        emailLinkDomain: 'friendpod-staging.firebaseapp.com',
       },
     },
   },

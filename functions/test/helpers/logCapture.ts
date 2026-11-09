@@ -8,7 +8,7 @@ interface Capture {
   forbidden: string[];
 }
 
-const KEY = Symbol.for('grouper.functions.logCapture');
+const KEY = Symbol.for('friendpod.functions.logCapture');
 const g = globalThis as unknown as Record<symbol, Capture | undefined>;
 
 export function capture(): Capture {

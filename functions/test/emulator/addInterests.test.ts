@@ -13,8 +13,8 @@ import {
   newConceptId,
   type CallableOutput,
   type Prototypes,
-} from '@grouper/core';
-import { sha256Hex } from '@grouper/core/node';
+} from '@friendpod/core';
+import { sha256Hex } from '@friendpod/core/node';
 import { FieldValue, Timestamp } from 'firebase-admin/firestore';
 import { beforeEach, expect, it } from 'vitest';
 import { addInterestsWith, type InterestsRuntime } from '../../src/callables/addInterests';
@@ -61,7 +61,7 @@ const PROTOTYPES: Prototypes = V.prototypes(
 const item = (text: string, extra: Record<string, unknown> = {}) => V.item(text, PROTOTYPES, extra);
 const body = (...items: Record<string, unknown>[]) => ({ modelKey: MODEL_KEY, items });
 
-const BLANKET = { ...consentProofFor('art9-blanket-da-v1'), appVersion: '1.2.3', checked: true as const };
+const BLANKET = { ...consentProofFor('art9-blanket-da-v2'), appVersion: '1.2.3', checked: true as const };
 
 describeEmulator('addInterests (emulator)', () => {
   const deps = emulatorDeps(NOW);
@@ -215,7 +215,7 @@ describeEmulator('addInterests (emulator)', () => {
     const grant = await grantId(uid);
     const user = await doc(`users/${uid}`);
     const holding = await doc(`users/${uid}/sensitiveInterests/${id}`);
-    expect(holding).toMatchObject({ display: 'Gravid i uge 20', selfFlagged: false, source: 'model', consentEventId: grant, consentTextVersion: 'art9-blanket-da-v1' });
+    expect(holding).toMatchObject({ display: 'Gravid i uge 20', selfFlagged: false, source: 'model', consentEventId: grant, consentTextVersion: 'art9-blanket-da-v2' });
     expect((holding?.consentedAt as Timestamp).isEqual(user?.legal.art9.at)).toBe(true);
     expect(await doc(`users/${uid}/interests/${id}`)).toBeUndefined();
     const events = (await deps.db.collection('consentEvents').where('uid', '==', uid).get()).docs.map((d) => d.data());

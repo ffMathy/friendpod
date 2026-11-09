@@ -1,4 +1,4 @@
-import { canonicalCodeFor, type AppErrorCode } from '@grouper/core';
+import { canonicalCodeFor, type AppErrorCode } from '@friendpod/core';
 import { HttpsError } from 'firebase-functions/https';
 
 /**

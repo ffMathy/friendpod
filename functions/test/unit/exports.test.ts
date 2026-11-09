@@ -1,4 +1,4 @@
-import { CALLABLES, type CallableName } from '@grouper/core';
+import { CALLABLES, type CallableName } from '@friendpod/core';
 import { describe, expect, it } from 'vitest';
 import * as index from '../../src/index';
 import { HOT_CALLABLES, callableOptions } from '../../src/lib/options';

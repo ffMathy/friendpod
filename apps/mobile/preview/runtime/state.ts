@@ -1,5 +1,5 @@
 /** The running preview: the selected scenario and the mutable fakes built from it (set once by install.ts). */
-import type { Locale } from '@grouper/core';
+import type { Locale } from '@friendpod/core';
 import type { PreviewStore } from './store';
 import type { PreviewUser, Scenario } from './types';
 

@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /**
- * Store, social and README images for Grouper, composed from the real app screens.
+ * Store, social and README images for Friendpod, composed from the real app screens.
  *
  *   npm run marketing                         build the web preview, shoot the screens, compose everything
  *   npm run marketing -- --skip-build         reuse an existing preview build (--build-dir)
  *   npm run marketing -- --only play,social   compose only some groups (play, appstore, social)
  *
- * Options: --build-dir <dir> (default: <tmp>/grouper-marketing/build), --skip-build, --only <groups>.
+ * Options: --build-dir <dir> (default: <tmp>/friendpod-marketing/build), --skip-build, --only <groups>.
  *
  * 1. Builds the web preview harness (apps/mobile/preview) and shoots the chosen screens at 390x844 @3x in Danish and
  *    English, with the same scenarios, steps and timezone as `preview:shoot`.
@@ -31,7 +31,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const repo = path.dirname(here);
 const appRoot = path.join(repo, 'apps', 'mobile');
 const OUT = path.join(here, 'out');
-const CACHE = path.join(os.tmpdir(), 'grouper-marketing');
+const CACHE = path.join(os.tmpdir(), 'friendpod-marketing');
 
 // ---------------------------------------------------------------- brand tokens (blend spec, theme.ts)
 
@@ -297,7 +297,7 @@ function posterMark(width, g, { seat = 'dashed' } = {}) {
 
 /** Lockup: dot mark + lowercase wordmark (spec 7.1: mark 36, gap 8, wordmark 29). */
 function lockup(scale, g) {
-  return `<div style="display:flex;align-items:center;gap:${8 * scale}px">${dotMark(36 * scale, g)}<span class="display" style="font-size:${29 * scale}px;line-height:1;padding-bottom:${3 * scale}px;color:${g.text}">grouper</span></div>`;
+  return `<div style="display:flex;align-items:center;gap:${8 * scale}px">${dotMark(36 * scale, g)}<span class="display" style="font-size:${29 * scale}px;line-height:1;padding-bottom:${3 * scale}px;color:${g.text}">friendpod</span></div>`;
 }
 
 /**
@@ -525,9 +525,9 @@ async function render(browser, html, W, H, file, prepare) {
   await p.goto(pathToFileURL(htmlFile).href, { waitUntil: 'load' });
   const ok = await p.evaluate(async () => {
     const faces = ['700 40px "Bricolage Grotesque"', '800 40px "Bricolage Grotesque"', '500 20px "Plus Jakarta Sans"', '700 20px "Plus Jakarta Sans"'];
-    await Promise.all(faces.map((f) => document.fonts.load(f, 'grouper ÆØÅ')));
+    await Promise.all(faces.map((f) => document.fonts.load(f, 'friendpod ÆØÅ')));
     await document.fonts.ready;
-    return faces.every((f) => document.fonts.check(f, 'grouper ÆØÅ'));
+    return faces.every((f) => document.fonts.check(f, 'friendpod ÆØÅ'));
   });
   if (!ok) throw new Error(`fonts did not load for ${file}`);
   if (prepare) await prepare(p);

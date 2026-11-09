@@ -1,4 +1,4 @@
-import { checkChatText, type ChatTextRejection, type ChatWarning } from '@grouper/core';
+import { checkChatText, type ChatTextRejection, type ChatWarning } from '@friendpod/core';
 import { useCallback } from 'react';
 import { useCallable } from '@/data/useCallable';
 import { toAppError, type AppError } from '@/firebase/callables';

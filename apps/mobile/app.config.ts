@@ -8,7 +8,7 @@
  *   EAS_PROJECT_ID           set once `eas init` has linked the project
  *   EXPO_PUBLIC_EMBEDDER     `stub` lets a development prebuild go without the bundled model (withBundledModel)
  *
- * Development falls back to committed placeholders for the `demo-grouper` emulator project; staging and
+ * Development falls back to committed placeholders for the `demo-friendpod` emulator project; staging and
  * production refuse to build without their real files.
  */
 import type { ConfigContext, ExpoConfig } from 'expo/config';
@@ -48,27 +48,27 @@ export const FONT_FILES = [
 const ORT_NATIVE_VERSION = '1.30.0';
 const ENVIRONMENTS: Record<AppEnv, EnvSettings> = {
   development: {
-    name: 'Grouper Dev',
-    appId: 'dk.grouper.app.dev',
-    scheme: 'grouper-dev',
+    name: 'Friendpod Dev',
+    appId: 'dk.friendpod.app.dev',
+    scheme: 'friendpod-dev',
     // Dev builds talk to the emulators; links still need a real Hosting domain, so they use staging's.
-    linkProjectId: 'grouper-staging',
+    linkProjectId: 'friendpod-staging',
     apsEnvironment: 'development',
     appAttestEnvironment: 'development',
   },
   staging: {
-    name: 'Grouper Staging',
-    appId: 'dk.grouper.app.staging',
-    scheme: 'grouper-staging',
-    linkProjectId: 'grouper-staging',
+    name: 'Friendpod Staging',
+    appId: 'dk.friendpod.app.staging',
+    scheme: 'friendpod-staging',
+    linkProjectId: 'friendpod-staging',
     apsEnvironment: 'production',
     appAttestEnvironment: 'production',
   },
   production: {
-    name: 'Grouper',
-    appId: 'dk.grouper.app',
-    scheme: 'grouper',
-    linkProjectId: 'grouper-prod',
+    name: 'Friendpod',
+    appId: 'dk.friendpod.app',
+    scheme: 'friendpod',
+    linkProjectId: 'friendpod-prod',
     apsEnvironment: 'production',
     appAttestEnvironment: 'production',
   },
@@ -87,8 +87,8 @@ function googleServicesFile(env: AppEnv, variable: 'GOOGLE_SERVICES_PLIST' | 'GO
     throw new Error(`${variable} is required for APP_ENV=${env} (an EAS file environment variable)`);
   }
   return variable === 'GOOGLE_SERVICES_PLIST'
-    ? './config/firebase/demo-grouper.GoogleService-Info.plist'
-    : './config/firebase/demo-grouper.google-services.json';
+    ? './config/firebase/demo-friendpod.GoogleService-Info.plist'
+    : './config/firebase/demo-friendpod.google-services.json';
 }
 
 const collected = (type: string) => ({
@@ -107,7 +107,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
   return {
     ...config,
     name: s.name,
-    slug: 'grouper',
+    slug: 'friendpod',
     description: 'Small groups. Real meetups.',
     version: '0.1.0',
     platforms: ['ios', 'android'],
@@ -180,7 +180,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         'android.permission.READ_MEDIA_VIDEO',
         'android.permission.DETECT_SCREEN_CAPTURE',
         'com.google.android.gms.permission.AD_ID',
-        // Add-to-calendar opens the system's new-event screen (D11); Grouper never reads or writes calendars itself.
+        // Add-to-calendar opens the system's new-event screen (D11); Friendpod never reads or writes calendars itself.
         'android.permission.READ_CALENDAR',
         'android.permission.WRITE_CALENDAR',
         // The RN template adds it for the dev menu overlay; only development builds need it.
@@ -227,7 +227,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       [
         'expo-location',
         {
-          locationWhenInUsePermission: 'Grouper uses your approximate location once to find your area. It is converted to a map cell on your phone and never stored.',
+          locationWhenInUsePermission: 'Friendpod uses your approximate location once to find your area. It is converted to a map cell on your phone and never stored.',
           locationAlwaysAndWhenInUsePermission: false,
           locationAlwaysPermission: false,
           motionUsagePermission: false,
@@ -241,7 +241,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       [
         'expo-image-picker',
         {
-          photosPermission: 'Grouper lets you choose one profile photo. Only people in a confirmed pod with you can see it.',
+          photosPermission: 'Friendpod lets you choose one profile photo. Only people in a confirmed pod with you can see it.',
           cameraPermission: false,
           microphonePermission: false,
         },

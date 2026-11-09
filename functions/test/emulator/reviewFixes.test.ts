@@ -5,7 +5,7 @@
  * entries, adminRuns at erasure, report expiry and TTL, push tokens, exits from ended pods, the concept GC race and
  * roster refreshes in ended pods. Owns drop weeks 2028-W14–W24.
  */
-import { NOTICE_CODES, dropSchedule, uidHash, type WeekId } from '@grouper/core';
+import { NOTICE_CODES, dropSchedule, uidHash, type WeekId } from '@friendpod/core';
 import type { Auth } from 'firebase-admin/auth';
 import { FieldValue, type Firestore } from 'firebase-admin/firestore';
 import { expect, it } from 'vitest';

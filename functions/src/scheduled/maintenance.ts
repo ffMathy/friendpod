@@ -3,7 +3,7 @@
  * and pages through an indexed query, so a retry or a late run is safe; one failing item is logged (without uids) and
  * picked up by the next run.
  */
-import { NOTICE_CODES, REPORT_RETENTION_MS, nextDropWeek, toLocal, uidHash, weekIdAt, type WeekId } from '@grouper/core';
+import { NOTICE_CODES, REPORT_RETENTION_MS, nextDropWeek, toLocal, uidHash, weekIdAt, type WeekId } from '@friendpod/core';
 import { FieldPath, FieldValue } from 'firebase-admin/firestore';
 import { deleteAuthUser, startAccountDeletion } from '../callables/account';
 import { DAY_MS, COLLECTIONS, PATHS, docs, erasureLedger, matchProfiles, podStates, ts } from '../lib/firestore';

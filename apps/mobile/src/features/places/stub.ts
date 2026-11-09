@@ -1,4 +1,4 @@
-import type { PublicPlaceType } from '@grouper/core';
+import type { PublicPlaceType } from '@friendpod/core';
 import { toPlace } from './shape';
 import { PlaceNotPublicError, type PlacePrediction, type PlacesService } from './types';
 

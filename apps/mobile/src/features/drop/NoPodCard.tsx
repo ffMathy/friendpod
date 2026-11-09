@@ -1,4 +1,4 @@
-import { RADII_KM, type Prefs, type UnmatchedReason } from '@grouper/core';
+import { RADII_KM, type Prefs, type UnmatchedReason } from '@friendpod/core';
 import { useRouter } from 'expo-router';
 import { useState, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';

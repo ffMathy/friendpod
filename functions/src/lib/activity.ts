@@ -5,7 +5,7 @@
  * Throttled to one write per account per day [A]: a plain read, and an update only when the stored value is older.
  * A failure is logged and never fails the call.
  */
-import { CALLABLES, type CallableInput, type CallableName, type CallableOutput } from '@grouper/core';
+import { CALLABLES, type CallableInput, type CallableName, type CallableOutput } from '@friendpod/core';
 import { DAY_MS, PATHS, ts } from './firestore';
 import type { CallContext } from './handler';
 import { errorFields } from './log';

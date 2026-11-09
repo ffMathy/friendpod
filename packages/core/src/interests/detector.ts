@@ -47,6 +47,7 @@ export interface Prototypes {
 // ---------------------------------------------------------------- prototypes.bin
 
 const MAGIC = 'GPROTO02';
+// historical salt, kept on purpose after the Friendpod rename
 const FORMAT = 'grouper-prototypes/2';
 
 interface BinHeader {

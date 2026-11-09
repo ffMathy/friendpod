@@ -16,9 +16,9 @@
  * ledger is complete again (a later restore of that copy replays it too). Replays send no pushes, enqueue no tasks
  * and, by default, touch no Storage objects and no Auth users: neither is restored with Firestore.
  */
-import type { ErasureKind } from '@grouper/core';
-import { uidHash, type HmacSha256 } from '@grouper/core';
-import { nodeHmacSha256 } from '@grouper/core/node';
+import type { ErasureKind } from '@friendpod/core';
+import { uidHash, type HmacSha256 } from '@friendpod/core';
+import { nodeHmacSha256 } from '@friendpod/core/node';
 import { deleteApp, getApps, initializeApp, type App } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore, type Firestore } from 'firebase-admin/firestore';
@@ -167,7 +167,7 @@ export function serverReplay(o: ServerReplayOptions): { handlers: ServerReplayHa
   const key = Buffer.from(o.uidHmacKeyB64.trim(), 'base64');
   if (key.length < 32) throw new Error('UID_HMAC_KEY must be base64 of at least 32 bytes');
   const hmac = nodeHmacSha256(new Uint8Array(key));
-  const name = `grouper-replay-${o.databaseId}-${Date.now()}`;
+  const name = `friendpod-replay-${o.databaseId}-${Date.now()}`;
   const app: App = initializeApp({ projectId: o.projectId }, name);
   const db = o.databaseId === '(default)' ? getFirestore(app) : getFirestore(app, o.databaseId);
   const deps: AppDeps = {

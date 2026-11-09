@@ -1,4 +1,4 @@
-import { LEGAL_TEXT_SHA256, setArt9ConsentInput } from '@grouper/core';
+import { LEGAL_TEXT_SHA256, setArt9ConsentInput } from '@friendpod/core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen, within } from '@testing-library/react-native';
 import { Art9BlanketConsent } from '@/features/consent/Art9BlanketConsent';
@@ -28,7 +28,7 @@ describe('blanket Art. 9 consent (D3, PRIVACY.md §3.3)', () => {
     expect(screen.getByText('Sensitive interests')).toBeOnTheScreen();
     expect(screen.getByText(/short meetup chat, open from 24 hours before/)).toBeOnTheScreen();
     expect(screen.getByText(/choose "This isn't sensitive for me" on it/)).toBeOnTheScreen();
-    expect(screen.getByRole('checkbox', { name: /^I explicitly consent to Grouper processing interests/ })).toBeOnTheScreen();
+    expect(screen.getByRole('checkbox', { name: /^I explicitly consent to Friendpod processing interests/ })).toBeOnTheScreen();
   });
 
   it('starts unticked, with "I agree" disabled until the box is ticked', async () => {
@@ -45,8 +45,8 @@ describe('blanket Art. 9 consent (D3, PRIVACY.md §3.3)', () => {
     expect(agree).toBeEnabled();
     await fireEvent.press(agree);
     expect(h.onAgree).toHaveBeenCalledWith({
-      textVersion: 'art9-blanket-en-v1',
-      textSha256: LEGAL_TEXT_SHA256['art9-blanket-en-v1'],
+      textVersion: 'art9-blanket-en-v2',
+      textSha256: LEGAL_TEXT_SHA256['art9-blanket-en-v2'],
       appVersion,
       checked: true,
     });
@@ -58,7 +58,7 @@ describe('blanket Art. 9 consent (D3, PRIVACY.md §3.3)', () => {
     expect(screen.getByText('Følsomme interesser')).toBeOnTheScreen();
     await fireEvent.press(screen.getByTestId('art9-checkbox'));
     await fireEvent.press(screen.getByRole('button', { name: 'Jeg siger ja' }));
-    expect(h.onAgree).toHaveBeenCalledWith(expect.objectContaining({ textVersion: 'art9-blanket-da-v1', textSha256: LEGAL_TEXT_SHA256['art9-blanket-da-v1'] }));
+    expect(h.onAgree).toHaveBeenCalledWith(expect.objectContaining({ textVersion: 'art9-blanket-da-v2', textSha256: LEGAL_TEXT_SHA256['art9-blanket-da-v2'] }));
   });
 
   describe('onboarding step', () => {
@@ -146,7 +146,7 @@ describe('blanket Art. 9 consent (D3, PRIVACY.md §3.3)', () => {
       const [name, input] = mockCall.mock.calls[0] as [string, unknown];
       expect(name).toBe('setArt9Consent');
       expect(setArt9ConsentInput.parse(input)).toEqual({
-        consent: { textVersion: 'art9-blanket-en-v1', textSha256: LEGAL_TEXT_SHA256['art9-blanket-en-v1'], appVersion, checked: true },
+        consent: { textVersion: 'art9-blanket-en-v2', textSha256: LEGAL_TEXT_SHA256['art9-blanket-en-v2'], appVersion, checked: true },
       });
       expect(mockRouter.push).toHaveBeenCalledWith('/add-interests');
     });

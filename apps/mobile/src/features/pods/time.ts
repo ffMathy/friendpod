@@ -5,7 +5,7 @@
  * so each language orders them its own way. The parts that must stay on one line ("14. nov.", "kl. 14.00", "fre. 15.02")
  * are joined with a no-break space (NBSP), here and in the language files.
  */
-import { DAY_MS, DROP_TIME_ZONE, toLocal, type Locale } from '@grouper/core';
+import { DAY_MS, DROP_TIME_ZONE, toLocal, type Locale } from '@friendpod/core';
 import type { TFunction } from 'i18next';
 
 const LOCALE_TAG: Record<Locale, string> = { da: 'da-DK', en: 'en-GB' };

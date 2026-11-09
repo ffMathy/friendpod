@@ -1,4 +1,4 @@
-import { chatWindow, isChatOpen, type PodDoc, type PodState } from '@grouper/core';
+import { chatWindow, isChatOpen, type PodDoc, type PodState } from '@friendpod/core';
 import { useEffect, useState } from 'react';
 
 /**

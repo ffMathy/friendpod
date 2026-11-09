@@ -10,7 +10,7 @@ import {
   type ParticipationMode,
   type SetParticipationMode,
   type WeekId,
-} from '@grouper/core';
+} from '@friendpod/core';
 import { AppError } from './errors';
 
 export type PauseReason = (typeof PAUSE_REASONS)[number];

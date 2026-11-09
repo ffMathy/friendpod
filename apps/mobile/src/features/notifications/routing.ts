@@ -1,4 +1,4 @@
-import type { PodCardDoc } from '@grouper/core';
+import type { PodCardDoc } from '@friendpod/core';
 import type { Href } from 'expo-router';
 
 /**

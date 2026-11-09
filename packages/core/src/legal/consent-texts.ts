@@ -40,24 +40,24 @@ export type LegalTextKind = LegalText['kind'];
 
 const GENDER_EN = {
   body: "To give you same-gender pods we need to know your gender. We use it only to form same-gender pods, never show it on any profile or use it for statistics, and delete it when you turn the setting off. Note: if you are placed in a same-gender pod, its members will know that everyone in it shares your gender and chose same-gender pods.",
-  checkbox: "I consent to Grouper using my gender to form same-gender pods.",
+  checkbox: "I consent to Friendpod using my gender to form same-gender pods.",
 };
 
 const GENDER_DA = {
   body: "For at kunne give dig pods med samme køn skal vi kende dit køn. Vi bruger det kun til at danne pods med samme køn, viser det aldrig på nogen profil, bruger det ikke til statistik og sletter det, når du slår indstillingen fra. Bemærk: Hvis du kommer i en pod med samme køn, ved medlemmerne, at alle i poden har samme køn som dig og har valgt pods med samme køn.",
-  checkbox: "Jeg giver samtykke til, at Grouper bruger mit køn til at danne pods med samme køn.",
+  checkbox: "Jeg giver samtykke til, at Friendpod bruger mit køn til at danne pods med samme køn.",
 };
 
 export const LEGAL_TEXTS = [
   {
-    id: 'art9-blanket-en-v1',
+    id: 'art9-blanket-en-v2',
     kind: 'art9Blanket',
     scope: 'art9',
     locale: 'en',
     content: {
       title: "Sensitive interests",
-      intro: "Some interests can reveal your health, religion or beliefs, sexual orientation or sex life, political opinions, ethnic origin or trade union membership, for example \"pregnant\", \"Ramadan\" or \"queer book club\". The law calls this special category data, so we need your explicit consent before we use interests like these. You can say no and still use Grouper with your other interests. We then just won't save interests like these.",
-      listIntro: "If you agree, Grouper does the following with your interests that may be sensitive, and with any you mark \"Keep this private\":",
+      intro: "Some interests can reveal your health, religion or beliefs, sexual orientation or sex life, political opinions, ethnic origin or trade union membership, for example \"pregnant\", \"Ramadan\" or \"queer book club\". The law calls this special category data, so we need your explicit consent before we use interests like these. You can say no and still use Friendpod with your other interests. We then just won't save interests like these.",
+      listIntro: "If you agree, Friendpod does the following with your interests that may be sensitive, and with any you mark \"Keep this private\":",
       bullets: [
         "checks automatically, on your phone and before anything is sent, whether an interest may be sensitive;",
         "saves it privately on your account, apart from your other interests. It is never shown on any profile, and we never show it as a label, suggestion or explanation;",
@@ -69,21 +69,21 @@ export const LEGAL_TEXTS = [
       note: { label: "Please note:", text: "we cannot verify who people are. Someone could create an account and pretend to share an interest in order to find out who has it. We make that harder (new accounts wait, accounts are limited in how many such pods they join, and you can report \"not a genuine member\"), but we cannot rule it out. Only share in a pod what you are comfortable with." },
       override: "If we treat an interest as sensitive and it isn't for you, choose \"This isn't sensitive for me\" on it. We then treat it as an ordinary interest, for you only, and the protections above no longer apply to it.",
       withdrawal: "You can withdraw your consent at any time in Settings → Privacy. We then delete all your sensitive interests at once and take you out of pods built around them. Your other interests are not affected.",
-      checkbox: "I explicitly consent to Grouper processing interests that may reveal sensitive information about me, for the purposes above.",
+      checkbox: "I explicitly consent to Friendpod processing interests that may reveal sensitive information about me, for the purposes above.",
       agreeButton: "I agree",
       notNowButton: "Not now",
       readMore: "Read more about sensitive interests",
     },
   },
   {
-    id: 'art9-blanket-da-v1',
+    id: 'art9-blanket-da-v2',
     kind: 'art9Blanket',
     scope: 'art9',
     locale: 'da',
     content: {
       title: "Følsomme interesser",
-      intro: "Nogle interesser kan afsløre noget om dit helbred, din religion eller overbevisning, din seksuelle orientering eller dit seksualliv, dine politiske holdninger, din etniske oprindelse eller dit fagforeningsmedlemskab, fx »gravid«, »ramadan« eller »queer læseklub«. Det er særlige kategorier af personoplysninger, så vi skal have dit udtrykkelige samtykke, før vi bruger den slags interesser. Du kan sagtens sige nej og stadig bruge Grouper med dine andre interesser. Så gemmer vi bare ikke interesser som dem.",
-      listIntro: "Hvis du siger ja, gør Grouper følgende med dine interesser, der kan være følsomme, og med dem, du markerer med »Hold den privat«:",
+      intro: "Nogle interesser kan afsløre noget om dit helbred, din religion eller overbevisning, din seksuelle orientering eller dit seksualliv, dine politiske holdninger, din etniske oprindelse eller dit fagforeningsmedlemskab, fx »gravid«, »ramadan« eller »queer læseklub«. Det er særlige kategorier af personoplysninger, så vi skal have dit udtrykkelige samtykke, før vi bruger den slags interesser. Du kan sagtens sige nej og stadig bruge Friendpod med dine andre interesser. Så gemmer vi bare ikke interesser som dem.",
+      listIntro: "Hvis du siger ja, gør Friendpod følgende med dine interesser, der kan være følsomme, og med dem, du markerer med »Hold den privat«:",
       bullets: [
         "tjekker automatisk på din telefon, før noget bliver sendt, om en interesse kan være følsom;",
         "gemmer den privat på din konto, adskilt fra dine andre interesser. Den vises aldrig på nogen profil, og vi viser den aldrig som etiket, forslag eller forklaring;",
@@ -95,15 +95,15 @@ export const LEGAL_TEXTS = [
       note: { label: "Vær opmærksom på:", text: "Vi kan ikke kontrollere, hvem folk er. Nogen kan oprette en konto og lade som om, de deler en interesse, for at finde ud af, hvem der har den. Vi gør det sværere (nye konti skal vente, en konto kan kun være med i et begrænset antal af den slags pods, og du kan anmelde »ikke et ægte medlem«), men vi kan ikke udelukke det. Del kun det i en pod, som du er tryg ved." },
       override: "Hvis vi behandler en interesse som følsom, og den ikke er det for dig, så vælg »Den er ikke følsom for mig« på interessen. Så behandler vi den som en almindelig interesse, kun for dig, og beskyttelsen ovenfor gælder ikke længere for den.",
       withdrawal: "Du kan til enhver tid trække dit samtykke tilbage under Indstillinger → Privatliv. Så sletter vi straks alle dine følsomme interesser og tager dig ud af pods, der er bygget op om dem. Dine andre interesser påvirkes ikke.",
-      checkbox: "Jeg giver udtrykkeligt samtykke til, at Grouper behandler interesser, der kan afsløre følsomme oplysninger om mig, til de formål, der er beskrevet ovenfor.",
+      checkbox: "Jeg giver udtrykkeligt samtykke til, at Friendpod behandler interesser, der kan afsløre følsomme oplysninger om mig, til de formål, der er beskrevet ovenfor.",
       agreeButton: "Jeg siger ja",
       notNowButton: "Ikke nu",
       readMore: "Læs mere om følsomme interesser",
     },
   },
-  { id: 'gender-en-v1', kind: 'genderConsent', scope: 'gender', locale: 'en', content: { ...GENDER_EN, nonbinaryAddendum: null } },
+  { id: 'gender-en-v2', kind: 'genderConsent', scope: 'gender', locale: 'en', content: { ...GENDER_EN, nonbinaryAddendum: null } },
   {
-    id: 'gender-nonbinary-en-v1',
+    id: 'gender-nonbinary-en-v2',
     kind: 'genderConsent',
     scope: 'gender',
     locale: 'en',
@@ -112,9 +112,9 @@ export const LEGAL_TEXTS = [
       nonbinaryAddendum: "Same-gender pods for non-binary people may be rare in your area, and their members will know that everyone in the pod is non-binary.",
     },
   },
-  { id: 'gender-da-v1', kind: 'genderConsent', scope: 'gender', locale: 'da', content: { ...GENDER_DA, nonbinaryAddendum: null } },
+  { id: 'gender-da-v2', kind: 'genderConsent', scope: 'gender', locale: 'da', content: { ...GENDER_DA, nonbinaryAddendum: null } },
   // DESIGN-DEVIATION: PRIVACY.md §3.6 has no Danish copy of the non-binary addendum, so there is no
-  // 'gender-nonbinary-da-v1'. genderConsentText() returns null for that case and the app must not offer it.
+  // 'gender-nonbinary-da-v2'. genderConsentText() returns null for that case and the app must not offer it.
   {
     id: 'interest-notice-en-v2',
     kind: 'interestNotice',
@@ -134,21 +134,21 @@ export const LEGAL_TEXTS = [
     },
   },
   {
-    id: 'art9-withdraw-all-en-v1',
+    id: 'art9-withdraw-all-en-v2',
     kind: 'withdrawConfirmation',
     scope: null,
     locale: 'en',
     content: {
-      text: "Withdraw your consent for sensitive interests? We'll delete all your sensitive interests now and take you out of pods built around them. Other members will only see that a member left. You can keep using Grouper with your other interests.",
+      text: "Withdraw your consent for sensitive interests? We'll delete all your sensitive interests now and take you out of pods built around them. Other members will only see that a member left. You can keep using Friendpod with your other interests.",
     },
   },
   {
-    id: 'art9-withdraw-all-da-v1',
+    id: 'art9-withdraw-all-da-v2',
     kind: 'withdrawConfirmation',
     scope: null,
     locale: 'da',
     content: {
-      text: "Vil du trække dit samtykke til følsomme interesser tilbage? Vi sletter alle dine følsomme interesser nu og tager dig ud af pods, der er bygget op om dem. De andre medlemmer ser kun, at et medlem er gået. Du kan fortsat bruge Grouper med dine andre interesser.",
+      text: "Vil du trække dit samtykke til følsomme interesser tilbage? Vi sletter alle dine følsomme interesser nu og tager dig ud af pods, der er bygget op om dem. De andre medlemmer ser kun, at et medlem er gået. Du kan fortsat bruge Friendpod med dine andre interesser.",
     },
   },
 ] as const satisfies readonly LegalText[];
@@ -170,7 +170,7 @@ export function currentLegalText(kind: Exclude<LegalTextKind, 'genderConsent'>, 
 }
 
 export function genderConsentText(locale: Locale, nonbinary: boolean): LegalText | null {
-  const id = nonbinary ? `gender-nonbinary-${locale}-v1` : `gender-${locale}-v1`;
+  const id = nonbinary ? `gender-nonbinary-${locale}-v2` : `gender-${locale}-v2`;
   return getLegalText(id);
 }
 

@@ -23,7 +23,7 @@
  * needs that key (`UID_HMAC_KEY`, base64, read from Secret Manager by the admin running the drill); without it no
  * kind can be replayed and nothing is.
  */
-import { ERASURE_KINDS, erasureLedgerDocSchema, type ErasureKind } from '@grouper/core';
+import { ERASURE_KINDS, erasureLedgerDocSchema, type ErasureKind } from '@friendpod/core';
 import { Timestamp, type Firestore } from 'firebase-admin/firestore';
 import { table } from './format';
 

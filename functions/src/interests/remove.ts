@@ -15,7 +15,7 @@ import {
   type OrdinaryHolding,
   type SensitiveHolding,
   type SensitiveInterestDoc,
-} from '@grouper/core';
+} from '@friendpod/core';
 import { FieldValue, type DocumentReference, type Transaction } from 'firebase-admin/firestore';
 import { ts } from '../lib/firestore';
 import type { AppDeps } from '../lib/runtime';

@@ -3,14 +3,14 @@ import { at, ME, ts } from './_kit';
 import thisWeek from './this-week';
 
 /**
- * This week's member with one of each kind of message from Grouper (Me → Messages from Grouper): the data export is
+ * This week's member with one of each kind of message from Friendpod (Me → Messages from Friendpod): the data export is
  * ready, a safety report was received (with the 112 line), an automated no-show pause and its statement of reasons
  * (automated, no human review, the support address), the pause ending, and a member leaving an earlier pod.
  */
 const scenario: Scenario = {
   ...thisWeek,
   id: 'me-notices',
-  title: 'Messages from Grouper: one of each kind',
+  title: 'Messages from Friendpod: one of each kind',
   docs: (ctx) => ({
     ...(typeof thisWeek.docs === 'function' ? thisWeek.docs(ctx) : thisWeek.docs),
     [`users/${ME}/notices/noticeReport`]: {

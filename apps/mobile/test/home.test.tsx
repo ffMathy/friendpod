@@ -1,4 +1,4 @@
-import { fromLocal, setParticipationInput, updateProfileInput } from '@grouper/core';
+import { fromLocal, setParticipationInput, updateProfileInput } from '@friendpod/core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen, within } from '@testing-library/react-native';
 import type * as ReactModule from 'react';

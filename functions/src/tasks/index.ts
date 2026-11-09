@@ -12,7 +12,7 @@ import {
   openAreaTask,
   purgeUserTask,
   releaseDropTask,
-} from '@grouper/core';
+} from '@friendpod/core';
 import { onTaskDispatched, type TaskQueueOptions } from 'firebase-functions/tasks';
 import { runTask } from '../lib/background';
 import { BASE_OPTIONS, HEAVY_OPTIONS } from '../lib/options';

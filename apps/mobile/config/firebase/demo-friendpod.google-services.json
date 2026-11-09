@@ -1,17 +1,17 @@
 {
   "project_info": {
     "project_number": "000000000000",
-    "project_id": "demo-grouper",
-    "storage_bucket": "demo-grouper.firebasestorage.app"
+    "project_id": "demo-friendpod",
+    "storage_bucket": "demo-friendpod.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
         "mobilesdk_app_id": "1:000000000000:android:0000000000000000000000",
-        "android_client_info": { "package_name": "dk.grouper.app.dev" }
+        "android_client_info": { "package_name": "dk.friendpod.app.dev" }
       },
       "oauth_client": [],
-      "api_key": [{ "current_key": "AIzaSyDemoGrouperPlaceholderNotARealKey" }],
+      "api_key": [{ "current_key": "AIzaSyDemoFriendpodPlaceholderNotARealKey" }],
       "services": { "appinvite_service": { "other_platform_oauth_client": [] } }
     }
   ],

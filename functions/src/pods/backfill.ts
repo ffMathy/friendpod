@@ -21,7 +21,7 @@ import {
   type ConceptProjection,
   type MatchUser,
   type WeekId,
-} from '@grouper/core';
+} from '@friendpod/core';
 import { docs, matchProfiles, ts } from '../lib/firestore';
 import type { AppDeps } from '../lib/runtime';
 import { ms, podProfile, pruneRecent, recentMinUntil, type PodStateDoc, type ProfileDoc, type UserDoc } from './context';

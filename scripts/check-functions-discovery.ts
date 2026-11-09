@@ -1,10 +1,10 @@
 /**
- * Run under `firebase emulators:exec --only functions --project demo-grouper` after the build (CI, DESIGN.md §13).
+ * Run under `firebase emulators:exec --only functions --project demo-friendpod` after the build (CI, DESIGN.md §13).
  * Fails unless the one functions codebase loads from its dist bundle and serves every callable in core's registry
  * (addInterests included since the app embeds tags itself, D1), and unless firebase.json names no other codebase.
  */
 import { readFileSync } from 'node:fs';
-import { CALLABLES } from '@grouper/core';
+import { CALLABLES } from '@friendpod/core';
 
 const CODEBASE_DIRS = { default: 'functions' } as const;
 

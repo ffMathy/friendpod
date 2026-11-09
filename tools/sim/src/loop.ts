@@ -26,7 +26,7 @@ import {
   sensitiveDensityOk,
   type UnmatchedReason,
   type WeekId,
-} from '@grouper/core';
+} from '@friendpod/core';
 import { acceptProbability, BEHAVIOUR, meetAgainProbability } from './behaviour';
 import { generateCity, type SimUser, ZIPF_Q, ZIPF_S } from './city';
 import { censoredPercentile, dominantCause, ratio, round, type StarvationCause } from './metrics';

@@ -1,4 +1,4 @@
-import type { WeekId } from '@grouper/core';
+import type { WeekId } from '@friendpod/core';
 import { expect, it } from 'vitest';
 import { PATHS } from '../../src/lib/firestore';
 import { firestoreComponentStore } from '../../src/tasks/matchComponent';

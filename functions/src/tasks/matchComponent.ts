@@ -16,8 +16,8 @@ import {
   type MatchResult,
   type UnmatchedReason,
   type WeekId,
-} from '@grouper/core';
-import { sha256Hex } from '@grouper/core/node';
+} from '@friendpod/core';
+import { sha256Hex } from '@friendpod/core/node';
 import type { Firestore } from 'firebase-admin/firestore';
 import { docs, type DocOf } from '../lib/firestore';
 import type { Log, LogFields } from '../lib/log';
@@ -36,7 +36,7 @@ export interface ComponentStore {
 
 export interface MatchTaskDeps {
   readonly components: ComponentStore;
-  /** The `grouper-<env>-drops` bucket. */
+  /** The `friendpod-<env>-drops` bucket. */
   readonly drops: ObjectStore;
   now(): number;
   readonly log: Log;

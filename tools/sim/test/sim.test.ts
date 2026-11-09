@@ -1,4 +1,4 @@
-import { getLaunchArea, LAUNCH_PROFILE, ALPHA_PROFILE } from '@grouper/core';
+import { getLaunchArea, LAUNCH_PROFILE, ALPHA_PROFILE } from '@friendpod/core';
 import { describe, expect, it } from 'vitest';
 import { generateCity } from '../src/city';
 import { simulate } from '../src/loop';

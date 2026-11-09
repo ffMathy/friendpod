@@ -1,8 +1,8 @@
 {
-  "name": "@grouper/mobile",
+  "name": "@friendpod/mobile",
   "version": "0.1.0",
   "private": true,
-  "description": "Grouper app: Expo SDK 58 + React Native Firebase 27 (DESIGN.md §11). Dev builds only; RNFirebase does not run in Expo Go.",
+  "description": "Friendpod app: Expo SDK 58 + React Native Firebase 27 (DESIGN.md §11). Dev builds only; RNFirebase does not run in Expo Go.",
   "main": "expo-router/entry",
   "scripts": {
     "start": "expo start --dev-client",
@@ -26,7 +26,7 @@
     "@expo-google-fonts/bricolage-grotesque": "0.4.1",
     "@expo-google-fonts/plus-jakarta-sans": "0.4.2",
     "@expo/metro-runtime": "58.0.17",
-    "@grouper/core": "*",
+    "@friendpod/core": "*",
     "@huggingface/tokenizers": "0.2.0",
     "@react-native-firebase/app": "27.1.0",
     "@react-native-firebase/app-check": "27.1.0",

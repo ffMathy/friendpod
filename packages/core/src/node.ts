@@ -1,5 +1,5 @@
 /**
- * Server-only helpers (`@grouper/core/node`). Kept out of the main entry so Metro never sees node:crypto or the
+ * Server-only helpers (`@friendpod/core/node`). Kept out of the main entry so Metro never sees node:crypto or the
  * log-scrubbing code that only the Functions codebases use.
  */
 import { createHash, createHmac } from 'node:crypto';

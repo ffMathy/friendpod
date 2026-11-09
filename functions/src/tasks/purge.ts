@@ -18,7 +18,7 @@
  *   9. `exports/` once more, for a file a running buildExport wrote after step 6 (buildExport then writes nothing).
  * Afterwards no document or object holds the uid or its uidH except consentEvents, erasureLedger and retained reports.
  */
-import { uidHash, type WeekId } from '@grouper/core';
+import { uidHash, type WeekId } from '@friendpod/core';
 import { FieldPath, FieldValue, type Query } from 'firebase-admin/firestore';
 import { eraseMatchProfileAndAreaCount } from '../lib/areas';
 import { CONSENT_EVENT_RETENTION_MS, COLLECTIONS, ERASURE_LEDGER_TTL_MS, PATHS, docs, erasureLedger, matchProfiles, ts } from '../lib/firestore';

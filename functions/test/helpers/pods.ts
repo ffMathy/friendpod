@@ -11,8 +11,8 @@ import {
   googleMapsPlaceUrl,
   type MatchResultFile,
   type WeekId,
-} from '@grouper/core';
-import { nodeHmacSha256 } from '@grouper/core/node';
+} from '@friendpod/core';
+import { nodeHmacSha256 } from '@friendpod/core/node';
 import { DAY_MS, docs, PATHS, ts, type DocOf } from '../../src/lib/firestore';
 import type { DropObjectStore } from '../../src/lib/storage';
 import { releaseDrop, type ReleaseDeps } from '../../src/pods/release';
@@ -106,7 +106,7 @@ export async function makeUser(deps: TestDeps, o: UserOptions = {}): Promise<str
     stats: { attended: 0, noShows: 0, lateCancels: 0 },
     status: o.status ?? 'active',
     lastDrop: null,
-    legal: { terms: 't1', privacy: 'p1', ...(art9 ? { art9: { textVersion: 'art9-blanket-en-v1', textSha256: LEGAL_TEXT_SHA256['art9-blanket-en-v1'], at } } : {}) },
+    legal: { terms: 't1', privacy: 'p1', ...(art9 ? { art9: { textVersion: 'art9-blanket-en-v2', textSha256: LEGAL_TEXT_SHA256['art9-blanket-en-v2'], at } } : {}) },
     ...(o.aboutMe ? { aboutMe: o.aboutMe } : {}),
     interestCount: themes.length,
     createdAt: at,
@@ -167,7 +167,7 @@ export async function makeUser(deps: TestDeps, o: UserOptions = {}): Promise<str
         selfFlagged: false,
         source: 'model',
         consentEventId: 'consentEvt1',
-        consentTextVersion: 'art9-blanket-en-v1',
+        consentTextVersion: 'art9-blanket-en-v2',
         consentedAt: at,
         starred: false,
       });

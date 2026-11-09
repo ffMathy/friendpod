@@ -4,7 +4,7 @@
  * once per stage and holds no uid; "where did you hear" is an aggregate only. Other files onboard into Aarhus and
  * Copenhagen in parallel, so this one uses Aalborg, Odense and Vejle, and compares counters before and after.
  */
-import { encodeGeohash, funnelDocId, funnelWeekId, getLaunchArea } from '@grouper/core';
+import { encodeGeohash, funnelDocId, funnelWeekId, getLaunchArea } from '@friendpod/core';
 import { expect, it } from 'vitest';
 import { completeOnboarding } from '../../src/callables/completeOnboarding';
 import { updateProfile } from '../../src/callables/updateProfile';

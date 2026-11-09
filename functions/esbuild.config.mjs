@@ -1,4 +1,4 @@
-// Bundles src and @grouper/core (resolved through tsconfig `paths`) into dist/index.js (DESIGN.md §14).
+// Bundles src and @friendpod/core (resolved through tsconfig `paths`) into dist/index.js (DESIGN.md §14).
 // firebase-functions and firebase-admin stay external: Cloud Build installs them from this package.json.
 import { build } from 'esbuild';
 

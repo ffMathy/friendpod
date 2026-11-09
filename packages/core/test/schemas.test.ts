@@ -22,7 +22,7 @@ import { matchProfileDocSchema, pairSignalDocSchema, podCardDocSchema, podDocSch
 import { ABOUT_ME_MAX, prefsSchema } from '../src/schemas/profile';
 
 const ts = { toMillis: () => 0 };
-const consent = { ...consentProofFor('art9-blanket-en-v1'), appVersion: '0.1.0', checked: true };
+const consent = { ...consentProofFor('art9-blanket-en-v2'), appVersion: '0.1.0', checked: true };
 const unit = (i = 0): number[] => Array.from({ length: EMBEDDING_DIM }, (_, j) => (j === i ? 1 : 0));
 
 describe('callable schemas (§10)', () => {
@@ -36,7 +36,7 @@ describe('callable schemas (§10)', () => {
 
   it('requires gender consent with gender', () => {
     expect(updateProfileInput.safeParse({ gender: 'woman' }).success).toBe(false);
-    expect(updateProfileInput.safeParse({ gender: 'woman', genderConsent: { ...consentProofFor('gender-en-v1'), appVersion: '0.1.0', checked: true } }).success).toBe(true);
+    expect(updateProfileInput.safeParse({ gender: 'woman', genderConsent: { ...consentProofFor('gender-en-v2'), appVersion: '0.1.0', checked: true } }).success).toBe(true);
     expect(updateProfileInput.safeParse({}).success).toBe(false);
     expect(updateProfileInput.safeParse({ prefs: { ageMin: 30, ageMax: 33 } }).success).toBe(false);
   });
@@ -248,7 +248,7 @@ describe('document schemas (§8)', () => {
       lastDrop: null, legal: { terms: 'terms-v1', privacy: 'privacy-v1' }, interestCount: 0, createdAt: ts, lastActiveAt: ts,
     };
     expect(userDocSchema.safeParse(user).success).toBe(true);
-    const art9 = { ...consentProofFor('art9-blanket-da-v1'), at: ts };
+    const art9 = { ...consentProofFor('art9-blanket-da-v2'), at: ts };
     expect(userDocSchema.safeParse({ ...user, legal: { ...user.legal, art9 }, aboutMe: 'Kaffe og brætspil' }).success).toBe(true);
     expect(userDocSchema.safeParse({ ...user, legal: { ...user.legal, art9: { ...art9, textSha256: 'x' } } }).success).toBe(false);
     expect(userDocSchema.safeParse({ ...user, aboutMe: 'x'.repeat(ABOUT_ME_MAX + 1) }).success).toBe(false);

@@ -1,4 +1,4 @@
-import { blockUserInput, reportInput } from '@grouper/core';
+import { blockUserInput, reportInput } from '@friendpod/core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import type { ReactElement } from 'react';

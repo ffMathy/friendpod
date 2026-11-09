@@ -1,4 +1,4 @@
-import type { Locale } from '@grouper/core';
+import type { Locale } from '@friendpod/core';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, StyleSheet, View, type LayoutChangeEvent } from 'react-native';
@@ -62,7 +62,7 @@ export interface Art9ConsentBodyProps {
 }
 
 /**
- * The consent text, verbatim from @grouper/core (its hash is what the server records), set as onb-consent sets it:
+ * The consent text, verbatim from @friendpod/core (its hash is what the server records), set as onb-consent sets it:
  * 14/1.55 prose in Ink 2, the list intro in bold Ink, the bullets, and the note in its own box. Nothing reworded,
  * nothing added: the emphasis is the copy's own structure (the list intro and the note's label).
  */

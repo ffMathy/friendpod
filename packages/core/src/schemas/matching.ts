@@ -1,5 +1,5 @@
 /**
- * Drop input snapshot and result files (DESIGN.md §6.5): `gs://grouper-<env>-drops/{weekId}/{componentId}.input.json.gz`
+ * Drop input snapshot and result files (DESIGN.md §6.5): `gs://friendpod-<env>-drops/{weekId}/{componentId}.input.json.gz`
  * and `…/{componentId}.result.{inputHash}.json`. The snapshot is permissive about sensitive themes without a
  * consent reference so the matcher can drop them (S3) instead of failing the whole component.
  */

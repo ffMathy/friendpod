@@ -70,7 +70,7 @@
     "SENSITIVE_ELIGIBILITY": "Pods om private interesser er ikke åbne for dig endnu, så vi kiggede på dine andre interesser.",
     "SENSITIVE_DENSITY": "For få i nærheden har tilføjet din private interesse til en pod om den.",
     "AREA_WAITLIST": "Dit område er stadig på venteliste.",
-    "OUTSIDE_AREAS": "Grouper er ikke kommet til dit område endnu.",
+    "OUTSIDE_AREAS": "Friendpod er ikke kommet til dit område endnu.",
     "NO_FIT_THIS_WEEK": "Der var nogen at matche med, men ingen pod passede for alle i denne uge."
   },
   "pods": {

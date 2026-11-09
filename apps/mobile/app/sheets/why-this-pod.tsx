@@ -1,4 +1,4 @@
-import type { PodCardDoc, PodReason } from '@grouper/core';
+import type { PodCardDoc, PodReason } from '@friendpod/core';
 import { Stack, useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import type { TFunction } from 'i18next';
 import { useLayoutEffect, type ReactNode } from 'react';

@@ -1,4 +1,4 @@
-# Grouper: go-to-market plan
+# Friendpod: go-to-market plan
 
 | | |
 |---|---|
@@ -262,7 +262,7 @@ Counted per city and ISO week, without any analytics SDK. The counters are uid-f
 | First meetup happened | Do people actually meet? |
 | Second meetup | **The north-star metric: did a group keep going?** |
 
-Ask every new user one optional question in onboarding, "Where did you hear about Grouper?" (dads' group, newcomer event, university, café/gym poster, friend, social media, press, other) [A]. This is the only way to compare channels without tracking links. It is aggregated per city and week like the funnel.
+Ask every new user one optional question in onboarding, "Where did you hear about Friendpod?" (dads' group, newcomer event, university, café/gym poster, friend, social media, press, other) [A]. This is the only way to compare channels without tracking links. It is aggregated per city and week like the funnel.
 
 ## 10. Keeping people from uninstalling
 

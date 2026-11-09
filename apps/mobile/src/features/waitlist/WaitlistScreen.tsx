@@ -1,4 +1,4 @@
-import { waitlistDisplay, waitlistProgress } from '@grouper/core';
+import { waitlistDisplay, waitlistProgress } from '@friendpod/core';
 import * as Clipboard from 'expo-clipboard';
 import { useNavigation, useRouter } from 'expo-router';
 import { useLayoutEffect, useRef, useState } from 'react';
@@ -38,7 +38,7 @@ export function WaitlistScreen({ areaId, city, count, goal }: WaitlistScreenProp
   const top = useStoryboardTop(24);
   useHiddenTabBar();
   const link = cityLink(areaId);
-  // Shown without the scheme, as on the storyboard: "grouper.dk/c/odense" on one line beside "Copy"/"Kopiér".
+  // Shown without the scheme, as on the storyboard: "friendpod.dk/c/odense" on one line beside "Copy"/"Kopiér".
   const shownLink = link.replace(/^https?:\/\//, '');
   const shown = waitlistDisplay(count);
   const progress = waitlistProgress(count, goal);
@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
   prose: { lineHeight: 21 },
   linkRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   // A read-only field: Paper, 52 px, radius 14, 15 px text, beside the 52 px Copy button. The public link is short
-  // (the longest, "grouper.dk/c/copenhagen", is ~170 px), so it sits on one line beside "Kopieret" too.
+  // (the longest, "friendpod.dk/c/copenhagen", is ~170 px), so it sits on one line beside "Kopieret" too.
   link: { flex: 1, minWidth: 0, height: Size.inputCompact, borderRadius: Radius.md, paddingHorizontal: 14, justifyContent: 'center' },
   section: { gap: 8 },
   // "Add a few more interests": a white row, radius 22, 1 px Line, min 52, 16/600 with a chevron.

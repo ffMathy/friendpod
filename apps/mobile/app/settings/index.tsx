@@ -1,4 +1,4 @@
-import type { Locale } from '@grouper/core';
+import type { Locale } from '@friendpod/core';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -13,7 +13,7 @@ import { errorMessageKey } from '@/lib/errors';
  * Me → Settings: what Me's row promises, the app language (saved on the profile, so pushes and the drop use it too),
  * notifications, the legal documents and sign out; plus Privacy, because the locked consent texts send people to
  * "Settings → Privacy". Me lists Privacy too (priv-settings' eyebrow is "Me") with its summary line; here it is a plain
- * row, so the two lists don't repeat each other. Pod preferences and messages from Grouper are on Me, blocked people
+ * row, so the two lists don't repeat each other. Pod preferences and messages from Friendpod are on Me, blocked people
  * under Privacy. Laid out like priv-settings: "Me" above the title, white list cards with eyebrows, Ink 2 row icons,
  * the language as a segmented control (selected: Ink), and "Sign out" as a white secondary button (it is not
  * destructive: nothing is deleted). As in priv-settings, a card's rows either all have an icon or none do: General's

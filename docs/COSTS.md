@@ -1,4 +1,4 @@
-# Grouper: cost overview
+# Friendpod: cost overview
 
 | | |
 |---|---|
@@ -52,7 +52,7 @@ What this means:
 | Firebase Auth (no Identity Platform), FCM, App Check, Hosting (email-link domain and two static pages) | $0 | $0 | $0 | $0 | Auth email links 25,000/day on Blaze; FCM and App Check free; Hosting 10 GB stored and 360 MB/day free [P] |
 | **Subtotal** | **~$0.5** | **~$3.5** | **~$23** | **~$55** | |
 
-Staging (`grouper-staging`, Blaze, schedules paused) adds about $1 a month [A].
+Staging (`friendpod-staging`, Blaze, schedules paused) adds about $1 a month [A].
 
 ### 3.2 Google Places (New), D8
 

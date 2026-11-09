@@ -11,7 +11,7 @@ import {
   type CallableInput,
   type CallableOutput,
   type PriorReport,
-} from '@grouper/core';
+} from '@friendpod/core';
 import { FieldValue } from 'firebase-admin/firestore';
 import { AppError } from '../lib/errors';
 import { COLLECTIONS, DAY_MS, ERASURE_LEDGER_TTL_MS, PATHS, docs, erasureLedger, ts, type DocOf } from '../lib/firestore';

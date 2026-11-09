@@ -5,7 +5,7 @@
  * included; `users.legal.art9` gone), single removals of either kind with tag and concept garbage collection,
  * `podInterests` recomputed after removals and "Keep this private", stars, and alias votes. Owns weeks 2027-W30–W34.
  */
-import { EMBEDDING_MODEL, consentProofFor, dropSchedule, interestId, uidHash, type Prototypes, type WeekId } from '@grouper/core';
+import { EMBEDDING_MODEL, consentProofFor, dropSchedule, interestId, uidHash, type Prototypes, type WeekId } from '@friendpod/core';
 import { FieldValue, Timestamp } from 'firebase-admin/firestore';
 import { beforeAll, expect, it } from 'vitest';
 import { addInterestsWith } from '../../src/callables/addInterests';
@@ -37,7 +37,7 @@ const V = new StubVectors({
 });
 const PROTOTYPES: Prototypes = V.prototypes(['gravid prototype'], ['food and drink', 'games', 'sports']);
 const item = (text: string, extra: Record<string, unknown> = {}) => V.item(text, PROTOTYPES, extra);
-const BLANKET = { ...consentProofFor('art9-blanket-en-v1'), appVersion: '1.2.3', checked: true as const };
+const BLANKET = { ...consentProofFor('art9-blanket-en-v2'), appVersion: '1.2.3', checked: true as const };
 
 describeEmulator('interest removal and consent withdrawal (emulator)', () => {
   const deps = emulatorDeps(dropSchedule(W(30)).releaseAt - 3 * DAY);

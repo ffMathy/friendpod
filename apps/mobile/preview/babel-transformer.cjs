@@ -26,6 +26,6 @@ module.exports = {
     return upstream.transform(args);
   },
   getCacheKey(...args) {
-    return `${upstream.getCacheKey ? upstream.getCacheKey(...args) : ''}:grouper-preview-platform-v2`;
+    return `${upstream.getCacheKey ? upstream.getCacheKey(...args) : ''}:friendpod-preview-platform-v2`;
   },
 };

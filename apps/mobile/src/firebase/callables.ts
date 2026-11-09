@@ -1,4 +1,4 @@
-import { APP_ERRORS, CALLABLES, type AppErrorCode, type CallableName, type CallableOutput } from '@grouper/core';
+import { APP_ERRORS, CALLABLES, type AppErrorCode, type CallableName, type CallableOutput } from '@friendpod/core';
 import { httpsCallable } from '@react-native-firebase/functions';
 import type { z } from 'zod';
 import { functions } from './index';

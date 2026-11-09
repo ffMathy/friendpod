@@ -1,4 +1,4 @@
-import { ABOUT_ME_MAX } from '@grouper/core';
+import { ABOUT_ME_MAX } from '@friendpod/core';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import { usePalette } from '@/components/theme';

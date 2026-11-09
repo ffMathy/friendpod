@@ -15,7 +15,7 @@ concurrency:
 
 env:
   FIREBASE_TOOLS_VERSION: 15.34.2
-  EMULATOR_PROJECT: demo-grouper
+  EMULATOR_PROJECT: demo-friendpod
 
 defaults:
   run:

@@ -14,7 +14,7 @@
  */
 const { withAppDelegate } = require('expo/config-plugins');
 
-const TAG = 'grouper-firestore-backup-exclusion';
+const TAG = 'friendpod-firestore-backup-exclusion';
 const ANCHOR = /return\s+super\.application\(\s*application\s*,\s*didFinishLaunchingWithOptions:\s*launchOptions\s*\)/;
 
 const SWIFT = [

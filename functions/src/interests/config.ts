@@ -3,7 +3,7 @@
  * thresholds are core's (`EMBEDDING_MODEL`), shared with the app that embeds every tag (D1); nothing here may
  * restate them.
  */
-import { HOUR_MS } from '@grouper/core';
+import { HOUR_MS } from '@friendpod/core';
 
 export const LIMITS = {
   /** Holdings per user, sensitive included (§4.3). */

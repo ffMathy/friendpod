@@ -2,7 +2,7 @@
  * The three Cloud Scheduler jobs (DESIGN.md §4.1, §7 Scheduler, §10.3). Times are Europe/Copenhagen wall-clock
  * times; Cloud Scheduler handles DST. All three are idempotent, so a retry or a late run is safe.
  */
-import { DROP_TIME_ZONE } from '@grouper/core';
+import { DROP_TIME_ZONE } from '@friendpod/core';
 import { onSchedule, type ScheduleOptions } from 'firebase-functions/scheduler';
 import { runBackground } from '../lib/background';
 import { BASE_OPTIONS, HEAVY_OPTIONS } from '../lib/options';

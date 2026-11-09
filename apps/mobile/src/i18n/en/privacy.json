@@ -55,7 +55,7 @@
     "TAG_TOO_SHORT": "An interest needs at least 2 characters.",
     "TAG_TOO_LONG": "An interest can have at most 40 characters.",
     "PII": "Interests cannot contain contact details such as phone numbers, emails, links or handles.",
-    "BLOCKLIST": "This interest isn't allowed on Grouper.",
+    "BLOCKLIST": "This interest isn't allowed on Friendpod.",
     "THIRD_PARTY_SENSITIVE": "This seems to describe someone else's sensitive situation. Describe your own instead, for example “parent of an autistic child”.",
     "INTEREST_LIMIT": "You have reached 20 interests.",
     "SENSITIVE_ADD_LIMIT": "You can add at most 3 sensitive interests per week.",

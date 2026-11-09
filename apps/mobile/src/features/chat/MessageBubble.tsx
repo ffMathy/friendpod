@@ -1,4 +1,4 @@
-import type { PodMessageDoc } from '@grouper/core';
+import type { PodMessageDoc } from '@friendpod/core';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View, type AccessibilityActionEvent } from 'react-native';
 import { Text } from '@/components/ui';

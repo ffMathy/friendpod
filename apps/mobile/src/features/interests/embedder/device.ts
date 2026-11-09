@@ -7,7 +7,7 @@ import {
   renormalize,
   StalePrototypesError,
   type Prototypes,
-} from '@grouper/core';
+} from '@friendpod/core';
 import type { Tokenizer } from '@huggingface/tokenizers';
 import { Directory, File, Paths } from 'expo-file-system';
 import type * as Ort from 'onnxruntime-react-native';

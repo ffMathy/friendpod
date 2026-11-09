@@ -4,7 +4,7 @@
  * included), the automated pauses and the sensitive-theme hold with their statements of reasons, the no-show pause and
  * suspension, and the hourly lifting of what has expired. This file owns drop weeks 2027-W20 to 2027-W29.
  */
-import { NOTICE_CODES, REPORT_PAUSE_MS, SENSITIVE_HOLD_MS, NO_SHOW_PAUSE_MS, NO_SHOW_SUSPENSION_MS, dropSchedule, uidHash, weekIdAt, type WeekId } from '@grouper/core';
+import { NOTICE_CODES, REPORT_PAUSE_MS, SENSITIVE_HOLD_MS, NO_SHOW_PAUSE_MS, NO_SHOW_SUSPENSION_MS, dropSchedule, uidHash, weekIdAt, type WeekId } from '@friendpod/core';
 import { expect, it } from 'vitest';
 import { blockUser, report, unblockUser } from '../../src/callables/safety';
 import { docs, PATHS, ts } from '../../src/lib/firestore';

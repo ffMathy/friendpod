@@ -2,7 +2,7 @@
  * The shape of a preview scenario (preview/README.md): one fixed "world" a screen is rendered against. Scenarios are
  * plain data plus optional callable handlers; nothing here talks to Firebase or any other real service.
  */
-import type { CallableInput, CallableName, CallableOutput, Locale } from '@grouper/core';
+import type { CallableInput, CallableName, CallableOutput, Locale } from '@friendpod/core';
 import type { PreviewStore } from './store';
 
 /** Firestore document fields. Timestamps are `ts(...)` values (anything with `toMillis()`), as the app's schemas expect. */

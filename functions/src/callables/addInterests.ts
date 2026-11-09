@@ -7,7 +7,7 @@
  * holding. The rest of the pipeline is in interests/. Order: kill switch → per-uid window (and account state) → pipeline. Nothing about the
  * request body is logged, and responses carry statuses only, never a vector.
  */
-import { EMBEDDING_MODEL, HOUR_MS, type CallableInput, type CallableOutput } from '@grouper/core';
+import { EMBEDDING_MODEL, HOUR_MS, type CallableInput, type CallableOutput } from '@friendpod/core';
 import type { Timestamp } from 'firebase-admin/firestore';
 import { AppError } from '../lib/errors';
 import { DAY_MS, PATHS, docs, ts } from '../lib/firestore';

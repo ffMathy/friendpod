@@ -4,7 +4,7 @@
  * them, so it cannot drift from `matchProfiles.areaId`. Reads come first (Firestore transactions need reads before
  * writes): `readAreas`, then `writeAreaDeltas`.
  */
-import { areaDocFromConfig, getLaunchArea, isWaitlisted, type LaunchAreaStatus } from '@grouper/core';
+import { areaDocFromConfig, getLaunchArea, isWaitlisted, type LaunchAreaStatus } from '@friendpod/core';
 import type { DocumentReference, Firestore, Transaction } from 'firebase-admin/firestore';
 import { docs, PATHS } from './firestore';
 import type { AppDeps } from './runtime';

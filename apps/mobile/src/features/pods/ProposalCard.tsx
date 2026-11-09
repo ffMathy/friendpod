@@ -1,4 +1,4 @@
-import { DECLINE_REASONS, type PodCardDoc } from '@grouper/core';
+import { DECLINE_REASONS, type PodCardDoc } from '@friendpod/core';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';

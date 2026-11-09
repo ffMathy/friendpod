@@ -4,7 +4,7 @@
  * a tag precisely relative to a concept's centroid or to a detector prototype.
  */
 import { createHash } from 'node:crypto';
-import { EMBEDDING_MODEL, detectorMargin, normalizeTag, type Prototypes } from '@grouper/core';
+import { EMBEDDING_MODEL, detectorMargin, normalizeTag, type Prototypes } from '@friendpod/core';
 
 export interface Link {
   readonly to: string;

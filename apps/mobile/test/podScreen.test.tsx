@@ -1,4 +1,4 @@
-import { DAY_MS, googleMapsPlaceUrl } from '@grouper/core';
+import { DAY_MS, googleMapsPlaceUrl } from '@friendpod/core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen, within } from '@testing-library/react-native';
 import { createEventInCalendarAsync } from 'expo-calendar/legacy';

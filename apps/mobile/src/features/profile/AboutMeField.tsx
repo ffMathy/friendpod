@@ -1,4 +1,4 @@
-import { ABOUT_ME_MAX, aboutMeSchema, checkAboutMe } from '@grouper/core';
+import { ABOUT_ME_MAX, aboutMeSchema, checkAboutMe } from '@friendpod/core';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, TextInput, View } from 'react-native';

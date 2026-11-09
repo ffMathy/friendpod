@@ -1,4 +1,4 @@
-import type { PodMessageDoc } from '@grouper/core';
+import type { PodMessageDoc } from '@friendpod/core';
 import { useEffect, useState } from 'react';
 import { usePodMessages } from '@/data/docs';
 import type { LiveResult, WithId } from '@/data/live';

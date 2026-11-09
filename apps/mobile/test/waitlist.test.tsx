@@ -1,4 +1,4 @@
-import { getLaunchArea } from '@grouper/core';
+import { getLaunchArea } from '@friendpod/core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import * as Clipboard from 'expo-clipboard';
@@ -97,8 +97,8 @@ describe('in-app waitlist (§3.1 step 12)', () => {
     await act(async () => await fireEvent.press(screen.getByTestId('waitlist-share')));
     expect(share).toHaveBeenCalledTimes(1);
     const [content] = share.mock.calls[0]!;
-    // The public brand host, not the Firebase Hosting domain the email sign-in links use (grouper-staging.firebaseapp.com here).
-    const link = 'https://grouper.dk/c/vejle';
+    // The public brand host, not the Firebase Hosting domain the email sign-in links use (friendpod-staging.firebaseapp.com here).
+    const link = 'https://friendpod.dk/c/vejle';
     expect(content).toMatchObject({ url: link });
     expect((content as { message: string }).message).toContain(link);
     expect((content as { message: string }).message).toContain('Vejle');
@@ -109,8 +109,8 @@ describe('in-app waitlist (§3.1 step 12)', () => {
     expect(screen.getByText('Copied')).toBeTruthy();
     expect(JSON.stringify(content)).not.toContain('firebaseapp.com');
     // The link is shown without the scheme, on one line, as on the storyboard.
-    expect(screen.getByLabelText('grouper.dk/c/vejle')).toBeTruthy();
-    expect(screen.getByText('grouper.dk/c/vejle').props.numberOfLines).toBe(1);
+    expect(screen.getByLabelText('friendpod.dk/c/vejle')).toBeTruthy();
+    expect(screen.getByText('friendpod.dk/c/vejle').props.numberOfLines).toBe(1);
   });
 
   it('stands alone like the storyboard: no tab bar while waitlisted, with a way to Me, and the bar comes back after', async () => {
@@ -169,7 +169,7 @@ describe('in-app waitlist (§3.1 step 12)', () => {
   });
 });
 
-describe('"Where did you hear about Grouper?" (optional, single choice)', () => {
+describe('"Where did you hear about Friendpod?" (optional, single choice)', () => {
   beforeEach(() => mockCall.mockReset().mockResolvedValue({ areaStatus: 'waitlist' }));
 
   it('sends the one chosen answer with completeOnboarding', async () => {

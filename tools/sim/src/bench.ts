@@ -20,7 +20,7 @@ import {
   type MatchUser,
   type NonSensitiveConceptId,
   type WeekId,
-} from '@grouper/core';
+} from '@friendpod/core';
 import { generateCity } from './city';
 import { Rng } from './rng';
 

@@ -2,7 +2,7 @@
  * Who is in the pod (§3.4): the Members list with attendance (pod-scheduled), the "about me" sentences and the pod
  * interests. The reveal's member row (pod-confirmed) is in Reveal.tsx.
  */
-import type { AttendanceStatus, PodDoc } from '@grouper/core';
+import type { AttendanceStatus, PodDoc } from '@friendpod/core';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';

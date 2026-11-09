@@ -17,6 +17,7 @@ describe('pod colour from the word shown (blend spec §3, founder decision)', ()
   });
 
   it.each([
+    // historical salt, kept on purpose after the Friendpod rename
     // The storyboards' colours, reproduced by the "grouper:3410:" salt.
     ['brætspil', 3, 'tomat'],
     ['sourdough', 0, 'solsikke'],
@@ -49,6 +50,7 @@ describe('pod colour from the word shown (blend spec §3, founder decision)', ()
   });
 
   it('pod ids (open-to-anyone pods) keep the unsalted hash', () => {
+    // historical salt, kept on purpose after the Friendpod rename
     expect(fnv1a32('grouper:seed_coffee')).toBe(0xe56267af);
     expect(podColorIndex('seed_coffee')).toBe(5);
     expect(podColorFor({ podId: 'seed_coffee' })).toBe('blomme');

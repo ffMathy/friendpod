@@ -18,7 +18,7 @@
  */
 const { withPodfile, withProjectBuildGradle } = require('expo/config-plugins');
 
-const TAG = 'grouper-ort-pinned';
+const TAG = 'friendpod-ort-pinned';
 const VERSION = /^\d+\.\d+\.\d+$/;
 
 function block(lines, comment) {
