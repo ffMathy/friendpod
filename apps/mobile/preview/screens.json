@@ -53,7 +53,7 @@
       "storyboard": "onb-interests.dc.html",
       "route": "/add-interests",
       "scenario": "onboarding-interests",
-      "notes": "Step 4 of 6. Steps type \"brætspilsaften\" and tap Add; the scenario answers with the suggestion \"brætspil\" (\"Did you mean ...?\"), and \"brætspilsaften\" stays dashed until it is answered. Chips take their pod colour from the concept id; the fixture concept ids give the storyboard's colours (brætspil Tomat, sourdough Solsikke, far på barsel Fjord), gravid is the quiet private chip. Area chips (Popular in Aarhus) come from areas/aarhus and stay neutral. Continue is pinned: the locked interest notice is longer than the storyboard's note, so the list scrolls above it.",
+      "notes": "Step 4 of 6. Steps type \"brætspilsaften\" and tap Add; the scenario answers with the suggestion \"brætspil\" (\"Did you mean ...?\"), and \"brætspilsaften\" stays dashed until it is answered. Chips take their pod colour from their word; the words give the storyboard's colours (brætspil Tomat, sourdough Solsikke, far på barsel Fjord), gravid is the quiet private chip. Area chips (Popular in Aarhus) come from areas/aarhus and stay neutral. Continue is pinned: the locked interest notice is longer than the storyboard's note, so the list scrolls above it.",
       "steps": [
         { "fill": "role=textbox >> nth=0", "text": "brætspilsaften" },
         { "click": "[data-testid=\"interest-add\"]" },
@@ -187,7 +187,7 @@
       "storyboard": "after-feedback.dc.html",
       "route": "/pod/braetspilpodaarhus46/feedback",
       "scenario": "pod-happened",
-      "notes": "Sunday 10:05, the morning after; a calm screen in the pod's colour context (avatars in Tomat deep from brætspil's concept id, no photos). Steps answer the storyboard's state: Yes to meeting Mette and Jonas again (Sofie and Ahmed left blank), rating 4. \"Meet again\" is Yes / No per person (DESIGN §3.6, D9: yes, no or no answer; a no is a soft block): two 36 px round choices, the chosen one in Ink like the rating chips and pod-plan's Yes / No. The quiet \"I wasn't there myself\" check (met: false) sits at the right of the back row, so the page keeps one screen in both languages; the explainer carries the majority no-show rule and \"Not sure? Leave it blank\". The storyboard was redrawn to this three-state version (it used to draw one checkbox per person, blank meaning no): a deliberate content change awaiting the founder's sign-off.",
+      "notes": "Sunday 10:05, the morning after; a calm screen in the pod's colour context (avatars in Tomat deep from the word brætspil, no photos). Steps answer the storyboard's state: Yes to meeting Mette and Jonas again (Sofie and Ahmed left blank), rating 4. \"Meet again\" is Yes / No per person (DESIGN §3.6, D9: yes, no or no answer; a no is a soft block): two 36 px round choices, the chosen one in Ink like the rating chips and pod-plan's Yes / No. The quiet \"I wasn't there myself\" check (met: false) sits at the right of the back row, so the page keeps one screen in both languages; the explainer carries the majority no-show rule and \"Not sure? Leave it blank\". The storyboard was redrawn to this three-state version (it used to draw one checkbox per person, blank meaning no): a deliberate content change awaiting the founder's sign-off.",
       "steps": [
         { "click": "[data-testid=\"again-u_mette-yes\"]" },
         { "click": "[data-testid=\"again-u_jonas-yes\"]" },
@@ -229,7 +229,7 @@
       "storyboard": "priv-interests.dc.html",
       "route": "/interests",
       "scenario": "this-week",
-      "notes": "Interests tab: 4 interests, each with the pod-colour dot of its concept id (the fixtures' ids map to the storyboard table: brætspil Tomat, sourdough Solsikke, far på barsel Fjord, trail running Blad), and the private \"gravid\" in the quiet card (consent given 4 Nov 2026), 5 of 20, with \"This isn't sensitive for me\" (D2) closing the card and \"How private interests work\" under it."
+      "notes": "Interests tab: 4 interests, each with the pod-colour dot of its word (the words map to the storyboard table: brætspil Tomat, sourdough Solsikke, far på barsel Fjord, trail running Blad), and the private \"gravid\" in the quiet card (consent given 4 Nov 2026), 5 of 20, with \"This isn't sensitive for me\" (D2) closing the card and \"How private interests work\" under it."
     },
     {
       "id": "priv-settings",
@@ -540,7 +540,7 @@
       "storyboard": null,
       "route": "/pods",
       "scenario": "this-week",
-      "notes": "One active (sourdough), one past (climbing)."
+      "notes": "One active (sourdough, Solsikke), one past (bouldering, Fjord)."
     },
     {
       "id": "app-me",
@@ -548,7 +548,7 @@
       "storyboard": null,
       "route": "/me",
       "scenario": "this-week",
-      "notes": "Direction E, no storyboard: profile card (photo, name, area, quiet attendance record, Danger outline \"Delete photo\"), the interests as pod chips coloured from the fixtures' concept ids (not the words) and the private one only as a quiet count with a lock, About me, Weekly drops, list cards with eyebrows."
+      "notes": "Direction E, no storyboard: profile card (photo, name, area, quiet attendance record, Danger outline \"Delete photo\"), the interests as pod chips coloured from their words and the private one only as a quiet count with a lock, About me, Weekly drops, list cards with eyebrows."
     },
     {
       "id": "app-me-new",

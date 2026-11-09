@@ -28,7 +28,7 @@ let mockState = 'planning';
 let mockSensitive = false;
 let mockBlocks: unknown[] = [];
 jest.mock('@/data/docs', () => ({
-  usePodCard: () => live({ state: mockState, myStatus: 'accepted', themeLabel: 'x', themeSensitive: mockSensitive }),
+  usePodCard: () => live({ state: mockState, myStatus: 'accepted', themeLabel: 'x', themeSensitive: mockSensitive, reasons: [] }),
   usePod: () =>
     live({
       state: mockState,

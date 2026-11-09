@@ -133,18 +133,18 @@ describe('InterestManager (D1, D3)', () => {
     expect(screen.getByText('Done. We now treat this as an ordinary interest, for you only.')).toBeOnTheScreen();
   });
 
-  it('colours each interest from its concept id, never its word, and keeps private interests quiet (decisions 1, 9)', async () => {
+  it('colours each interest from its own word, and keeps private interests quiet (decisions 1, 9)', async () => {
     mockOrdinary = [
       BRAETSPIL,
-      // Another wording of the same concept gets the same colour: members see a theme in their own words.
+      // Another wording of the same concept is another word, so another colour (the founder's accepted trade-off).
       { id: 'ordinary000000002', data: { display: 'board games', conceptId: 'seed_boardgames', starred: false } },
       { id: 'ordinary000000003', data: { display: 'Surdej', conceptId: 'seed_bread_baking', starred: false } },
     ];
     await renderManager();
     const tomat = { backgroundColor: POD_PALETTE.tomat.tint, borderColor: POD_PALETTE.tomat.tintBorder };
     expect(screen.getByTestId('interest-chip-ordinary000000001')).toHaveStyle(tomat);
-    expect(screen.getByTestId('interest-chip-ordinary000000002')).toHaveStyle(tomat);
-    expect(screen.getByTestId('interest-chip-ordinary000000003')).toHaveStyle({ backgroundColor: POD_PALETTE.solsikke.tint });
+    expect(screen.getByTestId('interest-chip-ordinary000000002')).toHaveStyle({ backgroundColor: POD_PALETTE.baer.tint });
+    expect(screen.getByTestId('interest-chip-ordinary000000003')).toHaveStyle({ backgroundColor: POD_PALETTE.fjord.tint });
     // Private: white with the 1.5 px Ink ring, no tint.
     expect(screen.getByTestId('interest-chip-private0000000001')).toHaveStyle({
       backgroundColor: Colors.light.privateBg,
@@ -166,6 +166,6 @@ describe('InterestManager (D1, D3)', () => {
     });
     expect(screen.getByTestId('interest-chip-ordinary000000002')).toHaveStyle({ borderStyle: 'dashed', backgroundColor: Colors.light.surface });
     await fireEvent.press(screen.getByRole('button', { name: 'No, keep it' }));
-    expect(screen.getByTestId('interest-chip-ordinary000000002')).toHaveStyle({ borderStyle: 'solid', backgroundColor: POD_PALETTE.blad.tint });
+    expect(screen.getByTestId('interest-chip-ordinary000000002')).toHaveStyle({ borderStyle: 'solid', backgroundColor: POD_PALETTE.tomat.tint });
   });
 });

@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
-import { bucketOf, colorOnPodScreen, fnv1a32, POD_COLORS, podColorFor, podColorIndex, podColorOfTheme } from '@/lib/podColor';
+import { bucketOf, colorKeyOfWord, colorOnPodScreen, fnv1a32, interestColor, POD_COLORS, podColorFor, podColorIndex, wordColorIndex } from '@/lib/podColor';
 
-describe('pod colour from the concept id (blend spec §3)', () => {
+describe('pod colour from the word shown (blend spec §3, founder decision)', () => {
   it('FNV-1a 32 known answers', () => {
     expect(fnv1a32('')).toBe(0x811c9dc5);
     expect(fnv1a32('a')).toBe(0xe40c292c);
@@ -17,17 +17,42 @@ describe('pod colour from the concept id (blend spec §3)', () => {
   });
 
   it.each([
-    ['seed_board_games', 0x0806ba99, 0, 'solsikke'],
-    ['seed_parental_leave', 0x3b3d8ede, 1, 'blad'],
-    ['seed_sourdough', 0x5df1f605, 2, 'baer'],
-    ['seed_trail_running', 0x961c7371, 3, 'tomat'],
-    ['seed_cooking', 0xb16e8dc1, 4, 'fjord'],
-    ['seed_coffee', 0xe56267af, 5, 'blomme'],
-    ['c_00000000000000000001', 0x3f69a15a, 1, 'blad'],
-  ] as const)('%s → h %i, index %i, %s', (conceptId, h, index, colour) => {
-    expect(fnv1a32(`grouper:${conceptId}`)).toBe(h);
-    expect(podColorIndex(conceptId)).toBe(index);
-    expect(podColorFor({ conceptId })).toBe(colour);
+    // The storyboards' colours, reproduced by the "grouper:3410:" salt.
+    ['brætspil', 3, 'tomat'],
+    ['sourdough', 0, 'solsikke'],
+    ['far på barsel', 4, 'fjord'],
+    ['trail running', 1, 'blad'],
+    ['coffee', 2, 'baer'],
+    ['hiking', 5, 'blomme'],
+  ] as const)('%s → index %i, %s', (word, index, colour) => {
+    expect(bucketOf(fnv1a32(`grouper:3410:${word}`))).toBe(index);
+    expect(wordColorIndex(word)).toBe(index);
+    expect(podColorFor({ word })).toBe(colour);
+  });
+
+  it('colours the normalized word: the same word is the same colour however it is typed', () => {
+    expect(colorKeyOfWord('  Brætspil! ')).toBe('brætspil');
+    expect(podColorFor({ word: '  Brætspil! ' })).toBe('tomat');
+    expect(podColorFor({ word: 'SOURDOUGH 🍞' })).toBe('solsikke');
+    expect(podColorFor({ word: 'Far  på   barsel' })).toBe('fjord');
+    // Diacritics are kept (normalizeTag): "far" and "får" are different words.
+    expect(colorKeyOfWord('får')).toBe('får');
+    // A word that does not normalize (too short) still has a key: NFKC, trimmed, lower case.
+    expect(colorKeyOfWord(' X ')).toBe('x');
+    expect(podColorFor({ word: ' X ' })).toBe(POD_COLORS[bucketOf(fnv1a32('grouper:3410:x'))]);
+    expect(podColorFor({ word: 'ＢＲÆＴＳＰＩＬ' })).toBe('tomat');
+  });
+
+  it("an interest takes its own word's colour: its norm, else its display", () => {
+    expect(interestColor({ norm: 'brætspil', display: 'Brætspil 🎲' })).toBe('tomat');
+    expect(interestColor({ display: 'Coffee' })).toBe('baer');
+  });
+
+  it('pod ids (open-to-anyone pods) keep the unsalted hash', () => {
+    expect(fnv1a32('grouper:seed_coffee')).toBe(0xe56267af);
+    expect(podColorIndex('seed_coffee')).toBe(5);
+    expect(podColorFor({ podId: 'seed_coffee' })).toBe('blomme');
+    expect(podColorFor({ podId: 'c_00000000000000000001' })).toBe('blad');
   });
 
   it('buckets with floor(h * 6 / 2^32), not h % 6', () => {
@@ -45,11 +70,10 @@ describe('pod colour from the concept id (blend spec §3)', () => {
     expect(POD_COLORS).toEqual(['solsikke', 'blad', 'baer', 'tomat', 'fjord', 'blomme']);
   });
 
-  it('spreads concept ids evenly over the six colours', () => {
-    // Real concept ids are `c_` + 20 hex digits of an HMAC (core `newConceptId`); a SHA-256 stands in for it here.
+  it('spreads words evenly over the six colours', () => {
     const counts = [0, 0, 0, 0, 0, 0];
     const n = 60000;
-    for (let i = 0; i < n; i++) counts[podColorIndex(`c_${createHash('sha256').update(`concept ${i}`).digest('hex').slice(0, 20)}`)]! += 1;
+    for (let i = 0; i < n; i++) counts[wordColorIndex(`word ${createHash('sha256').update(`w${i}`).digest('hex').slice(0, 8)}`)]! += 1;
     for (const c of counts) {
       expect(c).toBeGreaterThan((n / 6) * 0.95);
       expect(c).toBeLessThan((n / 6) * 1.05);
@@ -57,13 +81,14 @@ describe('pod colour from the concept id (blend spec §3)', () => {
   });
 
   it('private stays quiet; open-to-anyone pods take the pod id; nothing to hash gives no colour', () => {
-    expect(podColorFor({ conceptId: 'seed_sourdough', sensitive: true })).toBeNull();
+    expect(podColorFor({ word: 'sourdough', sensitive: true })).toBeNull();
+    expect(podColorFor({ podId: 'seed_coffee', sensitive: true })).toBeNull();
     expect(podColorFor({})).toBeNull();
-    expect(podColorFor({ conceptId: null })).toBeNull();
-    expect(podColorFor({ podId: 'seed_coffee' })).toBe('blomme');
-    expect(podColorOfTheme({ kind: 'concept', conceptId: 'seed_cooking', sensitive: false }, 'pod1')).toBe('fjord');
-    expect(podColorOfTheme({ kind: 'concept', conceptId: 'seed_cooking', sensitive: true }, 'pod1')).toBeNull();
-    expect(podColorOfTheme({ kind: 'openToAnyone' }, 'seed_cooking')).toBe('fjord');
+    expect(podColorFor({ word: null })).toBeNull();
+    expect(podColorFor({ word: '   ' })).toBeNull();
+    // A word wins over the pod id; without one the pod id gives the colour.
+    expect(podColorFor({ word: 'brætspil', podId: 'seed_coffee' })).toBe('tomat');
+    expect(podColorFor({ word: null, podId: 'seed_coffee' })).toBe('blomme');
   });
 
   it("a different interest in the pod's colour is plain on the pod's screens", () => {

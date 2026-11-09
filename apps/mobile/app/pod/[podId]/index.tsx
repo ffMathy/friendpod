@@ -85,7 +85,7 @@ export default function PodScreen() {
   const [now] = useState(() => Date.now());
   const locale = currentLocale();
 
-  // A member's page waits for the shared pod document too: it carries the theme the pod's colour comes from.
+  // A member's page waits for the shared pod document too: it carries the members, the plan and the pod interests.
   if (card.isLoading || (member && pod.isLoading)) {
     return <Loading label={t('common.loading')} />;
   }
@@ -228,7 +228,7 @@ export default function PodScreen() {
         ) : null}
         {photoSwitch}
         <AboutMembersCard members={members} viewer={uid} color={color} />
-        <PodInterestsCard interests={interests} />
+        <PodInterestsCard interests={interests} color={color} />
         <SafetyCard />
         {chatCard}
         {leaveError}

@@ -4,8 +4,8 @@
  * Solsikke pod (sourdough: Ink type on the field, the Tomat sun, the Solsikke-deep ring on the badge in the tint band),
  * a Blad pod (trail running: the white sun) and an open-to-anyone pod (no theme name; its colour comes from the pod
  * id, which lands on Blomme: white type and Paper people on the field). Each comes as a proposal (the tint band) and
- * as the reveal (the base field), on the week-46 timeline of the brætspil pod. The colours follow from the fixture
- * concept ids (_kit.ts) and the pod id (podColorIndex); names are placeholders.
+ * as the reveal (the base field), on the week-46 timeline of the brætspil pod. The colours follow from the theme words
+ * and, for open-to-anyone, the pod id (`@/lib/podColor`); names are placeholders.
  */
 import type { Locale } from '@grouper/core';
 import type { DocData } from '../runtime/types';
@@ -18,14 +18,14 @@ export interface ColourPod {
   readonly podId: string;
   /** The viewer's wording, as on their card; `null` for an open-to-anyone pod. */
   readonly label: string | null;
-  /** The theme's concept id (the viewer's interest that holds it); absent for open-to-anyone. */
+  /** The theme's concept id, for the pod document; absent for open-to-anyone. The colour comes from `label`. */
   readonly conceptId?: string;
   /** The four others; the viewer comes last. */
   readonly others: readonly Member[];
   readonly podInterests: { readonly da: readonly string[]; readonly en: readonly string[] };
 }
 
-/** Fjord (seed_dads_on_leave): "far på barsel". */
+/** Fjord ("far på barsel"). */
 export const FJORD_POD: ColourPod = {
   podId: 'farpaabarselpod46aaa',
   label: 'far på barsel',
@@ -39,7 +39,7 @@ export const FJORD_POD: ColourPod = {
   podInterests: { da: ['gåture', 'kaffe'], en: ['walks', 'coffee'] },
 };
 
-/** Solsikke (seed_bread_baking): sourdough, with the This week sourdough people and one more. */
+/** Solsikke ("sourdough"): with the This week sourdough people and one more. */
 export const SOLSIKKE_POD: ColourPod = {
   podId: 'sourdoughpodwk46aaaa',
   label: 'sourdough',
@@ -48,7 +48,7 @@ export const SOLSIKKE_POD: ColourPod = {
   podInterests: { da: ['brætspil', 'kaffe'], en: ['board games', 'coffee'] },
 };
 
-/** Blad (seed_trail_runs): trail running. */
+/** Blad ("trail running"). */
 export const BLAD_POD: ColourPod = {
   podId: 'trailrunpodwk46aaaaa',
   label: 'trail running',

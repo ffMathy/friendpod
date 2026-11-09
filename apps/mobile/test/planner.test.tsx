@@ -22,7 +22,7 @@ jest.mock('@/firebase/callables', () => ({
 
 const ts = (ms: number) => ({ toMillis: () => ms });
 
-/** The pod's theme (its colour comes from the concept id: `seed_boardgames` is Tomat). */
+/** The pod's theme document (the colour comes from the card's word: "Brætspil" is Tomat). */
 const THEME = { kind: 'concept', conceptId: 'seed_boardgames', sensitive: false };
 const place = {
   placeId: 'ChIJstubDokk1Aarhus01',
@@ -45,7 +45,7 @@ jest.mock('@/data/docs', () => ({
 }));
 
 function planning(extended = false) {
-  mockCard = { state: 'planning', myStatus: 'accepted', themeLabel: 'Brætspil', themeSensitive: false };
+  mockCard = { state: 'planning', myStatus: 'accepted', themeLabel: 'Brætspil', themeSensitive: false, reasons: [] };
   mockPod = { state: 'planning', theme: THEME, planning: { deadline: ts(Date.now() + 20 * HOUR), ...(extended ? { extended: true } : {}) } };
 }
 const option = (id: string, authorUid: string, votes: Record<string, string>) => ({
@@ -256,7 +256,7 @@ describe('planner (§3.5)', () => {
   it('after the plan locks, says voting closed and which time won, shows the plan with the map link, and who is coming', async () => {
     const openURL = jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
     const meetupAt = Date.now() + 3 * DAY_MS;
-    mockCard = { state: 'scheduled', myStatus: 'accepted', themeLabel: 'Brætspil', themeSensitive: false };
+    mockCard = { state: 'scheduled', myStatus: 'accepted', themeLabel: 'Brætspil', themeSensitive: false, reasons: [] };
     mockPod = {
       state: 'scheduled',
       theme: THEME,
@@ -284,7 +284,7 @@ describe('planner (§3.5)', () => {
 
   it('after the plan locks, asks for the viewer\'s own missing answer as a needs-you note with both answers', async () => {
     const meetupAt = Date.now() + 3 * DAY_MS;
-    mockCard = { state: 'scheduled', myStatus: 'accepted', themeLabel: 'Brætspil', themeSensitive: false };
+    mockCard = { state: 'scheduled', myStatus: 'accepted', themeLabel: 'Brætspil', themeSensitive: false, reasons: [] };
     mockPod = {
       state: 'scheduled',
       theme: THEME,
@@ -313,7 +313,7 @@ describe('planner (§3.5)', () => {
 
   it('after the meetup, the locked plan is a record: no map, safety or calendar, and no "your yes" once you cancelled', async () => {
     const meetupAt = Date.now() - DAY_MS;
-    mockCard = { state: 'happened', myStatus: 'accepted', themeLabel: 'Brætspil', themeSensitive: false };
+    mockCard = { state: 'happened', myStatus: 'accepted', themeLabel: 'Brætspil', themeSensitive: false, reasons: [] };
     mockPod = {
       state: 'happened',
       theme: THEME,
@@ -331,7 +331,7 @@ describe('planner (§3.5)', () => {
     client.clear();
 
     // Scheduled, but the viewer said "Can't make it" after voting yes: the vote no longer counts as coming.
-    mockCard = { state: 'scheduled', myStatus: 'accepted', themeLabel: 'Brætspil', themeSensitive: false };
+    mockCard = { state: 'scheduled', myStatus: 'accepted', themeLabel: 'Brætspil', themeSensitive: false, reasons: [] };
     mockPod = { ...mockPod, state: 'scheduled', planning: { deadline: ts(Date.now()), meetupAt: ts(Date.now() + 2 * DAY_MS), place, winningOptionId: 'opt1' }, attendance: { me: 'notComing', anna: 'coming' } };
     mockOptions = [option('opt1', 'anna', { me: 'yes', anna: 'yes', bo: 'yes' })];
     await renderPlan();
