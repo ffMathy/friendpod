@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Button, ErrorText, ListRow, ListSection, SegmentedControl } from '@/components/ui';
 import { useCallable } from '@/data/useCallable';
 import { signOut } from '@/features/account/account';
-import { ControlRow, ShellPage } from '@/features/shell/parts';
+import { ControlRow, GlobeIcon, ShellPage } from '@/features/shell/parts';
 import { currentLocale, initI18n } from '@/i18n';
 import { errorMessageKey } from '@/lib/errors';
 
@@ -14,7 +14,10 @@ import { errorMessageKey } from '@/lib/errors';
  * notifications, the legal documents and sign out; plus Privacy, because the locked consent texts send people to
  * "Settings → Privacy". Me lists Privacy too (priv-settings' eyebrow is "Me") with its summary line; here it is a plain
  * row, so the two lists don't repeat each other. Pod preferences and messages from Grouper are on Me, blocked people
- * under Privacy. Laid out like priv-settings: "Me" above the title, white list cards with overlines.
+ * under Privacy. Laid out like priv-settings: "Me" above the title, white list cards with eyebrows, Ink 2 row icons,
+ * the language as a segmented control (selected: Ink), and "Sign out" as a white secondary button (it is not
+ * destructive: nothing is deleted). As in priv-settings, a card's rows either all have an icon or none do: General's
+ * three rows each have one (a globe for the language), the legal documents none.
  */
 export default function Settings() {
   const { t } = useTranslation();
@@ -24,8 +27,8 @@ export default function Settings() {
   const locale = currentLocale();
   return (
     <ShellPage title={t('settings.title')} eyebrow={t('tabs.me')} testID="settings">
-      <ListSection>
-        <ControlRow label={t('me.language')} separator>
+      <ListSection title={t('settings.general')}>
+        <ControlRow label={t('me.language')} leading={<GlobeIcon />} separator>
           <SegmentedControl<Locale>
             testID="language"
             accessibilityLabel={t('me.language')}
@@ -51,7 +54,9 @@ export default function Settings() {
       <Button
         testID="sign-out"
         label={t('settings.signOut')}
-        variant="outline"
+        variant="secondary"
+        size="md"
+        fullWidth
         busy={busy}
         onPress={() => {
           setBusy(true);

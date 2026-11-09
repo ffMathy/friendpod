@@ -9,7 +9,8 @@ import { IconDot, PageLede, ShellPage } from '@/features/shell/parts';
 
 /**
  * Messages from Grouper (§8.1 `notices`): statements of reasons for automated pauses and holds, report receipts,
- * "a member left", "your data is ready" and the inactivity warning, newest first. Each is kept for a year (TTL).
+ * "a member left", "your data is ready" and the inactivity warning, newest first, one white card each. Each is kept
+ * for a year (TTL). Empty: a calm white card with the quiet chat disc.
  */
 export default function Notices() {
   const { t } = useTranslation();
@@ -31,9 +32,9 @@ export default function Notices() {
         </Card>
       ) : rows.length === 0 ? (
         <Card style={styles.empty} gap={14}>
-          <IconDot icon="chat" tone="mint" size={40} />
+          <IconDot icon="chat" size={40} />
           <View style={styles.flex}>
-            <Text variant="bodyStrong">{t('notices.none')}</Text>
+            <Text variant="heading">{t('notices.none')}</Text>
             <Text variant="caption" color="textMuted">
               {t('notices.noneBody')}
             </Text>

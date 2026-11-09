@@ -5,19 +5,20 @@ import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Layout } from '@/components/theme';
-import { Banner, Button, CloseButton, ErrorText, Label, Radio, Screen, Text, Title } from '@/components/ui';
+import { Button, CloseButton, ErrorText, Note, Screen, Text, Title } from '@/components/ui';
 import { usePod, usePodCard } from '@/data/docs';
 import { useCallable } from '@/data/useCallable';
-import { NoteField, useTopPadding } from '@/features/after/parts';
+import { NoteField, OptionRow, useTopPadding } from '@/features/after/parts';
 import { isConfirmedMember } from '@/features/pods/membership';
 import { useUid } from '@/features/session/SessionProvider';
 import { errorMessageKey } from '@/lib/errors';
 
 /**
- * Report (§3.7, after-report) of a member, an option or a chat message: "In danger right now? Call 112." on top,
- * one category, optional text (max 500) with a warning not to include sensitive details. The reporter is never
- * revealed; "not a genuine member" only in sensitive-themed pods (S7). Replay-protected App Check (§9) via the
- * callable registry. A message report names no uid: the server takes the author from the message and keeps a copy.
+ * Report (§3.7, after-report) of a member, an option or a chat message: the safety alert "In danger right now? Call
+ * 112." on top (white, Danger border and phone icon, Ink text), one reason as white radio rows, optional text (max 500)
+ * with a warning not to include sensitive details, and "Send report" in Skov. The reporter is never revealed; "not a
+ * genuine member" only in sensitive-themed pods (S7). Replay-protected App Check (§9) via the callable registry. A
+ * message report names no uid: the server takes the author from the message and keeps a copy.
  */
 export default function Report() {
   const { t } = useTranslation();
@@ -71,7 +72,7 @@ export default function Report() {
       footer={
         <View style={[styles.footer, { marginBottom: footerNudge }]}>
           {report.error ? <ErrorText>{t(errorMessageKey(report.error))}</ErrorText> : null}
-          <Button testID="report-send" variant="dark" label={t('report.send')} disabled={!category} busy={report.isPending} onPress={send} />
+          <Button testID="report-send" variant="primary" label={t('report.send')} disabled={!category} busy={report.isPending} onPress={send} />
         </View>
       }
     >
@@ -82,22 +83,20 @@ export default function Report() {
         <CloseButton onPress={close} accessibilityLabel={t('common.close')} testID="report-close" />
       </View>
 
-      <Banner tone="danger" testID="report-112">
-        <Text variant="small" weight="700" color="dangerInk" style={styles.bannerText}>
+      <Note tone="safety" testID="report-112">
+        <Text variant="smallBold" color="text" style={styles.safetyText}>
           {t('report.danger')}
         </Text>
-      </Banner>
+      </Note>
 
-      {messageId ? (
-        <Banner tone="info">
-          {t('report.messageCopy')}
-        </Banner>
-      ) : null}
+      {messageId ? <Note tone="info">{t('report.messageCopy')}</Note> : null}
 
       <View style={styles.categories} accessibilityRole="radiogroup" accessibilityLabel={t('report.question')}>
-        <Label style={styles.legend}>{t('report.question')}</Label>
+        <Text variant="heading" style={styles.legend}>
+          {t('report.question')}
+        </Text>
         {categories.map((c) => (
-          <Radio key={c} testID={`report-${c}`} label={t(`report.categories.${c}`)} selected={category === c} onPress={() => setCategory(c)} />
+          <OptionRow key={c} testID={`report-${c}`} label={t(`report.categories.${c}`)} selected={category === c} onPress={() => setCategory(c)} />
         ))}
       </View>
 
@@ -119,10 +118,10 @@ const STORYBOARD_BOTTOM = 28;
 
 const styles = StyleSheet.create({
   footer: { gap: 12 },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
-  title: { flexShrink: 1 },
-  bannerText: { lineHeight: 20 },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
+  title: { flexShrink: 1, lineHeight: 30 },
+  safetyText: { lineHeight: 20 },
   categories: { gap: 8 },
-  // The storyboard's legend at the browser's "normal" line height for 15 px.
-  legend: { lineHeight: 19 },
+  // The storyboard's legend sits outside the fieldset's flex gap, with its own 8 px margin: the same 8 px as here.
+  legend: { lineHeight: 20 },
 });

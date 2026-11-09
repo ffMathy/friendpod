@@ -2,9 +2,9 @@ import { LANGUAGES, MAX_AGE, MIN_AGE, MIN_AGE_RANGE_WIDTH, RADII_KM, prefsSchema
 import { useState } from 'react';
 import { Controller, useForm, useWatch, type UseFormReturn } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
-import { Alert, Pressable, StyleSheet, View } from 'react-native';
-import { BorderWidth, Radius, usePalette } from '@/components/theme';
-import { Button, Card, Checkbox, ChoiceChip, ErrorText, Heading, Label, Small, Switch, Text } from '@/components/ui';
+import { Alert, Pressable, StyleSheet, View, type ViewStyle } from 'react-native';
+import { BorderWidth, Size, usePalette } from '@/components/theme';
+import { Button, Card, ErrorText, Heading, Icon, Label, Switch, Text } from '@/components/ui';
 import { useCallable } from '@/data/useCallable';
 import { errorMessageKey } from '@/lib/errors';
 import { zodResolver } from '@/lib/zodResolver';
@@ -50,9 +50,10 @@ export interface PreferencesFieldsProps {
 }
 
 /**
- * Pod preferences (onb-prefs; §3.1 step 9): the age range (two-thumb slider, width ≥ 5), how far ("about", Q: radius),
- * meetup languages, the availability grid, same-gender pods behind their own consent (PRIVACY.md §3.6) and, outside
- * onboarding, "open to anyone" (Q12).
+ * Pod preferences (onb-prefs; §3.1 step 9), as the storyboard draws them: the ages in a white card (two-thumb slider,
+ * width ≥ 5), how far ("about", Q: radius) as four choice pills, the meetup languages as checkable pills, the
+ * availability grid, same-gender pods behind their own consent (PRIVACY.md §3.6) and, outside onboarding, "open to
+ * anyone" (Q12). A selected choice is Ink with white text (spec §6.15); "on" switches and the slider are Skov.
  */
 export function PreferencesFields({ controller, locale, showOpenToAnyone = true }: PreferencesFieldsProps) {
   const { t } = useTranslation();
@@ -73,10 +74,10 @@ export function PreferencesFields({ controller, locale, showOpenToAnyone = true 
 
   return (
     <View style={styles.fields}>
-      <Card gap={12}>
+      <Card gap={10} style={AGES_CARD_PADDING}>
         <View style={styles.agesTop}>
-          <Heading style={styles.normal15}>{t('prefs.ages')}</Heading>
-          <Text variant="numeral" accessibilityLabel={t('prefs.agesValue', { min: ageMin, max: ageMax })}>{`${ageMin}–${ageMax}`}</Text>
+          <Heading>{t('prefs.ages')}</Heading>
+          <Text variant="cardTitle" accessibilityLabel={t('prefs.agesValue', { min: ageMin, max: ageMax })}>{`${ageMin}–${ageMax}`}</Text>
         </View>
         <AgeRangeSlider
           testID="age-range"
@@ -92,7 +93,9 @@ export function PreferencesFields({ controller, locale, showOpenToAnyone = true 
             setValue('ageMax', high, { shouldDirty: true });
           }}
         />
-        <Small style={styles.normal13}>{t('prefs.agesHint')}</Small>
+        <Text variant="caption" color="textMuted" style={styles.hint}>
+          {t('prefs.agesHint')}
+        </Text>
         {formState.errors.ageMax ? <ErrorText>{t('prefs.ageRangeTooNarrow')}</ErrorText> : null}
       </Card>
 
@@ -104,10 +107,9 @@ export function PreferencesFields({ controller, locale, showOpenToAnyone = true 
           render={({ field }) => (
             <View style={styles.radii} accessibilityRole="radiogroup" accessibilityLabel={t('prefs.travel')}>
               {RADII_KM.map((km) => (
-                <ChoiceChip
+                <ChoicePill
                   key={km}
                   testID={`radius-${km}`}
-                  fill
                   label={t('prefs.km', { km })}
                   accessibilityLabel={t('prefs.aboutKm', { km })}
                   selected={field.value === km}
@@ -127,10 +129,9 @@ export function PreferencesFields({ controller, locale, showOpenToAnyone = true 
           render={({ field }) => (
             <View style={styles.languages}>
               {LANGUAGES.map((lang) => (
-                <Checkbox
+                <CheckPill
                   key={lang}
                   testID={`language-${lang}`}
-                  variant="inline"
                   // The language's name in the reader's language ("Engelsk"), not the app-language picker's endonym.
                   label={t(`prefs.language.${lang}`)}
                   checked={field.value.includes(lang)}
@@ -149,7 +150,7 @@ export function PreferencesFields({ controller, locale, showOpenToAnyone = true 
         {formState.errors.availability ? <ErrorText>{t('prefs.pickAvailability')}</ErrorText> : null}
       </View>
 
-      <SwitchCard
+      <Switch
         testID="same-gender"
         label={t('prefs.sameGender')}
         description={t('prefs.sameGenderHint')}
@@ -182,44 +183,72 @@ export function PreferencesFields({ controller, locale, showOpenToAnyone = true 
 }
 
 /**
- * "Same-gender pods only" as onb-prefs draws it: a white r20 card (14/16 padding), the title and its two-line 13/1.45
- * hint, and the switch at the top right beside the title (not centred on the card).
+ * One of the distances (onb-prefs): a 44 px pill sharing the row evenly, 15/700; selected = Ink with white text and a
+ * check (spec §6.15), unselected = white with the 1.5 px Outline border. A radio in its group.
  */
-function SwitchCard({
+function ChoicePill({
   label,
-  description,
-  value,
-  onChange,
+  selected,
+  onPress,
+  accessibilityLabel,
   testID,
 }: {
   readonly label: string;
-  readonly description: string;
-  readonly value: boolean;
-  readonly onChange: (value: boolean) => void;
+  readonly selected: boolean;
+  readonly onPress: () => void;
+  readonly accessibilityLabel?: string;
   readonly testID?: string;
 }) {
   const p = usePalette();
   return (
     <Pressable
       testID={testID}
-      accessibilityRole="switch"
-      accessibilityLabel={label}
-      accessibilityHint={description}
-      accessibilityState={{ checked: value }}
-      onPress={() => onChange(!value)}
-      style={({ pressed }) => [styles.switchCard, { backgroundColor: p.surface, borderColor: p.border, opacity: pressed ? 0.85 : 1 }]}
+      accessibilityRole="radio"
+      accessibilityLabel={accessibilityLabel ?? label}
+      accessibilityState={{ checked: selected }}
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.pill,
+        styles.fill,
+        selected ? { backgroundColor: p.ink } : { backgroundColor: p.surface, borderWidth: BorderWidth.control, borderColor: p.borderStrong },
+        { opacity: pressed ? 0.85 : 1 },
+      ]}
     >
-      <View style={styles.switchText}>
-        <Text variant="heading" style={styles.normal15}>
-          {label}
-        </Text>
-        <Text variant="caption" color="textMuted" style={styles.hint}>
-          {description}
-        </Text>
+      {selected ? <Icon name="check" size={14} strokeWidth={2.6} color={p.onInk} /> : null}
+      <Text variant="buttonSmall" color={selected ? 'onInk' : 'text'} numberOfLines={1}>
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
+
+/**
+ * A meetup language (onb-prefs): a 44 px pill with its own 20 px box. Checked = Ink pill, white text, a white box with
+ * an Ink check; unchecked = white pill with the Outline border and an empty Field-bordered box. A checkbox.
+ */
+function CheckPill({ label, checked, onChange, testID }: { readonly label: string; readonly checked: boolean; readonly onChange: (checked: boolean) => void; readonly testID?: string }) {
+  const p = usePalette();
+  return (
+    <Pressable
+      testID={testID}
+      accessibilityRole="checkbox"
+      accessibilityLabel={label}
+      accessibilityState={{ checked }}
+      onPress={() => onChange(!checked)}
+      style={({ pressed }) => [
+        styles.pill,
+        styles.checkPill,
+        checked ? { backgroundColor: p.ink } : { backgroundColor: p.surface, borderWidth: BorderWidth.control, borderColor: p.borderStrong },
+        { opacity: pressed ? 0.85 : 1 },
+      ]}
+    >
+      <View style={[styles.box, checked ? { backgroundColor: p.onInk, borderColor: p.onInk } : { backgroundColor: p.surface, borderColor: p.field }]}>
+        {/* A heavy check, as onb-prefs' native boxes draw it (about 2.5 px at this size). */}
+        {checked ? <Icon name="check" size={17} strokeWidth={3.6} color={p.ink} /> : null}
       </View>
-      <View style={[styles.track, { backgroundColor: value ? p.primary : p.borderStrong }]}>
-        <View style={[styles.thumb, { backgroundColor: p.onHero }, value ? styles.thumbOn : null]} />
-      </View>
+      <Text variant="buttonSmall" color={checked ? 'onInk' : 'text'}>
+        {label}
+      </Text>
     </Pressable>
   );
 }
@@ -235,30 +264,24 @@ export function PreferencesForm({ initial, locale, submitLabel, onSaved }: Props
   );
 }
 
+/**
+ * onb-prefs' ages card: 14 / 16 padding. A plain object, not a StyleSheet entry: Card sets its padding inline, and on
+ * web only another inline style wins over it.
+ */
+const AGES_CARD_PADDING: ViewStyle = { paddingVertical: 14 };
+
 const styles = StyleSheet.create({
-  fields: { gap: 18 },
+  // onb-prefs spaces its blocks 12 apart; a legend (15/20) sits 8 above its controls.
+  fields: { gap: 12 },
+  legend: { lineHeight: 20 },
   agesTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', gap: 12 },
-  // onb-prefs sets its legends, titles and the ages hint at the font's normal line height (~1.26).
-  normal13: { lineHeight: 16 },
-  normal15: { lineHeight: 19 },
-  legend: { lineHeight: 19 },
-  fieldset: { gap: 10 },
+  hint: { lineHeight: 18 },
+  fieldset: { gap: 8 },
   radii: { flexDirection: 'row', gap: 8 },
-  languages: { flexDirection: 'row', gap: 18 },
-  switchCard: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 12,
-    borderWidth: BorderWidth.hairline,
-    borderRadius: Radius.card,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-  },
-  switchText: { flex: 1, gap: 4 },
-  // 13/1.45, as the storyboard's hint.
-  hint: { lineHeight: 19 },
-  // The switch sits 2 px down, level with the title.
-  track: { width: 44, height: 26, borderRadius: 13, padding: 2, marginTop: 2, justifyContent: 'center' },
-  thumb: { width: 22, height: 22, borderRadius: 11 },
-  thumbOn: { alignSelf: 'flex-end' },
+  languages: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  pill: { minHeight: Size.hitTarget, borderRadius: Size.hitTarget / 2, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4 },
+  fill: { flexGrow: 1, flexBasis: 0, paddingHorizontal: 6 },
+  checkPill: { paddingLeft: 12, paddingRight: 16, gap: 8 },
+  // A square box with a small radius (onb-prefs draws the native checkbox), not the 24 px Checkbox's rounder 7.
+  box: { width: 20, height: 20, borderRadius: 4, borderWidth: BorderWidth.control, alignItems: 'center', justifyContent: 'center' },
 });

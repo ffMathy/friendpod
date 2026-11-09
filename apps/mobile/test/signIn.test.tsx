@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
-import { Platform } from 'react-native';
+import { useEffect as mockUseEffect } from 'react';
+import { Platform, StatusBar } from 'react-native';
 import EmailSignIn from '../app/(auth)/email';
 import Welcome from '../app/(auth)/index';
 import CompleteEmailLink from '../app/auth/complete';
@@ -8,7 +9,13 @@ import { i18n } from '@/i18n';
 
 const mockRouter = { push: jest.fn(), back: jest.fn(), replace: jest.fn(), canGoBack: () => true };
 let mockParams: { link?: string } = {};
-jest.mock('expo-router', () => ({ useRouter: () => mockRouter, useLocalSearchParams: () => mockParams, Stack: { Screen: () => null } }));
+jest.mock('expo-router', () => ({
+  useRouter: () => mockRouter,
+  useLocalSearchParams: () => mockParams,
+  Stack: { Screen: () => null },
+  // Focus = mounted here: the effect runs after render and its cleanup on unmount.
+  useFocusEffect: (effect: () => void | (() => void)) => mockUseEffect(effect, [effect]),
+}));
 jest.mock('expo-apple-authentication', () => ({ isAvailableAsync: jest.fn(async () => true), signInAsync: jest.fn() }));
 const mockGoogle = jest.fn();
 jest.mock('@/features/auth/google', () => ({ signInWithGoogle: () => mockGoogle() }));
@@ -44,10 +51,13 @@ async function renderOn(os: 'ios' | 'android') {
 }
 
 describe('welcome and sign-in (§3.1, D10)', () => {
-  it('shows the storyboard content: headline, what a pod is, 18+ and the legal links', async () => {
+  it('shows the storyboard content: headline, tagline, what a pod is, 18+ and the legal links', async () => {
     await renderOn('ios');
     expect(screen.getByRole('header', { name: 'Small groups.\nReal meetups.' })).toBeOnTheScreen();
-    expect(screen.getByText(/Every Thursday we put together a pod of 4–6 people/)).toBeOnTheScreen();
+    // The in-app tagline promises room, not a saved seat (decision 8).
+    expect(screen.getByText('There’s room for you.')).toBeOnTheScreen();
+    // A word joiner keeps "4–6" on one line.
+    expect(screen.getByText(/Every Thursday we put together a pod of 4–\u20606 people/)).toBeOnTheScreen();
     expect(screen.getByText('18+ only')).toBeOnTheScreen();
     await fireEvent.press(screen.getByRole('link', { name: 'Terms' }));
     expect(mockRouter.push).toHaveBeenCalledWith({ pathname: '/info/legal/[doc]', params: { doc: 'terms' } });
@@ -77,7 +87,7 @@ describe('welcome and sign-in (§3.1, D10)', () => {
     expect(screen.queryByRole('alert')).toBeNull();
     mockGoogle.mockRejectedValueOnce(new Error('network'));
     await fireEvent.press(screen.getByRole('button', { name: 'Continue with Google' }));
-    expect(screen.getByText("Sign-in didn't work. Please try again.")).toBeOnTheScreen();
+    expect(screen.getByText('Sign-in didn’t work. Please try again.')).toBeOnTheScreen();
   });
 
   it('switches the UI language with the Dansk / English control', async () => {
@@ -86,7 +96,18 @@ describe('welcome and sign-in (§3.1, D10)', () => {
     await fireEvent.press(screen.getByRole('radio', { name: 'Dansk' }));
     expect(i18n.language).toBe('da');
     expect(screen.getByRole('button', { name: 'Fortsæt med Google' })).toBeOnTheScreen();
+    expect(screen.getByText('Der er plads til dig.')).toBeOnTheScreen();
     expect(screen.getByRole('radio', { name: 'Dansk' })).toBeSelected();
+  });
+
+  it('keeps the status bar readable on the Skov field while the welcome is in front, and gives it back after', async () => {
+    const setBarStyle = jest.spyOn(StatusBar, 'setBarStyle').mockImplementation(() => undefined);
+    Object.defineProperty(Platform, 'OS', { value: 'ios', configurable: true });
+    const view = await render(<Welcome />);
+    expect(setBarStyle).toHaveBeenLastCalledWith('light-content', true);
+    await view.unmount();
+    expect(setBarStyle).toHaveBeenLastCalledWith('default', true);
+    setBarStyle.mockRestore();
   });
 });
 
@@ -103,14 +124,17 @@ describe('email link (F10)', () => {
     expect(screen.getByRole('button', { name: 'Send a new link' })).toBeOnTheScreen();
   });
 
-  it('starts with the address a link was asked for before, under the welcome logo', async () => {
+  it('starts with the address a link was asked for before, under a back chevron and the title (no logo after the welcome)', async () => {
     mockPendingEmail.mockResolvedValueOnce('emil@example.com');
     await render(<EmailSignIn />);
     await act(async () => {
       await Promise.resolve();
     });
     expect(screen.getByLabelText('Email address')).toHaveDisplayValue('emil@example.com');
-    expect(screen.getByRole('image', { name: 'Grouper' })).toBeOnTheScreen();
+    expect(screen.getByRole('header', { name: 'Sign in with email' })).toBeOnTheScreen();
+    expect(screen.queryByRole('image', { name: 'Grouper' })).toBeNull();
+    await fireEvent.press(screen.getByRole('button', { name: 'Back' }));
+    expect(mockRouter.back).toHaveBeenCalled();
   });
 
   it('does not overwrite an address the person started typing with the stored one', async () => {
@@ -130,7 +154,7 @@ describe('email link (F10)', () => {
     await render(<EmailSignIn />);
     await fireEvent.changeText(screen.getByLabelText('Email address'), 'emil@example.com');
     await fireEvent.press(screen.getByRole('button', { name: 'Send me a sign-in link' }));
-    expect(screen.getByText("We couldn't send the link. Check the address and try again.")).toBeOnTheScreen();
+    expect(screen.getByText('We couldn’t send the link. Check the address and try again.')).toBeOnTheScreen();
   });
 });
 
@@ -151,7 +175,7 @@ describe('email link landing (§11)', () => {
     });
     expect(screen.getByRole('header', { name: 'Signing you in' })).toBeOnTheScreen();
     expect(screen.getByText('This only takes a moment.')).toBeOnTheScreen();
-    expect(screen.getByRole('image', { name: 'Grouper' })).toBeOnTheScreen();
+    // Nothing to press while it works (the link opened this screen on its own: no back chevron either).
     expect(screen.queryByRole('button')).toBeNull();
   });
 
@@ -183,7 +207,7 @@ describe('email link landing (§11)', () => {
       await Promise.resolve();
     });
     expect(mockCompleteLink).toHaveBeenCalledWith(link, 'emil@example.com');
-    expect(screen.getByRole('header', { name: "That link didn't work" })).toBeOnTheScreen();
+    expect(screen.getByRole('header', { name: 'That link didn’t work' })).toBeOnTheScreen();
     expect(screen.getByRole('alert')).toHaveTextContent('The link has expired or was already used. Ask for a new one.');
     await fireEvent.press(screen.getByRole('button', { name: 'Send a new link' }));
     expect(mockRouter.replace).toHaveBeenCalledWith('/email');
@@ -200,7 +224,7 @@ describe('email link landing (§11)', () => {
       await Promise.resolve();
     });
     expect(mockCompleteLink).not.toHaveBeenCalled();
-    expect(screen.getByRole('alert')).toHaveTextContent("This isn't a valid sign-in link. Ask for a new one.");
+    expect(screen.getByRole('alert')).toHaveTextContent('This isn’t a valid sign-in link. Ask for a new one.');
     expect(screen.getByRole('button', { name: 'Send a new link' })).toBeOnTheScreen();
   });
 

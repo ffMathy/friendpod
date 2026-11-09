@@ -2,7 +2,7 @@ import { NOTICE_CODES, type NoticeDoc } from '@grouper/core';
 import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
-import { Banner, Card, Text, type IconName } from '@/components/ui';
+import { Card, Note, Text, type IconName } from '@/components/ui';
 import { DownloadExportButton } from '@/features/account/ExportStatus';
 import { IconDot, type BulletTone } from '@/features/shell/parts';
 import { currentLocale } from '@/i18n';
@@ -14,19 +14,23 @@ const KNOWN_CODES = new Set<string>(Object.values(NOTICE_CODES));
 
 type NoticeCode = keyof typeof NOTICE_CODES;
 
-/** The icon beside each notice: amber for a pause or hold, mint for good news, grey for the rest. */
+/**
+ * The icon beside each notice, on a quiet Paper disc with Ink 2: no alarm colour (a pause is a calm fact about the
+ * account, and nothing here is a deadline of the user's own), and no pod colour (a notice belongs to no pod). The hold
+ * on private-interest pods gets the quiet private disc (white, Ink ring, lock).
+ */
 const LOOK: Record<NoticeCode, { readonly icon: IconName; readonly tone: BulletTone }> = {
-  PAUSE_REPORTS: { icon: 'pause', tone: 'warning' },
-  PAUSE_SAFETY_REPORT: { icon: 'pause', tone: 'warning' },
-  PAUSE_UNDERAGE_REPORT: { icon: 'pause', tone: 'warning' },
-  PAUSE_NO_SHOW: { icon: 'pause', tone: 'warning' },
-  SUSPENSION_NO_SHOW: { icon: 'pause', tone: 'warning' },
-  SENSITIVE_HOLD_NOT_GENUINE: { icon: 'lock', tone: 'warning' },
-  SANCTION_ENDED: { icon: 'check', tone: 'mint' },
+  PAUSE_REPORTS: { icon: 'pause', tone: 'neutral' },
+  PAUSE_SAFETY_REPORT: { icon: 'pause', tone: 'neutral' },
+  PAUSE_UNDERAGE_REPORT: { icon: 'pause', tone: 'neutral' },
+  PAUSE_NO_SHOW: { icon: 'pause', tone: 'neutral' },
+  SUSPENSION_NO_SHOW: { icon: 'pause', tone: 'neutral' },
+  SENSITIVE_HOLD_NOT_GENUINE: { icon: 'lock', tone: 'private' },
+  SANCTION_ENDED: { icon: 'check', tone: 'neutral' },
   REPORT_RECEIVED: { icon: 'flag', tone: 'neutral' },
   POD_MEMBER_LEFT: { icon: 'people', tone: 'neutral' },
-  EXPORT_READY: { icon: 'download', tone: 'mint' },
-  INACTIVITY_WARNING: { icon: 'clock', tone: 'warning' },
+  EXPORT_READY: { icon: 'download', tone: 'neutral' },
+  INACTIVITY_WARNING: { icon: 'clock', tone: 'neutral' },
 };
 
 const dateParam = (params: NoticeDoc['params'], key: string): string => {
@@ -56,11 +60,11 @@ export interface NoticeCardProps {
 }
 
 /**
- * One notice: a tinted icon, the date, a short bold title and the text in regular weight, in a white card (the
- * storyboards bold only titles). A statement of reasons (DSA Art. 17) adds, in a grey box, that it was decided
- * automatically with no human review and where to write; it is never a review channel. A safety report's receipt
- * adds after-report's red "In danger right now? Call 112." (bold, as there and on Meeting safely); "your data is ready"
- * offers the download while it exists, as priv-delete's outline "Download my data first" pill.
+ * One notice in a white card: the icon disc, the date (Muted), a short 15/700 title and the text in regular weight
+ * (the storyboards bold only titles). A statement of reasons (DSA Art. 17) adds, in a Paper note inside the card, that
+ * it was decided automatically with no human review and where to write; it is never a review channel. A safety
+ * report's receipt adds after-report's safety alert "In danger right now? Call 112." (white, 1.5 px Danger border);
+ * "your data is ready" offers the download while it exists, as priv-delete's white secondary "Download my data first".
  */
 export function NoticeCard({ uid, notice, exportReady }: NoticeCardProps) {
   const { t } = useTranslation();
@@ -77,29 +81,29 @@ export function NoticeCard({ uid, notice, exportReady }: NoticeCardProps) {
           <Text variant="caption" color="textMuted">
             {when}
           </Text>
-          <Text variant="bodyStrong" accessibilityRole="header">
+          <Text variant="heading" accessibilityRole="header">
             {noticeTitle(t, notice)}
           </Text>
-          <Text variant="small" color="textBody">
+          <Text variant="small" color="text">
             {noticeText(t, notice)}
           </Text>
         </View>
       </View>
-      {dangerLine ? <Banner tone="danger" alert title={t('report.danger')} /> : null}
+      {dangerLine ? <Note tone="safety" alert title={t('report.danger')} /> : null}
       {reasons ? (
-        <Banner tone="neutral" icon="info">
+        <Note tone="inset" icon="info">
           <Text variant="caption" color="textSecondary">
             {t('notices.automated')}
           </Text>
           <Text variant="caption" color="textSecondary">
             {t('notices.contact', { email: SUPPORT_EMAIL })}
           </Text>
-        </Banner>
+        </Note>
       ) : null}
       {typeof exportId === 'string' ? (
         exportReady ? (
           <View style={styles.download}>
-            <DownloadExportButton uid={uid} exportId={exportId} variant="outline" size="sm" />
+            <DownloadExportButton uid={uid} exportId={exportId} variant="secondary" size="sm" />
           </View>
         ) : (
           <Text variant="caption" color="textMuted">

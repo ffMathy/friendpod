@@ -1,22 +1,23 @@
 /**
- * Small pieces the drop screens share: the tab page title row, the link under a card (green, muted grey, or purple on
- * a pod about a private interest), the small link at the foot of This week, a tip row with a chevron or a switch, and
- * an icon line on the proposal card.
+ * Small pieces the drop screens share (blend spec §6.4–6.6, §6.12): the tab page title row, an icon line of the
+ * proposal card, the Paper note inside a card, the link row and the open-to-anyone switch row of "No pod for you this
+ * week", the 14 px Edit link, and the disc that leads a pod row or a reason.
  */
 import type { ReactNode } from 'react';
-import { Pressable, StyleSheet, Text as RNText, View } from 'react-native';
-import { Icon, Text, type IconName } from '@/components/ui';
-import { BorderWidth, Radius, Size, typeStyle, usePalette, type PaletteKey } from '@/components/theme';
+import { Pressable, Text as RNText, StyleSheet, View } from 'react-native';
+import Svg, { Circle } from 'react-native-svg';
+import { Icon, Switch, Text, TintDisc, type IconName } from '@/components/ui';
+import { BorderWidth, typeStyle, usePalette } from '@/components/theme';
+import { dsColor, type CardColor } from './color';
 
 /**
- * A tab page's title row (drop-home "This week · Week 46", the Pods tab): 30/800 on the left, a 14/600 muted note on
- * the right, on one baseline. The storyboard's h1 keeps the font's natural line height (about 38 px), so the row is
- * that tall and the title sits where it is drawn.
+ * A tab page's title row (spec §6.12 A: drop-proposal "Your weekly drop · Week 46", drop-none, the Pods tab): the Title
+ * (Bricolage 30/32) at the left and a 14/600 Muted note at the right, on one baseline.
  */
 export function TabTitle({ title, meta }: { title: string; meta?: string }) {
   return (
     <View style={styles.tabTitle}>
-      <Text accessibilityRole="header" variant="title" style={styles.tabTitleText}>
+      <Text accessibilityRole="header" variant="title" style={styles.shrink}>
         {title}
       </Text>
       {meta ? (
@@ -29,65 +30,71 @@ export function TabTitle({ title, meta }: { title: string; meta?: string }) {
 }
 
 /**
- * 15/700 underlined link in a 44 px row: centred under a card ("Why this pod?", "How private interests are
- * protected"), or at the start ("How matching works" at the foot of the why sheet).
+ * A section title on a tab page ("Your pods · 1 of 2 active"): 15/22/700 Ink with the count in 500 Muted, on one 22 px
+ * line as drawn (the design-system `SectionHeader` keeps 24 px for rows that carry a link).
  */
-export function CardLink({
-  label,
-  onPress,
-  tone = 'primary',
-  align = 'center',
-  testID,
-}: {
-  label: string;
-  onPress: () => void;
-  tone?: 'primary' | 'muted' | 'private';
-  align?: 'center' | 'start';
-  testID?: string;
-}) {
-  const p = usePalette();
-  const color: PaletteKey = tone === 'muted' ? 'textMuted' : tone === 'private' ? 'privateText' : 'primary';
+export function SectionTitle({ title, count }: { title: string; count?: string }) {
   return (
-    <Pressable
-      testID={testID}
-      accessibilityRole="link"
-      accessibilityLabel={label}
-      onPress={onPress}
-      hitSlop={8}
-      style={({ pressed }) => [styles.link, align === 'start' ? styles.linkStart : null, { opacity: pressed ? 0.6 : 1 }]}
-    >
-      <RNText style={[typeStyle('heading'), styles.underline, styles.linkText, align === 'start' ? styles.textStart : null, { color: p[color] }]}>
-        {label}
-      </RNText>
-    </Pressable>
+    <Text accessibilityRole="header" variant="heading">
+      {title}
+      {count ? (
+        <Text variant="heading" weight="500" color="textMuted">
+          {` · ${count}`}
+        </Text>
+      ) : null}
+    </Text>
+  );
+}
+
+/** One fact of the proposal card: an 18 px icon (the pod's deep tone; Ink 2 in a private pod) and 15/22 Ink text. */
+export function FactLine({ icon, color, children }: { icon: IconName; color: string; children: ReactNode }) {
+  return (
+    <View style={styles.fact}>
+      <Icon name={icon} size={18} color={color} style={styles.factIcon} />
+      <Text variant="bodySmall" style={styles.flex}>
+        {children}
+      </Text>
+    </View>
+  );
+}
+
+/** The 16 px dashed ring of "Names and photos appear when …": a seat not yet filled. Decorative. */
+function OpenRing() {
+  const p = usePalette();
+  return (
+    <Svg width={16} height={16} viewBox="0 0 16 16" accessible={false} style={styles.factIcon}>
+      <Circle cx={8} cy={8} r={6.75} fill="none" stroke={p.field} strokeWidth={1.5} strokeDasharray="2.6 2" />
+    </Svg>
   );
 }
 
 /**
- * 14/600 underlined link at the foot of a page ("How matching works" on This week). It sits 16 px under the card above
- * it, as drawn; the 44 px touch target comes from hitSlop rather than from a taller box.
+ * A note inside a white card (spec §6.5): Paper, radius 14, padding 10/12, a 16 px mark (the dashed ring for "names
+ * appear", the shield in a private pod) and 13/1.5 Ink 2 text. Several children are paragraphs 8 px apart.
  */
-export function SmallLink({ label, onPress, testID }: { label: string; onPress: () => void; testID?: string }) {
+export function InsetNote({ mark, children, testID }: { mark: 'open' | 'shield'; children: ReactNode; testID?: string }) {
   const p = usePalette();
   return (
-    <Pressable
-      testID={testID}
-      accessibilityRole="link"
-      accessibilityLabel={label}
-      onPress={onPress}
-      hitSlop={SMALL_LINK_SLOP}
-      style={({ pressed }) => [styles.smallLink, { opacity: pressed ? 0.6 : 1 }]}
-    >
-      <RNText style={[typeStyle('smallStrong'), styles.underline, styles.smallLinkText, { color: p.primary }]}>{label}</RNText>
-    </Pressable>
+    <View testID={testID} style={[styles.inset, { backgroundColor: p.inset }]}>
+      {mark === 'open' ? <OpenRing /> : <Icon name="shield" size={16} color={p.textSecondary} style={styles.factIcon} />}
+      <View style={styles.insetText}>{children}</View>
+    </View>
   );
 }
 
-/** The small link's text is 18 px tall: 13 px above and below make the 44 px target. */
-const SMALL_LINK_SLOP = { top: 13, bottom: 13, left: 8, right: 8 };
+/** A paragraph of an `InsetNote`: 13/1.5 Ink 2. */
+export function NoteText({ children }: { children: ReactNode }) {
+  return (
+    <Text variant="caption" color="textSecondary" style={styles.noteText}>
+      {children}
+    </Text>
+  );
+}
 
-/** A tip ("Add a few more interests", "Try about 15 km"): r16, input border, 15/600, chevron; 48 px inside the border. */
-export function TipRow({ label, onPress, testID }: { label: string; onPress: () => void; testID?: string }) {
+const TIP_MIN = 52;
+
+/** A link row inside a card (drop-none tips): at least 52 px, 16/600 Ink, a 20 px Muted chevron, a Divider under it. */
+export function TipRow({ label, onPress, last = false, testID }: { label: string; onPress: () => void; last?: boolean; testID?: string }) {
   const p = usePalette();
   return (
     <Pressable
@@ -95,9 +102,20 @@ export function TipRow({ label, onPress, testID }: { label: string; onPress: () 
       accessibilityRole="link"
       accessibilityLabel={label}
       onPress={onPress}
-      style={({ pressed }) => [styles.tip, { borderColor: p.borderStrong, backgroundColor: pressed ? p.surfaceMuted : p.surface }]}
+      style={({ pressed }) => [
+        styles.tip,
+        last
+          ? null
+          : {
+              // 52 px above the divider, as drawn (the divider adds its own pixel).
+              minHeight: TIP_MIN + BorderWidth.hairline,
+              borderBottomWidth: BorderWidth.hairline,
+              borderBottomColor: p.separator,
+            },
+        { opacity: pressed ? 0.6 : 1 },
+      ]}
     >
-      <Text variant="bodyStrong" style={[styles.flex, styles.tipLabel]}>
+      <Text variant="rowTitle" style={[styles.flex, styles.tipLabel]}>
         {label}
       </Text>
       <Icon name="chevronRight" size={20} color={p.textMuted} />
@@ -106,18 +124,10 @@ export function TipRow({ label, onPress, testID }: { label: string; onPress: () 
 }
 
 /**
- * A tip with a switch ("Open to meeting anyone" / "A pod without a shared theme"): the tip row's r16 outline, at least
- * 56 px, 8/16 padding, a 15/600 label with a 13/500 muted line 2 px under it, both at the font's natural line height
- * as drawn, and the 44 × 26 switch. Announced as a switch with the line as its hint, like the design-system Switch.
+ * "Open to meeting anyone" as the last row of the tips: the design-system switch (52 × 32), no border, in a row at
+ * least 64 px tall as drawn.
  */
-export function TipSwitch({
-  label,
-  description,
-  value,
-  onChange,
-  disabled = false,
-  testID,
-}: {
+export function TipSwitch(props: {
   label: string;
   description: string;
   value: boolean;
@@ -125,97 +135,89 @@ export function TipSwitch({
   disabled?: boolean;
   testID?: string;
 }) {
+  return (
+    <View style={styles.switchRow}>
+      <Switch variant="plain" {...props} />
+    </View>
+  );
+}
+
+/** A 14/700 link in a heading row ("Edit"): as tall as its text, the 44 px target from hitSlop. */
+export function RowLink({ label, onPress, testID }: { label: string; onPress: () => void; testID?: string }) {
   const p = usePalette();
   return (
     <Pressable
       testID={testID}
-      accessibilityRole="switch"
+      accessibilityRole="link"
       accessibilityLabel={label}
-      accessibilityHint={description}
-      accessibilityState={{ checked: value, disabled }}
-      disabled={disabled}
-      onPress={() => onChange(!value)}
-      style={({ pressed }) => [
-        styles.tipSwitch,
-        { borderColor: p.borderStrong, backgroundColor: pressed ? p.surfaceMuted : p.surface, opacity: disabled ? 0.5 : 1 },
-      ]}
+      onPress={onPress}
+      hitSlop={ROW_LINK_SLOP}
+      style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
     >
-      <View style={styles.tipSwitchText}>
-        <Text variant="bodyStrong" style={styles.tipSwitchLabel}>
-          {label}
-        </Text>
-        <Text variant="caption" weight="500" color="textMuted" style={styles.tipSwitchHint}>
-          {description}
-        </Text>
-      </View>
-      <View style={[styles.track, { backgroundColor: value ? p.primary : p.borderStrong }]}>
-        {/* White in both colour schemes, like the design-system switch's knob. */}
-        <View style={[styles.thumb, { backgroundColor: p.onBrand }, value ? styles.thumbOn : null]} />
-      </View>
+      <RNText style={[typeStyle('smallBold'), styles.underline, { color: p.link }]}>{label}</RNText>
     </Pressable>
   );
 }
 
-/** One line of the proposal card: a 20 px icon (green, purple on a private pod) and 15 px text. */
-export function FactLine({ icon, tone, children, top = false }: { icon: IconName; tone?: 'private'; children: ReactNode; top?: boolean }) {
+/** The link text is 18 px tall: 13 px above and below make the 44 px target, 8 px at the sides as drawn. */
+const ROW_LINK_SLOP = { top: 13, bottom: 13, left: 8, right: 8 };
+
+/**
+ * The 36 px disc that leads a pod row without avatars yet, or a reason in "Why this pod": the pod tint with the icon in
+ * the pod's deep tone; white with an Ink ring when private; Paper with an Ink 2 icon when the colour is not known.
+ */
+export function PodDisc({ color, icon, size = 36 }: { color: CardColor; icon: IconName; size?: number }) {
   const p = usePalette();
+  if (color !== 'plain') return <TintDisc color={dsColor(color)} icon={icon} size={size} />;
   return (
-    <View style={[styles.fact, top ? styles.factTop : null]}>
-      <Icon name={icon} size={20} color={tone === 'private' ? p.privateText : p.primary} />
-      <Text variant="body" style={styles.factText}>
-        {children}
-      </Text>
+    <View
+      accessible={false}
+      importantForAccessibility="no-hide-descendants"
+      style={[
+        styles.disc,
+        {
+          width: size,
+          height: size,
+          borderRadius: size / 2,
+          backgroundColor: p.inset,
+          borderColor: p.border,
+        },
+      ]}
+    >
+      <Icon name={icon} size={Math.round(size * 0.5)} color={p.textSecondary} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  tabTitle: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: 12 },
-  tabTitleText: { flexShrink: 1, lineHeight: 38 },
-  link: { alignSelf: 'center', minHeight: Size.hitTarget, justifyContent: 'center' },
-  linkStart: { alignSelf: 'flex-start' },
-  // 15 px at the font's natural line height (1.26), as the storyboard's links set none: centred in the 44 px row, the
-  // words then sit where they are drawn (the 20 px heading line box puts them half a pixel higher).
-  linkText: { lineHeight: 19 },
-  textStart: { textAlign: 'left' },
-  underline: { textDecorationLine: 'underline', textAlign: 'center' },
-  smallLink: { alignSelf: 'flex-start' },
-  // 14 px at the font's natural line height (the storyboard sets none).
-  smallLinkText: { lineHeight: 18, textAlign: 'left' },
-  // The storyboard's 48 px minimum is inside its 1 px border; React Native counts the border in.
-  // 15 px at the font's natural line height, centred in the 48 px row as drawn.
-  tipLabel: { lineHeight: 19 },
-  tip: {
-    minHeight: 48 + 2 * BorderWidth.hairline,
-    borderRadius: Radius.lg,
-    borderWidth: BorderWidth.hairline,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+  shrink: { flexShrink: 1 },
+  tabTitle: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'baseline',
+    justifyContent: 'space-between',
     gap: 12,
   },
-  // min-height 56 with box-sizing border-box in the storyboard: the 1 px border is inside the 56.
-  tipSwitch: {
-    minHeight: 56,
-    borderRadius: Radius.lg,
-    borderWidth: BorderWidth.hairline,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+  fact: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
+  factIcon: { marginTop: 2 },
+  inset: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
+    alignItems: 'flex-start',
+    gap: 8,
+    borderRadius: 14,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
   },
-  tipSwitchText: { flex: 1, gap: 2 },
-  // 15 and 13 px at the font's natural line height (1.26), as the storyboard's label sets none.
-  tipSwitchLabel: { lineHeight: 19 },
-  tipSwitchHint: { lineHeight: 16 },
-  track: { width: 44, height: 26, borderRadius: 13, padding: 2, justifyContent: 'center' },
-  thumb: { width: 22, height: 22, borderRadius: 11 },
-  thumbOn: { alignSelf: 'flex-end' },
-  fact: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  factTop: { alignItems: 'flex-start' },
-  // 15 px at the font's natural line height (1.26), as the storyboard's list sets none.
-  factText: { flex: 1, lineHeight: 19 },
+  insetText: { flex: 1, gap: 8 },
+  // 13 px at 1.5, as drawn.
+  noteText: { lineHeight: 19.5 },
+  tip: { minHeight: TIP_MIN, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  tipLabel: { lineHeight: 22 },
+  switchRow: { minHeight: 64, justifyContent: 'center' },
+  underline: { textDecorationLine: 'underline' },
+  disc: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: BorderWidth.hairline,
+  },
 });

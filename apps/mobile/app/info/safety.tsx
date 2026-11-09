@@ -1,9 +1,7 @@
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, View } from 'react-native';
-import { usePalette } from '@/components/theme';
-import { Banner, Card, Heading, Icon, Text } from '@/components/ui';
+import { Card, Note, Text } from '@/components/ui';
 import { useSession } from '@/features/session/SessionProvider';
-import { IconBullet, IconListCard, PageLede, ShellPage } from '@/features/shell/parts';
+import { IconBullet, IconHeading, IconListCard, PageLede, ShellPage } from '@/features/shell/parts';
 
 type Tip = 'public' | 'transport' | 'tellFriend' | 'address' | 'leave' | 'drink' | 'report';
 const BEFORE: readonly Tip[] = ['public', 'transport', 'tellFriend', 'address'];
@@ -12,40 +10,37 @@ const AT: readonly Tip[] = ['leave', 'drink', 'report'];
 const DONT: ReadonlySet<Tip> = new Set(['address']);
 
 /**
- * "Meeting safely" (§4.5, pod-confirmed's safety note), shown at confirmation and at T−24 h: the tips as drop-why's
- * mint ticks (the one "never" as a grey no-entry sign), before and at the meetup, and after-report's red "In danger
- * right now? Call 112.". Signed in, it ends with the pledge the user agreed to at onboarding, in onb-final's mint
- * "Our safety pledge" card (as a reminder: there is nothing to tick here).
+ * "Meeting safely" (§4.5, pod-confirmed's safety note), shown at confirmation and at T−24 h: after-report's safety
+ * alert "In danger right now? Call 112." (white, 1.5 px Danger border, phone icon), then the tips as drop-why's disc
+ * ticks (the one "never" as a no-entry sign, so it doesn't read as approval), before and at the meetup. Signed in, it
+ * ends with the pledge the user agreed to at onboarding, in onb-final's white "Our safety pledge" card with the shield
+ * (as a reminder: there is nothing to tick here).
  */
 export default function Safety() {
   const { t } = useTranslation();
-  const p = usePalette();
   const signedIn = useSession().phase === 'ready';
   return (
     <ShellPage title={t('info.safety.title')} testID="safety">
       <PageLede>{t('info.safety.lede')}</PageLede>
-      <Banner tone="danger" title={t('info.safety.emergency')} />
+      <Note tone="safety" title={t('info.safety.emergency')} />
       <IconListCard title={t('info.safety.beforeTitle')}>
         {BEFORE.map((tip) => (
-          <IconBullet key={tip} icon={DONT.has(tip) ? 'block' : 'check'} tone={DONT.has(tip) ? 'neutral' : 'mint'}>
+          <IconBullet key={tip} icon={DONT.has(tip) ? 'block' : 'check'}>
             {t(`info.safety.tips.${tip}`)}
           </IconBullet>
         ))}
       </IconListCard>
       <IconListCard title={t('info.safety.atTitle')}>
         {AT.map((tip) => (
-          <IconBullet key={tip} icon={DONT.has(tip) ? 'block' : 'check'} tone={DONT.has(tip) ? 'neutral' : 'mint'}>
+          <IconBullet key={tip} icon={DONT.has(tip) ? 'block' : 'check'}>
             {t(`info.safety.tips.${tip}`)}
           </IconBullet>
         ))}
       </IconListCard>
       {signedIn ? (
-        <Card variant="mint" gap={8} testID="safety-pledge">
-          <View style={styles.pledgeTitle}>
-            <Icon name="shield" size={20} color={p.onMint} />
-            <Heading>{t('onboarding.final.pledgeTitle')}</Heading>
-          </View>
-          <Text variant="small" color="mintBody">
+        <Card gap={8} testID="safety-pledge">
+          <IconHeading icon="shield" title={t('onboarding.final.pledgeTitle')} />
+          <Text variant="small" color="textSecondary">
             {t('onboarding.final.pledge')}
           </Text>
         </Card>
@@ -53,7 +48,3 @@ export default function Safety() {
     </ShellPage>
   );
 }
-
-const styles = StyleSheet.create({
-  pledgeTitle: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-});

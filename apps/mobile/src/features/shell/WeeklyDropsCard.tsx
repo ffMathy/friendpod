@@ -2,7 +2,7 @@ import { nextDropWeek, parseWeekId, type SetParticipationMode, type UserDoc } fr
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import { usePalette } from '@/components/theme';
-import { Button, Card, ChipRow, ChoiceChip, ErrorText, Icon, SectionHeader, Text, type IconName } from '@/components/ui';
+import { Button, Card, ChipRow, ChoiceChip, ErrorText, Icon, Overline, Text, type IconName } from '@/components/ui';
 import { useCallable } from '@/data/useCallable';
 import { dropParticipation } from '@/features/drop/participation';
 import { currentLocale } from '@/i18n';
@@ -13,10 +13,11 @@ import { formatDateTime } from '@/lib/format';
 const MODES = ['auto', 'manual'] as const;
 
 /**
- * "Weekly drops" on Me (§10.1 setParticipation). The line on top says what holds for the next drop, in Home's words.
- * The standing mode is a choice of two chips (every week / when I opt in); the one-off actions sit under it as
- * drop-home's outline pills with Home's labels: "Skip this week" (or the way back in) and "Pause matching". An
- * automated pause can't be lifted here (the server refuses), so then the chips are disabled and no action shows.
+ * "Weekly drops" on Me (§10.1 setParticipation). The line on top says what holds for the next drop, in Home's words,
+ * as drop-home's quiet status (Ink 2 icon and text: nothing here needs you). The standing mode is a choice of two
+ * chips (selected: Ink); the one-off actions sit under it as white secondary pills with Home's labels: "Skip this
+ * week" (or the way back in) and "Pause matching". An automated pause can't be lifted here (the server refuses), so
+ * then the chips are disabled and no action shows.
  */
 export function WeeklyDropsCard({ user, now }: { readonly user: Pick<UserDoc, 'status' | 'participation'>; readonly now: number }) {
   const { t } = useTranslation();
@@ -38,9 +39,9 @@ export function WeeklyDropsCard({ user, now }: { readonly user: Pick<UserDoc, 's
   const effective = participation.data?.effectiveWeekId;
   return (
     <Card gap={12} testID="weekly-drops">
-      <SectionHeader title={t('me.participation')} />
+      <Overline>{t('me.participation')}</Overline>
       <View style={styles.status}>
-        <Icon name={status.icon} size={18} color={state.kind === 'in' ? p.primary : p.textMuted} />
+        <Icon name={status.icon} size={16} strokeWidth={status.icon === 'check' ? 2.4 : undefined} color={p.textSecondary} />
         <Text variant="small" color="textSecondary" style={styles.flex}>
           {status.text}
         </Text>
@@ -61,12 +62,12 @@ export function WeeklyDropsCard({ user, now }: { readonly user: Pick<UserDoc, 's
       {locked ? null : (
         <View style={styles.actions}>
           {state.kind === 'in' ? (
-            <Button testID="skip-week" label={t('home.skip')} variant="outline" size="sm" grow={1} busy={busy('skipNext')} onPress={set('skipNext')} />
+            <Button testID="skip-week" label={t('home.skip')} variant="secondary" size="sm" grow={1} busy={busy('skipNext')} onPress={set('skipNext')} />
           ) : (
             <Button
               testID="join-week"
               label={state.kind === 'paused' ? t('home.resume') : t('home.join')}
-              variant="outline"
+              variant="secondary"
               size="sm"
               grow={1}
               busy={busy(mode)}
@@ -74,7 +75,7 @@ export function WeeklyDropsCard({ user, now }: { readonly user: Pick<UserDoc, 's
             />
           )}
           {state.kind === 'paused' ? null : (
-            <Button testID="pause-matching" label={t('home.pause')} variant="outline" size="sm" grow={1} busy={busy('pause')} onPress={set('pause')} />
+            <Button testID="pause-matching" label={t('home.pause')} variant="secondary" size="sm" grow={1} busy={busy('pause')} onPress={set('pause')} />
           )}
         </View>
       )}

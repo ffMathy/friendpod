@@ -12,7 +12,8 @@ import { errorMessageKey } from '@/lib/errors';
 /**
  * Step 6 of 6, "Almost done" (onb-final; DESIGN §3.1 steps 10–12): the optional photo and "About me", notifications,
  * and the safety pledge, which Finish needs. Finish saves "About me" if it changed, then ends onboarding: Home is the
- * city's waitlist while the area is not live (city-waitlist), otherwise "This week".
+ * city's waitlist while the area is not live (city-waitlist), otherwise "This week". Calm white cards on Paper, as
+ * onb-final draws them; "Turn on notifications" is secondary so Finish (Skov) is the one main action.
  */
 export default function AlmostDone() {
   const { t } = useTranslation();
@@ -48,10 +49,9 @@ function FinalStep({ uid, photoVersion, aboutMe }: { readonly uid: string; reado
     <OnboardingStep
       step={6}
       title={t('onboarding.final.title')}
-      gap={18}
       onBack={back}
-      // Finish needs the pledge, the last card: a pinned button would cover it on a phone, so Finish follows it.
-      footerPinned={false}
+      // Pinned like every step's action: where the cards are taller than the screen (Danish, large text) they scroll
+      // above Finish, and the pledge it needs is the last of them, right above it.
       footer={
         <Button
           testID="finish"

@@ -6,8 +6,9 @@ import { useUid } from '@/features/session/SessionProvider';
 import { currentLocale } from '@/i18n';
 
 /**
- * Interests tab (§11, priv-interests): "Interests · 5 of 20", the add row, every holding with a star and "…", and the
- * private ones in their own card with the consent date and "Remove & withdraw". The page draws its own title.
+ * Interests tab (§11, priv-interests): "Interests · 5 of 20", the add row, every holding with a star, its pod-colour
+ * dot and "…", and the private ones in their own quiet card (Ink border, lock, no colour) with the consent date and
+ * "Remove & withdraw". The page draws its own title.
  */
 export default function Interests() {
   const top = useTabTopPadding();

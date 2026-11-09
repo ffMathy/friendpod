@@ -3,8 +3,8 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FlatList, KeyboardAvoidingView, StyleSheet, View, type HostInstance, type TextInputInstance } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { BackButton, Button, ErrorText, Icon, Loading, Screen, Strong, Text } from '@/components/ui';
-import { BorderWidth, Radius, usePalette } from '@/components/theme';
+import { BackButton, ErrorText, Loading, NeedsYouMarker, PodBand, Screen, Strong, Text } from '@/components/ui';
+import { BorderWidth, Radius, usePalette, usePodColors } from '@/components/theme';
 import { usePod, usePodCard } from '@/data/docs';
 import { Composer } from '@/features/chat/Composer';
 import { MessageBubble } from '@/features/chat/MessageBubble';
@@ -12,9 +12,10 @@ import { markChatSeen } from '@/features/chat/readMarker';
 import { useChatMessages } from '@/features/chat/useChatMessages';
 import { useSendMessage } from '@/features/chat/useSendMessage';
 import { useChatStatus } from '@/features/chat/window';
+import { podColorOf } from '@/features/pods/color';
 import { isConfirmedMember } from '@/features/pods/membership';
 import { MemberAvatar } from '@/features/pods/MemberAvatar';
-import { goBack, SystemNote, usePodTopPadding } from '@/features/pods/parts';
+import { CardButton, goBack, SystemNote, usePodTopPadding } from '@/features/pods/parts';
 import { podMembers } from '@/features/pods/PodMembers';
 import { ScreenCaptureGuard } from '@/features/pods/ScreenCaptureGuard';
 import { messageTime, weekdayAt } from '@/features/pods/time';
@@ -27,7 +28,9 @@ type NoticeKey = ReturnType<typeof errorMessageKey>;
 /**
  * Meetup chat (§3.6, pod-chat): current members only, writable from 24 h before until 24 h after the meetup, read-only
  * while messages exist outside it. Text only (D14): no quick replies, and "Can't make it" is on the pod's attendance
- * card. Contact details before the meetup need "Send anyway"; every other member's message can be reported.
+ * card. The header is the pod band in the pod's tint with the other members' faces; the viewer's own bubbles are the
+ * pod's tint, everyone else's white (a pod about a private interest stays uncoloured). Contact details before the
+ * meetup need "Send anyway", asked in a needs-you note; every other member's message can be reported.
  */
 export default function Chat() {
   const { t } = useTranslation();
@@ -45,6 +48,8 @@ export default function Chat() {
   const { send, pending } = useSendMessage();
   const locale = currentLocale();
   const [now] = useState(() => Date.now());
+  const color = podColorOf(podId, pod.data, card.data?.themeSensitive ?? true);
+  const tint = usePodColors(color);
 
   const [draft, setDraft] = useState('');
   /** The exact text the server held back; the warning disappears as soon as the draft changes. */
@@ -146,32 +151,23 @@ export default function Chat() {
 
   const report = (messageId: string) => router.push({ pathname: '/sheets/report', params: { podId, messageId } });
 
+  // The other members' faces at the band's right (in place of the badge), each ringed in the band's tint.
+  const faces = (
+    <View style={styles.faces}>
+      {others.map((m, i) => (
+        <View key={m.uid} style={i > 0 ? styles.overlap : null}>
+          <MemberAvatar uid={m.uid} name={m.firstName} size={28} photoV={m.photoV} color={color} ring ringColor={tint.surface} />
+        </View>
+      ))}
+    </View>
+  );
+
   return (
     <SafeAreaView style={[styles.flex, { backgroundColor: p.page }]} edges={['left', 'right']}>
       {c.themeSensitive ? <ScreenCaptureGuard /> : null}
       <View ref={frameRef} style={styles.flex} onLayout={() => frameRef.current?.measureInWindow((_x, y) => setKeyboardOffset(y))}>
         <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={keyboardOffset} style={styles.flex}>
-          <View style={[styles.header, { backgroundColor: p.surface, borderColor: p.border, paddingTop: insets.top + top }]}>
-            <BackButton onPress={() => goBack(router)} accessibilityLabel={t('chat.backToPod')} />
-            <View style={styles.headerText}>
-              <View style={styles.titleRow}>
-                {c.themeSensitive ? <Icon name="lock" size={16} color={p.privateText} accessibilityLabel={t('pods.privateInterest')} /> : null}
-                <Text accessibilityRole="header" variant="cardTitle" numberOfLines={1} style={styles.shrink}>
-                  {theme}
-                </Text>
-              </View>
-              <Text variant="caption" color="textMuted" numberOfLines={1} style={styles.statusLine}>
-                {statusLine}
-              </Text>
-            </View>
-            <View style={styles.faces}>
-              {others.map((m, i) => (
-                <View key={m.uid} style={i > 0 ? styles.overlap : null}>
-                  <MemberAvatar uid={m.uid} name={m.firstName} size={30} photoV={m.photoV} ring />
-                </View>
-              ))}
-            </View>
-          </View>
+          <PodBand testID="chat-band" title={theme} subtitle={statusLine} color={color} onBack={() => goBack(router)} backLabel={t('chat.backToPod')} trailing={faces} />
           <FlatList
             ref={listRef}
             style={styles.flex}
@@ -194,6 +190,7 @@ export default function Chat() {
                 authorName={authorName(item.data.authorUid)}
                 own={item.data.authorUid === uid}
                 time={messageTime(item.data.createdAt.toMillis(), now, locale)}
+                color={color}
                 {...(item.data.authorUid === uid ? {} : { onReport: () => report(item.id) })}
               />
             )}
@@ -206,13 +203,17 @@ export default function Chat() {
               </Text>
             )}
             {warning ? (
-              <View testID="chat-warning" style={[styles.warning, { backgroundColor: p.warningBg, borderColor: p.warningBorder }]}>
-                <Text accessibilityRole="alert" variant="small" color="warningInk" style={styles.warningText}>
-                  <Strong>{t('chat.contactWarning')}</Strong> {t('chat.contactWarningDetail')}
-                </Text>
+              // A question only the viewer can answer (decision 2): a Paper note with the ringed Solsikke marker.
+              <View testID="chat-warning" style={[styles.warning, { backgroundColor: p.inset }]}>
+                <View style={styles.warningRow}>
+                  <NeedsYouMarker />
+                  <Text accessibilityRole="alert" variant="small" style={styles.warningText}>
+                    <Strong>{t('chat.contactWarning')}</Strong> {t('chat.contactWarningDetail')}
+                  </Text>
+                </View>
                 <View style={styles.warningActions}>
-                  <Button label={t('chat.sendAnyway')} variant="dark" size="xs" busy={pending} disabled={!open} onPress={() => void sendDraft(true)} />
-                  <Button label={t('chat.edit')} variant="outline" size="xs" onPress={editWarned} style={{ borderColor: p.warningControlBorder }} />
+                  <CardButton height={44} label={t('chat.sendAnyway')} busy={pending} disabled={!open} onPress={() => void sendDraft(true)} />
+                  <CardButton height={44} variant="primary" label={t('chat.edit')} onPress={editWarned} />
                 </View>
               </View>
             ) : null}
@@ -227,17 +228,13 @@ export default function Chat() {
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  shrink: { flexShrink: 1 },
-  header: { paddingHorizontal: 12, paddingBottom: 12, flexDirection: 'row', alignItems: 'center', gap: 6, borderBottomWidth: BorderWidth.hairline },
-  headerText: { flex: 1, minWidth: 0, gap: 2 },
-  // 13 px at its natural line height, so the header is 44 px tall as on the storyboard.
-  statusLine: { lineHeight: 16 },
-  titleRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  faces: { flexDirection: 'row', paddingRight: 8 },
-  overlap: { marginLeft: -9 },
+  faces: { flexDirection: 'row' },
+  overlap: { marginLeft: -10 },
   list: { paddingVertical: 14, paddingHorizontal: 16, gap: 10 },
-  footer: { paddingTop: 10, paddingHorizontal: 12, gap: 10, borderTopWidth: BorderWidth.hairline },
-  warning: { borderRadius: Radius.lg, borderWidth: BorderWidth.hairline, padding: 12, gap: 10 },
-  warningText: { lineHeight: 20 },
+  footer: { paddingTop: 10, paddingHorizontal: 16, gap: 10, borderTopWidth: BorderWidth.hairline },
+  warning: { borderRadius: Radius.lg, paddingVertical: 11, paddingHorizontal: 12, gap: 10 },
+  warningRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 6 },
+  // 14/1.45, as the storyboard's note.
+  warningText: { flex: 1, lineHeight: 20.3 },
   warningActions: { flexDirection: 'row', gap: 8 },
 });

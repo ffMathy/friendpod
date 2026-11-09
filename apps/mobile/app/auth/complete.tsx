@@ -1,10 +1,10 @@
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
-import { Banner, Button, Screen, Text, TextField, TextLink, Title } from '@/components/ui';
+import { ActivityIndicator, StyleSheet } from 'react-native';
+import { Button, Note, TextField, TextLink } from '@/components/ui';
 import { usePalette } from '@/components/theme';
-import { AuthHeader } from '@/features/auth/AuthHeader';
+import { AuthStep } from '@/features/auth/AuthStep';
 import { completeEmailLink, isEmailLink, pendingEmail } from '@/features/auth/emailLink';
 import { useSession } from '@/features/session/SessionProvider';
 import { useEmulators } from '@/lib/env';
@@ -13,8 +13,8 @@ import { useEmulators } from '@/lib/env';
  * Email-link completion (§11). Reached through `+native-intent` with the incoming URL in `link`. If the
  * link was opened on another device (no stored address), the user confirms the address. In emulator
  * builds the Auth emulator prints links instead of sending them, so a link can be pasted here.
- * Drawn like /email, the step before it (the welcome logo, 30/800 title, lede, actions pinned at the bottom); the
- * native header is hidden.
+ * Drawn like /email, the step before it (`AuthStep`: title and lede on Paper, actions pinned at the bottom), without a
+ * back chevron: the link opens this screen on its own. The native header is hidden.
  */
 export default function CompleteEmailLink() {
   const { t } = useTranslation();
@@ -61,16 +61,17 @@ export default function CompleteEmailLink() {
   const offerNewLink = dead && phase === 'signedOut';
 
   const title = askEmail ? t('auth.complete.confirmTitle') : dead ? t('auth.complete.errorTitle') : t('auth.complete.title');
-  const lede = askEmail ? t('auth.complete.confirmBody') : dead ? error : t('auth.complete.body');
+  const lede = askEmail ? t('auth.complete.confirmBody') : dead ? (error ?? '') : t('auth.complete.body');
   const restart = () => router.replace('/');
 
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
-      <Screen
-        safeTop
-        gap={24}
-        header={<AuthHeader />}
+      <AuthStep
+        title={title}
+        lede={lede}
+        // An error is announced (it replaces the progress line once the link has been tried).
+        ledeAlert={dead}
         footer={
           askEmail ? (
             <>
@@ -93,14 +94,10 @@ export default function CompleteEmailLink() {
           ) : undefined
         }
       >
-        <View style={styles.titleBlock}>
-          <Title>{title}</Title>
-          {/* An error is announced (it replaces the progress line once the link has been tried). */}
-          <Text variant="lede" color="textMuted" accessibilityRole={dead ? 'alert' : undefined}>
-            {lede}
-          </Text>
-        </View>
-        {!askEmail && !dead ? <ActivityIndicator size="large" color={p.primary} accessibilityLabel={t('auth.complete.title')} style={styles.spinner} /> : null}
+        {/* Ink 2, not Skov: the spinner is not something to tap. */}
+        {!askEmail && !dead ? (
+          <ActivityIndicator size="large" color={p.textSecondary} accessibilityLabel={t('auth.complete.title')} style={styles.spinner} />
+        ) : null}
         {manual ? <TextField label={t('auth.complete.pasteLink')} value={link} onChangeText={setLink} autoCapitalize="none" autoCorrect={false} /> : null}
         {askEmail ? (
           <TextField
@@ -116,16 +113,15 @@ export default function CompleteEmailLink() {
           />
         ) : null}
         {askEmail && error ? (
-          <Banner tone="danger" icon="info" alert>
+          <Note tone="safety" icon="alert" alert>
             {error}
-          </Banner>
+          </Note>
         ) : null}
-      </Screen>
+      </AuthStep>
     </>
   );
 }
 
 const styles = StyleSheet.create({
-  titleBlock: { gap: 8 },
   spinner: { alignSelf: 'flex-start' },
 });

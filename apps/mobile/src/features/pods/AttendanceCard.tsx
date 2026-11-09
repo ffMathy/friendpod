@@ -1,11 +1,11 @@
 import type { AttendanceStatus } from '@grouper/core';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, Pressable, StyleSheet, View } from 'react-native';
-import { Button, ErrorText, Text } from '@/components/ui';
-import { Radius, Size, usePalette } from '@/components/theme';
+import { Alert, StyleSheet, View } from 'react-native';
+import { ErrorText, Note, StatusText } from '@/components/ui';
+import { BorderWidth, usePalette } from '@/components/theme';
 import { useCallable } from '@/data/useCallable';
 import { errorMessageKey } from '@/lib/errors';
-import { NextStepCard } from './parts';
+import { CardButton, NextStepCard } from './parts';
 
 export interface AttendanceCardProps {
   readonly podId: string;
@@ -13,8 +13,9 @@ export interface AttendanceCardProps {
   readonly when: string;
   readonly mine: AttendanceStatus | null;
   /**
-   * `true`: the dark "Next step" card, "Still coming tomorrow at 14:00?" (D13, pod-scheduled).
-   * `false`: the calm line at the foot of the Plan card, once answered or before the first ask.
+   * `true`: the "Next step" card, "Still coming tomorrow at 14:00?" (D13, pod-scheduled).
+   * `false`: the line at the foot of the Plan card, once answered or before the first ask: calm once the viewer has
+   * answered, a needs-you note while their own answer is still missing (decision 2).
    */
   readonly ask: boolean;
 }
@@ -37,71 +38,73 @@ export function AttendanceCard({ podId, when, mine, ask }: AttendanceCardProps) 
   const cantBusy = confirm.isPending && !confirm.variables.coming;
 
   if (ask) {
+    // The pair shares the row 1.4 : 1, as on the storyboard.
     return (
       <>
         <NextStepCard title={t('attendance.stillComing', { when })} testID="attendance-ask">
-          <YesButton testID="attendance-coming" label={t('attendance.yesComing')} busy={comingBusy} disabled={confirm.isPending} onPress={() => confirm.mutate({ podId, coming: true })} />
-          <Button testID="attendance-cant" label={t('attendance.cantMakeIt')} variant="outlineOnDark" size="md" grow={1} busy={cantBusy} onPress={cantMakeIt} style={styles.pairPadding} />
+          <CardButton
+            testID="attendance-coming"
+            variant="primary"
+            grow={1.4}
+            fit="content"
+            label={t('attendance.yesComing')}
+            busy={comingBusy}
+            disabled={confirm.isPending}
+            onPress={() => confirm.mutate({ podId, coming: true })}
+          />
+          <CardButton testID="attendance-cant" fit="content" label={t('attendance.cantMakeIt')} busy={cantBusy} disabled={confirm.isPending} onPress={cantMakeIt} />
         </NextStepCard>
         {error}
       </>
     );
   }
 
+  const pending = mine !== 'coming' && mine !== 'notComing';
+  const buttons = (
+    // In the note the pair takes the note's full width (its actions row wraps, so it is stretched explicitly).
+    <View style={[styles.buttons, pending ? styles.fill : null]}>
+      {mine !== 'coming' ? (
+        <CardButton
+          testID="attendance-coming"
+          variant="primary"
+          height={44}
+          label={mine === 'notComing' ? t('attendance.comingAfterAll') : t('attendance.coming')}
+          busy={comingBusy}
+          disabled={confirm.isPending}
+          onPress={() => confirm.mutate({ podId, coming: true })}
+        />
+      ) : null}
+      {mine !== 'notComing' ? (
+        <CardButton testID="attendance-cant" height={44} label={t('attendance.cantMakeIt')} busy={cantBusy} disabled={confirm.isPending} onPress={cantMakeIt} />
+      ) : null}
+    </View>
+  );
+
+  // The viewer's own answer is still missing ("You haven't said if you're coming yet."): it is theirs to give, so it is
+  // a needs-you note (the Solsikke marker with its Ink ring, on Paper inside the white card), its two answers under it.
+  if (pending) {
+    return (
+      <View style={styles.ask} testID="attendance-needs-you">
+        <Note tone="needsYou" icon="clock" onCard actions={buttons}>
+          {t(`attendance.mine.${mine ?? 'pending'}`)}
+        </Note>
+        {error}
+      </View>
+    );
+  }
+
   return (
     <View style={[styles.line, { borderTopColor: p.separator }]}>
-      <Text variant="smallStrong" color={mine === 'coming' ? 'primary' : 'textSecondary'}>
-        {t(`attendance.mine.${mine ?? 'pending'}`)}
-      </Text>
-      <View style={styles.buttons}>
-        {mine !== 'coming' ? (
-          <Button
-            testID="attendance-coming"
-            label={mine === 'notComing' ? t('attendance.comingAfterAll') : t('attendance.coming')}
-            size="xs"
-            busy={comingBusy}
-            onPress={() => confirm.mutate({ podId, coming: true })}
-          />
-        ) : null}
-        {mine !== 'notComing' ? (
-          <Button testID="attendance-cant" label={t('attendance.cantMakeIt')} variant="outline" size="xs" busy={cantBusy} onPress={cantMakeIt} />
-        ) : null}
-      </View>
+      <StatusText icon={mine === 'coming' ? 'check' : 'close'} label={t(`attendance.mine.${mine}`)} />
+      {buttons}
       {error}
     </View>
   );
 }
 
-/**
- * The white 48 px "Yes, I'm coming" on the dark card, in 15/800 (the outline "Can't make it" beside it is 15/700).
- * The pair shares the row 1.4 : 1 from their label widths plus 6 px a side, as the storyboard's buttons do.
- */
-function YesButton({ label, busy, disabled, onPress, testID }: { label: string; busy: boolean; disabled: boolean; onPress: () => void; testID: string }) {
-  const p = usePalette();
-  return (
-    <Pressable
-      testID={testID}
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      accessibilityState={{ disabled, busy }}
-      disabled={disabled}
-      onPress={onPress}
-      style={({ pressed }) => [styles.yes, { backgroundColor: p.onHero, opacity: pressed ? 0.85 : 1 }]}
-    >
-      {busy ? (
-        <ActivityIndicator color={p.hero} />
-      ) : (
-        <Text variant="heading" weight="800" color="hero" numberOfLines={1}>
-          {label}
-        </Text>
-      )}
-    </Pressable>
-  );
-}
-
 const styles = StyleSheet.create({
-  yes: { flexGrow: 1.4, flexShrink: 1, flexBasis: 'auto', minHeight: Size.buttonMedium, paddingHorizontal: 6, borderRadius: Radius.pill, alignItems: 'center', justifyContent: 'center' },
-  pairPadding: { paddingHorizontal: 6 },
-  line: { borderTopWidth: 1, paddingTop: 12, gap: 10 },
-  buttons: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  line: { borderTopWidth: BorderWidth.hairline, marginTop: 8, paddingTop: 12, gap: 10 },
+  ask: { marginTop: 8, gap: 10 },
+  buttons: { flexDirection: 'row', gap: 8 },
+  fill: { flexGrow: 1, flexBasis: '100%' },
 });

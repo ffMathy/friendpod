@@ -30,10 +30,7 @@ function PreferencesStep({ initial }: { readonly initial: Prefs }) {
     <OnboardingStep
       step={5}
       title={t('onboarding.prefs.title')}
-      gap={18}
       onBack={back}
-      // Continue follows the same-gender card, as onb-prefs draws it, so a pinned button never covers that card.
-      footerPinned={false}
       footer={<Button testID="prefs-continue" label={t('common.continue')} busy={controller.saving} onPress={controller.save} />}
     >
       <PreferencesFields controller={controller} locale={currentLocale()} showOpenToAnyone={false} />

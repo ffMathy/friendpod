@@ -42,8 +42,9 @@ function Navigator() {
   const theme = useNavigationTheme();
   const stackOptions = useStackScreenOptions();
   const page = usePalette().page;
-  // Plus Jakarta Sans, one face per weight (src/components/fonts.ts). The splash stays up until the fonts are in;
-  // if they fail to load, the app starts anyway with the system font.
+  // Plus Jakarta Sans 400–800 and Bricolage Grotesque 700/800, one face per weight (src/components/fonts.ts). The
+  // splash (the poster mark on Skov) stays up until the fonts are in; if they fail to load, the app starts anyway with
+  // the system font.
   const [fontsLoaded, fontError] = useFonts(FONT_ASSETS);
   const fontsReady = fontsLoaded || fontError !== null;
 

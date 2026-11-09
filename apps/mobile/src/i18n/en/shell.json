@@ -35,10 +35,18 @@
     "deletePhoto": "Delete photo",
     "deletePhotoTitle": "Delete your photo?",
     "deletePhotoBody": "Your photo is deleted and members of your pods stop seeing it.",
-    "photoUploaded": "Thanks! Your photo will appear shortly."
+    "photoUploaded": "Thanks! Your photo will appear shortly.",
+    "yourAccount": "Your account",
+    "interestsTitle": "Your interests",
+    "editInterests": "Edit",
+    "editInterestsLabel": "Edit your interests",
+    "noInterests": "No interests yet. Add a few so we can find you a pod.",
+    "privateInterests_one": "{{count}} private interest",
+    "privateInterests_other": "{{count}} private interests"
   },
   "settings": {
     "title": "Settings",
+    "general": "General",
     "signOut": "Sign out",
     "reauthLinkSent": "To confirm it's you, we sent a sign-in link to your email. Open it, then try again.",
     "privacy": {
@@ -111,7 +119,7 @@
     },
     "howMatchingWorks": {
       "title": "How matching works",
-      "notUsed": "Photos, your “About me”, or anything we infer about you. Gender only if you turn on same-gender pods.",
+      "notUsed": "Photos, your “About me”, or anything we infer about you. We use your gender only if you have turned on “Same-gender pods only”.",
       "sensitive": "Private interests are only used if you have agreed to sensitive interests, only as the theme of a pod whose members all added them, and only after your account is 14 days old and you have attended a meetup.",
       "pauses": "Some pauses happen automatically, by fixed rules. Each comes with an explanation in Messages from Grouper and ends by itself.",
       "humanReview": "You can still use your data protection rights by contacting our privacy team (see the privacy notice).",
@@ -175,13 +183,15 @@
     "legalDraft": "Draft",
     "legalPostcodes": "Postcodes",
     "legalPostcodesUse": "Danish postcodes and where they are, used when you choose your area.",
-    "legalFont": "Font",
     "legalShowLicence": "Show the licence",
     "legalHideLicence": "Hide the licence",
     "legalSoftware": "Open-source software",
     "legalSoftwareNote": "Each package's full licence text comes with its source code.",
     "legalAnd": "{{list}} and {{last}}",
-    "legalOnDeviceModel": "{{name}} (the on-device model)"
+    "legalOnDeviceModel": "{{name}} (the on-device model)",
+    "legalFonts": "Fonts",
+    "legalShowLicenceFor": "Show the licence for {{name}}",
+    "legalHideLicenceFor": "Hide the licence for {{name}}"
   },
   "notices": {
     "title": "Messages from Grouper",
@@ -221,7 +231,7 @@
     "unknownTitle": "Message from Grouper"
   },
   "blockingSetting": {
-    "RADIUS": "Your distance is small for your area. A larger distance would help.",
+    "RADIUS": "Your distance is short for your area. Going a little further would help.",
     "AGE": "Your age range is narrow for your area.",
     "GENDER_POOL": "Same-gender pods are rare in your area right now.",
     "LANGUAGE": "Few people near you share your meetup languages.",

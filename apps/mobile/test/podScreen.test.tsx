@@ -6,7 +6,9 @@ import type React from 'react';
 import type * as ReactNative from 'react-native';
 import { Alert, Linking, type AlertButton } from 'react-native';
 import PodScreen from '../app/pod/[podId]/index';
+import { Colors, POD_PALETTE } from '@/components/theme';
 import { markChatSeen } from '@/features/chat/readMarker';
+import { podColorFor } from '@/lib/podColor';
 
 const POD_ID = 'abcdefghijklmnopqrst';
 const HOUR = 3_600_000;
@@ -38,6 +40,8 @@ jest.mock('@/data/docs', () => ({
   usePodMessages: () => live(mockMessages),
   useUserDoc: () => live(null),
   useAreaDoc: () => live(null),
+  // The proposal card (before confirmation) finds the pod's colour through the viewer's interests.
+  useInterests: () => live([]),
 }));
 
 const mockCall = jest.fn();
@@ -47,6 +51,9 @@ jest.mock('@/firebase/callables', () => ({
 }));
 
 const ts = (ms: number) => ({ toMillis: () => ms });
+
+/** The pod's theme (its colour comes from the concept id: `seed_boardgames` is Tomat). */
+const THEME = { kind: 'concept', conceptId: 'seed_boardgames', sensitive: false };
 const place = {
   placeId: 'ChIJstubDokk1Aarhus01',
   name: 'Dokk1',
@@ -63,6 +70,7 @@ function scheduled(meetupIn: number, attendance: Record<string, string>, lockedB
   mockCard = { state: 'scheduled', myStatus: 'accepted', themeLabel: 'Brætspil', themeSensitive: false };
   mockPod = {
     state: 'scheduled',
+    theme: THEME,
     memberUids: ['me', 'anna', 'bo'],
     roster,
     podInterests: { da: [], en: [] },
@@ -97,7 +105,8 @@ describe('pod screen (D13)', () => {
     mockCall.mockResolvedValue({ ok: true });
     scheduled(30 * HOUR, { me: 'pending', anna: 'coming', bo: 'coming' });
     await renderPod();
-    // The dark "Next step" card: "Still coming tomorrow at 14:00?" (or today, or on a weekday).
+    // The "Next step" card: "Still coming tomorrow at 14:00?" (or today, or on a weekday). "at" and the time are joined
+    // by a no-break space, which the query's default normaliser reads as a space.
     expect(screen.getByText(/^Still coming (today|tomorrow|on \w+) at \d\d:\d\d\?$/)).toBeOnTheScreen();
     expect(screen.getByTestId('attendance-ask')).toBeOnTheScreen();
     expect(screen.getAllByTestId('attendance-cant')).toHaveLength(1);
@@ -135,6 +144,37 @@ describe('pod screen (D13)', () => {
     expect(screen.getByText("You're coming.")).toBeOnTheScreen();
   });
 
+  it('takes the pod colour from the theme\'s concept id, never the word; open-to-anyone from the pod id; a private pod stays quiet', async () => {
+    // seed_boardgames is Tomat: the pod band is its tint, whatever the viewer calls the theme.
+    scheduled(30 * HOUR, { me: 'coming', anna: 'coming', bo: 'coming' });
+    await renderPod();
+    expect(screen.getByTestId('pod-band')).toHaveStyle({ backgroundColor: POD_PALETTE.tomat.tint });
+    client.clear();
+
+    scheduled(30 * HOUR, { me: 'coming', anna: 'coming', bo: 'coming' });
+    mockCard.themeLabel = 'board games';
+    await renderPod();
+    expect(screen.getByTestId('pod-band')).toHaveStyle({ backgroundColor: POD_PALETTE.tomat.tint });
+    client.clear();
+
+    // Open to anyone: no concept, so the colour comes from the pod id.
+    scheduled(30 * HOUR, { me: 'coming', anna: 'coming', bo: 'coming' });
+    mockCard.themeLabel = null;
+    mockPod.theme = { kind: 'openToAnyone' };
+    await renderPod();
+    const fromPodId = podColorFor({ podId: POD_ID });
+    expect(fromPodId).not.toBeNull();
+    expect(screen.getByTestId('pod-band')).toHaveStyle({ backgroundColor: POD_PALETTE[fromPodId ?? 'tomat'].tint });
+    client.clear();
+
+    // A private interest: no colour anywhere, a white band with an Ink border.
+    scheduled(30 * HOUR, { me: 'coming', anna: 'coming', bo: 'coming' });
+    mockCard.themeSensitive = true;
+    mockPod.theme = { kind: 'concept', conceptId: 'c_9f8e7d6c5b4a39281706_p', sensitive: true };
+    await renderPod();
+    expect(screen.getByTestId('pod-band')).toHaveStyle({ backgroundColor: Colors.light.privateBg, borderColor: Colors.light.privateBorder });
+  });
+
   it('adds the meetup to the calendar in one tap, without the theme', async () => {
     scheduled(30 * HOUR, { me: 'coming', anna: 'coming', bo: 'coming' });
     const meetupAt = (mockPod.planning as { meetupAt: { toMillis(): number } }).meetupAt.toMillis();
@@ -154,6 +194,7 @@ describe('pod screen (D13)', () => {
     mockCard = { state: 'planning', myStatus: 'accepted', themeLabel: 'Brætspil', themeSensitive: false };
     mockPod = {
       state: 'planning',
+      theme: THEME,
       memberUids: ['me', 'anna'],
       roster,
       podInterests: { da: [], en: [] },
@@ -171,6 +212,7 @@ describe('pod screen (D13)', () => {
     mockCard = { state: 'planning', myStatus: 'accepted', themeLabel: 'Brætspil', themeSensitive: false };
     const planning = (extended: boolean) => ({
       state: 'planning',
+      theme: THEME,
       memberUids: ['me', 'anna'],
       roster,
       podInterests: { da: [], en: [] },
@@ -182,12 +224,15 @@ describe('pod screen (D13)', () => {
     await renderPod();
     expect(screen.getByText('No time works yet — add another option')).toBeOnTheScreen();
     expect(screen.getByTestId('next-step')).toHaveTextContent('Plan the meetup');
+    // Nothing left for the viewer to vote on: the closing time is quiet (the plan page follows the same rule).
+    expect(screen.getByTestId('deadline-quiet')).toHaveTextContent(/^Voting closes /);
+    expect(screen.queryByTestId('deadline-needs-you')).toBeNull();
     client.clear();
 
     mockPod = planning(false);
     mockOptions = [];
     await renderPod();
-    expect(screen.getByText(/^Pick a time by /)).toBeOnTheScreen();
+    expect(screen.getByTestId('deadline-needs-you')).toHaveTextContent(/^Pick a time by /);
     await fireEvent.press(screen.getByTestId('next-step'));
     expect(mockRouter.push).toHaveBeenCalledWith({ pathname: '/pod/[podId]/plan', params: { podId: POD_ID } });
   });
@@ -328,6 +373,7 @@ describe('pod screen (D13)', () => {
     mockCard = { state: 'planning', myStatus: 'accepted', themeLabel: 'gravid', themeSensitive: true, acceptedCount: 3, areaLabel: 'Aarhus C', photoShared: false };
     mockPod = {
       state: 'planning',
+      theme: { kind: 'concept', conceptId: 'c_9f8e7d6c5b4a39281706_p', sensitive: true },
       areaLabel: 'Aarhus C',
       memberUids: ['me', 'anna', 'bo'],
       // S6: the roster carries a photo version only for a member who chose to show theirs (Anna).
@@ -351,6 +397,7 @@ describe('pod screen (D13)', () => {
     mockCard = { state: 'planning', myStatus: 'accepted', themeLabel: 'Brætspil', themeSensitive: false, acceptedCount: 3, areaLabel: 'Aarhus C' };
     mockPod = {
       state: 'planning',
+      theme: THEME,
       areaLabel: 'Aarhus C',
       memberUids: ['me', 'anna', 'bo'],
       roster: { ...roster, anna: { firstName: 'Anna', photoV: null, aboutMe: 'Loves long walks.' } },
@@ -366,6 +413,8 @@ describe('pod screen (D13)', () => {
     expect(screen.getByText(/Loves long walks\./)).toBeOnTheScreen();
     expect(screen.getByText('More than one of you also likes')).toBeOnTheScreen();
     expect(screen.getByText('coffee')).toBeOnTheScreen();
+    // Words without concept ids: neutral chips (no colour, and not the plain-clash chip that means "this pod's colour").
+    expect(within(screen.getByTestId('pod-interests')).getAllByTestId('pod-interest-chip')).toHaveLength(2);
     await fireEvent.press(screen.getByRole('link', { name: 'Bo' }));
     expect(mockRouter.push).toHaveBeenCalledWith({ pathname: '/pod/[podId]/member/[uid]', params: { podId: POD_ID, uid: 'bo' } });
     // "Meeting safely" folds open, with a link to every tip.

@@ -10,6 +10,7 @@
     "nextStep": "Næste skridt",
     "planTheMeetup": "Planlæg mødet",
     "pickTimeBy": "Find et tidspunkt senest {{when}}",
+    "voteBy": "Stem senest {{when}}",
     "inTheirWords": "Med deres egne ord",
     "alsoLikes": "Flere af jer kan også lide",
     "showMyPhoto": "Vis mit billede i denne pod",
@@ -136,7 +137,7 @@
   },
   "chat": {
     "title": "Mødechat",
-    "openUntil": "Chatten lukker {{when}}",
+    "openUntil": "Åben til {{when}}",
     "opens": "Chatten åbner {{when}}",
     "closed": "Chatten er lukket",
     "backToPod": "Tilbage til poden",
@@ -176,7 +177,7 @@
     "cantMakeItTitle": "Kan du ikke komme?",
     "cantMakeItBody": "Vi fortæller din pod, at du ikke kommer. Et afbud tæt på mødet tæller som et sent afbud.",
     "mine": {
-      "pending": "Du har ikke sagt, om du kommer, endnu.",
+      "pending": "Du har ikke sagt endnu, om du kommer.",
       "coming": "Du kommer.",
       "notComing": "Du har meldt afbud.",
       "unconfirmed": "Du har ikke bekræftet. Fortæl de andre, om du kommer."

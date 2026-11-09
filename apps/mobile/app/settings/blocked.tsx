@@ -11,8 +11,9 @@ import { errorMessageKey } from '@/lib/errors';
 
 /**
  * Me → Blocked people: each with the first name the user saw in that pod (empty if it was never confirmed) and when,
- * as rows in a white list card (priv-settings); "Unblock" takes the block away at once. How to block someone is
- * said either way: in the empty card, or as a caption under the list.
+ * as rows in a white list card (priv-settings), the avatar in Ink 2 (no pod colour outside a pod); "Unblock" (a white
+ * secondary button: it undoes a block, it deletes nothing) takes the block away at once. How to block someone is said
+ * either way: in the empty card, or as a caption under the list.
  */
 export default function Blocked() {
   const { t } = useTranslation();
@@ -31,9 +32,9 @@ export default function Blocked() {
         </Card>
       ) : rows.length === 0 ? (
         <Card style={styles.empty} gap={14}>
-          <IconDot icon="block" tone="neutral" size={40} />
+          <IconDot icon="block" size={40} />
           <View style={styles.flex}>
-            <Text variant="bodyStrong">{t('settings.blocked.none')}</Text>
+            <Text variant="heading">{t('settings.blocked.none')}</Text>
             <Text variant="caption" color="textMuted">
               {t('settings.blocked.howTo')}
             </Text>
@@ -45,7 +46,7 @@ export default function Blocked() {
             const name = data.firstName || t('settings.blocked.unnamed');
             return (
               <View key={id} testID={`blocked-${id}`} style={[styles.row, i < rows.length - 1 ? { borderBottomWidth: BorderWidth.hairline, borderBottomColor: p.separator } : null]}>
-                <Avatar size={32} name={data.firstName || '?'} seed={id} />
+                <Avatar size={32} name={data.firstName || '?'} />
                 <View style={styles.flex}>
                   <Text variant="rowTitle">{name}</Text>
                   <Text variant="caption" color="textMuted">
@@ -55,8 +56,8 @@ export default function Blocked() {
                 <Button
                   label={t('settings.blocked.unblock')}
                   accessibilityLabel={t('settings.blocked.unblockName', { name })}
-                  variant="outline"
-                  size="xs"
+                  variant="secondary"
+                  size="sm"
                   busy={unblock.isPending && unblock.variables.uid === id}
                   onPress={() => unblock.mutate({ uid: id })}
                 />

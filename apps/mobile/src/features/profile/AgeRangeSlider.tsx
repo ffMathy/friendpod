@@ -18,7 +18,7 @@ export interface AgeRangeSliderProps {
 
 type Thumb = 'low' | 'high';
 
-const THUMB = 24;
+const THUMB = 28;
 const TRACK = 4;
 
 type Point = readonly [age: number, fraction: number];
@@ -77,9 +77,9 @@ export function clampThumb(which: Thumb, value: number, s: { min: number; max: n
 }
 
 /**
- * The two-thumb age slider of onb-prefs: a 4 px track across the card, the chosen range in green, 24 px white thumbs
- * with a green ring that overhang the track's ends, on the {@link AGE_SCALE}. Each thumb is its own adjustable control
- * for screen readers (swipe up/down by one year) and has a 44 px target.
+ * The two-thumb age slider of onb-prefs (spec §6.15): a 4 px Track across the card, the chosen range in Skov, 28 px
+ * white thumbs with a 2 px Skov ring that overhang the track's ends, on the {@link AGE_SCALE}. Each thumb is its own
+ * adjustable control for screen readers (swipe up/down by one year) and has a 44 px target.
  */
 export function AgeRangeSlider(props: AgeRangeSliderProps) {
   const { min, max, low, high, lowLabel, highLabel, testID } = props;
@@ -142,7 +142,7 @@ export function AgeRangeSlider(props: AgeRangeSliderProps) {
 
   return (
     <View testID={testID} style={styles.box} onLayout={(e: LayoutChangeEvent) => setWidth(e.nativeEvent.layout.width)}>
-      <View style={[styles.track, styles.full, { backgroundColor: p.border }]} />
+      <View style={[styles.track, styles.full, { backgroundColor: p.track }]} />
       <View style={[styles.track, { left: x(low), width: Math.max(0, x(high) - x(low)), backgroundColor: p.primary }]} />
       {/* Rendered before the first layout too, so screen readers always find both thumbs. */}
       {thumb('low')}
@@ -152,8 +152,9 @@ export function AgeRangeSlider(props: AgeRangeSliderProps) {
 }
 
 const styles = StyleSheet.create({
-  // The track spans the card's content; at the ends the thumbs overhang it by half their width, into the card padding.
-  box: { height: THUMB, overflow: 'visible' },
+  // The track spans the card's content (2 px in from each side); at the ends the thumbs overhang it by half their
+  // width, into the card padding.
+  box: { height: THUMB, marginHorizontal: 2, overflow: 'visible' },
   track: { position: 'absolute', top: (THUMB - TRACK) / 2, height: TRACK, borderRadius: Radius.track },
   full: { left: 0, right: 0 },
   thumb: { position: 'absolute', top: 0, width: THUMB, height: THUMB, borderRadius: THUMB / 2, borderWidth: BorderWidth.strong },

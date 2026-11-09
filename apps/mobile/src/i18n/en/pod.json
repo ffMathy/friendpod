@@ -10,6 +10,7 @@
     "nextStep": "Next step",
     "planTheMeetup": "Plan the meetup",
     "pickTimeBy": "Pick a time by {{when}}",
+    "voteBy": "Vote by {{when}}",
     "inTheirWords": "In their own words",
     "alsoLikes": "More than one of you also likes",
     "showMyPhoto": "Show my photo to this pod",
@@ -164,10 +165,10 @@
   "attendance": {
     "stillComing": "Still coming {{when}}?",
     "relative": {
-      "today": "today at {{time}}",
-      "tomorrow": "tomorrow at {{time}}",
-      "weekday": "on {{day}} at {{time}}",
-      "date": "on {{date}} at {{time}}"
+      "today": "today at\u00a0{{time}}",
+      "tomorrow": "tomorrow at\u00a0{{time}}",
+      "weekday": "on {{day}} at\u00a0{{time}}",
+      "date": "on {{date}} at\u00a0{{time}}"
     },
     "yesComing": "Yes, I'm coming",
     "coming": "I'm coming",

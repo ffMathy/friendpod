@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import type { ReactElement } from 'react';
 import { Alert, Linking, type AlertButton } from 'react-native';
+import { Colors } from '@/components/theme';
 import Welcome from '../app/(auth)/index';
 import DeleteAccount from '../app/settings/delete-account';
 import Notices from '../app/settings/notices';
@@ -11,7 +12,8 @@ import SettingsSensitiveConsent from '../app/settings/sensitive-consent';
 
 const mockRouter = { push: jest.fn(), back: jest.fn(), replace: jest.fn(), canGoBack: () => true };
 // Screens that draw their own header hide the native one with <Stack.Screen options={{ headerShown: false }} />.
-jest.mock('expo-router', () => ({ useRouter: () => mockRouter, useLocalSearchParams: () => ({}), Stack: { Screen: () => null } }));
+// useFocusEffect: the welcome sets the status bar while it is in front (signIn.test covers it).
+jest.mock('expo-router', () => ({ useRouter: () => mockRouter, useLocalSearchParams: () => ({}), Stack: { Screen: () => null }, useFocusEffect: () => undefined }));
 jest.mock('@/features/session/SessionProvider', () => ({ useUid: () => 'me' }));
 
 const mockCall = jest.fn();
@@ -177,6 +179,8 @@ describe('Settings → Privacy (priv-settings; PRIVACY.md §6)', () => {
     expect(mockRouter.push).toHaveBeenCalledWith('/settings/blocked');
     await fireEvent.press(screen.getByRole('link', { name: 'How matching works' }));
     expect(mockRouter.push).toHaveBeenCalledWith('/info/how-matching-works');
+    // Destructive: the danger outline (white, Danger border), never a red or pink fill (decision 4).
+    expect(screen.getByTestId('privacy-delete')).toHaveStyle({ backgroundColor: Colors.light.surface, borderColor: Colors.light.danger });
     await fireEvent.press(screen.getByRole('button', { name: 'Delete account' }));
     expect(mockRouter.push).toHaveBeenCalledWith('/settings/delete-account');
     // PRIVACY.md §6: the complaint path is a link to datatilsynet.dk.
@@ -200,6 +204,8 @@ describe('Settings → Privacy → Private interests (the blanket Art. 9 consent
     await renderWith(<SettingsSensitiveConsent />);
     expect(screen.getByText('You agreed on 1 Jan 1970.')).toBeOnTheScreen();
     expect(screen.getByText('2 of your interests are private.')).toBeOnTheScreen();
+    // The text it covers sits in onboarding's consent card: white, the 1.5 px Ink border (private stays quiet).
+    expect(screen.getByTestId('art9-text')).toHaveStyle({ backgroundColor: Colors.light.privateBg, borderColor: Colors.light.privateBorder, borderWidth: 1.5 });
     await fireEvent.press(screen.getByRole('button', { name: 'Withdraw consent' }));
     expect(mockCall).not.toHaveBeenCalled();
     const withdrawCopy = currentLegalText('withdrawConfirmation', 'en');
@@ -212,6 +218,9 @@ describe('Settings → Privacy → Private interests (the blanket Art. 9 consent
   it('without it, shows the consent: "I agree" stays disabled until the box is ticked', async () => {
     mockUser = user({ legal: { terms: 't', privacy: 'p' } });
     await renderWith(<SettingsSensitiveConsent />);
+    // The same card as onboarding step 3, the locked copy scrolling inside it.
+    expect(screen.getByTestId('art9-text')).toHaveStyle({ backgroundColor: Colors.light.privateBg, borderColor: Colors.light.privateBorder, borderWidth: 1.5 });
+    expect(screen.getByTestId('art9-text-scroll')).toBeOnTheScreen();
     await fireEvent.press(screen.getByTestId('art9-agree'));
     expect(mockCall).not.toHaveBeenCalled();
     await fireEvent.press(screen.getByTestId('art9-checkbox'));
@@ -227,8 +236,10 @@ describe('delete account (priv-delete; §3.10)', () => {
       return { kind: 'done' };
     });
     await renderWith(<DeleteAccount />);
-    expect(screen.getByText('Copies in our backups disappear within 7 days.')).toBeOnTheScreen();
-    expect(screen.getByText("Your sign-in record at Google's login service can take up to 180 days to clear.")).toBeOnTheScreen();
+    expect(screen.getByTestId('delete-account')).toHaveStyle({ backgroundColor: Colors.light.surface, borderColor: Colors.light.danger });
+    // The numbers keep their unit on the same line (non-breaking spaces), as on priv-delete.
+    expect(screen.getByText('Copies in our backups disappear within 7\u00a0days.')).toBeOnTheScreen();
+    expect(screen.getByText("Your sign-in record at Google's login service can take up to 180\u00a0days to clear.")).toBeOnTheScreen();
     await fireEvent.press(screen.getByTestId('delete-account'));
     expect(mockDeleteAccount).not.toHaveBeenCalled();
     await confirmAlert(alert);

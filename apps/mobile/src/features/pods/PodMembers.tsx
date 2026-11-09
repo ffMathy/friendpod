@@ -1,18 +1,20 @@
 /**
- * Who is in the pod (§3.4): the green "Confirmed" card with every member's photo and first name (pod-confirmed), the
- * Members list with attendance (pod-scheduled), the "about me" sentences, and the pod interests.
+ * Who is in the pod (§3.4): the Members list with attendance (pod-scheduled), the "about me" sentences and the pod
+ * interests. The reveal's member row (pod-confirmed) is in Reveal.tsx.
  */
 import type { AttendanceStatus, PodDoc } from '@grouper/core';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { Badge, Card, ChipRow, Icon, Tag, Text } from '@/components/ui';
-import { BorderWidth, Radius, usePalette, type PaletteKey } from '@/components/theme';
+import { ChipRow, Overline, StatusText, Text, type IconName } from '@/components/ui';
+import { BorderWidth, Radius, Size, usePalette } from '@/components/theme';
+import type { PodColor } from '@/lib/podColor';
 import { MemberAvatar } from './MemberAvatar';
+import { PodCard } from './parts';
 
 type Roster = PodDoc['roster'];
 
-interface Member {
+export interface Member {
   readonly uid: string;
   readonly firstName: string;
   readonly photoV: number | null;
@@ -28,137 +30,70 @@ export function podMembers(memberUids: readonly string[], roster: Roster, viewer
   return [...all.filter((m) => m.uid !== viewer), ...all.filter((m) => m.uid === viewer)];
 }
 
-export interface ConfirmedHeroProps {
-  readonly podId: string;
-  readonly theme: string;
-  readonly sensitive: boolean;
-  /** "5 people near Aarhus C". */
-  readonly subtitle: string;
-  readonly members: readonly Member[];
-  readonly viewer: string;
-}
-
-/**
- * pod-confirmed: brand-green card, "Confirmed", the theme in 34/800 and a row of members; each opens their sheet. A pod
- * about a private interest is drawn in the private purple with the lock, as its proposal was (priv-sensitive), and its
- * members show their initials until each of them chooses to show their photo (S6).
- */
-export function ConfirmedHero({ podId, theme, sensitive, subtitle, members, viewer }: ConfirmedHeroProps) {
-  const { t } = useTranslation();
-  const router = useRouter();
-  const p = usePalette();
-  const size = members.length > 5 ? 44 : 52;
-  const on: PaletteKey = sensitive ? 'onPrivate' : 'onBrand';
-  return (
-    <Card variant="brand" testID="pod-confirmed" style={sensitive ? { backgroundColor: p.private } : null}>
-      <Badge tone="accent" label={t('pod.confirmed')} />
-      <View style={styles.themeRow}>
-        {sensitive ? <Icon name="lock" size={24} color={p.onPrivate} accessibilityLabel={t('pods.privateInterest')} /> : null}
-        <Text accessibilityRole="header" variant="themeCompact" color={on} style={styles.flexShrink}>
-          {theme}
-        </Text>
-      </View>
-      {/* On purple the muted line is full white: the green card's mint-grey has no purple twin in both themes. */}
-      <Text variant="small" color={sensitive ? 'onPrivate' : 'onBrandMuted'} style={styles.heroLine}>
-        {subtitle}
-      </Text>
-      <View style={styles.grid}>
-        {members.map((m) => {
-          const you = m.uid === viewer;
-          const face = (
-            <>
-              {you ? (
-                // The viewer: near-black with a 2 px white ring and "You" in 15/800 (smaller faces: 13).
-                <View
-                  style={[styles.you, { width: size, height: size, borderRadius: size / 2, backgroundColor: p.ink, borderColor: p[on] }]}
-                  accessible={false}
-                  importantForAccessibility="no-hide-descendants"
-                  accessibilityElementsHidden
-                >
-                  <Text variant={size >= 52 ? 'heading' : 'captionBold'} weight="800" color="onInk" numberOfLines={1}>
-                    {t('common.you')}
-                  </Text>
-                </View>
-              ) : (
-                <MemberAvatar uid={m.uid} name={m.firstName} size={size} photoV={m.photoV} />
-              )}
-              <Text variant="captionBold" color={on} numberOfLines={1} style={styles.heroName}>
-                {m.firstName}
-              </Text>
-            </>
-          );
-          return you ? (
-            <View key={m.uid} style={styles.cell} accessible accessibilityLabel={t('pod.you', { name: m.firstName })}>
-              {face}
-            </View>
-          ) : (
-            <Pressable
-              key={m.uid}
-              accessibilityRole="link"
-              accessibilityLabel={m.firstName}
-              onPress={() => router.push({ pathname: '/pod/[podId]/member/[uid]', params: { podId, uid: m.uid } })}
-              style={({ pressed }) => [styles.cell, { opacity: pressed ? 0.75 : 1 }]}
-            >
-              {face}
-            </Pressable>
-          );
-        })}
-      </View>
-    </Card>
-  );
-}
-
 /** Each member's own "about me" sentence (F19), shown to confirmed members only; nothing when nobody wrote one. */
-export function AboutMembersCard({ members, viewer }: { members: readonly Member[]; viewer: string }) {
+export function AboutMembersCard({ members, viewer, color }: { members: readonly Member[]; viewer: string; color: PodColor | null }) {
   const { t } = useTranslation();
   const withAbout = members.filter((m) => m.uid !== viewer && m.aboutMe);
   if (withAbout.length === 0) return null;
   return (
-    <Card gap={12}>
-      <Text accessibilityRole="header" variant="smallBold">
+    <PodCard gap={12}>
+      <Text accessibilityRole="header" variant="heading">
         {t('pod.inTheirWords')}
       </Text>
       {withAbout.map((m) => (
         <View key={m.uid} style={styles.aboutRow}>
-          <MemberAvatar uid={m.uid} name={m.firstName} size={28} photoV={m.photoV} />
+          <MemberAvatar uid={m.uid} name={m.firstName} size={32} photoV={m.photoV} color={color} />
           <Text variant="small" color="textSecondary" style={styles.flex}>
-            <Text variant="smallBold">{m.firstName}</Text>
+            <Text variant="small" weight="700">
+              {m.firstName}
+            </Text>
             {`  ${m.aboutMe ?? ''}`}
           </Text>
         </View>
       ))}
-    </Card>
+    </PodCard>
   );
 }
 
 /**
- * "More than one of you also likes": pod interests in the viewer's language, never attributed to anyone (§3.4). Its
- * own white card, part of the reveal (pod-confirmed) only: once the plan locks, the page is the next step plus Plan,
- * Chat and Members (pod-scheduled).
+ * "More than one of you also likes" (pod-confirmed): pod interests in the viewer's language, never attributed to
+ * anyone (§3.4). The pod document carries them as words only, without concept ids, and a colour may only come from a
+ * concept id (decision 9), so they are neutral chips here: Paper on the white card, a 1 px Line border, no dot. Not the
+ * plain-clash chip (white, Outline border, hollow ring), which means "the same colour as this pod".
+ * DESIGN-DEVIATION: the storyboard colours them (sourdough Solsikke, coffee Bær, hiking Blomme); that needs the pod
+ * document to carry each interest's concept id (`{ conceptId, da, en }`), a founder decision on the core schema.
  */
 export function PodInterestsCard({ interests }: { interests: readonly string[] }) {
   const { t } = useTranslation();
-  const p = usePalette();
   if (interests.length === 0) return null;
-  // A white card with the storyboard's 14/16 padding (Card takes one padding for all sides).
   return (
-    <View testID="pod-interests" style={[styles.compactCard, { backgroundColor: p.surface, borderColor: p.border }]}>
-      <Text accessibilityRole="header" variant="smallBold" style={styles.interestsTitle}>
+    <PodCard testID="pod-interests" style={styles.interests}>
+      <Text accessibilityRole="header" variant="heading">
         {t('pod.alsoLikes')}
       </Text>
-      <ChipRow tight>
+      <ChipRow>
         {interests.map((i) => (
-          <Tag key={i} label={i} />
+          <PlainChip key={i} label={i} />
         ))}
       </ChipRow>
+    </PodCard>
+  );
+}
+
+/** A neutral 32 px interest chip with no colour and no dot (an interest whose concept id the app does not have). */
+function PlainChip({ label }: { label: string }) {
+  const p = usePalette();
+  return (
+    <View testID="pod-interest-chip" style={[styles.plainChip, { backgroundColor: p.inset, borderColor: p.border }]}>
+      <Text variant="chip">{label}</Text>
     </View>
   );
 }
 
-const STATUS_COLOR: Readonly<Record<'coming' | 'notComing' | 'unconfirmed', PaletteKey>> = {
-  coming: 'primary',
-  notComing: 'textMuted',
-  unconfirmed: 'warningText',
+const STATUS_ICON: Readonly<Record<'coming' | 'notComing' | 'unconfirmed', IconName>> = {
+  coming: 'check',
+  notComing: 'close',
+  unconfirmed: 'clock',
 };
 
 export interface MembersCardProps {
@@ -166,24 +101,24 @@ export interface MembersCardProps {
   readonly members: readonly Member[];
   readonly viewer: string;
   readonly attendance: Readonly<Record<string, AttendanceStatus>> | null;
+  /** The pod's colour (avatars in its deep tone); `null` for a private pod. */
+  readonly color: PodColor | null;
 }
 
 /**
- * pod-scheduled "MEMBERS": the other members with photo, first name, their "about me" and, while the meetup is
- * scheduled, whether they're coming ("Hasn't confirmed" once unconfirmed). Each row opens the member's sheet, where
- * block and report live. The card ends with the last member, as on the storyboard. The locked plan page ("Your
- * meetup") shows the same card under the plan.
+ * pod-scheduled "MEMBERS": the other members with their initial (or photo), first name, their "about me" and, while
+ * the meetup is scheduled, whether they're coming. Someone who hasn't confirmed is shown quietly (decision 3): a dashed
+ * avatar, a clock and the words in Ink 2, never a coloured flag. Each row opens the member's sheet, where block and
+ * report live. The locked plan page ("Your meetup") shows the same card under the plan.
  */
-export function MembersCard({ podId, members, viewer, attendance }: MembersCardProps) {
+export function MembersCard({ podId, members, viewer, attendance, color }: MembersCardProps) {
   const { t } = useTranslation();
   const router = useRouter();
   const p = usePalette();
   const others = members.filter((m) => m.uid !== viewer);
   return (
     <View testID="pod-members" style={[styles.members, { backgroundColor: p.surface, borderColor: p.border }]}>
-      <Text accessibilityRole="header" variant="overline" color="textMuted" style={styles.membersTitle}>
-        {t('pod.sections.members')}
-      </Text>
+      <Overline style={styles.membersTitle}>{t('pod.sections.members')}</Overline>
       {others.map((m, i) => {
         const status = attendance?.[m.uid];
         const shown = status === 'coming' || status === 'notComing' || status === 'unconfirmed' ? status : null;
@@ -199,25 +134,22 @@ export function MembersCard({ podId, members, viewer, attendance }: MembersCardP
             onPress={() => router.push({ pathname: '/pod/[podId]/member/[uid]', params: { podId, uid: m.uid } })}
             style={({ pressed }) => [
               styles.memberRow,
-              // The separator adds to the 48 px row (the storyboard's min-height 48 plus a 1 px border), none after the last.
-              i < others.length - 1 ? { minHeight: 49, borderBottomWidth: BorderWidth.hairline, borderBottomColor: p.separator } : null,
+              i < others.length - 1 ? { borderBottomWidth: BorderWidth.hairline, borderBottomColor: p.separator } : null,
               { opacity: pressed ? 0.7 : 1 },
             ]}
           >
-            <MemberAvatar uid={m.uid} name={m.firstName} size={32} photoV={m.photoV} />
+            <MemberAvatar uid={m.uid} name={m.firstName} size={32} photoV={m.photoV} color={color} pending={shown === 'unconfirmed'} />
             <View style={styles.flex}>
-              <Text variant="bodyStrong">{m.firstName}</Text>
+              <Text variant="bodyStrong" style={styles.name}>
+                {m.firstName}
+              </Text>
               {m.aboutMe ? (
-                <Text variant="caption" color="textMuted">
+                <Text variant="captionStrong" color="textMuted" weight="400">
                   {m.aboutMe}
                 </Text>
               ) : null}
             </View>
-            {value && shown ? (
-              <Text variant="captionBold" color={STATUS_COLOR[shown]}>
-                {value}
-              </Text>
-            ) : null}
+            {value && shown ? <StatusText icon={STATUS_ICON[shown]} label={value} /> : null}
           </Pressable>
         );
       })}
@@ -227,19 +159,13 @@ export function MembersCard({ podId, members, viewer, attendance }: MembersCardP
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  flexShrink: { flexShrink: 1 },
-  themeRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  grid: { flexDirection: 'row', gap: 6 },
-  cell: { flex: 1, alignItems: 'center', gap: 6, minHeight: 44 },
-  you: { borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
-  // 14 px and 13/700 at their natural line height, as on the storyboard.
-  heroLine: { lineHeight: 18 },
-  heroName: { lineHeight: 16 },
-  compactCard: { borderWidth: BorderWidth.hairline, borderRadius: Radius.card, paddingVertical: 14, paddingHorizontal: 16, gap: 10 },
-  interestsTitle: { lineHeight: 18 },
   aboutRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
-  members: { borderWidth: BorderWidth.hairline, borderRadius: Radius.cardLg, paddingVertical: 6, paddingHorizontal: 16 },
-  // 13/700 caps at its natural line height (16 px), as the storyboard's h2.
-  membersTitle: { marginTop: 10, marginBottom: 2, lineHeight: 16 },
-  memberRow: { minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 6 },
+  interests: { paddingBottom: 16 },
+  plainChip: { height: Size.tag, borderRadius: Size.tag / 2, borderWidth: BorderWidth.hairline, paddingHorizontal: 12, justifyContent: 'center', alignSelf: 'flex-start' },
+  members: { borderWidth: BorderWidth.hairline, borderRadius: Radius.card, paddingHorizontal: 16 },
+  membersTitle: { marginTop: 12 },
+  // The storyboard's rows: min-height 46 with the 1 px divider counted in.
+  memberRow: { minHeight: 46, flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 6 },
+  // 15/600 at the storyboard's 20 px line.
+  name: { lineHeight: 20 },
 });

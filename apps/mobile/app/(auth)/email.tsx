@@ -1,18 +1,17 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, View } from 'react-native';
-import { Banner, Button, Lede, Screen, TextField, Title } from '@/components/ui';
-import { AuthHeader } from '@/features/auth/AuthHeader';
+import { Button, Note, TextField } from '@/components/ui';
+import { AuthStep } from '@/features/auth/AuthStep';
 import { pendingEmail, sendEmailLink } from '@/features/auth/emailLink';
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
  * Email magic link (F10), reached from "Continue with email" on the welcome screen, or from "Send a new link" when a
- * link did not work. Laid out like the onboarding steps (the welcome logo behind a back chevron, 30/800 title, lede,
- * field, the action pinned at the bottom). The address is kept in secure storage on this phone until the link is
- * opened; if one is still there (a link was asked for before), the field starts with it.
+ * link did not work. A calm pushed step on Paper (`AuthStep`: back chevron, title, lede), the field, and the action
+ * pinned at the bottom. The address is kept in secure storage on this phone until the link is opened; if one is still
+ * there (a link was asked for before), the field starts with it.
  */
 export default function EmailSignIn() {
   const { t } = useTranslation();
@@ -49,10 +48,10 @@ export default function EmailSignIn() {
   const back = () => (router.canGoBack() ? router.back() : router.replace('/'));
 
   return (
-    <Screen
-      safeTop
-      gap={24}
-      header={<AuthHeader onBack={back} />}
+    <AuthStep
+      title={t('auth.email.title')}
+      lede={t('auth.email.intro')}
+      onBack={back}
       footer={
         <Button
           testID="send-email-link"
@@ -63,10 +62,6 @@ export default function EmailSignIn() {
         />
       }
     >
-      <View style={styles.titleBlock}>
-        <Title>{t('auth.email.title')}</Title>
-        <Lede>{t('auth.email.intro')}</Lede>
-      </View>
       <TextField
         label={t('auth.email.label')}
         placeholder={t('auth.email.placeholder')}
@@ -84,19 +79,15 @@ export default function EmailSignIn() {
         }}
       />
       {state === 'sent' ? (
-        <Banner tone="mint" icon="check" title={t('auth.email.sentTitle')} alert>
+        <Note tone="info" icon="check" title={t('auth.email.sentTitle')} alert>
           {t('auth.email.sent', { email: sentTo })}
-        </Banner>
+        </Note>
       ) : null}
       {state === 'failed' ? (
-        <Banner tone="danger" icon="info" alert>
+        <Note tone="safety" icon="alert" alert>
           {t('auth.email.failed')}
-        </Banner>
+        </Note>
       ) : null}
-    </Screen>
+    </AuthStep>
   );
 }
-
-const styles = StyleSheet.create({
-  titleBlock: { gap: 8 },
-});

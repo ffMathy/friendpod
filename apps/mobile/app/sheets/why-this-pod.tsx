@@ -1,14 +1,15 @@
-import type { PodReason } from '@grouper/core';
+import type { PodCardDoc, PodReason } from '@grouper/core';
 import { Stack, useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import type { TFunction } from 'i18next';
 import { useLayoutEffect, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
-import { Card, CloseButton, Headline, Icon, Strong, Text, type IconName } from '@/components/ui';
-import { usePalette, type PaletteKey } from '@/components/theme';
+import { CloseButton, Note, Strong, Text, TextLink, type IconName } from '@/components/ui';
+import { usePalette } from '@/components/theme';
 import { usePodCard } from '@/data/docs';
 import { BottomSheet } from '@/features/after/parts';
-import { CardLink } from '@/features/drop/parts';
+import { useCardColor } from '@/features/drop/color';
+import { PodDisc } from '@/features/drop/parts';
 import { boldList, richText, slot } from '@/features/drop/richText';
 import { useUid } from '@/features/session/SessionProvider';
 
@@ -38,7 +39,7 @@ function useTransparentPresentation() {
 interface Line {
   readonly key: string;
   readonly text: ReactNode;
-  /** `match` (green tick) for why the pod fits, `priority` (amber clock) for the viewer's waiting priority. */
+  /** `match` (a check) for why the pod fits, `priority` (a clock) for the viewer's waiting priority. */
   readonly kind: 'match' | 'priority';
 }
 
@@ -54,17 +55,17 @@ function reasonLines(t: TFunction, reasons: readonly PodReason[]): Line[] {
   for (const r of reasons) {
     switch (r.code) {
       case 'THEME':
-        lines.push({ key: r.code, kind: 'match', text: richText(t('pods.why.THEME', { wording: slot(0) }), [<Strong key="w">{r.yourWording}</Strong>]) });
+        lines.push({ key: r.code, kind: 'match', text: richText(t('pods.why.THEME', { wording: slot(0) }), [<Strong key="w" color="text">{r.yourWording}</Strong>]) });
         break;
       case 'SOFT_THEME':
         lines.push({
           key: r.code,
           kind: 'match',
-          text: richText(t('pods.why.SOFT_THEME', { yourTag: slot(0), podTheme: slot(1) }), [<Strong key="a">{r.yourTag}</Strong>, <Strong key="b">{r.podTheme}</Strong>]),
+          text: richText(t('pods.why.SOFT_THEME', { yourTag: slot(0), podTheme: slot(1) }), [<Strong key="a" color="text">{r.yourTag}</Strong>, <Strong key="b" color="text">{r.podTheme}</Strong>]),
         });
         break;
       case 'ALSO_SHARE':
-        lines.push({ key: r.code, kind: 'match', text: richText(t('pods.why.ALSO_SHARE', { list: slot(0) }), [boldList(t, r.yourWordings)]) });
+        lines.push({ key: r.code, kind: 'match', text: richText(t('pods.why.ALSO_SHARE', { list: slot(0) }), [boldList(t, r.yourWordings, 'text')]) });
         break;
       case 'NEAR_YOU':
         lines.push({
@@ -91,73 +92,79 @@ function reasonLines(t: TFunction, reasons: readonly PodReason[]): Line[] {
   return [...lines.filter((l) => l.kind === 'match'), ...lines.filter((l) => l.kind === 'priority')];
 }
 
-const MARKS: Record<Line['kind'], { icon: IconName; bg: PaletteKey; fg: PaletteKey; stroke: number }> = {
-  match: { icon: 'check', bg: 'mint', fg: 'onMint', stroke: 2.4 },
-  priority: { icon: 'clock', bg: 'warningBg', fg: 'warningText', stroke: 2.2 },
-};
+const MARKS: Record<Line['kind'], IconName> = { match: 'check', priority: 'clock' };
 
-/** "Why this pod" (drop-why): the reasons, what we never use, and a link to how matching works. */
+/**
+ * "Why this pod" (drop-why): a bottom sheet with the reasons, each led by a disc in the pod's tint with the icon in its
+ * deep tone (white with an Ink ring for a private interest), what we never use as a quiet info note, and a link to how
+ * matching works.
+ */
 export default function WhyThisPod() {
   const { t } = useTranslation();
   const router = useRouter();
   const p = usePalette();
+  const uid = useUid();
   const { podId } = useLocalSearchParams<{ podId: string }>();
-  const card = usePodCard(useUid(), podId);
+  const card = usePodCard(uid, podId);
   useTransparentPresentation();
   const close = () => router.back();
   return (
     <>
       <Stack.Screen options={SHEET_OPTIONS} />
-      <BottomSheet onClose={close} testID="why-this-pod">
+      <BottomSheet onClose={close} gap={16} gutter="compact" testID="why-this-pod">
         <View style={styles.titleRow}>
-          <Headline style={styles.title}>{t('pods.whyThisPod')}</Headline>
+          <Text accessibilityRole="header" variant="titleModal" style={styles.title}>
+            {t('pods.whyThisPod')}
+          </Text>
           <CloseButton onPress={close} accessibilityLabel={t('common.close')} />
         </View>
-        {card.data ? (
-          <>
-            <View style={styles.list}>
-              {reasonLines(t, card.data.reasons).map((line) => {
-                const mark = MARKS[line.kind];
-                return (
-                  <View key={line.key} style={styles.line}>
-                    <View style={[styles.mark, { backgroundColor: p[mark.bg] }]}>
-                      <Icon name={mark.icon} size={16} strokeWidth={mark.stroke} color={p[mark.fg]} />
-                    </View>
-                    <Text variant="body" style={styles.lineText}>
-                      {line.text}
-                    </Text>
-                  </View>
-                );
-              })}
-            </View>
-            <Card variant="inset" radius={16} gap={6} style={styles.never}>
-              <Text accessibilityRole="header" variant="smallBold">
-                {t('pods.why.neverTitle')}
-              </Text>
-              <Text variant="caption" color="textSecondary" style={styles.neverBody}>
-                {t('pods.why.neverBody')}
-              </Text>
-            </Card>
-            <CardLink align="start" label={t('home.howMatching')} onPress={() => router.push('/info/how-matching-works')} />
-          </>
-        ) : (
-          <ActivityIndicator accessibilityLabel={t('common.loading')} color={p.primary} style={styles.loading} />
-        )}
+        {card.data ? <Reasons uid={uid} podId={podId} card={card.data} /> : <ActivityIndicator accessibilityLabel={t('common.loading')} color={p.primary} style={styles.loading} />}
       </BottomSheet>
     </>
   );
 }
 
+function Reasons({ uid, podId, card }: { uid: string; podId: string; card: PodCardDoc }) {
+  const { t } = useTranslation();
+  const router = useRouter();
+  const color = useCardColor(uid, podId, card);
+  return (
+    <>
+      <View style={styles.list}>
+        {reasonLines(t, card.reasons).map((line) => (
+          <View key={line.key} style={styles.line}>
+            <PodDisc color={color} icon={MARKS[line.kind]} />
+            <Text variant="bodySmall" color="textSecondary" style={styles.lineText}>
+              {line.text}
+            </Text>
+          </View>
+        ))}
+      </View>
+      <Note tone="info">
+        {/* Title 14/20 and body 13/1.5, 2 px apart and 10 px from the icon, as drawn. */}
+        <View style={styles.never}>
+          <Text variant="smallBold" style={styles.neverTitle}>
+            {t('pods.why.neverTitle')}
+          </Text>
+          <Text variant="caption" color="textSecondary" style={styles.neverBody}>
+            {t('pods.why.neverBody')}
+          </Text>
+        </View>
+      </Note>
+      <TextLink label={t('home.howMatching')} onPress={() => router.push('/info/how-matching-works')} />
+    </>
+  );
+}
+
 const styles = StyleSheet.create({
-  titleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
+  titleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
   title: { flexShrink: 1 },
   loading: { paddingVertical: 48 },
   list: { gap: 14 },
-  line: { flexDirection: 'row', gap: 12 },
-  mark: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-  // The storyboard's 15 px at 1.45 and 13 px at 1.5, unrounded: over five two-line reasons rounding adds up.
-  lineText: { flex: 1, lineHeight: 21.75 },
-  // 14/16 as drawn (a `padding` prop would win over a horizontal override on web).
-  never: { paddingVertical: 14, paddingHorizontal: 16 },
+  line: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
+  // Centred on the 36 px disc's first line, as drawn.
+  lineText: { flex: 1, paddingTop: 7 },
+  never: { gap: 2, marginLeft: 2 },
+  neverTitle: { lineHeight: 20 },
   neverBody: { lineHeight: 19.5 },
 });

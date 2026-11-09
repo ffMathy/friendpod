@@ -11,20 +11,21 @@ import {
 } from '@grouper/core';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Banner, Card, Heading, ListRow, Text } from '@/components/ui';
+import { Card, Heading, ListRow, Note, Text } from '@/components/ui';
 import { useSession } from '@/features/session/SessionProvider';
-import { IconBullet, IconListCard, NoteBox, PageLede, ShellPage } from '@/features/shell/parts';
+import { IconBullet, IconListCard, PageLede, ShellPage } from '@/features/shell/parts';
 
 const USED = ['interests', 'area', 'age', 'prefs', 'reliability'] as const;
 const days = (ms: number) => Math.round(ms / DAY_MS);
 const weeks = (ms: number) => Math.round(ms / (7 * DAY_MS));
 
 /**
- * "How matching works" (§11, PRIVACY.md §4.4, §13): the inputs used (drop-why's mint ticks) and not used (its grey
- * "What we never use" box), meet-again effects, the rules for private (sensitive) themes in drop-why's purple box,
- * every automated pause with its length (from the same constants the server applies), that no person reviews these
- * decisions and what that means, and that matching can be paused at any time: signed in, a row that opens Me, where
- * "Weekly drops" has "Pause matching"; signed out (the page is public), the same sentence as a note.
+ * "How matching works" (§11, PRIVACY.md §4.4, §13): the inputs used (drop-why's disc ticks) and not used (its "What we
+ * never use" info note), meet-again effects, the rules for private (sensitive) themes in the quiet private note
+ * (white, Ink border, lock), every automated pause with its length (from the same constants the server applies), that
+ * no person reviews these decisions and what that means, and that matching can be paused at any time: signed in, a
+ * row that opens Me, where "Weekly drops" has "Pause matching"; signed out (the page is public), the same sentence as
+ * an info note. No pod colour: the page is about every pod.
  */
 export default function HowMatchingWorks() {
   const { t } = useTranslation();
@@ -51,18 +52,20 @@ export default function HowMatchingWorks() {
         <IconBullet icon="people">{t('info.howMatchingWorks.meetAgain', { weeks: meetAgainWeeks })}</IconBullet>
       </IconListCard>
 
-      <NoteBox title={t('info.howMatchingWorks.neverTitle')}>{t('info.howMatchingWorks.notUsed')}</NoteBox>
+      <Note tone="info" title={t('info.howMatchingWorks.neverTitle')}>
+        {t('info.howMatchingWorks.notUsed')}
+      </Note>
 
-      <Banner tone="private" icon="lock" title={t('info.howMatchingWorks.sensitiveTitle')}>
+      <Note tone="private" title={t('info.howMatchingWorks.sensitiveTitle')}>
         {t('info.howMatchingWorks.sensitive')}
-      </Banner>
+      </Note>
 
       <IconListCard title={t('info.howMatchingWorks.pausesTitle')}>
         <Text variant="small" color="textSecondary">
           {t('info.howMatchingWorks.pauses')}
         </Text>
         {pauses.map((line) => (
-          <IconBullet key={line} icon="pause" tone="warning">
+          <IconBullet key={line} icon="pause">
             {line}
           </IconBullet>
         ))}
@@ -70,10 +73,10 @@ export default function HowMatchingWorks() {
 
       <Card gap={8}>
         <Heading>{t('info.howMatchingWorks.reviewTitle')}</Heading>
-        <Text variant="small" color="textBody">
+        <Text variant="small" color="text">
           {t('info.howMatchingWorks.noReview')}
         </Text>
-        <Text variant="small" color="textBody">
+        <Text variant="small" color="text">
           {t('info.howMatchingWorks.humanReview')}
         </Text>
       </Card>
@@ -87,9 +90,9 @@ export default function HowMatchingWorks() {
           onPress={() => router.dismissTo('/me')}
         />
       ) : (
-        <Banner tone="mint" icon="pause">
+        <Note tone="info" icon="pause">
           {t('info.howMatchingWorks.pause')}
-        </Banner>
+        </Note>
       )}
     </ShellPage>
   );

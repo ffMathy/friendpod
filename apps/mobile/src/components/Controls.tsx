@@ -1,7 +1,8 @@
 /**
- * Form controls: checkbox, radio option, on/off switch, selectable chips and the segmented control. Every
- * control has a 44 px touch target and the matching accessibility role and state. Consent checkboxes start
- * unticked (EDPB 05/2020 §§93–96); the caller owns the state.
+ * Form controls (blend spec §6.15): checkbox, radio option, on/off switch, selectable chips and the segmented control.
+ * "On" is Skov (switch, checkbox, radio); a selected choice or segment is Ink with white text. Every control has a
+ * 44 px touch target and the matching accessibility role and state. Consent checkboxes start unticked (EDPB 05/2020
+ * §§93–96); the caller owns the state.
  */
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Icon } from './Icon';
@@ -51,7 +52,7 @@ export function Checkbox({ label, checked, onChange, testID, variant = 'plain', 
         style={[
           styles.box,
           { width: box, height: box },
-          checked ? { backgroundColor: p.primary, borderColor: p.primary } : { backgroundColor: p.surface, borderColor: p.textMuted },
+          checked ? { backgroundColor: p.primary, borderColor: p.primary } : { backgroundColor: p.surface, borderColor: p.field },
           variant === 'plain' || variant === 'card' ? styles.boxNudge : null,
         ]}
       >
@@ -78,7 +79,7 @@ export interface RadioProps {
   readonly disabled?: boolean;
 }
 
-/** A radio option card ("What happened?"): white, r14, min 48; selected gets a 2 px green border and 600. */
+/** A radio option card ("What happened?"): white, 1.5 px Outline, radius 14, min 48; selected: 2 px Skov border, 600. */
 export function Radio({ label, selected, onPress, testID, disabled = false }: RadioProps) {
   const p = usePalette();
   return (
@@ -93,14 +94,14 @@ export function Radio({ label, selected, onPress, testID, disabled = false }: Ra
         styles.radioRow,
         {
           backgroundColor: p.surface,
-          borderColor: selected ? p.primary : p.border,
-          borderWidth: selected ? BorderWidth.strong : BorderWidth.hairline,
-          paddingHorizontal: selected ? 13 : 14,
+          borderColor: selected ? p.primary : p.borderStrong,
+          borderWidth: selected ? BorderWidth.strong : BorderWidth.control,
+          paddingHorizontal: selected ? 13.5 : 14,
           opacity: disabled ? 0.5 : pressed ? 0.85 : 1,
         },
       ]}
     >
-      <View style={[styles.radio, { borderColor: selected ? p.primary : p.textMuted, borderWidth: selected ? 2 : 1.5 }]}>
+      <View style={[styles.radio, { borderColor: selected ? p.primary : p.field, borderWidth: selected ? 2 : 1.5 }]}>
         {selected ? <View style={[styles.radioDot, { backgroundColor: p.primary }]} /> : null}
       </View>
       <Text variant={selected ? 'bodyStrong' : 'body'} style={styles.flex}>
@@ -121,8 +122,8 @@ export interface SwitchProps {
   /** A muted line under the label ("We'll ask for your gender and your consent…"). */
   readonly description?: string;
   /**
-   * `card` (default): white bordered card r20 ("Same-gender pods only").
-   * `outline`: r16 with the input border ("Open to meeting anyone").
+   * `card` (default): white card, 1 px Line, radius 22 ("Same-gender pods only").
+   * `outline`: radius 16 with the 1.5 px Outline border ("Open to meeting anyone").
    * `plain`: just the row, for lists.
    */
   readonly variant?: 'card' | 'outline' | 'plain';
@@ -149,14 +150,14 @@ export function Switch({ label, value, onChange, description, variant = 'card', 
       ]}
     >
       <View style={styles.switchText}>
-        <Text variant={variant === 'card' ? 'heading' : 'bodyStrong'}>{label}</Text>
+        <Text variant="rowTitle">{label}</Text>
         {description ? (
           <Text variant="caption" weight={variant === 'outline' ? '500' : undefined} color="textMuted">
             {description}
           </Text>
         ) : null}
       </View>
-      <View style={[styles.track, { backgroundColor: value ? p.primary : p.borderStrong }]}>
+      <View style={[styles.track, value ? { backgroundColor: p.primary, borderColor: p.primary } : { backgroundColor: p.track, borderColor: p.field }]}>
         <View style={[styles.thumb, { backgroundColor: p.switchThumb }, value ? styles.thumbOn : null]} />
       </View>
     </Pressable>
@@ -171,9 +172,9 @@ export interface ChoiceChipProps {
   readonly label: string;
   readonly selected: boolean;
   readonly onPress: () => void;
-  /** `md` 44 px (default; "10 km"), `sm` 36 px, `lg` 48 px rounded-square (rating 1–5, 17/800). */
+  /** `md` 44 px (default; "10 km"), `sm` 36 px, `lg` 48 px rounded-square (rating 1–5). */
   readonly size?: 'sm' | 'md' | 'lg';
-  /** Selected fill: `ink` (default, near-black) or `primary` (a "Yes" vote). */
+  /** Selected fill: `ink` (default: a selected choice is Ink with white text) or `primary` (Skov). */
   readonly selectedColor?: 'ink' | 'primary';
   /** Grow to share a row/grid evenly. */
   readonly fill?: boolean;
@@ -204,14 +205,14 @@ export function ChoiceChip({ label, selected, onPress, size = 'md', selectedColo
           minHeight: height,
           borderRadius: size === 'lg' ? Radius.md : Radius.pill,
           backgroundColor: bg,
-          borderWidth: selected ? 0 : BorderWidth.hairline,
+          borderWidth: selected ? 0 : BorderWidth.control,
           borderColor: p.borderStrong,
           opacity: disabled ? 0.5 : pressed ? 0.85 : 1,
         },
         fill ? styles.fill : null,
       ]}
     >
-      <Text style={[typeStyle(size === 'lg' ? 'numeral' : 'smallBold'), { color: fg }]}>{label}</Text>
+      <Text style={[typeStyle(size === 'sm' ? 'smallBold' : 'buttonSmall'), { color: fg }]}>{label}</Text>
     </Pressable>
   );
 }
@@ -236,7 +237,7 @@ export function Toggle({ label, value, onChange, testID, accessibilityLabel }: {
           minHeight: Size.chip,
           borderRadius: Radius.pill,
           backgroundColor: value ? p.ink : p.surface,
-          borderWidth: value ? 0 : BorderWidth.hairline,
+          borderWidth: value ? 0 : BorderWidth.control,
           borderColor: p.borderStrong,
           opacity: pressed ? 0.85 : 1,
         },
@@ -260,7 +261,7 @@ export interface SegmentedControlProps<T extends string> {
   readonly testID?: string;
 }
 
-/** The language switch on the welcome screen: a white pill, the selected segment near-black. */
+/** A segmented control (the welcome's language switch): a white pill, the selected segment Ink with white text. */
 export function SegmentedControl<T extends string>({ options, value, onChange, accessibilityLabel, testID }: SegmentedControlProps<T>) {
   const p = usePalette();
   return (
@@ -278,7 +279,7 @@ export function SegmentedControl<T extends string>({ options, value, onChange, a
             hitSlop={{ top: 5, bottom: 5 }}
             style={[styles.segment, { backgroundColor: selected ? p.ink : 'transparent' }]}
           >
-            <Text variant="captionStrong" color={selected ? 'onInk' : 'textMuted'}>
+            <Text variant="smallBold" color={selected ? 'onInk' : 'text'}>
               {o.label}
             </Text>
           </Pressable>
@@ -295,19 +296,19 @@ const styles = StyleSheet.create({
   centerRow: { alignItems: 'center', gap: 8 },
   checkCard: { borderWidth: BorderWidth.hairline, borderRadius: Radius.lg, padding: 12 },
   bare: { width: Size.hitTarget, height: Size.hitTarget, alignItems: 'center', justifyContent: 'center' },
-  box: { borderRadius: 6, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
+  box: { borderRadius: 7, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
   boxNudge: { marginTop: 1 },
   radioRow: { minHeight: 48, borderRadius: Radius.md, flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10 },
-  radio: { width: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  radio: { width: 24, height: 24, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   radioDot: { width: 10, height: 10, borderRadius: 5 },
   switchRow: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 56 },
   switchCard: { borderWidth: BorderWidth.hairline, borderRadius: Radius.card, paddingVertical: 14, paddingHorizontal: 16 },
-  switchOutline: { borderWidth: BorderWidth.hairline, borderRadius: Radius.lg, paddingVertical: 8, paddingHorizontal: 16 },
+  switchOutline: { borderWidth: BorderWidth.control, borderRadius: Radius.lg, paddingVertical: 8, paddingHorizontal: 16 },
   switchText: { flex: 1, gap: 4 },
-  track: { width: 44, height: 26, borderRadius: 13, padding: 2, justifyContent: 'center' },
-  thumb: { width: 22, height: 22, borderRadius: 11 },
+  track: { width: 52, height: 32, borderRadius: 16, borderWidth: 1.5, padding: 2, justifyContent: 'center' },
+  thumb: { width: 25, height: 25, borderRadius: 12.5 },
   thumbOn: { alignSelf: 'flex-end' },
   choice: { alignItems: 'center', justifyContent: 'center', paddingHorizontal: 14 },
-  segmented: { flexDirection: 'row', borderWidth: BorderWidth.hairline, borderRadius: 20, padding: 3 },
-  segment: { height: 34, paddingHorizontal: 12, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
+  segmented: { flexDirection: 'row', borderWidth: BorderWidth.hairline, borderRadius: 22, padding: 3 },
+  segment: { height: 36, paddingHorizontal: 14, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
 });

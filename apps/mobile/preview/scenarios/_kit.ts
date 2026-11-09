@@ -187,6 +187,20 @@ export function userDoc(o: ProfileOptions = {}): DocData {
   };
 }
 
+/**
+ * The concept id of brætspil (interest and pod theme). Pod colours come from the concept id (podColorIndex), and
+ * `seed_boardgames` lands on Tomat, the storyboards' brætspil colour.
+ */
+export const BRAETSPIL_CONCEPT = 'seed_boardgames';
+/**
+ * The other fixture concepts, chosen so that podColorIndex gives the storyboards' fixed colours (blend spec §3.4):
+ * sourdough Solsikke (0), trail running Blad (1), far på barsel Fjord (4). The interest and the sourdough pod share
+ * the sourdough concept, so they share its colour.
+ */
+export const SOURDOUGH_CONCEPT = 'seed_bread_baking';
+export const TRAIL_RUNNING_CONCEPT = 'seed_trail_runs';
+export const FAR_PAA_BARSEL_CONCEPT = 'seed_dads_on_leave';
+
 function interest(display: string, norm: string, conceptId: string, createdAt: string, starred = false): DocData {
   return { display, norm, conceptId, starred, createdAt: ts(createdAt) };
 }
@@ -195,12 +209,12 @@ function interest(display: string, norm: string, conceptId: string, createdAt: s
 export function interestDocs(o: { readonly withSuggestionSource?: boolean } = {}): Record<string, DocData> {
   const base = `users/${ME}/interests`;
   return {
-    [`${base}/${INTEREST_IDS.braetspil}`]: interest('brætspil', 'brætspil', 'seed_board_games', '2026-11-04 20:05', true),
-    [`${base}/${INTEREST_IDS.sourdough}`]: interest('sourdough', 'sourdough', 'seed_sourdough', '2026-11-04 20:06'),
-    [`${base}/${INTEREST_IDS.farPaaBarsel}`]: interest('far på barsel', 'far på barsel', 'seed_parental_leave', '2026-11-04 20:07'),
+    [`${base}/${INTEREST_IDS.braetspil}`]: interest('brætspil', 'brætspil', BRAETSPIL_CONCEPT, '2026-11-04 20:05', true),
+    [`${base}/${INTEREST_IDS.sourdough}`]: interest('sourdough', 'sourdough', SOURDOUGH_CONCEPT, '2026-11-04 20:06'),
+    [`${base}/${INTEREST_IDS.farPaaBarsel}`]: interest('far på barsel', 'far på barsel', FAR_PAA_BARSEL_CONCEPT, '2026-11-04 20:07'),
     ...(o.withSuggestionSource
       ? { [`${base}/${INTEREST_IDS.braetspilsaften}`]: interest('brætspilsaften', 'brætspilsaften', 'c_0a1b2c3d4e5f60718293', '2026-11-04 20:09') }
-      : { [`${base}/${INTEREST_IDS.trailRunning}`]: interest('trail running', 'trail running', 'seed_trail_running', '2026-11-04 20:08') }),
+      : { [`${base}/${INTEREST_IDS.trailRunning}`]: interest('trail running', 'trail running', TRAIL_RUNNING_CONCEPT, '2026-11-04 20:08') }),
   };
 }
 
@@ -275,7 +289,7 @@ export function braetspilPod(overrides: DocData = {}): DocData {
     state: 'planning',
     weekId: '2026-W45',
     areaLabel: 'Aarhus C',
-    theme: { kind: 'concept', conceptId: 'seed_board_games', sensitive: false },
+    theme: { kind: 'concept', conceptId: BRAETSPIL_CONCEPT, sensitive: false },
     memberUids: BRAETSPIL_MEMBERS.map((m) => m.uid),
     roster: roster(BRAETSPIL_MEMBERS),
     podInterests: { da: ['surdej', 'kaffe', 'vandring'], en: ['sourdough', 'coffee', 'hiking'] },

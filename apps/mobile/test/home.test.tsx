@@ -1,7 +1,10 @@
 import { fromLocal, setParticipationInput, updateProfileInput } from '@grouper/core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen, within } from '@testing-library/react-native';
+import type * as ReactModule from 'react';
 import type { ReactElement } from 'react';
+import type * as ReactNativeModule from 'react-native';
+import { StyleSheet } from 'react-native';
 import ThisWeek from '../app/(tabs)/index';
 import Pods from '../app/(tabs)/pods';
 import { i18n } from '@/i18n';
@@ -9,7 +12,11 @@ import { i18n } from '@/i18n';
 /** "This week" (drop-home, drop-proposal, drop-waiting, drop-none, priv-sensitive) and the Pods tab. */
 
 const mockRouter = { push: jest.fn(), back: jest.fn() };
-jest.mock('expo-router', () => ({ useRouter: () => mockRouter }));
+jest.mock('expo-router', () => {
+  const { useEffect } = jest.requireActual<typeof ReactModule>('react');
+  // The drop field turns the status bar white while it is in front.
+  return { useRouter: () => mockRouter, useFocusEffect: (effect: () => void | (() => void)) => useEffect(effect, [effect]) };
+});
 jest.mock('expo-router/js-tabs', () => ({ Tabs: { Screen: () => null } }));
 jest.mock('@/features/session/SessionProvider', () => ({ useUid: () => 'me' }));
 jest.mock('@/features/pods/ScreenCaptureGuard', () => ({ ScreenCaptureGuard: () => null }));
@@ -71,6 +78,7 @@ function card(id: string, over: Record<string, unknown> = {}) {
 }
 const SOURDOUGH = card('sourdoughpodaarhus45', { state: 'scheduled', myStatus: 'accepted', themeLabel: 'sourdough', sizeTarget: 4, acceptedCount: 4 });
 const sourdoughPod = {
+  theme: { kind: 'concept', conceptId: 'seed_sourdough', sensitive: false },
   memberUids: ['u_laura', 'u_kasper', 'u_nadia', 'me'],
   roster: { u_laura: { firstName: 'Laura' }, u_kasper: { firstName: 'Kasper' }, u_nadia: { firstName: 'Nadia' }, me: { firstName: 'Emil' } },
   planning: {
@@ -113,6 +121,27 @@ describe('Home before the drop (drop-home)', () => {
     expect(screen.getByText("You're in this week")).toBeOnTheScreen();
   });
 
+  it('in dark mode the Week pill stays White with Ink text on the house field (blend-spec 12.1), never a dark card', async () => {
+    jest.spyOn(jest.requireActual<typeof ReactNativeModule>('react-native'), 'useColorScheme').mockReturnValue('dark');
+    await renderWith(<ThisWeek />);
+    const label = screen.getByText('Week 46');
+    expect(label).toHaveStyle({ color: '#18211D' });
+    // The pill is the nearest ancestor with a fill: White, as in light mode.
+    let pill = label.parent;
+    while (pill && StyleSheet.flatten(pill.props.style)?.backgroundColor === undefined) pill = pill.parent;
+    expect(StyleSheet.flatten(pill?.props.style)?.backgroundColor).toBe('#FFFFFF');
+  });
+
+  it('the drop field and its foot are one link that explains the drop (no proposal exists yet)', async () => {
+    await renderWith(<ThisWeek />);
+    const link = screen.getByRole('link', { name: "Next drop Thursday 18:00. in 2 days and 6 hours. You're in this week" });
+    expect(link.props.accessibilityHint).toBe('Shows how the weekly drop works');
+    // The page title stays a header of its own, outside the link.
+    expect(within(link).queryByText('This week')).toBeNull();
+    await fireEvent.press(link);
+    expect(mockRouter.push).toHaveBeenCalledWith('/info/how-matching-works');
+  });
+
   it('"Skip this week" and "Pause matching" call setParticipation at once', async () => {
     mockCall.mockResolvedValue({ effectiveWeekId: '2026-W46' });
     await renderWith(<ThisWeek />);
@@ -153,9 +182,22 @@ describe('Home before the drop (drop-home)', () => {
     const box = within(screen.getByTestId('match-on'));
     expect(box.getByText('brætspil')).toBeOnTheScreen();
     expect(box.getByText('sourdough')).toBeOnTheScreen();
-    expect(box.getByText('Aarhus C · about 10 km · ages 28–42 · Dansk, English')).toBeOnTheScreen();
+    // English names the language in English ("Danish", as pod preferences do); endonyms only in the language switch.
+    expect(box.getByText('Aarhus C · about 10 km · ages 28–42 · Danish, English')).toBeOnTheScreen();
     await fireEvent.press(box.getByRole('link', { name: 'Edit' }));
     expect(mockRouter.push).toHaveBeenCalledWith('/interests');
+  });
+
+  it('in Danish the meetup languages carry the Danish names Me uses, with no English word', async () => {
+    await i18n.changeLanguage('da');
+    try {
+      await renderWith(<ThisWeek />);
+      expect(within(screen.getByTestId('match-on')).getByText('Aarhus C · ca. 10 km · 28–42 år · Dansk, Engelsk')).toBeOnTheScreen();
+    } finally {
+      await act(async () => {
+        await i18n.changeLanguage('en');
+      });
+    }
   });
 
   it('lists active pods with the other members\' initials, when and where, and opens the pod', async () => {
@@ -193,15 +235,18 @@ describe('Home after the drop', () => {
       await renderWith(<ThisWeek />);
       expect(screen.getByText('Svar senest lør. kl. 18.00')).toBeOnTheScreen();
     } finally {
-      await i18n.changeLanguage('en');
+      await act(async () => {
+        await i18n.changeLanguage('en');
+      });
     }
   });
 
   it('after "I\'m in", Okay folds the waiting card into "Your pods" (drop-waiting)', async () => {
     mockCards = [card('braetspilpodaarhus46', { myStatus: 'accepted', acceptedCount: 3 })];
     await renderWith(<ThisWeek />);
-    expect(screen.getByText('3 of 5 said yes')).toBeOnTheScreen();
-    expect(screen.getByText('4 needed')).toBeOnTheScreen();
+    // The seats and the "4 needed" bracket are hidden from screen readers; the count says both.
+    expect(screen.getByLabelText('3 of 5 said yes. 4 needed.')).toBeOnTheScreen();
+    expect(screen.getByText('4 needed', { includeHiddenElements: true })).toBeOnTheScreen();
     await act(async () => await fireEvent.press(screen.getByRole('button', { name: 'Okay' })));
     expect(screen.getByTestId('next-drop')).toBeOnTheScreen();
     expect(screen.getByText('Waiting for the others · 3 of 5 said yes')).toBeOnTheScreen();
@@ -227,9 +272,8 @@ describe('Home after the drop', () => {
     mockUser = user({ lastDrop: { weekId: '2026-W46', outcome: 'unmatched', reason: 'NO_THEME_BUCKET' } });
     await renderWith(<ThisWeek />);
     expect(screen.getByRole('header', { name: 'No pod for you this week' })).toBeOnTheScreen();
-    expect(
-      screen.getByText("Not enough people near you shared one of your interests and fit everyone's settings this time. You'll get priority next week."),
-    ).toBeOnTheScreen();
+    expect(screen.getByText("Not enough people near you shared one of your interests and fit everyone's settings this\u00a0time.")).toBeOnTheScreen();
+    expect(screen.getByText("You'll get priority next week.")).toBeOnTheScreen();
     expect(screen.getByText('Things that often help')).toBeOnTheScreen();
     expect(screen.queryByTestId('tip-preferences')).toBeNull();
     await fireEvent.press(screen.getByRole('link', { name: 'Add a few more interests' }));

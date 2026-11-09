@@ -26,19 +26,23 @@ interface EnvSettings {
   readonly appAttestEnvironment: 'development' | 'production';
 }
 
-/** Brand colours for the icon background and the splash (src/components/theme.ts: primary, dark page). */
-const BRAND_GREEN = '#1E6B58';
-const DARK_PAGE = '#111513';
+/**
+ * Identity colours for the icon background and the splash (src/components/theme.ts): the house field is Skov in both
+ * modes (the splash shows the poster mark on it, as the welcome does), so light and dark splash are the same.
+ */
+const SKOV = '#1B6452';
 
 /**
- * Plus Jakarta Sans, embedded in the native app (expo-font plugin) as well as loaded at start by the root layout.
- * One file per weight; the family names match src/components/theme.ts `FontFamily`. npm workspaces hoist the
- * package to the repository root.
+ * Plus Jakarta Sans 400–800 (reading and UI) and Bricolage Grotesque 700/800 (display; the static opsz 14 cut),
+ * embedded in the native app (expo-font plugin) as well as loaded at start by the root layout. One file per weight;
+ * the family names match src/components/theme.ts `FontFamily` and `DisplayFontFamily`. npm workspaces hoist the
+ * packages to the repository root.
  */
-const FONT_DIR = '../../node_modules/@expo-google-fonts/plus-jakarta-sans';
-export const FONT_FILES = ['400Regular', '500Medium', '600SemiBold', '700Bold', '800ExtraBold'].map(
-  (weight) => `${FONT_DIR}/${weight}/PlusJakartaSans_${weight}.ttf`,
-);
+const FONTS = '../../node_modules/@expo-google-fonts';
+export const FONT_FILES = [
+  ...['400Regular', '500Medium', '600SemiBold', '700Bold', '800ExtraBold'].map((w) => `${FONTS}/plus-jakarta-sans/${w}/PlusJakartaSans_${w}.ttf`),
+  ...['700Bold', '800ExtraBold'].map((w) => `${FONTS}/bricolage-grotesque/${w}/BricolageGrotesque_${w}.ttf`),
+];
 
 /** The native ONNX Runtime the detector thresholds were verified on (core EMBEDDING_MODEL.device.nativeOrt). */
 const ORT_NATIVE_VERSION = '1.30.0';
@@ -156,7 +160,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       package: s.appId,
       googleServicesFile: googleServicesFile(env, 'GOOGLE_SERVICES_JSON'),
       adaptiveIcon: {
-        backgroundColor: BRAND_GREEN,
+        backgroundColor: SKOV,
         foregroundImage: './assets/images/android-icon-foreground.png',
         backgroundImage: './assets/images/android-icon-background.png',
         monochromeImage: './assets/images/android-icon-monochrome.png',
@@ -196,10 +200,11 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       [
         'expo-splash-screen',
         {
-          backgroundColor: BRAND_GREEN,
+          // The poster mark (people around a sun, your seat taken) on the Skov house field. The house field stays
+          // Skov in dark mode too (blend spec §12.1), so there is no separate dark splash.
+          backgroundColor: SKOV,
           image: './assets/images/splash-icon.png',
-          imageWidth: 96,
-          dark: { backgroundColor: DARK_PAGE, image: './assets/images/splash-icon-dark.png' },
+          imageWidth: 200,
         },
       ],
       ['expo-font', { fonts: FONT_FILES }],

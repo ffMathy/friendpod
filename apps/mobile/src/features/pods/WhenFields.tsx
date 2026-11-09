@@ -63,7 +63,6 @@ export function WhenFields({ date, time, onDate, onTime, now }: WhenFieldsProps)
               label={shortDayDate(noon(ymd), locale)}
               accessibilityLabel={capitalize(dayDate(noon(ymd), locale))}
               selected={ymd === date}
-              selectedColor="primary"
               onPress={() => {
                 onDate(ymd);
                 close();
@@ -84,7 +83,6 @@ export function WhenFields({ date, time, onDate, onTime, now }: WhenFieldsProps)
               testID={`option-time-${slot}`}
               label={slotClock(slot, locale)}
               selected={slot === time}
-              selectedColor="primary"
               disabled={date !== '' && !slotOpen(date, slot, current)}
               onPress={() => {
                 onTime(slot);
@@ -109,12 +107,12 @@ interface PickerFieldProps {
   readonly testID: string;
 }
 
-/** A 14/700 label over a 52 px r14 box with the value in 16 px and the icon at the right (the storyboard's inputs). */
+/** A 15/700 label over a 52 px r14 input box (1.5 px Field border) with the value in 16 px and the icon at the right. */
 function PickerField({ label, value, spokenValue, placeholder, icon, onPress, testID }: PickerFieldProps) {
   const p = usePalette();
   return (
     <View style={styles.field}>
-      <Text variant="smallBold" style={styles.label} accessible={false} importantForAccessibility="no">
+      <Text variant="heading" style={styles.label} accessible={false} importantForAccessibility="no">
         {label}
       </Text>
       <Pressable
@@ -122,9 +120,9 @@ function PickerField({ label, value, spokenValue, placeholder, icon, onPress, te
         accessibilityRole="button"
         accessibilityLabel={`${label}, ${spokenValue ?? value ?? placeholder}`}
         onPress={onPress}
-        style={({ pressed }) => [styles.box, { backgroundColor: pressed ? p.surfaceMuted : p.surface, borderColor: p.borderStrong }]}
+        style={({ pressed }) => [styles.box, { backgroundColor: pressed ? p.inset : p.surface, borderColor: p.field }]}
       >
-        <Text variant="lede" color={value ? 'text' : 'textMuted'} numberOfLines={1} style={styles.value}>
+        <Text variant="input" color={value ? 'text' : 'textMuted'} numberOfLines={1} style={styles.value}>
           {value ?? placeholder}
         </Text>
         <Icon name={icon} size={18} color={p.text} />
@@ -134,13 +132,15 @@ function PickerField({ label, value, spokenValue, placeholder, icon, onPress, te
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', gap: 10 },
+  // The storyboard spaces the form's sections 18 apart; the propose screen stacks them 16 apart, so the Day and Time
+  // row (and the place picker under it) each add the missing 2.
+  row: { flexDirection: 'row', gap: 10, marginTop: 2 },
   field: { flex: 1, minWidth: 0, gap: 6 },
-  label: { lineHeight: 18 },
+  label: { lineHeight: 20 },
   box: {
     height: Size.inputCompact,
     borderRadius: Radius.md,
-    borderWidth: BorderWidth.hairline,
+    borderWidth: BorderWidth.control,
     paddingHorizontal: 12,
     flexDirection: 'row',
     alignItems: 'center',

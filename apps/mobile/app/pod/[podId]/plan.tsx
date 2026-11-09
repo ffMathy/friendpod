@@ -3,14 +3,16 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
-import { BackButton, Banner, Button, Card, ErrorText, Icon, Loading, Overline, Text, Title } from '@/components/ui';
+import { BackButton, Badge, Banner, Button, ErrorText, Icon, Loading, StatusText, Text, Title } from '@/components/ui';
 import { usePalette } from '@/components/theme';
 import { usePod, usePodCard, usePodOptions } from '@/data/docs';
 import { useCallable } from '@/data/useCallable';
 import { AttendanceCard } from '@/features/pods/AttendanceCard';
-import { LockedPlan } from '@/features/pods/LockedPlan';
+import { podColorOf } from '@/features/pods/color';
+import { planningDeadlineAsk } from '@/features/pods/deadline';
+import { LockedPlan, PlanCardHeader } from '@/features/pods/LockedPlan';
 import { isConfirmedMember } from '@/features/pods/membership';
-import { goBack, PodPage } from '@/features/pods/parts';
+import { goBack, PodCard, PodPage } from '@/features/pods/parts';
 import { MembersCard, podMembers } from '@/features/pods/PodMembers';
 import { PlanOptionCard, SuggestTimeButton } from '@/features/pods/PlanOption';
 import { relativeMeetup, weekdayAt } from '@/features/pods/time';
@@ -20,11 +22,15 @@ import { errorMessageKey } from '@/lib/errors';
 
 /**
  * Plan the meetup (§3.5, pod-plan): 2–3 options of a time and a public place from Google Places (D8), each with the
- * faces of everyone who said yes and the viewer's Yes / No; the option ahead is marked "Leading". Other members'
- * options can be reported by pressing and holding them. "Suggest another time" opens the form (pod-propose). When the deadline passes without 3
- * yes votes on one option, the pod gets one 24 h extension round (D7). Once the plan has locked ("Your meetup"), the
- * screen says that voting has closed and how many yes votes won it (a yes counts as "I'm coming"), shows the plan with
- * the map link, "Meeting safely" and "Add to calendar", the viewer's own answer, and who else is coming.
+ * faces of everyone who said yes and the viewer's Yes / No; the option ahead is marked "Leading". The voting deadline
+ * is the viewer's own, so it is a needs-you pill under the title (decision 2) while they still have an option to vote
+ * on, and a quiet status once they have voted on every one (the pod page's rule, deadline.ts). Other members' options
+ * can be reported by pressing and holding them. "Suggest another time" opens the form (pod-propose). When the deadline
+ * passes without 3 yes votes on one option, the pod gets one 24 h extension round (D7). Once the plan has locked ("Your
+ * meetup"), the screen says that voting has closed and how many yes votes won it (a yes counts as "I'm coming"), shows
+ * the plan with "Open in Maps", "Add to calendar" and "Meeting safely", the viewer's own answer (a needs-you note while
+ * it is missing), and who else is coming. The header shows no pod name (the storyboard's does not), so there is no pod
+ * band here; the pod's colour is in the faces.
  */
 export default function Plan() {
   const { t } = useTranslation();
@@ -42,9 +48,10 @@ export default function Plan() {
   const [now] = useState(() => Date.now());
   const locale = currentLocale();
 
-  if (card.isLoading || (planning && options.isLoading)) {
+  if (card.isLoading || (member && pod.isLoading) || (planning && options.isLoading)) {
     return <Loading label={t('common.loading')} />;
   }
+  const color = podColorOf(podId, pod.data, card.data?.themeSensitive ?? true);
   if (!planning) {
     const d = pod.data;
     const locked = d?.planning;
@@ -72,21 +79,22 @@ export default function Plan() {
       <PodPage top={32} gap={14}>
         <View style={styles.header}>
           <BackButton onPress={() => goBack(router)} accessibilityLabel={t('chat.backToPod')} />
-          <Title style={styles.title}>{t('plan.lockedTitle')}</Title>
+          <Title>{t('plan.lockedTitle')}</Title>
+          {/* A quiet status (check + Ink 2 13/700) that can run to two lines; the tick stays on the first. */}
           <View style={styles.status} testID="plan-locked-status">
-            <Icon name="check" size={16} color={p.primary} style={styles.statusIcon} />
-            <Text variant="small" color="textMuted" style={[styles.deadlineText, styles.flex]}>
+            <Icon name="check" size={14} strokeWidth={2.4} color={p.textSecondary} style={styles.statusIcon} />
+            <Text variant="captionBold" color="textSecondary" style={styles.shrink}>
               {status}
             </Text>
           </View>
         </View>
         {pod.error ? <ErrorText>{t('common.loadFailed')}</ErrorText> : null}
-        <Card radius={22} gap={12} testID="pod-plan">
-          <Overline style={styles.overline}>{t('pod.sections.plan')}</Overline>
-          <LockedPlan meetupAt={meetupAt} place={locked.place} past={past} {...(scheduled ? { onSafety: () => router.push('/info/safety') } : {})} />
+        <PodCard gap={6} testID="pod-plan">
+          <PlanCardHeader {...(scheduled && !past ? { onSafety: () => router.push('/info/safety') } : {})} />
+          <LockedPlan meetupAt={meetupAt} place={locked.place} color={color} past={past} />
           {scheduled && !past ? <AttendanceCard podId={podId} when={relativeMeetup(t, meetupAt, now, locale)} mine={mine} ask={false} /> : null}
-        </Card>
-        <MembersCard podId={podId} members={podMembers(d.memberUids, d.roster, uid)} viewer={uid} attendance={scheduled ? (d.attendance ?? null) : null} />
+        </PodCard>
+        <MembersCard podId={podId} members={podMembers(d.memberUids, d.roster, uid)} viewer={uid} color={color} attendance={scheduled ? (d.attendance ?? null) : null} />
       </PodPage>
     );
   }
@@ -107,23 +115,26 @@ export default function Plan() {
     <PodPage
       top={32}
       gap={14}
-      footer={<Button testID="plan-done" label={rows.length > 0 ? t('plan.doneVoting') : t('plan.backToPod')} variant="dark" onPress={() => goBack(router)} />}
+      footer={<Button testID="plan-done" label={rows.length > 0 ? t('plan.doneVoting') : t('plan.backToPod')} variant="primary" onPress={() => goBack(router)} />}
     >
       <View style={styles.header}>
         <BackButton onPress={() => goBack(router)} accessibilityLabel={t('chat.backToPod')} />
-        <Title style={styles.title}>{t('plan.heading')}</Title>
+        <Title>{t('plan.heading')}</Title>
         {deadline !== undefined ? (
           <View style={styles.deadline}>
-            <Icon name="clock" size={16} color={p.textMuted} />
-            <Text variant="small" color="textMuted" style={styles.deadlineText}>
-              {t('plan.votingCloses', { when: weekdayAt(t, deadline, locale) })}
-            </Text>
+            {/* The pod page's rule (deadline.ts): needs-you while the viewer still has an option to vote on or none to
+                vote on yet; once they have voted on every option, a quiet clock status. */}
+            {planningDeadlineAsk(rows.map((r) => r.data.votes), uid) === null ? (
+              <StatusText testID="deadline-quiet" icon="clock" label={t('plan.votingCloses', { when: weekdayAt(t, deadline, locale) })} />
+            ) : (
+              <Badge testID="deadline-needs-you" tone="needsYou" label={t('plan.votingCloses', { when: weekdayAt(t, deadline, locale) })} />
+            )}
           </View>
         ) : null}
       </View>
 
       {pod.data?.planning.extended ? (
-        <Banner tone="warning" icon="clock" title={t('plan.extendedTitle')}>
+        <Banner tone="needsYou" icon="clock" title={t('plan.extendedTitle')}>
           {t('plan.extendedBody', { when: weekdayAt(t, pod.data.planning.deadline.toMillis(), locale) })}
         </Banner>
       ) : null}
@@ -147,6 +158,7 @@ export default function Plan() {
             viewer={uid}
             mine={data.votes[uid] ?? null}
             leading={id === leadingId}
+            color={color}
             onVote={(v) => vote.mutate({ podId, optionId: id, vote: v })}
             {...(data.authorUid !== uid ? { onReport: () => router.push({ pathname: '/sheets/report', params: { podId, optionId: id } }) } : {})}
           />
@@ -162,7 +174,7 @@ export default function Plan() {
           onPress={() => router.push({ pathname: '/pod/[podId]/propose', params: { podId } })}
         />
       ) : null}
-      <Text variant="caption" color="textMuted">
+      <Text variant="caption" color="textSecondary">
         {t('plan.rules')}
         {reportable ? ` ${t('plan.reportHint')}` : null}
       </Text>
@@ -172,13 +184,8 @@ export default function Plan() {
 
 const styles = StyleSheet.create({
   header: { gap: 6 },
-  // 30/800 at its natural line height, as the storyboard's h1.
-  title: { lineHeight: 38 },
-  deadline: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  deadlineText: { lineHeight: 18 },
-  flex: { flex: 1 },
-  // The status can run to two lines: the tick stays on the first (centred on its 18 px line).
-  status: { flexDirection: 'row', alignItems: 'flex-start', gap: 6 },
-  statusIcon: { marginTop: 1 },
-  overline: { lineHeight: 16 },
+  deadline: { marginTop: 4, alignItems: 'flex-start' },
+  shrink: { flexShrink: 1 },
+  status: { marginTop: 4, flexDirection: 'row', alignItems: 'flex-start', gap: 5 },
+  statusIcon: { marginTop: 2 },
 });

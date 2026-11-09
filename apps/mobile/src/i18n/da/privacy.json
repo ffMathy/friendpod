@@ -1,6 +1,6 @@
 {
   "interests": {
-    "fieldLabel": "Tilføj en interesse med dine egne ord",
+    "fieldLabel": "Tilføj en interesse med egne ord",
     "placeholder": "Tilføj en interesse",
     "add": "Tilføj",
     "added": "Tilføjet.",
@@ -100,15 +100,15 @@
   },
   "deleteAccount": {
     "title": "Vil du slette din konto?",
-    "lede": "Det kan ikke fortrydes. Har du bare brug for en pause, kan du sætte matchning på pause i stedet.",
+    "lede": "Det kan ikke fortrydes. Har du bare brug for lidt luft, kan du sætte matchning på pause i stedet.",
     "whatHappens": "Hvad sker der?",
     "deletedNow": "Din profil, dine interesser og private interesser, dit billede og dine stemmer slettes med det samme.",
     "leavePods": "Du forlader alle dine pods. De andre ser kun, at et medlem er gået.",
-    "backups": "Vores sikkerhedskopier af dine data slettes inden for 7 dage.",
-    "signInRecord": "Hos Googles login-tjeneste kan det tage op til 180 dage, før dit login er helt væk.",
+    "backups": "Vores sikkerhedskopier af dine data slettes inden for 7\u00a0dage.",
+    "signInRecord": "Hos Googles login-tjeneste kan det tage op til 180\u00a0dage, før dit login er helt væk.",
     "keptRecords": "Nogle få ting skal vi gemme, fx bevis for samtykke og anmeldelser. Dem gemmer vi uden dit navn.",
     "downloadFirst": "Hent mine data først",
-    "reauthNote": "For at passe på din konto beder vi dig logge ind igen først.",
+    "reauthNote": "For at passe på din konto beder vi dig logge ind igen\u00a0først.",
     "confirm": "Log ind igen og slet",
     "confirmTitle": "Vil du slette din konto for altid?",
     "confirmBody": "Du logger ind igen for at bekræfte, at det er dig. Derefter slettes din konto.",

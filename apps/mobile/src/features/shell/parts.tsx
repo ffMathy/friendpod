@@ -1,15 +1,16 @@
 /**
  * Building blocks of the Me tab, Settings and the info pages. These screens have no storyboard of their own, so they
- * borrow the storyboards' patterns: the in-page header of priv-settings ("Me" above a 30/800 title) and priv-delete
- * (the back chevron above it), drop-why's icon list and "What we never use" box, priv-delete's bullet card.
+ * follow direction E's calm screens: the in-page header of priv-settings ("Me" above the Bricolage title) and
+ * priv-delete (the back chevron above it), white list cards, drop-why's disc bullets and onb-final's icon headings.
+ * No pod colour here: these pages belong to no pod.
  */
 import { DROP_TIME_ZONE, type Locale } from '@grouper/core';
 import { useRouter } from 'expo-router';
-import type { ReactNode } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, View, type ColorValue } from 'react-native';
+import { useId, type ReactNode } from 'react';
+import { StyleSheet, View, type ColorValue } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Svg, { Circle, Path } from 'react-native-svg';
-import { BorderWidth, Layout, Radius, Size, usePalette, type PaletteKey } from '@/components/theme';
+import Svg, { Circle, Defs, LinearGradient, Path, Rect, Stop } from 'react-native-svg';
+import { BorderWidth, Layout, usePalette } from '@/components/theme';
 import { Card, Heading, Icon, PageHeader, Screen, Text, type IconName } from '@/components/ui';
 
 /**
@@ -53,7 +54,8 @@ export interface ShellPageProps {
 }
 
 /**
- * A pushed page (Settings, info pages): back chevron, eyebrow, 30/800 title, 20 px gutter, gap 16 (priv-delete).
+ * A pushed page (Settings, info pages): back chevron, eyebrow, the Bricolage 30/32 title, 20 px gutter, gap 16
+ * (priv-delete).
  * One header rule for all of them: the back chevron whenever there is a page to go back to (32 px from the top, as on
  * priv-delete; without it the title block starts 40 px down, as on priv-settings), and the eyebrow names the tab the
  * page belongs to ("Me" for Settings and its pages, shown with Me selected in the tab bar). The info and legal pages
@@ -64,14 +66,43 @@ export function ShellPage({ title, eyebrow, subtitle, footer, gap = Layout.gap, 
   const back = useBack();
   const top = usePageTop(back ? 32 : 40);
   return (
-    <Screen testID={testID} safeTop gutter="compact" gap={gap} footer={footer} contentStyle={{ paddingTop: top }}>
+    <Screen testID={testID} safeTop gutter="compact" gap={gap} footer={footer ? <FadedFooter>{footer}</FadedFooter> : undefined} contentStyle={{ paddingTop: top }}>
       <PageHeader title={title} eyebrow={eyebrow} subtitle={subtitle} onBack={back} />
       {children}
     </Screen>
   );
 }
 
-/** A lede under the page title (priv-delete: 15/1.5, #3E4943). */
+/** Height of the fade above a pinned footer: the scroll content's bottom padding, so nothing fades once scrolled to the end. */
+const FOOTER_FADE = 16;
+
+/**
+ * A pinned footer (Save) with the page fading into Paper above it, so content scrolled under the footer ends softly
+ * instead of as a cut-off sliver of the next card. The fade sits over the bottom of the scroll view (Screen keeps 12 px
+ * between the two) and lets touches through.
+ */
+function FadedFooter({ children }: { readonly children: ReactNode }) {
+  const p = usePalette();
+  const id = `shell-footer-fade-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
+  return (
+    <View>
+      <View pointerEvents="none" style={styles.fade}>
+        <Svg width="100%" height={FOOTER_FADE} accessible={false} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+          <Defs>
+            <LinearGradient id={id} x1="0" y1="0" x2="0" y2="1">
+              <Stop offset="0" stopColor={p.page} stopOpacity={0} />
+              <Stop offset="1" stopColor={p.page} stopOpacity={1} />
+            </LinearGradient>
+          </Defs>
+          <Rect x="0" y="0" width="100%" height={FOOTER_FADE} fill={`url(#${id})`} />
+        </Svg>
+      </View>
+      {children}
+    </View>
+  );
+}
+
+/** A lede under the page title: body 16/24 in Ink 2 (priv-delete's paragraph under its title). */
 export function PageLede({ children }: { readonly children: ReactNode }) {
   return (
     <Text variant="body" color="textSecondary">
@@ -80,87 +111,64 @@ export function PageLede({ children }: { readonly children: ReactNode }) {
   );
 }
 
-export type BulletTone = 'mint' | 'warning' | 'private' | 'neutral' | 'danger';
+/**
+ * `neutral`: a Paper disc with an Ink 2 icon (drop-why's reason discs, without a pod colour: these pages belong to no
+ * pod). `private`: white with a 1.5 px Ink ring and an Ink icon (private stays quiet).
+ */
+export type BulletTone = 'neutral' | 'private';
 
-const BULLET_TONES: Record<BulletTone, { readonly bg: PaletteKey; readonly fg: PaletteKey }> = {
-  mint: { bg: 'mint', fg: 'onMint' },
-  warning: { bg: 'warningBg', fg: 'warningText' },
-  private: { bg: 'privateBg', fg: 'privateText' },
-  neutral: { bg: 'surfaceMuted', fg: 'textSecondary' },
-  danger: { bg: 'dangerBg', fg: 'dangerText' },
-};
-
-/** A 28 px tinted circle with a 16 px icon (drop-why's reason bullets). Decorative. */
-export function IconDot({ icon, tone = 'mint', size = 28 }: { readonly icon: IconName; readonly tone?: BulletTone; readonly size?: number }) {
+/** A 28 px disc with a 16 px icon (drop-why's reason bullets). Decorative. */
+export function IconDot({ icon, tone = 'neutral', size = 28 }: { readonly icon: IconName; readonly tone?: BulletTone; readonly size?: number }) {
   const p = usePalette();
-  const t = BULLET_TONES[tone];
+  const quiet = tone === 'private';
   return (
     <View
       accessible={false}
       importantForAccessibility="no-hide-descendants"
-      style={[styles.dot, { width: size, height: size, borderRadius: size / 2, backgroundColor: p[t.bg] }]}
+      style={[
+        styles.dot,
+        { width: size, height: size, borderRadius: size / 2, backgroundColor: quiet ? p.privateBg : p.inset },
+        quiet ? { borderWidth: BorderWidth.control, borderColor: p.privateBorder } : null,
+      ]}
     >
-      <Icon name={icon} size={Math.round(size * 0.57)} color={p[t.fg]} strokeWidth={icon === 'check' ? 2.4 : undefined} />
+      <Icon name={icon} size={Math.round(size * 0.57)} color={quiet ? p.privateText : p.textSecondary} strokeWidth={icon === 'check' ? 2.4 : undefined} />
     </View>
   );
 }
 
-/** One line of drop-why's list: the tinted icon, then 15/1.45 text. */
+/** One line of drop-why's list: the disc, then 15/22 text. */
 export function IconBullet({ icon, tone, children }: { readonly icon: IconName; readonly tone?: BulletTone; readonly children: ReactNode }) {
   return (
     <View style={styles.bullet}>
       <IconDot icon={icon} tone={tone} />
-      <Text variant="body" style={styles.bulletText}>
+      <Text variant="bodySmall" style={styles.bulletText}>
         {children}
       </Text>
     </View>
-  );
-}
-
-/** A white card with a 15/700 heading and plain bullets in 14/1.5 (priv-delete "What happens"). */
-export function BulletCard({ title, items, children, testID }: { readonly title: string; readonly items: readonly string[]; readonly children?: ReactNode; readonly testID?: string }) {
-  const p = usePalette();
-  return (
-    <Card gap={10} testID={testID}>
-      <Heading>{title}</Heading>
-      <View style={styles.list}>
-        {items.map((item) => (
-          <View key={item} style={styles.listItem}>
-            <View style={[styles.bulletMark, { backgroundColor: p.textBody }]} />
-            <Text variant="small" color="textBody" style={styles.flex}>
-              {item}
-            </Text>
-          </View>
-        ))}
-      </View>
-      {children}
-    </Card>
-  );
-}
-
-/** A white card with a 15/700 heading and drop-why's icon bullets. */
-export function IconListCard({ title, children, testID }: { readonly title: string; readonly children: ReactNode; readonly testID?: string }) {
-  return (
-    <Card gap={14} testID={testID}>
-      <Heading>{title}</Heading>
-      {children}
-    </Card>
   );
 }
 
 /**
- * drop-why's grey "What we never use" box (14/700 title, 13/1.5 text, r16, padding 14/16). On the page colour it takes
- * the muted surface so it still reads as a box.
+ * A card's heading with a 20 px Ink icon before it (onb-final's "Know when your drop arrives" and "Our safety pledge"
+ * cards). The icon is decorative; the heading is a header for screen readers.
  */
-export function NoteBox({ title, children, testID }: { readonly title: string; readonly children: ReactNode; readonly testID?: string }) {
+export function IconHeading({ icon, title }: { readonly icon: IconName; readonly title: string }) {
   const p = usePalette();
   return (
-    <View testID={testID} style={[styles.note, { backgroundColor: p.surfaceMuted }]}>
-      <Text variant="smallBold">{title}</Text>
-      <Text variant="caption" color="textSecondary">
-        {children}
-      </Text>
+    <View style={styles.iconHeading}>
+      <Icon name={icon} size={20} color={p.text} />
+      <Heading style={styles.flex}>{title}</Heading>
     </View>
+  );
+}
+
+/** A white card with a 15/700 heading (an optional icon before it) and drop-why's disc bullets. */
+export function IconListCard({ title, icon, children, testID }: { readonly title: string; readonly icon?: IconName; readonly children: ReactNode; readonly testID?: string }) {
+  return (
+    <Card gap={14} testID={testID}>
+      {icon ? <IconHeading icon={icon} title={title} /> : <Heading>{title}</Heading>}
+      {children}
+    </Card>
   );
 }
 
@@ -168,10 +176,22 @@ export function NoteBox({ title, children, testID }: { readonly title: string; r
  * A list-card row that holds a control (the language switch): the label on the left, the control on the right. Unlike
  * a static ListRow it does not group its children, so the control stays reachable by screen readers.
  */
-export function ControlRow({ label, children, separator = false }: { readonly label: string; readonly children: ReactNode; readonly separator?: boolean }) {
+export function ControlRow({
+  label,
+  leading,
+  children,
+  separator = false,
+}: {
+  readonly label: string;
+  /** A 22 px row icon before the label, as ListRow draws one, so the labels in a card line up. */
+  readonly leading?: ReactNode;
+  readonly children: ReactNode;
+  readonly separator?: boolean;
+}) {
   const p = usePalette();
   return (
     <View style={[styles.controlRow, separator ? { borderBottomWidth: BorderWidth.hairline, borderBottomColor: p.separator } : null]}>
+      {leading}
       <Text variant="rowTitle" style={styles.flex}>
         {label}
       </Text>
@@ -185,69 +205,36 @@ const GEAR = 'M10.26 5.01L10.5 2.52L13.5 2.52L13.74 5.01L15.71 5.83L17.64 4.23L1
 
 export function GearIcon({ size = 22, color }: { readonly size?: number; readonly color?: ColorValue }) {
   const p = usePalette();
-  const stroke = color ?? p.primary;
+  // A neutral row icon: Ink 2, like the other rows' icons (Skov is only for things you tap).
+  const stroke = color ?? p.textSecondary;
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" accessible={false} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-      <Path d={GEAR} fill="none" stroke={stroke} strokeWidth={1.8} strokeLinejoin="round" />
-      <Circle cx={12} cy={12} r={3} fill="none" stroke={stroke} strokeWidth={1.8} />
+      <Path d={GEAR} fill="none" stroke={stroke} strokeWidth={2} strokeLinejoin="round" />
+      <Circle cx={12} cy={12} r={3} fill="none" stroke={stroke} strokeWidth={2} />
     </Svg>
   );
 }
 
-/**
- * A quiet destructive action in the red family (priv-settings' "Delete account" text, #8A2E17): the small 40 px
- * ghost pill of `Button size="xs"`, with the label and icon in danger text and a pale red press state. A 44 px touch
- * target comes from hitSlop.
- */
-export function DangerTextButton({
-  label,
-  icon,
-  onPress,
-  busy = false,
-  testID,
-}: {
-  readonly label: string;
-  readonly icon?: IconName;
-  readonly onPress: () => void;
-  readonly busy?: boolean;
-  readonly testID?: string;
-}) {
+/** A globe, drawn like the storyboard icons (24 grid, round 2 px stroke): the Language row in Settings. Decorative. */
+export function GlobeIcon({ size = 22, color }: { readonly size?: number; readonly color?: ColorValue }) {
   const p = usePalette();
+  const stroke = color ?? p.textSecondary;
   return (
-    <Pressable
-      testID={testID}
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      accessibilityState={{ disabled: busy, busy }}
-      disabled={busy}
-      onPress={onPress}
-      hitSlop={(Size.hitTarget - Size.buttonSmall) / 2}
-      style={({ pressed }) => [styles.dangerButton, { backgroundColor: pressed ? p.dangerBg : 'transparent' }]}
-    >
-      {busy ? (
-        <ActivityIndicator color={p.dangerText} />
-      ) : (
-        <>
-          {icon ? <Icon name={icon} size={16} color={p.dangerText} /> : null}
-          <Text variant="smallBold" color="dangerText">
-            {label}
-          </Text>
-        </>
-      )}
-    </Pressable>
+    <Svg width={size} height={size} viewBox="0 0 24 24" accessible={false} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+      <Circle cx={12} cy={12} r={9} fill="none" stroke={stroke} strokeWidth={2} />
+      <Path d="M3 12h18M12 3c2.4 2.5 3.6 5.5 3.6 9s-1.2 6.5-3.6 9c-2.4-2.5-3.6-5.5-3.6-9S9.6 5.5 12 3z" fill="none" stroke={stroke} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
   );
 }
 
 const styles = StyleSheet.create({
-  dangerButton: { minHeight: Size.buttonSmall, paddingHorizontal: 14, borderRadius: Radius.pill, flexDirection: 'row', alignItems: 'center', gap: 8 },
-  note: { borderRadius: Radius.lg, paddingVertical: 14, paddingHorizontal: 16, gap: 6 },
+  // Screen's footer has 12 px above its content and the compact gutter at the sides.
+  fade: { position: 'absolute', top: -(12 + FOOTER_FADE), left: -Layout.gutterCompact, right: -Layout.gutterCompact, height: FOOTER_FADE },
   controlRow: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 56, paddingVertical: 6 },
   flex: { flex: 1 },
   dot: { alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   bullet: { flexDirection: 'row', gap: 12, alignItems: 'flex-start' },
-  // drop-why sets these at 15/1.45; the 28 px dot centres on the first line.
-  bulletText: { flex: 1, lineHeight: 22, marginTop: 3 },
-  list: { gap: 8 },
-  listItem: { flexDirection: 'row', gap: 10, alignItems: 'flex-start', paddingLeft: 6 },
-  bulletMark: { width: 5, height: 5, borderRadius: 2.5, marginTop: 9 },
+  // drop-why sets these at 15/22; the 28 px disc centres on the first line.
+  bulletText: { flex: 1, marginTop: 3 },
+  iconHeading: { flexDirection: 'row', alignItems: 'center', gap: 8 },
 });

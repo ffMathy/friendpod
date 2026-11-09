@@ -8,7 +8,7 @@
       "storyboard": "Main.dc.html",
       "route": "/",
       "scenario": "signed-out",
-      "notes": "Welcome and sign-in in one screen, (auth)/index (the separate /sign-in screen is gone). Sign in with Apple shows because the preview reports Platform.OS ios to app code. The storyboard clips its legal line at 844 px; the app scrolls."
+      "notes": "Welcome and sign-in in one screen, (auth)/index (the separate /sign-in screen is gone). Sign in with Apple shows because the preview reports Platform.OS ios to app code. A poster moment: the Skov field with the in-app tagline (decision 8). The Terms line keeps the app's wording (\"You accept the Terms before you start\": acceptance is the explicit tick in onboarding step 1). Fits 844 px; on a shorter screen the mark's box gives up height (202 to 120) before the page scrolls."
     },
     {
       "id": "onb-about",
@@ -16,7 +16,7 @@
       "storyboard": "onb-about.dc.html",
       "route": "/about",
       "scenario": "onboarding-start",
-      "notes": "Step 1 of 6: first name, date of birth and the Terms (the storyboard has no Terms tick; DESIGN §3.1 step 3 keeps an explicit one). Steps type the storyboard's answers with the preview's viewer name.",
+      "notes": "Step 1 of 6: first name, date of birth and the Terms. Accepted deviation: the storyboard has no Terms tick (its welcome says \"By continuing you accept the Terms\"); DESIGN §3.1 step 3 keeps an explicit one that starts unticked, as the Terms are a contract: a plain checkbox under the fields with the Terms and privacy notice links. 52 px inputs, the 15/22 Ink 2 lede, Continue (Skov 54). Steps type the storyboard's answers with the preview's viewer name.",
       "steps": [
         { "fill": "[data-testid=\"first-name\"]", "text": "Emil" },
         { "fill": "[data-testid=\"dob-day\"]", "text": "14" },
@@ -32,9 +32,10 @@
       "storyboard": "onb-area.dc.html",
       "route": "/area",
       "scenario": "onboarding-start",
-      "notes": "Step 2 of 6, where completeOnboarding runs. Steps type 8000: the card shows Aarhus C. Its status badge comes from the bundled areas.json (Aarhus is on the waitlist there, so \"Aarhus opens soon\" where the storyboard says \"Aarhus is live\"); the area doc is only readable after onboarding.",
+      "notes": "Step 2 of 6, where completeOnboarding runs. Steps type 8000, then tap the title so the field shows unfocused, as drawn: the white card shows Aarhus C with the outlined cell on the street map. Its status pill comes from the bundled areas.json (packages/core): every launch area is on the waitlist there, so the quiet outline pill \"Aarhus opens soon\" (clock) where the storyboard has the Ink \"Aarhus is live\" (check); the area doc is only readable after onboarding. \"Where did you hear about Grouper?\" and the GeoNames credit follow under the card (app-only). No back chevron on a direct load (nothing to go back to); coming from step 1 it shows.",
       "steps": [
         { "fill": "[data-testid=\"postcode\"]", "text": "8000" },
+        { "click": "role=heading >> nth=0" },
         { "wait": 300 }
       ]
     },
@@ -44,7 +45,7 @@
       "storyboard": "onb-consent.dc.html",
       "route": "/sensitive-consent",
       "scenario": "onboarding-consent",
-      "notes": "Step 3 of 6. Consent copy is hash-locked in packages/core (art9-blanket-*): match the look, not the storyboard wording."
+      "notes": "Step 3 of 6. Consent copy is hash-locked in packages/core (art9-blanket-*): match the look, not the storyboard wording. The copy scrolls inside its white box with the 1.5 px Ink border (private stays quiet); the box takes the room between the title and the pinned consent box, \"I agree\" and the quiet \"Not now\" (the page does not scroll; where that room is under 160 px the copy and the actions flow in one scrolling column instead). No back chevron: completeOnboarding started a fresh stack."
     },
     {
       "id": "onb-interests",
@@ -52,18 +53,11 @@
       "storyboard": "onb-interests.dc.html",
       "route": "/add-interests",
       "scenario": "onboarding-interests",
-      "notes": "Step 4 of 6. Steps type \"brætspilsaften\" and tap Add; the scenario answers with the suggestion \"brætspil\" (\"Did you mean ...?\"). Area chips (Popular in Aarhus) come from areas/aarhus.",
+      "notes": "Step 4 of 6. Steps type \"brætspilsaften\" and tap Add; the scenario answers with the suggestion \"brætspil\" (\"Did you mean ...?\"), and \"brætspilsaften\" stays dashed until it is answered. Chips take their pod colour from the concept id; the fixture concept ids give the storyboard's colours (brætspil Tomat, sourdough Solsikke, far på barsel Fjord), gravid is the quiet private chip. Area chips (Popular in Aarhus) come from areas/aarhus and stay neutral. Continue is pinned: the locked interest notice is longer than the storyboard's note, so the list scrolls above it.",
       "steps": [
-        {
-          "fill": "role=textbox >> nth=0",
-          "text": "brætspilsaften"
-        },
-        {
-          "click": "[data-testid=\"interest-add\"]"
-        },
-        {
-          "wait": 1200
-        }
+        { "fill": "role=textbox >> nth=0", "text": "brætspilsaften" },
+        { "click": "[data-testid=\"interest-add\"]" },
+        { "wait": 1200 }
       ]
     },
     {
@@ -72,7 +66,7 @@
       "storyboard": "onb-prefs.dc.html",
       "route": "/pod-preferences",
       "scenario": "onboarding-interests",
-      "notes": "Step 5 of 6. Prefs: ages 28–42, 10 km, Dansk + English, weekday evenings + Saturday/Sunday daytime."
+      "notes": "Step 5 of 6. Prefs: ages 28–42, 10 km, Danish + English (named in the reader's language, as the Me summary does; the storyboard writes the endonym \"Dansk\"), weekday evenings + Saturday/Sunday daytime. Selected choices are Ink (the distance with a check), the slider and the switch Skov. The ages hint keeps the app's wording (\"Starts around your own age\": the alpha profile widens the default to ±13). No back chevron on a direct load (nothing to go back to); coming from step 4 it shows."
     },
     {
       "id": "onb-final",
@@ -80,7 +74,12 @@
       "storyboard": "onb-final.dc.html",
       "route": "/almost-done",
       "scenario": "onboarding-final",
-      "notes": "Step 6 of 6: photo, About me (typed in the user's language by the scenario), notifications and the safety pledge; Finish ends onboarding (Home is then the waitlist while the city is not live)."
+      "notes": "Step 6 of 6: photo (the dashed open-seat disc), About me (typed in the user's language by the scenario), notifications (secondary, bell) and the safety pledge; Finish (the one primary, pinned) stays disabled until the pledge is ticked, then ends onboarding (Home is then the waitlist while the city is not live). The steps tick the pledge so Finish shows enabled (the storyboard draws its pledge box unticked), then scroll back to the title in case the cards scroll above Finish (large text). No back chevron on a direct load (nothing to go back to); coming from step 5 it shows.",
+      "steps": [
+        { "click": "[data-testid=\"pledge\"]" },
+        { "scroll": "role=heading >> nth=0" },
+        { "wait": 300 }
+      ]
     },
     {
       "id": "city-waitlist",
@@ -88,7 +87,7 @@
       "storyboard": "city-waitlist.dc.html",
       "route": "/",
       "scenario": "waitlist-odense",
-      "notes": "Home tab while the area is not live (WaitlistScreen): Odense, 186 of 250."
+      "notes": "Home tab while the area is not live (WaitlistScreen): Odense, 186 of 250. Calm, not a poster moment (no field, no mark), as the storyboard draws it. The preview's hosting domain is long, so the link shows on two lines. The next-step copy keeps the app's wording (the goal is a target, not a promise). \"Profile and settings\" sits where the storyboard has its prototype link."
     },
     {
       "id": "drop-home",
@@ -154,37 +153,16 @@
       "scenario": "pod-planning",
       "notes": "\"Suggest a time\" opens from the planner's \"Suggest another time\". Steps pick Sunday 22 Nov at 15:00 from the Day and Time sheets (the storyboard's Sunday, after the planning window: see WEEK46 in scenarios/_pod.ts), type \"café latin\" in the place search, pick the first placeholder place so it shows selected, and focus the search again (the storyboard draws it focused). Place search goes to the scenario's places, named in the preview's language (Google Places is stubbed on the network).",
       "steps": [
-        {
-          "click": "[data-testid=\"option-date\"]"
-        },
-        {
-          "click": "[data-testid=\"option-day-2026-11-22\"]"
-        },
-        {
-          "click": "[data-testid=\"option-time\"]"
-        },
-        {
-          "click": "[data-testid=\"option-time-15:00\"]"
-        },
-        {
-          "fill": "[data-testid=\"place-search\"]",
-          "text": "café latin"
-        },
-        {
-          "waitFor": "[data-testid=\"place-placeholderBakeryCafe2\"]"
-        },
-        {
-          "click": "[data-testid=\"place-placeholderCafeLatinQ\"]"
-        },
-        {
-          "wait": 700
-        },
-        {
-          "click": "[data-testid=\"place-search\"]"
-        },
-        {
-          "wait": 300
-        }
+        { "click": "[data-testid=\"option-date\"]" },
+        { "click": "[data-testid=\"option-day-2026-11-22\"]" },
+        { "click": "[data-testid=\"option-time\"]" },
+        { "click": "[data-testid=\"option-time-15:00\"]" },
+        { "fill": "[data-testid=\"place-search\"]", "text": "café latin" },
+        { "waitFor": "[data-testid=\"place-placeholderBakeryCafe2\"]" },
+        { "click": "[data-testid=\"place-placeholderCafeLatinQ\"]" },
+        { "wait": 700 },
+        { "click": "[data-testid=\"place-search\"]" },
+        { "wait": 300 }
       ]
     },
     {
@@ -209,7 +187,7 @@
       "storyboard": "after-feedback.dc.html",
       "route": "/pod/braetspilpodaarhus46/feedback",
       "scenario": "pod-happened",
-      "notes": "Sunday 10:05, the morning after. Steps answer the storyboard's state: meet Mette and Jonas again, rating 4. \"Meet again\" is Yes / No per person (DESIGN §3.6: yes, no or no answer), where the storyboard draws one checkbox.",
+      "notes": "Sunday 10:05, the morning after; a calm screen in the pod's colour context (avatars in Tomat deep from brætspil's concept id, no photos). Steps answer the storyboard's state: Yes to meeting Mette and Jonas again (Sofie and Ahmed left blank), rating 4. \"Meet again\" is Yes / No per person (DESIGN §3.6, D9: yes, no or no answer; a no is a soft block): two 36 px round choices, the chosen one in Ink like the rating chips and pod-plan's Yes / No. The quiet \"I wasn't there myself\" check (met: false) sits at the right of the back row, so the page keeps one screen in both languages; the explainer carries the majority no-show rule and \"Not sure? Leave it blank\". The storyboard was redrawn to this three-state version (it used to draw one checkbox per person, blank meaning no): a deliberate content change awaiting the founder's sign-off.",
       "steps": [
         { "click": "[data-testid=\"again-u_mette-yes\"]" },
         { "click": "[data-testid=\"again-u_jonas-yes\"]" },
@@ -223,7 +201,7 @@
       "storyboard": "after-member.dc.html",
       "route": "/pod/braetspilpodaarhus46/member/u_jonas",
       "scenario": "pod-happened",
-      "notes": "Member sheet for Jonas (block or report): a bottom sheet over the dimmed backdrop. The meetup chat is still open, so the pod counts as active and Block says Jonas is taken out."
+      "notes": "Member sheet for Jonas: a bottom sheet over the scrim, the 72 px avatar in Tomat deep, \"In your [brætspil] pod\" with the Tomat pod chip, Block and Report as Danger outline buttons with their texts under them. The meetup chat is still open, so the pod counts as active and Block says Jonas is taken out. Report's line keeps the app's wording (\"Reports can pause someone from matching\"): nobody reads reports (D2), so the storyboard's \"A person on our team reviews it\" would not be true."
     },
     {
       "id": "after-report",
@@ -231,7 +209,7 @@
       "storyboard": "after-report.dc.html",
       "route": "/sheets/report?podId=braetspilpodaarhus46&uid=u_jonas",
       "scenario": "pod-happened",
-      "notes": "Report Jonas (user report). Steps pick \"I felt unsafe\" as on the storyboard. The message-report variant is app-sheets-report-message.",
+      "notes": "Report Jonas (user report): the safety alert (white, Danger border, phone icon), reasons as white radio rows, the 1.5 px Field text area, Send report in Skov. Steps pick \"I felt unsafe\" as on the storyboard. The message-report variant is app-sheets-report-message.",
       "steps": [
         { "click": "[data-testid=\"report-safety\"]" },
         { "wait": 300 }
@@ -251,7 +229,7 @@
       "storyboard": "priv-interests.dc.html",
       "route": "/interests",
       "scenario": "this-week",
-      "notes": "Interests tab: 4 interests + private \"gravid\" (consent given 4 Nov 2026), 5 of 20."
+      "notes": "Interests tab: 4 interests, each with the pod-colour dot of its concept id (the fixtures' ids map to the storyboard table: brætspil Tomat, sourdough Solsikke, far på barsel Fjord, trail running Blad), and the private \"gravid\" in the quiet card (consent given 4 Nov 2026), 5 of 20, with \"This isn't sensitive for me\" (D2) closing the card and \"How private interests work\" under it."
     },
     {
       "id": "priv-settings",
@@ -259,7 +237,7 @@
       "storyboard": "priv-settings.dc.html",
       "route": "/settings/privacy",
       "scenario": "privacy-settings",
-      "notes": "Me → Privacy. 1 private interest with consent, same-gender off, photo shown to confirmed pods, 1 blocked person, no export in progress. Opened directly, so there is no back chevron (on a phone it shows above \"Me\")."
+      "notes": "Me → Privacy. 1 private interest with consent, same-gender off, photo shown to confirmed pods, 1 blocked person, no export in progress. Opened directly, so there is no back chevron (on a phone it shows above \"Me\"). The Datatilsynet complaint line closes the page."
     },
     {
       "id": "priv-delete",
@@ -275,7 +253,7 @@
       "storyboard": null,
       "route": "/email",
       "scenario": "signed-out",
-      "notes": "From \"Continue with email\" on Main. No storyboard; laid out like the onboarding steps."
+      "notes": "From \"Continue with email\" on Main. No storyboard; a calm pushed step in E (AuthStep: back chevron, Title, lede on Paper, the action pinned at the bottom; no logo after the welcome, spec 7.1)."
     },
     {
       "id": "app-auth-email-sent",
@@ -415,6 +393,78 @@
       "notes": "The privacy sticky note: photos stay hidden in those pods until each person chooses to show theirs (S6). Only Line has; the viewer's \"Show my photo to this pod\" is off."
     },
     {
+      "id": "app-pod-private-scheduled",
+      "title": "Scheduled pod about a private interest, the day before",
+      "storyboard": null,
+      "route": "/pod/privatepodaarhusweek",
+      "scenario": "pod-private-scheduled",
+      "notes": "Private stays quiet (decision 1): the pod band is white with a 1.5 px Ink border, a lock before the Ink name and the private badge; Ink 2 avatars (no photos shown, S6), the chat disc white with an Ink outline, \"1 new\" in Ink. The viewer is coming (calm line); Nikolaj hasn't confirmed (dashed avatar, clock, Ink 2 words)."
+    },
+    {
+      "id": "app-pod-private-chat",
+      "title": "Chat of a pod about a private interest",
+      "storyboard": null,
+      "route": "/pod/privatepodaarhusweek/chat",
+      "scenario": "pod-private-scheduled",
+      "notes": "The private band (white, Ink border, lock) and quiet bubbles: the viewer's on Paper with a 1 px Line border, the others' white with a Line border; Ink 2 avatars. No pod colour anywhere."
+    },
+    {
+      "id": "app-pod-fjord-proposal",
+      "title": "Proposal of a Fjord pod (far på barsel)",
+      "storyboard": null,
+      "route": "/pod/farpaabarselpod46aaa",
+      "scenario": "pod-fjord-proposal",
+      "notes": "Colour coverage (decision 5): the Fjord tint band with its base-@-40% border, \"far på barsel\" in Fjord deep at Display L (wraps at a space), the 48 px Fjord badge; You + 4 open seats."
+    },
+    {
+      "id": "app-pod-fjord-confirmed",
+      "title": "Reveal of a Fjord pod (far på barsel)",
+      "storyboard": null,
+      "route": "/pod/farpaabarselpod46aaa",
+      "scenario": "pod-fjord-confirmed",
+      "notes": "Colour coverage (decisions 5 and 10): the Fjord base field with white display type at the fit-rule step that keeps \"barsel\" whole (56, 52 or 48, wrapping only at spaces), Paper people around a Solsikke sun, the white on-field \"Confirmed\" pill; avatars in Fjord deep on the foot. In dark mode the field goes Fjord deep."
+    },
+    {
+      "id": "app-pod-solsikke-proposal",
+      "title": "Proposal of a Solsikke pod (sourdough)",
+      "storyboard": null,
+      "route": "/pod/sourdoughpodwk46aaaa",
+      "scenario": "pod-solsikke-proposal",
+      "notes": "Colour coverage (decisions 5 and 6): the Solsikke tint band, \"sourdough\" in Solsikke deep, the badge whose Solsikke sun keeps its Solsikke-deep ring on the tint; the needs-you pill keeps its Ink ring on the Solsikke tint."
+    },
+    {
+      "id": "app-pod-solsikke-confirmed",
+      "title": "Reveal of a Solsikke pod (sourdough)",
+      "storyboard": null,
+      "route": "/pod/sourdoughpodwk46aaaa",
+      "scenario": "pod-solsikke-confirmed",
+      "notes": "Colour coverage (spec 7.2): the Solsikke base field with Ink display type and Ink people around a Tomat sun; avatars in Solsikke deep on the foot."
+    },
+    {
+      "id": "app-pod-blad-confirmed",
+      "title": "Reveal of a Blad pod (trail running)",
+      "storyboard": null,
+      "route": "/pod/trailrunpodwk46aaaaa",
+      "scenario": "pod-blad-confirmed",
+      "notes": "Colour coverage (spec 7.2): the Blad base field with Ink display type, Ink people and a white sun; avatars in Blad deep (olive, never Skov)."
+    },
+    {
+      "id": "app-pod-open-proposal",
+      "title": "Proposal of an open-to-anyone pod",
+      "storyboard": null,
+      "route": "/pod/openpodaarhusweek46a",
+      "scenario": "pod-open-proposal",
+      "notes": "Colour coverage (decision 9): a pod without a theme takes its colour from the pod id (openpodaarhusweek46a lands on Blomme): the Blomme tint band with \"Open to anyone\" in Blomme deep."
+    },
+    {
+      "id": "app-pod-open-confirmed",
+      "title": "Reveal of an open-to-anyone pod",
+      "storyboard": null,
+      "route": "/pod/openpodaarhusweek46a",
+      "scenario": "pod-open-confirmed",
+      "notes": "Colour coverage: the Blomme base field (from the pod id) with white display type and Paper people around a Solsikke sun; avatars in Blomme deep."
+    },
+    {
       "id": "app-pod-chat-friday",
       "title": "Chat the day before (3 messages)",
       "storyboard": null,
@@ -430,19 +480,10 @@
       "scenario": "pod-chat-open",
       "notes": "The storyboard's warning state (pod-chat.dc.html showWarning): sendMessage answers with CONTACT_INFO_BEFORE_MEETUP for contact details before the meetup (the scenario's callable), so nothing is posted until \"Send anyway\".",
       "steps": [
-        {
-          "fill": "[data-testid=\"chat-input\"]",
-          "text": "20 30 40 50"
-        },
-        {
-          "click": "[data-testid=\"chat-send\"]"
-        },
-        {
-          "waitFor": "[data-testid=\"chat-warning\"]"
-        },
-        {
-          "wait": 300
-        }
+        { "fill": "[data-testid=\"chat-input\"]", "text": "20 30 40 50" },
+        { "click": "[data-testid=\"chat-send\"]" },
+        { "waitFor": "[data-testid=\"chat-warning\"]" },
+        { "wait": 300 }
       ]
     },
     {
@@ -452,6 +493,18 @@
       "route": "/pod/braetspilpodaarhus46",
       "scenario": "pod-happened",
       "notes": ""
+    },
+    {
+      "id": "app-pod-menu",
+      "title": "Pod menu: safety tips and Leave pod",
+      "storyboard": null,
+      "route": "/pod/braetspilpodaarhus46",
+      "scenario": "pod-scheduled",
+      "notes": "The \"⋯\" menu of the pod page (§3.8): the Meeting safely row and \"Leave pod\" as a Danger outline button (decision 4); leaving asks first.",
+      "steps": [
+        { "click": "[data-testid=\"pod-menu\"]" },
+        { "wait": 600 }
+      ]
     },
     {
       "id": "app-sheets-report-message",
@@ -467,11 +520,19 @@
       "storyboard": null,
       "route": "/pod/braetspilpodaarhus46/member/u_jonas",
       "scenario": "pod-happened",
-      "notes": "After \"Block Jonas\": take him out (default) or leave the pod yourself, then Block or Cancel.",
+      "notes": "After \"Block Jonas\": the Headline question, take him out (default) or leave the pod yourself as white radio rows, then the Danger outline \"Block Jonas\" (block icon) and a secondary Cancel (spec 6.14: never two filled buttons in a destructive sheet).",
       "steps": [
         { "click": "[data-testid=\"member-block\"]" },
         { "wait": 300 }
       ]
+    },
+    {
+      "id": "app-member-private",
+      "title": "Member sheet in a pod about a private interest",
+      "storyboard": null,
+      "route": "/pod/privatepodaarhusweek/member/u_line",
+      "scenario": "pod-private-confirmed",
+      "notes": "Private stays quiet: the theme as the white private chip with the Ink lock (no pod colour), Line's own photo (she chose to show it) and her About me on Paper."
     },
     {
       "id": "app-pods",
@@ -487,7 +548,15 @@
       "storyboard": null,
       "route": "/me",
       "scenario": "this-week",
-      "notes": ""
+      "notes": "Direction E, no storyboard: profile card (photo, name, area, quiet attendance record, Danger outline \"Delete photo\"), the interests as pod chips coloured from the fixtures' concept ids (not the words) and the private one only as a quiet count with a lock, About me, Weekly drops, list cards with eyebrows."
+    },
+    {
+      "id": "app-me-new",
+      "title": "Me tab: new member",
+      "storyboard": null,
+      "route": "/me",
+      "scenario": "me-new",
+      "notes": "No photo yet (dashed photo slot, \"Add a photo\"), \"No meetups yet\", and the info note naming the setting that kept them out of last week's drop (RADIUS) with \"Change preferences\"."
     },
     {
       "id": "app-interests-no-consent",
@@ -519,7 +588,15 @@
       "storyboard": null,
       "route": "/settings/notifications",
       "scenario": "this-week",
-      "notes": "Push permission granted."
+      "notes": "Push permission granted: the quiet \"Notifications are on\" and the white secondary \"Turn off in phone settings\"."
+    },
+    {
+      "id": "app-settings-notifications-off",
+      "title": "Settings: notifications not turned on",
+      "storyboard": null,
+      "route": "/settings/notifications",
+      "scenario": "me-new",
+      "notes": "Push permission not asked yet: Skov \"Turn on notifications\" with the bell."
     },
     {
       "id": "app-settings-notices",
@@ -530,12 +607,28 @@
       "notes": "One of each kind: export ready (download), a safety report receipt (112 line), the no-show pause ending, its statement of reasons (automated, support address) and a member leaving."
     },
     {
+      "id": "app-settings-notices-empty",
+      "title": "Settings: no messages from Grouper",
+      "storyboard": null,
+      "route": "/settings/notices",
+      "scenario": "me-new",
+      "notes": "The calm empty card."
+    },
+    {
       "id": "app-settings-blocked",
       "title": "Settings: blocked people",
       "storyboard": null,
       "route": "/settings/blocked",
       "scenario": "this-week",
       "notes": "One blocked person (Rasmus)."
+    },
+    {
+      "id": "app-settings-blocked-empty",
+      "title": "Settings: nobody blocked",
+      "storyboard": null,
+      "route": "/settings/blocked",
+      "scenario": "me-new",
+      "notes": "The calm empty card with how to block someone."
     },
     {
       "id": "app-settings-privacy-no-consent",
@@ -551,7 +644,7 @@
       "storyboard": null,
       "route": "/settings/sensitive-consent",
       "scenario": "this-week-no-consent",
-      "notes": "Consent copy is hash-locked in packages/core."
+      "notes": "Consent copy is hash-locked in packages/core; shown verbatim in onb-consent's white card with the 1.5 px Ink border (the copy scrolls inside it), the actions pinned under it."
     },
     {
       "id": "app-settings-sensitive-consent-given",
@@ -575,7 +668,7 @@
       "storyboard": null,
       "route": "/settings/delete-account",
       "scenario": "this-week",
-      "notes": "\"Download my data first\" downloads the ready file instead of asking for another one."
+      "notes": "\"Download my data first\" downloads the ready file instead of asking for another one; the file's status sits right under it. The actions sit at the bottom while everything fits and scroll with the page when not (never behind a pinned footer)."
     },
     {
       "id": "app-interests-more",
@@ -584,7 +677,10 @@
       "route": "/interests",
       "scenario": "this-week",
       "notes": "\"More for sourdough\" opens \"Keep this private\" and \"Remove\" under the row.",
-      "steps": [{ "click": "[data-testid=\"interest-more-intsourdoughaaaa\"]" }, { "wait": 400 }]
+      "steps": [
+        { "click": "[data-testid=\"interest-more-intsourdoughaaaa\"]" },
+        { "wait": 400 }
+      ]
     },
     {
       "id": "app-onb-interests-chip",
@@ -593,7 +689,10 @@
       "route": "/add-interests",
       "scenario": "onboarding-interests",
       "notes": "\"Tap an interest to change that\": tapping \"gravid\" offers \"This isn't sensitive for me\".",
-      "steps": [{ "click": "[data-testid=\"interest-chip-intgravidaaaaaaa\"]" }, { "wait": 400 }]
+      "steps": [
+        { "click": "[data-testid=\"interest-chip-intgravidaaaaaaa\"]" },
+        { "wait": 400 }
+      ]
     },
     {
       "id": "app-info-how-matching-works",

@@ -131,14 +131,16 @@ export function podMessage(authorUid: string, text: string, createdAt: string): 
 /**
  * Place search results for "Suggest a time" (storyboard 3.3). The address is the area only: the app writes the kind
  * of place in front of it ("Café · Aarhus C"). The preview's search matches typed words against the name, so each
- * name holds "café" to come up for the storyboard's "café latin" ("[Café bar name]" stands in for its coffee bar).
+ * name holds "café" to come up for the storyboard's "café latin" ("[Café bar name]" stands in for its "[Coffee bar
+ * name]", which the search would not find). The Danish names follow one pattern: "[Cafénavn]", "[Cafébarnavn]",
+ * "[Bagericafénavn]".
  */
 export function placeResults(locale: Locale): readonly PlaceFixture[] {
   const da = locale === 'da';
   return [
     { placeId: 'placeholderCafeLatinQ', name: da ? '[Cafénavn], Latinerkvarteret' : '[Café name], Latin Quarter', address: 'Aarhus C', lat: 56.1588, lng: 10.2085, primaryType: 'cafe' },
-    { placeId: 'placeholderCoffeeBar1', name: da ? '[Cafébarens navn]' : '[Café bar name]', address: 'Aarhus C', lat: 56.1561, lng: 10.2095, primaryType: 'cafe' },
-    { placeId: 'placeholderBakeryCafe2', name: da ? '[Bagericaféens navn]' : '[Bakery café name]', address: 'Aarhus C', lat: 56.1502, lng: 10.2061, primaryType: 'bakery' },
+    { placeId: 'placeholderCoffeeBar1', name: da ? '[Cafébarnavn]' : '[Café bar name]', address: 'Aarhus C', lat: 56.1561, lng: 10.2095, primaryType: 'cafe' },
+    { placeId: 'placeholderBakeryCafe2', name: da ? '[Bagericafénavn]' : '[Bakery café name]', address: 'Aarhus C', lat: 56.1502, lng: 10.2061, primaryType: 'bakery' },
   ];
 }
 
