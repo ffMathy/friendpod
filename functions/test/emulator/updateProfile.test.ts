@@ -30,7 +30,7 @@ describeEmulator('updateProfile (emulator)', () => {
   it('stores gender only with same-gender pods and its consent, and records the grant', async () => {
     const uid = await onboarded();
     forbidInLogs(uid, 'woman');
-    await expect(update(uid, { prefs: { sameGenderOnly: true }, gender: 'woman', genderConsent: consent('gender-en-v1') })).resolves.toEqual({ ok: true });
+    await expect(update(uid, { prefs: { sameGenderOnly: true }, gender: 'woman', genderConsent: consent('gender-en-v2') })).resolves.toEqual({ ok: true });
 
     const user = (await deps.db.doc(PATHS.user(uid)).get()).data()!;
     expect(user).toMatchObject({ gender: 'woman', prefs: { sameGenderOnly: true } });
@@ -39,7 +39,7 @@ describeEmulator('updateProfile (emulator)', () => {
 
     const events = await genderEvents(uid);
     expect(events).toEqual([
-      expect.objectContaining({ action: 'grant', textVersion: 'gender-en-v1', textSha256: consentProofFor('gender-en-v1').textSha256, locale: 'en', appVersion: '1.2.3', method: 'checkbox+button' }),
+      expect.objectContaining({ action: 'grant', textVersion: 'gender-en-v2', textSha256: consentProofFor('gender-en-v2').textSha256, locale: 'en', appVersion: '1.2.3', method: 'checkbox+button' }),
     ]);
     expect(events[0]!.expiresAt).toBeUndefined();
     expect(JSON.stringify(events)).not.toContain('woman');
@@ -47,7 +47,7 @@ describeEmulator('updateProfile (emulator)', () => {
 
   it('deletes gender everywhere when same-gender pods are turned off, with a withdraw event and a ledger entry', async () => {
     const uid = await onboarded();
-    await update(uid, { prefs: { sameGenderOnly: true }, gender: 'man', genderConsent: consent('gender-da-v1') });
+    await update(uid, { prefs: { sameGenderOnly: true }, gender: 'man', genderConsent: consent('gender-da-v2') });
     const later = NOW + 3_600_000;
     deps.clock.now = later;
     try {
@@ -64,7 +64,7 @@ describeEmulator('updateProfile (emulator)', () => {
 
     const events = (await genderEvents(uid)).sort((a, b) => a.createdAt.toMillis() - b.createdAt.toMillis());
     expect(events.map((e) => e.action)).toEqual(['grant', 'withdraw']);
-    expect(events[1]).toMatchObject({ textVersion: 'gender-da-v1', locale: 'da' });
+    expect(events[1]).toMatchObject({ textVersion: 'gender-da-v2', locale: 'da' });
     for (const e of events) expect(e.expiresAt.toMillis()).toBe(later + CONSENT_EVENT_RETENTION_MS);
 
     const ledger = (await deps.db.collection('erasureLedger').where('uidH', '==', await uidHash(testUidHmac, uid)).get()).docs.map((d) => d.data());
@@ -77,15 +77,15 @@ describeEmulator('updateProfile (emulator)', () => {
   it('rejects gender without valid consent, without same-gender pods, and non-binary without the addendum', async () => {
     const uid = await onboarded();
     expect(await errorCode(update(uid, { prefs: { sameGenderOnly: true } }))).toBe('GENDER_CONSENT');
-    expect(await errorCode(update(uid, { prefs: { sameGenderOnly: true }, gender: 'woman', genderConsent: { ...consent('gender-en-v1'), textSha256: '0'.repeat(64) } }))).toBe('GENDER_CONSENT');
-    expect(await errorCode(update(uid, { prefs: { sameGenderOnly: true }, gender: 'woman', genderConsent: consent('art9-blanket-en-v1') }))).toBe('GENDER_CONSENT');
-    expect(await errorCode(update(uid, { prefs: { sameGenderOnly: true }, gender: 'nonbinary', genderConsent: consent('gender-en-v1') }))).toBe('GENDER_CONSENT');
-    expect(await errorCode(update(uid, { gender: 'woman', genderConsent: consent('gender-en-v1') }))).toBe('VALIDATION');
+    expect(await errorCode(update(uid, { prefs: { sameGenderOnly: true }, gender: 'woman', genderConsent: { ...consent('gender-en-v2'), textSha256: '0'.repeat(64) } }))).toBe('GENDER_CONSENT');
+    expect(await errorCode(update(uid, { prefs: { sameGenderOnly: true }, gender: 'woman', genderConsent: consent('art9-blanket-en-v2') }))).toBe('GENDER_CONSENT');
+    expect(await errorCode(update(uid, { prefs: { sameGenderOnly: true }, gender: 'nonbinary', genderConsent: consent('gender-en-v2') }))).toBe('GENDER_CONSENT');
+    expect(await errorCode(update(uid, { gender: 'woman', genderConsent: consent('gender-en-v2') }))).toBe('VALIDATION');
     expect(await errorCode(update(uid, { gender: 'woman' }))).toBe('VALIDATION');
     expect(await genderEvents(uid)).toEqual([]);
     expect((await deps.db.doc(PATHS.user(uid)).get()).data()!.gender).toBeNull();
 
-    await expect(update(uid, { prefs: { sameGenderOnly: true }, gender: 'nonbinary', genderConsent: consent('gender-nonbinary-en-v1') })).resolves.toEqual({ ok: true });
+    await expect(update(uid, { prefs: { sameGenderOnly: true }, gender: 'nonbinary', genderConsent: consent('gender-nonbinary-en-v2') })).resolves.toEqual({ ok: true });
   });
 
   it('re-resolves the launch area and its label on an area or locale change, in both documents', async () => {

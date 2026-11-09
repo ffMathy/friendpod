@@ -32,7 +32,7 @@ const POSTCODE_SOURCE = POSTCODE_ATTRIBUTION.replace(/^[^:]*:\s*/, '');
  * Step 2 of 6, "Where do you live?" (onb-area; DESIGN §3.1 step 6): postcode (default, no permission) or approximate
  * location (coarse permission). Either is converted to a geohash-5 cell on the device and discarded; the server
  * receives only `gh5`. Continue runs `completeOnboarding` with steps 3–6, plus the optional "Where did you hear about
- * Grouper?" (one choice or none; the server keeps only an aggregate counter per city and week, never the answer on the
+ * Friendpod?" (one choice or none; the server keeps only an aggregate counter per city and week, never the answer on the
  * profile, §6.8). As onb-area draws it: the 52 px postcode field, "or", "Use my approximate location" (secondary, pin), and
  * the white "Your area" card; the source question and the data credit follow, under what the storyboard shows.
  */

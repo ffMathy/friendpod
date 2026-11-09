@@ -12,7 +12,7 @@ jest.mock('expo-constants', () => ({
   __esModule: true,
   default: {
     expoConfig: {
-      name: 'Grouper Dev',
+      name: 'Friendpod Dev',
       slug: 'grouper',
       version: '0.1.0',
       ios: { bundleIdentifier: 'dk.grouper.app.dev' },

@@ -29,7 +29,7 @@ export const FUNNEL_STAGES = [
 export type FunnelStage = (typeof FUNNEL_STAGES)[number];
 
 /**
- * "Where did you hear about Grouper?" (optional, single choice, skippable; coordinator addition 2026-11-05). The
+ * "Where did you hear about Friendpod?" (optional, single choice, skippable; coordinator addition 2026-11-05). The
  * answer is never stored on the user: completeOnboarding increments `funnel/{areaId}_{weekId}.sources.<choice>` once
  * (onboarding succeeds once per account), and readers suppress cells under 10 like every other funnel cell.
  */

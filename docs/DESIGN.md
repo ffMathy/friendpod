@@ -1,4 +1,4 @@
-# Grouper: product and technical design
+# Friendpod: product and technical design
 
 | | |
 |---|---|
@@ -29,7 +29,7 @@ Where reports conflict, the resolution is stated inline and summarized in §2.3.
 
 ## 1. Summary and glossary
 
-Grouper is "friendship dating" for groups. Users describe themselves with free-form **Interests** in their own words ("madlavning", "on paternity leave", "Fortnite"). Every Thursday evening a batch job (the **Drop**) forms new **Pods** of 4–6 nearby strangers who share an interest. Members accept or decline. Once at least 4 accept, the pod is confirmed, first names (and an optional one-line "about me") are revealed, photos are revealed (in sensitive-themed pods only for members who opt in, §6.1 S6), and the pod uses a **meetup planner** (propose 2–3 options, each a time and a public place picked from Google Places; vote). Around each scheduled meetup a short **meetup chat** opens for the confirmed members, from 24 h before until 24 h after; its messages are deleted about 3 days after the meetup. There is no open-ended chat. Sensitive interests (GDPR Art. 9, e.g. pregnancy, religion) are allowed under one **blanket explicit consent** given at onboarding, and are only ever revealed inside a pod formed around that interest.
+Friendpod is "friendship dating" for groups. Users describe themselves with free-form **Interests** in their own words ("madlavning", "on paternity leave", "Fortnite"). Every Thursday evening a batch job (the **Drop**) forms new **Pods** of 4–6 nearby strangers who share an interest. Members accept or decline. Once at least 4 accept, the pod is confirmed, first names (and an optional one-line "about me") are revealed, photos are revealed (in sensitive-themed pods only for members who opt in, §6.1 S6), and the pod uses a **meetup planner** (propose 2–3 options, each a time and a public place picked from Google Places; vote). Around each scheduled meetup a short **meetup chat** opens for the confirmed members, from 24 h before until 24 h after; its messages are deleted about 3 days after the meetup. There is no open-ended chat. Sensitive interests (GDPR Art. 9, e.g. pregnancy, religion) are allowed under one **blanket explicit consent** given at onboarding, and are only ever revealed inside a pod formed around that interest.
 
 The stack is an Expo SDK 58 app on React Native Firebase, with Firestore, Cloud Functions 2nd gen and Cloud Storage in **europe-west1**. **EmbeddingGemma 2 runs on the phone** (ONNX Runtime, CPU): the app embeds every tag and runs the sensitivity detector before anything is sent, and the server stores the client's vector and assigns concepts in a normal callable (D1). There is no server-side model. Estimated cost: about $12/month at 1k MAU and $400–510 at 100k MAU, most of it Google Places and store fees. The on-device model ships inside the app, so distributing it costs nothing (F32, §12, [COSTS.md](./COSTS.md)).
 
@@ -111,7 +111,7 @@ The stack is an Expo SDK 58 app on React Native Firebase, with Firestore, Cloud 
 | F34 | **In-app per-city waitlist after sign-up:** people install and onboard normally; while their area is not live, Home is a persistent waitlist screen with the city, "N of 250" (exact; "<10" below 10), a progress bar, what happens next and share actions (share sheet with `https://<hosting domain>/c/<areaId>` and a fixed da/en text; copy link). No referral tracking, no personal data in links. Go-live pushes "<city> is open — your first drop is Thursday 18:00" | `areas/{areaId}.waitlistCount` kept exact in the onboarding, area-change and erasure transactions; `openArea` task; `hosting/public/c/` | §3.1, §8.1, §10.3 |
 | F35 | **First-timers first:** users who have never had a confirmed pod seed first and get a boost in f(u); a profile parameter | `params.firstTimer = {seedFirst, boost: 0.5}` in both profiles; `MatchUser.firstTimer` from `milestones.firstConfirmedAt` | §6.2, §6.3 |
 | F36 | **Funnel from day 1, privacy-preserving:** uid-free counters per launch area and ISO week for signup, onboarded, waitlisted, firstDropEligible, firstProposal, firstConfirmed, firstMeetupHappened and secondMeetup; each user once per stage; cells under 10 suppressed when read; no analytics SDK; 24 months | `funnel/{areaId}_{weekId}` (server-only, TTL), per-user `matchProfiles.milestones`, admin CLI `funnel show` | §6.8, §8.2, PRIVACY.md P18 |
-| F37 | **"Where did you hear about Grouper?"** at onboarding: optional, one fixed choice (dads' group, newcomer event, university, venue poster, friend, social media, press, other), never stored on the user | `completeOnboarding.heardFrom` → `funnel/{areaId}_{weekId}.sources.<choice>` (once per user, suppressed under 10) | §3.1, §6.8, §10.1 |
+| F37 | **"Where did you hear about Friendpod?"** at onboarding: optional, one fixed choice (dads' group, newcomer event, university, venue poster, friend, social media, press, other), never stored on the user | `completeOnboarding.heardFrom` → `funnel/{areaId}_{weekId}.sources.<choice>` (once per user, suppressed under 10) | §3.1, §6.8, §10.1 |
 
 **Founder decisions, 2026-11-06.** They supersede anything older in this document.
 
@@ -222,7 +222,7 @@ Measured results win over estimates.
 4. **Date of birth**, entered on the device.
 5. **First name**: visible only to confirmed pod members.
 6. **Area**: postcode (default, no permission needed) or approximate location (coarse permission). The device converts either one to geohash-5 with the bundled postcode table (`packages/core/src/geo/dk-postcodes.json`) and discards the postcode and coordinates. The server receives only `gh5`.
-   - The same screen asks the optional **"Where did you hear about Grouper?"** (F37): one choice of dads' or parents' group, newcomer event, university or school, poster at a venue, a friend, social media, news or press, somewhere else; skippable. The answer is sent once and only counted (`funnel/{areaId}_{weekId}.sources`), never stored on the user.
+   - The same screen asks the optional **"Where did you hear about Friendpod?"** (F37): one choice of dads' or parents' group, newcomer event, university or school, poster at a venue, a friend, social media, news or press, somewhere else; skippable. The answer is sent once and only counted (`funnel/{areaId}_{weekId}.sources`), never stored on the user.
    - The app then calls `completeOnboarding` with steps 3–6.
    - The server checks 18+, keeps only `birthYear` [GDPR], resolves the launch area from `gh5`, creates the profile with default preferences, and sets the claim `onb`. In the same transaction it increments `areas/{areaId}.waitlistCount` and the day-1 funnel (signup, onboarded, and waitlisted or firstDropEligible; §6.8).
    - **Under 18:** the server deletes the Firebase Auth user at once (`auth.deleteUser`) and stores nothing about the person except 30-day markers in `underageMarkers`, keyed on `HMAC(email)` when the token has an email and on `HMAC(provider, provider uid)` for each federated identity (Apple sign-in usually carries no email). A retry with the same email or sign-in identity inside 30 days gets the same answer without a new date-of-birth check. The marker is disclosed in the privacy notice (PRIVACY.md §11).
@@ -238,7 +238,7 @@ Measured results win over estimates.
 9. **Preferences**: age range (default own age ±7, min width 5 years [A]; the alpha profile uses ±10, §6.10), radius (default 10 km, shown as "about"), meetup languages, availability (weekday/Saturday/Sunday × day/evening). Turning on "same-gender pods" opens a gender picker with its own consent checkbox. The consent copy says that members of a same-gender pod will know that everyone in it shares their gender (PRIVACY.md §3.6).
 10. **Photo and "about me"** (both optional): "Only people in a confirmed pod with you can see it. In pods about a sensitive interest, you choose per pod whether to show it." "About me" is one sentence of up to 140 characters ("I'm new in Aarhus and like long walks"), shown only to confirmed co-members and never used for matching; contact details and blocklisted words are refused (F19).
 11. **Notifications** permission, then the **safety pledge** checkbox.
-12. **Done**: in a live launch area, "Your first drop is Thursday at 18:00". In a waitlist area, progress from `areas/{areaId}` ("Vejle: 137 of 250 signed up"; "<10" below 10). Outside every launch area: "Grouper isn't in your area yet."
+12. **Done**: in a live launch area, "Your first drop is Thursday at 18:00". In a waitlist area, progress from `areas/{areaId}` ("Vejle: 137 of 250 signed up"; "<10" below 10). Outside every launch area: "Friendpod isn't in your area yet."
 13. **Waitlist screen (F34).** While the user's area is `waitlist` (or `beta`, which is not matched either), Home is the waitlist screen on every app open, until the area doc's status turns `live` (a live read, so it switches without a restart):
    - the city name and a live counter "N of 250 signed up" from `areas/{areaId}.waitlistCount` (an exact city total is fine; below 10 it shows "<10", `waitlistDisplay`), with a progress bar to `goal.waitlist`;
    - what happens next: "We'll notify you when <city> opens; your first drop will be the Thursday after.";
@@ -781,7 +781,7 @@ Per drop and launch area, written as aggregates to `drops/{weekId}` (nothing per
 - **Also:** weeks to first pod (P50/P90), unmatched-reason histogram, reports per 1,000 meetups, runtime.
 
 **Day-1 funnel (F36)**, from the first sign-up, without an analytics SDK:
-- **Stages:** `signup` (the Auth user was created), `onboarded`, `waitlisted`, `firstDropEligible` (in a live area), `firstProposal`, `firstConfirmed`, `firstMeetupHappened`, `secondMeetup` (continuation). Plus `sources.<choice>` from "Where did you hear about Grouper?" (F37).
+- **Stages:** `signup` (the Auth user was created), `onboarded`, `waitlisted`, `firstDropEligible` (in a live area), `firstProposal`, `firstConfirmed`, `firstMeetupHappened`, `secondMeetup` (continuation). Plus `sources.<choice>` from "Where did you hear about Friendpod?" (F37).
 - **Storage:** `funnel/{areaId}_{weekId}` (server-only, rules deny every client), exact uid-free counts, `areaId` `none` for users outside every area, ISO week of the event in Europe/Copenhagen (the sign-up in the week the Auth user was created), `expiresAt` = week + 104 weeks (TTL, 24 months).
 - **Once per user:** the server sets `matchProfiles/{uid}.milestones.<stage>At` in the same transaction as the increment, and increments only when the milestone was absent (`recordMilestones`, `claimMilestones`). Milestones are server-only and go with the account; the counters stay, holding nothing about anyone.
 - **Where:** `completeOnboarding` (signup, onboarded, waitlisted or firstDropEligible, sources), `updateProfile` (a move into a waitlist or live area), `openArea` (firstDropEligible), and, as the stubs are built, `releaseDrop`/`backfillPod` (firstProposal), `respondToPod` (firstConfirmed), the sweeper at T+2 h (`meetupHappened` → first, then second meetup) and `dailyMaintenance` (the sign-up of an abandoned account, counted when it is deleted). Each stub carries the helper call as a TODO.
@@ -819,7 +819,7 @@ User-set constraints are still never relaxed. Sensitive themes may be unavailabl
 ```mermaid
 flowchart LR
   subgraph Phone["Phone: Expo SDK 58 + React Native Firebase 27"]
-    APP["Grouper app"]
+    APP["Friendpod app"]
     ORT["On-device EmbeddingGemma 2 q4 (ONNX Runtime, CPU): embedding + detector"]
   end
   subgraph G["Google global or US services"]

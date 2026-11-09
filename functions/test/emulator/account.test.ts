@@ -131,7 +131,7 @@ describeEmulator('account and data (emulator)', () => {
     await deps.db.doc(PATHS.podMessage(podId, 'mx')).set({ authorUid: uid, text: 'on my way', createdAt: ts(deps.clock.now), expiresAt: ts(deps.clock.now + DAY) });
     await flow.call('report', report, uid, { target: { type: 'user', podId, uid: b }, category: 'content' });
     await flow.call('report', report, c, { target: { type: 'message', podId, messageId: 'mx' }, category: 'harassment' });
-    await deps.db.collection('consentEvents').add({ uid, scope: 'gender', action: 'grant', textVersion: 'gender-en-v1', textSha256: '0'.repeat(64), locale: 'en', appVersion: '1', method: 'checkbox+button', createdAt: ts(deps.clock.now) });
+    await deps.db.collection('consentEvents').add({ uid, scope: 'gender', action: 'grant', textVersion: 'gender-en-v2', textSha256: '0'.repeat(64), locale: 'en', appVersion: '1', method: 'checkbox+button', createdAt: ts(deps.clock.now) });
     await docs(deps.db).matchProfile(b).update({ recentH: { [h]: '9999-W52' }, recentMinUntil: '9999-W52' });
     deps.objects.put(OBJECT_PATHS.photo(uid, 1), testJpeg(800, 600));
     deps.objects.put(OBJECT_PATHS.export(uid, 'e1'), new Uint8Array([1]));

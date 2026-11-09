@@ -10,7 +10,7 @@ describe('PII patterns (§5.2 (2))', () => {
     ['mail me: anna@example.dk', 'email'],
     ['anna (at) gmail (dot) com', 'email'],
     ['https://example.com/x', 'url'],
-    ['www.grouper.dk', 'url'],
+    ['www.friendpod.dk', 'url'],
     ['find os på madklub.dk', 'url'],
     ['@anna_k', 'handle'],
     ['insta: anna.k', 'handle'],

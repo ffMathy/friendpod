@@ -91,5 +91,5 @@ export function formatFunnel(rows: readonly FunnelRow[], filter: FunnelFilter = 
       return [r.areaId, r.weekId, ...HEARD_FROM_SOURCES.map((k) => s[k])];
     }),
   );
-  return `${stages}\n\nWhere did you hear about Grouper?\n${sources}\n\nCells under 10 are shown as "<10" (DESIGN.md §6.6).`;
+  return `${stages}\n\nWhere did you hear about Friendpod?\n${sources}\n\nCells under 10 are shown as "<10" (DESIGN.md §6.6).`;
 }

@@ -48,7 +48,7 @@ export const FONT_FILES = [
 const ORT_NATIVE_VERSION = '1.30.0';
 const ENVIRONMENTS: Record<AppEnv, EnvSettings> = {
   development: {
-    name: 'Grouper Dev',
+    name: 'Friendpod Dev',
     appId: 'dk.grouper.app.dev',
     scheme: 'grouper-dev',
     // Dev builds talk to the emulators; links still need a real Hosting domain, so they use staging's.
@@ -57,7 +57,7 @@ const ENVIRONMENTS: Record<AppEnv, EnvSettings> = {
     appAttestEnvironment: 'development',
   },
   staging: {
-    name: 'Grouper Staging',
+    name: 'Friendpod Staging',
     appId: 'dk.grouper.app.staging',
     scheme: 'grouper-staging',
     linkProjectId: 'grouper-staging',
@@ -65,7 +65,7 @@ const ENVIRONMENTS: Record<AppEnv, EnvSettings> = {
     appAttestEnvironment: 'production',
   },
   production: {
-    name: 'Grouper',
+    name: 'Friendpod',
     appId: 'dk.grouper.app',
     scheme: 'grouper',
     linkProjectId: 'grouper-prod',
@@ -180,7 +180,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         'android.permission.READ_MEDIA_VIDEO',
         'android.permission.DETECT_SCREEN_CAPTURE',
         'com.google.android.gms.permission.AD_ID',
-        // Add-to-calendar opens the system's new-event screen (D11); Grouper never reads or writes calendars itself.
+        // Add-to-calendar opens the system's new-event screen (D11); Friendpod never reads or writes calendars itself.
         'android.permission.READ_CALENDAR',
         'android.permission.WRITE_CALENDAR',
         // The RN template adds it for the dev menu overlay; only development builds need it.
@@ -227,7 +227,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       [
         'expo-location',
         {
-          locationWhenInUsePermission: 'Grouper uses your approximate location once to find your area. It is converted to a map cell on your phone and never stored.',
+          locationWhenInUsePermission: 'Friendpod uses your approximate location once to find your area. It is converted to a map cell on your phone and never stored.',
           locationAlwaysAndWhenInUsePermission: false,
           locationAlwaysPermission: false,
           motionUsagePermission: false,
@@ -241,7 +241,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       [
         'expo-image-picker',
         {
-          photosPermission: 'Grouper lets you choose one profile photo. Only people in a confirmed pod with you can see it.',
+          photosPermission: 'Friendpod lets you choose one profile photo. Only people in a confirmed pod with you can see it.',
           cameraPermission: false,
           microphonePermission: false,
         },

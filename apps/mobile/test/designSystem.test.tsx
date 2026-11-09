@@ -275,7 +275,7 @@ describe('primitives', () => {
     expect(screen.getByLabelText('Private')).toBeOnTheScreen();
     expect(screen.queryByText('4 needed')).toBeNull();
     expect(screen.getByText('4 needed', { includeHiddenElements: true })).toBeTruthy();
-    expect(screen.getByRole('image', { name: 'Grouper' })).toBeOnTheScreen();
+    expect(screen.getByRole('image', { name: 'Friendpod' })).toBeOnTheScreen();
     await fireEvent.press(screen.getByRole('button', { name: 'Back' }));
     expect(onBack).toHaveBeenCalled();
     expect(screen.getByRole('radio', { name: '[Board game café]' })).toBeChecked();

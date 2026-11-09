@@ -1,8 +1,8 @@
-# Grouper: development
+# Friendpod: development
 
 The technical guide to this repository (moved here from the root README, which now shows the product).
 
-Grouper ("Pods") is friendship dating for groups in Denmark. People describe themselves with free-form interests in
+Friendpod ("Pods") is friendship dating for groups in Denmark. People describe themselves with free-form interests in
 their own words ("madlavning", "on paternity leave", "Fortnite"); every Thursday a weekly **drop** forms local pods of
 4–6 strangers who share one of them, embedded on the phone with a pinned EmbeddingGemma model so different wordings
 meet.

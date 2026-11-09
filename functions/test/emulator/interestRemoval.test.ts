@@ -37,7 +37,7 @@ const V = new StubVectors({
 });
 const PROTOTYPES: Prototypes = V.prototypes(['gravid prototype'], ['food and drink', 'games', 'sports']);
 const item = (text: string, extra: Record<string, unknown> = {}) => V.item(text, PROTOTYPES, extra);
-const BLANKET = { ...consentProofFor('art9-blanket-en-v1'), appVersion: '1.2.3', checked: true as const };
+const BLANKET = { ...consentProofFor('art9-blanket-en-v2'), appVersion: '1.2.3', checked: true as const };
 
 describeEmulator('interest removal and consent withdrawal (emulator)', () => {
   const deps = emulatorDeps(dropSchedule(W(30)).releaseAt - 3 * DAY);

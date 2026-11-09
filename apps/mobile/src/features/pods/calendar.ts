@@ -12,7 +12,7 @@ export interface CalendarMeetup {
 }
 
 /**
- * Opens the system's new-event sheet, pre-filled (D11). The user saves it, or not; Grouper stores nothing and needs
+ * Opens the system's new-event sheet, pre-filled (D11). The user saves it, or not; Friendpod stores nothing and needs
  * no calendar permission (iOS 17+ presents the sheet out of process; Android sends an insert intent).
  */
 export async function addMeetupToCalendar(m: CalendarMeetup): Promise<void> {

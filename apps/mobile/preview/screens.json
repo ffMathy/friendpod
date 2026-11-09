@@ -32,7 +32,7 @@
       "storyboard": "onb-area.dc.html",
       "route": "/area",
       "scenario": "onboarding-start",
-      "notes": "Step 2 of 6, where completeOnboarding runs. Steps type 8000, then tap the title so the field shows unfocused, as drawn: the white card shows Aarhus C with the outlined cell on the street map. Its status pill comes from the bundled areas.json (packages/core): every launch area is on the waitlist there, so the quiet outline pill \"Aarhus opens soon\" (clock) where the storyboard has the Ink \"Aarhus is live\" (check); the area doc is only readable after onboarding. \"Where did you hear about Grouper?\" and the GeoNames credit follow under the card (app-only). No back chevron on a direct load (nothing to go back to); coming from step 1 it shows.",
+      "notes": "Step 2 of 6, where completeOnboarding runs. Steps type 8000, then tap the title so the field shows unfocused, as drawn: the white card shows Aarhus C with the outlined cell on the street map. Its status pill comes from the bundled areas.json (packages/core): every launch area is on the waitlist there, so the quiet outline pill \"Aarhus opens soon\" (clock) where the storyboard has the Ink \"Aarhus is live\" (check); the area doc is only readable after onboarding. \"Where did you hear about Friendpod?\" and the GeoNames credit follow under the card (app-only). No back chevron on a direct load (nothing to go back to); coming from step 1 it shows.",
       "steps": [
         { "fill": "[data-testid=\"postcode\"]", "text": "8000" },
         { "click": "role=heading >> nth=0" },
@@ -302,7 +302,7 @@
     },
     {
       "id": "app-onb-area-heard-from",
-      "title": "Onboarding step 2: \"Where did you hear about Grouper?\"",
+      "title": "Onboarding step 2: \"Where did you hear about Friendpod?\"",
       "storyboard": null,
       "route": "/area",
       "scenario": "onboarding-start",
@@ -608,7 +608,7 @@
     },
     {
       "id": "app-settings-notices-empty",
-      "title": "Settings: no messages from Grouper",
+      "title": "Settings: no messages from Friendpod",
       "storyboard": null,
       "route": "/settings/notices",
       "scenario": "me-new",

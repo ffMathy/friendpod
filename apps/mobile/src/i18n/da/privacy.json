@@ -55,7 +55,7 @@
     "TAG_TOO_SHORT": "En interesse skal have mindst 2 tegn.",
     "TAG_TOO_LONG": "En interesse kan højst have 40 tegn.",
     "PII": "Interesser må ikke indeholde kontaktoplysninger som telefonnumre, e-mails, links eller brugernavne.",
-    "BLOCKLIST": "Denne interesse er ikke tilladt på Grouper.",
+    "BLOCKLIST": "Denne interesse er ikke tilladt på Friendpod.",
     "THIRD_PARTY_SENSITIVE": "Det ser ud til at handle om en andens følsomme situation. Beskriv din egen i stedet, fx »forælder til et barn med autisme«.",
     "INTEREST_LIMIT": "Du har nået 20 interesser.",
     "SENSITIVE_ADD_LIMIT": "Du kan højst tilføje 3 følsomme interesser om ugen.",

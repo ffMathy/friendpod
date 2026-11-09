@@ -1,6 +1,6 @@
 # Embedding calibration: EmbeddingGemma v1 vs v2 for free-form interest tags
 
-**Purpose.** Grouper lets users type free-form interest tags in Danish or English (`madlavning`, `cooking`, `far på barsel`, `brætspil`). The server embeds each tag, assigns it to an interest *concept* (nearest concept centroid if cosine ≥ the merge threshold, else a new concept), and runs a sensitive-interest detector for GDPR Art. 9 categories (health incl. pregnancy, religion, sexual orientation, politics, ethnic origin, trade union). Pods are themed on a shared concept, so a false merge between a sensitive and an ordinary tag can leak sensitive data.
+**Purpose.** Friendpod lets users type free-form interest tags in Danish or English (`madlavning`, `cooking`, `far på barsel`, `brætspil`). The server embeds each tag, assigns it to an interest *concept* (nearest concept centroid if cosine ≥ the merge threshold, else a new concept), and runs a sensitive-interest detector for GDPR Art. 9 categories (health incl. pregnancy, religion, sexual orientation, politics, ethnic origin, trade union). Pods are themed on a shared concept, so a false merge between a sensitive and an ordinary tag can leak sensitive data.
 
 This folder re-runs the EmbeddingGemma v1 calibration (the `[EXP]` source in `docs/DESIGN.md`) and runs the same analysis for **EmbeddingGemma 2**, with the same test set and the same code, so the numbers can be compared directly. It is the evidence for the M0 gate in DESIGN.md (A1/Q1: "v2 only if it matches v1 on our labelled set").
 

@@ -123,14 +123,14 @@ describe('authenticated Storage downloads (§9 Photos)', () => {
 
   it('downloads the export with the same headers into the cache, replacing an older one, and opens the viewer', async () => {
     mockFs.dirExists = true;
-    mockFs.download.mockResolvedValue({ uri: 'cache:/exports/grouper-data-exp1.json' });
-    await downloadExport('me', 'exp1', 'Your Grouper data');
+    mockFs.download.mockResolvedValue({ uri: 'cache:/exports/friendpod-data-exp1.json' });
+    await downloadExport('me', 'exp1', 'Your Friendpod data');
     expect(mockFs.deleted).toBe(1);
     const [url, target, options] = mockFs.download.mock.calls[0] as [string, { uri: string }, { headers: Record<string, string>; idempotent: boolean }];
     expect(url).toBe('https://firebasestorage.googleapis.com/v0/b/demo-grouper.appspot.com/o/exports%2Fme%2Fexp1.json?alt=media');
-    expect(target.uri).toBe('cache:/exports/grouper-data-exp1.json');
+    expect(target.uri).toBe('cache:/exports/friendpod-data-exp1.json');
     expect(options).toMatchObject({ headers: { Authorization: 'Firebase id-token', 'X-Firebase-AppCheck': 'appcheck-token' }, idempotent: true });
-    expect(mockFs.preview).toHaveBeenCalledWith({ uri: 'cache:/exports/grouper-data-exp1.json' }, { title: 'Your Grouper data', mimeType: 'application/json' });
+    expect(mockFs.preview).toHaveBeenCalledWith({ uri: 'cache:/exports/friendpod-data-exp1.json' }, { title: 'Your Friendpod data', mimeType: 'application/json' });
 
     clearDownloadedExports();
     expect(mockFs.deleted).toBe(2);

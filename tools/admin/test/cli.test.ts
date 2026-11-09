@@ -71,7 +71,7 @@ describe('project and emulator selection', () => {
     expect(() => checkProject(undefined, {})).toThrow(/--project/);
     expect(() => checkProject('demo-grouper', {})).toThrow(/FIRESTORE_EMULATOR_HOST/);
     expect(() => checkProject('grouper-prod', { FIRESTORE_EMULATOR_HOST: '127.0.0.1:8080' })).toThrow(/demo-\*/);
-    expect(() => checkProject('Grouper Prod', {})).toThrow(/not a Firebase project id/);
+    expect(() => checkProject('Friendpod Prod', {})).toThrow(/not a Firebase project id/);
   });
 });
 
@@ -161,7 +161,7 @@ describe('funnel show (§6.8)', () => {
     expect(lines[2]).toMatch(/^aarhus\s+2026-W45\s+250\s+200\s+199\s+0/);
     expect(lines[3]).toMatch(/^aarhus\s+2026-W46\s+10\s+<10\s+0/);
     expect(lines[4]).toMatch(/^vejle\s+2026-W45\s+40\s+31\s+<10\s+0/);
-    expect(out).toContain('Where did you hear about Grouper?');
+    expect(out).toContain('Where did you hear about Friendpod?');
     expect(out).toMatch(/vejle\s+2026-W45\s+0\s+0\s+0\s+0\s+12\s+0\s+<10\s+0/);
     for (const n of [' 1 ', ' 2 ', ' 9 ']) expect(` ${out.replaceAll('\n', ' ')} `).not.toContain(n);
   });

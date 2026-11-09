@@ -70,7 +70,7 @@
     "SENSITIVE_ELIGIBILITY": "Pods about private interests aren't open to you yet, so we looked at your other interests.",
     "SENSITIVE_DENSITY": "Too few people near you have added your private interest for a pod about it.",
     "AREA_WAITLIST": "Your area is still on the waitlist.",
-    "OUTSIDE_AREAS": "Grouper isn't in your area yet.",
+    "OUTSIDE_AREAS": "Friendpod isn't in your area yet.",
     "NO_FIT_THIS_WEEK": "There were people to match with, but no pod fitted everyone this week."
   },
   "pods": {

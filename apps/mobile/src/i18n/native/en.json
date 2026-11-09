@@ -1,6 +1,6 @@
 {
   "ios": {
-    "NSLocationWhenInUseUsageDescription": "Grouper uses your approximate location once to find your area. It is converted to a map cell on your phone and never stored.",
-    "NSPhotoLibraryUsageDescription": "Grouper lets you choose one profile photo. Only people in a confirmed pod with you can see it."
+    "NSLocationWhenInUseUsageDescription": "Friendpod uses your approximate location once to find your area. It is converted to a map cell on your phone and never stored.",
+    "NSPhotoLibraryUsageDescription": "Friendpod lets you choose one profile photo. Only people in a confirmed pod with you can see it."
   }
 }

@@ -8,9 +8,9 @@
  *   with a deep ring, people in the pod's deep, you as an Ink ring. `color="private"`: all Ink, a lock for the sun.
  * - `PodMark variant="poster"`: the figure mark on the three poster fields (welcome, the drop, the reveal) and the
  *   app icon. Never cropped; it sits fully inside its field.
- * - `Logo`: the welcome lockup, dot mark + lowercase "grouper" in Bricolage 800. No logo on other app screens.
+ * - `Logo`: the welcome lockup, dot mark + lowercase "friendpod" in Bricolage 800. No logo on other app screens.
  *
- * All marks are decorative (hidden from screen readers) except `Logo`, which reads as "Grouper".
+ * All marks are decorative (hidden from screen readers) except `Logo`, which reads as "Friendpod".
  */
 import { StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, G, Path, Rect } from 'react-native-svg';
@@ -172,7 +172,7 @@ export function PodMark({ size, variant = 'dots', color, ground = 'light', seat 
 const SIZES = {
   /** 24 px mark, 20 px wordmark. */
   sm: { mark: 24, text: 20, gap: 6 },
-  /** The welcome lockup: 36 px mark, gap 8, "grouper" 29/800, −3.5%. */
+  /** The welcome lockup: 36 px mark, gap 8, "friendpod" 29/800, −3.5%. */
   md: { mark: 36, text: 29, gap: 8 },
   /** 56 px mark, 44 px wordmark. */
   lg: { mark: 56, text: 44, gap: 12 },
@@ -180,7 +180,7 @@ const SIZES = {
 
 export interface LogoProps {
   readonly size?: keyof typeof SIZES;
-  /** Show the "grouper" wordmark next to the mark (default true). */
+  /** Show the "friendpod" wordmark next to the mark (default true). */
   readonly wordmark?: boolean;
   /** `light` (Paper/white: Skov people, ringed sun, Ink wordmark) or `skov` (on the house field: Paper people, white wordmark). */
   readonly ground?: 'light' | 'skov';
@@ -188,17 +188,17 @@ export interface LogoProps {
   readonly textColor?: string;
 }
 
-/** The lockup. The brand name is not translated; read by screen readers as one image named "Grouper". */
+/** The lockup. The brand name is not translated; read by screen readers as one image named "Friendpod". */
 export function Logo({ size = 'md', wordmark = true, ground = 'light', textColor }: LogoProps) {
   const scheme = useColorSchemeName();
   const s = SIZES[size];
   const onSkov = ground === 'skov';
   const color = textColor ?? (onSkov ? '#FFFFFF' : Colors[scheme].text);
   return (
-    <View accessible accessibilityRole="image" accessibilityLabel="Grouper" style={[styles.row, { gap: s.gap }]}>
+    <View accessible accessibilityRole="image" accessibilityLabel="Friendpod" style={[styles.row, { gap: s.gap }]}>
       <PodMark size={s.mark} ground={onSkov ? 'skov' : 'light'} />
       {wordmark ? (
-        <Text style={[typeStyle('wordmark'), styles.wordmark, { fontSize: s.text, lineHeight: s.text, letterSpacing: -0.035 * s.text, color }]}>grouper</Text>
+        <Text style={[typeStyle('wordmark'), styles.wordmark, { fontSize: s.text, lineHeight: s.text, letterSpacing: -0.035 * s.text, color }]}>friendpod</Text>
       ) : null}
     </View>
   );

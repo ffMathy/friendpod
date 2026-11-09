@@ -1,6 +1,6 @@
 # @grouper/mobile
 
-The Grouper app: Expo SDK 58 (expo 58.0.23, React Native 0.88.1, New Architecture) with React Native
+The Friendpod app: Expo SDK 58 (expo 58.0.23, React Native 0.88.1, New Architecture) with React Native
 Firebase 27.1.0, expo-router and TanStack Query. Design: [DESIGN.md §11](../../docs/DESIGN.md), privacy:
 [PRIVACY.md §3, §5, §6](../../docs/PRIVACY.md).
 
@@ -146,7 +146,7 @@ outline, private, danger), `UnreadBadge`, `UnreadDot`, `StatusText` (quiet "Hasn
 pending dashed, open seat) and `AvatarStack`; pod pieces `HeroCard` + `PodTintBand` (pod colour, `null` private or
 `plain`; a wrapping pill row; the name steps down from Display L to fit), `PodBand`, `SeatRow`/`Seat`,
 `PosterField` + `PosterFoot` (+ `useFieldColors`), `TintDisc`, `OptionCard`; `PodMark` (dots, badge, poster; applies
-the sun rule) and `Logo` (lowercase "grouper" lockup); controls `Checkbox`, `Radio`, `Switch`, `ChoiceChip`, `Toggle`,
+the sun rule) and `Logo` (lowercase "friendpod" lockup); controls `Checkbox`, `Radio`, `Switch`, `ChoiceChip`, `Toggle`,
 `SegmentedControl`; `ProgressBar`, `ProgressSegments`. Every control keeps a 44 px touch target and its accessibility
 role and state; marks, seats and avatars are decorative.
 
@@ -232,7 +232,7 @@ through the typed callables (`src/firebase/callables.ts`, `useCallable`); nothin
 | Interests (remove, star, did-you-mean, keep private, not sensitive for me) | `InterestManager` | `addInterests`, `removeInterest`, `updateInterest`, `confirmSuggestion` |
 | Privacy: Art. 9 and gender consent, pause / skip, photo, export, blocked, notices, delete | `settings/privacy`, `settings/delete-account` | `setArt9Consent`, `withdrawArt9Consent`, `updateProfile`, `setParticipation`, `deletePhoto`, `exportData`, `deleteAccount`; `users/{uid}/exports` |
 | Photo upload, change and delete | `(onboarding)/photo`, Me → `PhotoCard` | Storage `uploads/{uid}/pending*.jpg` (`onPhotoUploaded`), `deletePhoto` |
-| Messages from Grouper (statements of reasons, report receipts, export ready) | `settings/notices`, `NoticeCard` | `users/{uid}/notices` |
+| Messages from Friendpod (statements of reasons, report receipts, export ready) | `settings/notices`, `NoticeCard` | `users/{uid}/notices` |
 | Push token and taps | `usePushTokenSync`, `useNotificationRouting` | `registerPushToken` |
 | Activity on app open | `useAppOpened` (start and foreground, at most every 6 h) | `appOpened` |
 

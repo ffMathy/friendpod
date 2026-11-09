@@ -111,7 +111,7 @@ export async function completeOnboarding(deps: AppDeps, call: CallContext, input
       milestones.signupAt = ts(signupAt);
       funnel.stage(areaId, signupAt, 'signup').stage(areaId, now, 'onboarded');
       if (stage) funnel.stage(areaId, now, stage);
-      // "Where did you hear about Grouper?": an aggregate counter only, never stored on the user.
+      // "Where did you hear about Friendpod?": an aggregate counter only, never stored on the user.
       if (input.heardFrom) funnel.source(areaId, now, input.heardFrom);
 
       tx.create(userRef, user);

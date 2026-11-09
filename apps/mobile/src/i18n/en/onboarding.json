@@ -12,7 +12,7 @@
       "year": "Year",
       "dobHelp": "We check that you're 18 or older, then keep only your birth year, to match people of similar ages.",
       "dobInvalid": "That is not a valid date.",
-      "underage": "Grouper is only for people aged 18 and over.",
+      "underage": "Friendpod is only for people aged 18 and over.",
       "acceptTerms": "I accept the Terms",
       "legalLinks": "Read the <terms>Terms</terms>. How we handle your data is in the <privacy>privacy notice</privacy>."
     },
@@ -31,10 +31,10 @@
       "storedNote": "We store only this area, never your address or exact location. Nobody is ever shown how far away you live.",
       "outsideHint": "You can still sign up; we'll tell you when we open near you.",
       "attribution": "Postal code data: {{source}}",
-      "underage": "Grouper is only for people aged 18 and over. We have deleted your sign-in and kept nothing else about you."
+      "underage": "Friendpod is only for people aged 18 and over. We have deleted your sign-in and kept nothing else about you."
     },
     "heardFrom": {
-      "question": "Where did you hear about Grouper?",
+      "question": "Where did you hear about Friendpod?",
       "hint": "We only count the answers per city and week; it is not saved on your profile.",
       "dadsGroup": "A dads' or parents' group",
       "newcomerEvent": "A newcomer event",
@@ -141,7 +141,7 @@
     "helper": "Shown to confirmed pod members. Not used for matching.",
     "tooLong": "At most {{max}} characters.",
     "CONTACT_INFO": "No contact details here: you haven't met yet. Share them in person if you like.",
-    "BLOCKLIST": "This contains words that aren't allowed on Grouper.",
+    "BLOCKLIST": "This contains words that aren't allowed on Friendpod.",
     "save": "Save",
     "saved": "Saved."
   },
@@ -156,8 +156,8 @@
     "shareTitle": "Help {{city}} open sooner",
     "shareBody": "Know someone who'd like to meet new people? Every person who joins brings your first pod closer.",
     "share": "Share invite link",
-    "shareSheetTitle": "Grouper in {{city}}",
-    "shareMessage": "Grouper forms small groups of people near you around a shared interest. Join the waitlist for {{city}}: {{link}}",
+    "shareSheetTitle": "Friendpod in {{city}}",
+    "shareMessage": "Friendpod forms small groups of people near you around a shared interest. Join the waitlist for {{city}}: {{link}}",
     "copy": "Copy",
     "copyLink": "Copy invite link",
     "copied": "Copied",

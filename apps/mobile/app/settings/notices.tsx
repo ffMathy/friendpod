@@ -8,7 +8,7 @@ import { useUid } from '@/features/session/SessionProvider';
 import { IconDot, PageLede, ShellPage } from '@/features/shell/parts';
 
 /**
- * Messages from Grouper (§8.1 `notices`): statements of reasons for automated pauses and holds, report receipts,
+ * Messages from Friendpod (§8.1 `notices`): statements of reasons for automated pauses and holds, report receipts,
  * "a member left", "your data is ready" and the inactivity warning, newest first, one white card each. Each is kept
  * for a year (TTL). Empty: a calm white card with the quiet chat disc.
  */

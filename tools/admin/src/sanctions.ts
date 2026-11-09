@@ -110,4 +110,4 @@ export function formatLift(uid: string, r: { outcome: LiftOutcome; previousUntil
 }
 
 export const BAN_REFUSAL =
-  'sanctions ban: refused. Grouper writes no bans in the MVP: a ban is permanent and needs a human decision, and there is no human review (F17/D2; DESIGN.md §8.2 `bans`, PRIVACY.md §6 step 5). Every sanction is automatic and expires on its own.';
+  'sanctions ban: refused. Friendpod writes no bans in the MVP: a ban is permanent and needs a human decision, and there is no human review (F17/D2; DESIGN.md §8.2 `bans`, PRIVACY.md §6 step 5). Every sanction is automatic and expires on its own.';

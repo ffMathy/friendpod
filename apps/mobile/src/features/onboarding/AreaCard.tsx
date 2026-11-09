@@ -12,7 +12,7 @@ export interface AreaCardProps {
 }
 
 /**
- * "Your area" (onb-area): the district, whether Grouper runs there, a drawing of the ~5 km cell, and what is stored.
+ * "Your area" (onb-area): the district, whether Friendpod runs there, a drawing of the ~5 km cell, and what is stored.
  * A white card (radius 22, padding 16). The status comes from the bundled launch-area config (the area doc itself is
  * only readable after onboarding): "Aarhus is live" is the Ink status pill with a check; "opens soon" and "not open
  * here yet" are quiet outline pills (nothing for the user to do, so never the needs-you yellow).

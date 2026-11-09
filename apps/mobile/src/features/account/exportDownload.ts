@@ -23,7 +23,7 @@ export async function downloadExport(uid: string, exportId: string, title: strin
   clearDownloadedExports();
   const dir = exportDir();
   dir.create({ intermediates: true, idempotent: true });
-  const target = new File(dir, `grouper-data-${exportId}.json`);
+  const target = new File(dir, `friendpod-data-${exportId}.json`);
   const headers = await storageAuthHeaders();
   const file = await File.downloadFileAsync(storageObjectUrl(`exports/${uid}/${exportId}.json`), target, { headers, idempotent: true });
   await File.preview(file, { title, mimeType: 'application/json' });

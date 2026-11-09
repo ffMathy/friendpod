@@ -2,7 +2,7 @@
   "name": "@grouper/mobile",
   "version": "0.1.0",
   "private": true,
-  "description": "Grouper app: Expo SDK 58 + React Native Firebase 27 (DESIGN.md §11). Dev builds only; RNFirebase does not run in Expo Go.",
+  "description": "Friendpod app: Expo SDK 58 + React Native Firebase 27 (DESIGN.md §11). Dev builds only; RNFirebase does not run in Expo Go.",
   "main": "expo-router/entry",
   "scripts": {
     "start": "expo start --dev-client",

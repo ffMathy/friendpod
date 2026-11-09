@@ -64,7 +64,7 @@ function user(over: Record<string, unknown> = {}) {
     photo: { v: 3 },
     status: 'active',
     participation: { mode: 'auto' },
-    legal: { terms: 't', privacy: 'p', art9: { textVersion: 'art9-blanket-en-v1', textSha256: 'x', at: ts(0) } },
+    legal: { terms: 't', privacy: 'p', art9: { textVersion: 'art9-blanket-en-v2', textSha256: 'x', at: ts(0) } },
     ...over,
   };
 }
@@ -151,7 +151,7 @@ describe('Settings → Privacy (priv-settings; PRIVACY.md §6)', () => {
     await renderWith(<Privacy />);
     expect(screen.getByText(/^Your file is ready until /)).toBeOnTheScreen();
     await fireEvent.press(screen.getByTestId('export-download'));
-    expect(mockDownload).toHaveBeenCalledWith('me', 'exp1', 'Your Grouper data');
+    expect(mockDownload).toHaveBeenCalledWith('me', 'exp1', 'Your Friendpod data');
     client.clear();
 
     mockExports = [{ id: 'exp1', data: { status: 'ready', expiresAt: ts(NOW - 1) } }];
@@ -225,7 +225,7 @@ describe('Settings → Privacy → Private interests (the blanket Art. 9 consent
     expect(mockCall).not.toHaveBeenCalled();
     await fireEvent.press(screen.getByTestId('art9-checkbox'));
     await fireEvent.press(screen.getByTestId('art9-agree'));
-    expect(mockCall).toHaveBeenCalledWith('setArt9Consent', { consent: expect.objectContaining({ textVersion: 'art9-blanket-en-v1', checked: true }) });
+    expect(mockCall).toHaveBeenCalledWith('setArt9Consent', { consent: expect.objectContaining({ textVersion: 'art9-blanket-en-v2', checked: true }) });
   });
 });
 
@@ -247,7 +247,7 @@ describe('delete account (priv-delete; §3.10)', () => {
     client.clear();
 
     await renderWith(<Welcome />);
-    expect(screen.getByText('Your account has been deleted. Thanks for trying Grouper.')).toBeOnTheScreen();
+    expect(screen.getByText('Your account has been deleted. Thanks for trying Friendpod.')).toBeOnTheScreen();
   });
 
   it('for email-link accounts, says a sign-in link was sent', async () => {
@@ -269,7 +269,7 @@ describe('delete account (priv-delete; §3.10)', () => {
     mockExports = [{ id: 'exp1', data: { status: 'ready', expiresAt: ts(NOW + 3_600_000) } }];
     await renderWith(<DeleteAccount />);
     await fireEvent.press(screen.getByRole('button', { name: 'Download my data first' }));
-    expect(mockDownload).toHaveBeenCalledWith('me', 'exp1', 'Your Grouper data');
+    expect(mockDownload).toHaveBeenCalledWith('me', 'exp1', 'Your Friendpod data');
     expect(mockRequestExport).toHaveBeenCalledTimes(1);
   });
 
@@ -281,7 +281,7 @@ describe('delete account (priv-delete; §3.10)', () => {
   });
 });
 
-describe('messages from Grouper (notices)', () => {
+describe('messages from Friendpod (notices)', () => {
   it('renders a statement of reasons from its code and date, automated and with the contact address', async () => {
     mockNotices = [
       { id: 'n1', data: { type: 'statementOfReasons', code: 'PAUSE_REPORTS', params: { until: Date.UTC(2026, 11, 3, 12), type: 'pause' }, createdAt: ts(NOW), expiresAt: ts(NOW + 1e10) } },
@@ -291,12 +291,12 @@ describe('messages from Grouper (notices)', () => {
     await renderWith(<Notices />);
     // A short title over each notice; an unknown code gets a generic one.
     expect(screen.getByRole('header', { name: 'Matching paused' })).toBeOnTheScreen();
-    expect(screen.getByRole('header', { name: 'Message from Grouper' })).toBeOnTheScreen();
+    expect(screen.getByRole('header', { name: 'Message from Friendpod' })).toBeOnTheScreen();
     expect(screen.getByText(/^You are paused from drops until .*3 Dec.* because two members reported you within 30 days\.$/)).toBeOnTheScreen();
     expect(screen.getByText('This was decided automatically; no person reviewed it. The pause ends on its own.')).toBeOnTheScreen();
-    expect(screen.getByText('Questions? Write to privacy@grouper.example.')).toBeOnTheScreen();
+    expect(screen.getByText('Questions? Write to privacy@friendpod.example.')).toBeOnTheScreen();
     expect(screen.getByText('A member left one of your pods.')).toBeOnTheScreen();
-    expect(screen.getByText('You have a message from Grouper. Update the app to read it.')).toBeOnTheScreen();
+    expect(screen.getByText('You have a message from Friendpod. Update the app to read it.')).toBeOnTheScreen();
     // Only the statement of reasons carries the "automated" line.
     expect(screen.getAllByText(/decided automatically/)).toHaveLength(1);
   });
@@ -322,11 +322,11 @@ describe('messages from Grouper (notices)', () => {
     expect(screen.getAllByTestId('export-download')).toHaveLength(1);
     expect(screen.getByText(/This file is no longer available/)).toBeOnTheScreen();
     await fireEvent.press(screen.getByTestId('export-download'));
-    expect(mockDownload).toHaveBeenCalledWith('me', 'exp1', 'Your Grouper data');
+    expect(mockDownload).toHaveBeenCalledWith('me', 'exp1', 'Your Friendpod data');
   });
 
   it('says when there are none', async () => {
     await renderWith(<Notices />);
-    expect(screen.getByText('No messages from Grouper.')).toBeOnTheScreen();
+    expect(screen.getByText('No messages from Friendpod.')).toBeOnTheScreen();
   });
 });

@@ -132,7 +132,7 @@ describe('email link (F10)', () => {
     });
     expect(screen.getByLabelText('Email address')).toHaveDisplayValue('emil@example.com');
     expect(screen.getByRole('header', { name: 'Sign in with email' })).toBeOnTheScreen();
-    expect(screen.queryByRole('image', { name: 'Grouper' })).toBeNull();
+    expect(screen.queryByRole('image', { name: 'Friendpod' })).toBeNull();
     await fireEvent.press(screen.getByRole('button', { name: 'Back' }));
     expect(mockRouter.back).toHaveBeenCalled();
   });

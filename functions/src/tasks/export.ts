@@ -1,6 +1,6 @@
 /**
  * buildExport and deleteExport (DESIGN.md §3.9, §10.3; PRIVACY.md §6 "Export contents"). The JSON holds the user's own
- * data and what Grouper derived from it, never other people's: co-members appear only as per-pod labels ("member-1"),
+ * data and what Friendpod derived from it, never other people's: co-members appear only as per-pod labels ("member-1"),
  * never with names, interests, messages or their private answers, and reports about the user never name the reporter
  * or carry the report text. The file is owner-readable under the Storage rules (authenticated download, no public URL),
  * available for 24 h, then deleted by deleteExport (the lifecycle rule and TTL are backstops).

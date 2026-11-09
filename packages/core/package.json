@@ -2,7 +2,7 @@
   "name": "@grouper/core",
   "version": "0.0.0",
   "private": true,
-  "description": "Shared domain logic for Grouper: schemas, interest checks, geo, time, IDs, consent texts and the pure matcher. Consumed as TypeScript source.",
+  "description": "Shared domain logic for Friendpod: schemas, interest checks, geo, time, IDs, consent texts and the pure matcher. Consumed as TypeScript source.",
   "type": "module",
   "sideEffects": false,
   "exports": {

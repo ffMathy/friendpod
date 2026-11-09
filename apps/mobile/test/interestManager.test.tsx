@@ -24,7 +24,7 @@ const BRAETSPIL = { id: 'ordinary000000001', data: { display: 'Brætspil', conce
 let mockOrdinary: unknown[] = [BRAETSPIL];
 jest.mock('@/data/docs', () => ({
   useUserDoc: () =>
-    live({ area: { areaId: null }, legal: mockConsent ? { art9: { textVersion: 'art9-blanket-en-v1', textSha256: 'x', at: ts } } : {} }),
+    live({ area: { areaId: null }, legal: mockConsent ? { art9: { textVersion: 'art9-blanket-en-v2', textSha256: 'x', at: ts } } : {} }),
   useAreaDoc: () => live(null),
   useInterests: () => live(mockOrdinary),
   useSensitiveInterests: () => live([{ id: 'private0000000001', data: { display: 'Gravid', starred: false, consentedAt: ts } }]),

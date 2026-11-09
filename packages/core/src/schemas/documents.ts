@@ -529,7 +529,7 @@ export const funnelDocSchema = z.object({
     firstMeetupHappened: funnelCount,
     secondMeetup: funnelCount,
   } satisfies Record<FunnelStage, unknown>),
-  /** "Where did you hear about Grouper?" answers of users onboarded that week (uid-free, once per user). */
+  /** "Where did you hear about Friendpod?" answers of users onboarded that week (uid-free, once per user). */
   sources: z
     .object({
       dadsGroup: funnelCount,

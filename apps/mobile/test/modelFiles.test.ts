@@ -17,7 +17,7 @@ import { EmbedderUnavailableError } from '@/features/interests/embedder/types';
 
 const DIR = 'models/eg2-test/';
 const DOCS = 'file:///data/user/0/dk.grouper.app/files/';
-const IOS_BUNDLE = 'file:///private/var/containers/Bundle/Application/X/Grouper%20Dev.app/';
+const IOS_BUNDLE = 'file:///private/var/containers/Bundle/Application/X/Friendpod%20Dev.app/';
 const files: PinnedModelFile[] = [
   { path: 'tokenizer.json', sha256: 'a'.repeat(64), bytes: 10, device: true, source: 'hf' },
   { path: 'onnx/model_q4.onnx', sha256: 'b'.repeat(64), bytes: 20, device: true, source: 'hf' },
@@ -90,15 +90,15 @@ describe('bundled model files (D1)', () => {
     it('reads iOS files inside the app bundle and Android files from APK assets', () => {
       expect(bundledModelDir('ios', IOS_BUNDLE, DIR)).toBe(`${IOS_BUNDLE}${DIR}`);
       // expo-file-system reports the iOS bundle as a plain path.
-      expect(bundledModelDir('ios', '/var/containers/Bundle/Application/X/Grouper Dev.app', DIR)).toBe(
-        `file:///var/containers/Bundle/Application/X/Grouper%20Dev.app/${DIR}`,
+      expect(bundledModelDir('ios', '/var/containers/Bundle/Application/X/Friendpod Dev.app', DIR)).toBe(
+        `file:///var/containers/Bundle/Application/X/Friendpod%20Dev.app/${DIR}`,
       );
       expect(bundledModelDir('android', 'asset://', DIR)).toBe(`asset:///${DIR}`);
       expect(installedModelDir('file:///data/files', DIR)).toBe(`file:///data/files/${DIR}`);
     });
 
     it('hands onnxruntime a plain, decoded file path', () => {
-      expect(toNativePath(`${IOS_BUNDLE}${DIR}onnx/model_q4.onnx`)).toBe(`/private/var/containers/Bundle/Application/X/Grouper Dev.app/${DIR}onnx/model_q4.onnx`);
+      expect(toNativePath(`${IOS_BUNDLE}${DIR}onnx/model_q4.onnx`)).toBe(`/private/var/containers/Bundle/Application/X/Friendpod Dev.app/${DIR}onnx/model_q4.onnx`);
       expect(toNativePath(`${DOCS}${DIR}onnx/model_q4.onnx`)).toBe(`/data/user/0/dk.grouper.app/files/${DIR}onnx/model_q4.onnx`);
       expect(() => toNativePath(`asset:///${DIR}onnx/model_q4.onnx`)).toThrow(/file URI/);
       expect(toUri('asset:///x')).toBe('asset:///x');

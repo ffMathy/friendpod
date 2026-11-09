@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Store, social and README images for Grouper, composed from the real app screens.
+ * Store, social and README images for Friendpod, composed from the real app screens.
  *
  *   npm run marketing                         build the web preview, shoot the screens, compose everything
  *   npm run marketing -- --skip-build         reuse an existing preview build (--build-dir)
@@ -297,7 +297,7 @@ function posterMark(width, g, { seat = 'dashed' } = {}) {
 
 /** Lockup: dot mark + lowercase wordmark (spec 7.1: mark 36, gap 8, wordmark 29). */
 function lockup(scale, g) {
-  return `<div style="display:flex;align-items:center;gap:${8 * scale}px">${dotMark(36 * scale, g)}<span class="display" style="font-size:${29 * scale}px;line-height:1;padding-bottom:${3 * scale}px;color:${g.text}">grouper</span></div>`;
+  return `<div style="display:flex;align-items:center;gap:${8 * scale}px">${dotMark(36 * scale, g)}<span class="display" style="font-size:${29 * scale}px;line-height:1;padding-bottom:${3 * scale}px;color:${g.text}">friendpod</span></div>`;
 }
 
 /**
@@ -525,9 +525,9 @@ async function render(browser, html, W, H, file, prepare) {
   await p.goto(pathToFileURL(htmlFile).href, { waitUntil: 'load' });
   const ok = await p.evaluate(async () => {
     const faces = ['700 40px "Bricolage Grotesque"', '800 40px "Bricolage Grotesque"', '500 20px "Plus Jakarta Sans"', '700 20px "Plus Jakarta Sans"'];
-    await Promise.all(faces.map((f) => document.fonts.load(f, 'grouper ÆØÅ')));
+    await Promise.all(faces.map((f) => document.fonts.load(f, 'friendpod ÆØÅ')));
     await document.fonts.ready;
-    return faces.every((f) => document.fonts.check(f, 'grouper ÆØÅ'));
+    return faces.every((f) => document.fonts.check(f, 'friendpod ÆØÅ'));
   });
   if (!ok) throw new Error(`fonts did not load for ${file}`);
   if (prepare) await prepare(p);

@@ -4,7 +4,7 @@ import { CAST_PHOTOS, ME, now, ONBOARDED_USER, profileWorld } from './_kit';
 /**
  * A member in their first weeks, for the calm empty states of Me and its pages: no photo yet, no meetups yet, last
  * week's drop found no pod because the distance setting is small (the note on Me names it), notifications not turned
- * on, nobody blocked and no messages from Grouper.
+ * on, nobody blocked and no messages from Friendpod.
  */
 const scenario: Scenario = {
   id: 'me-new',

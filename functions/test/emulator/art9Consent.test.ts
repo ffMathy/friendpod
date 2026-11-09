@@ -27,41 +27,41 @@ describeEmulator('blanket Art. 9 consent (emulator)', () => {
 
   it('records the grant once, with the text version and hash, and sets users.legal.art9', async () => {
     const uid = await onboarded();
-    await expect(grant(uid, { consent: proof('art9-blanket-en-v1') })).resolves.toEqual({ ok: true });
+    await expect(grant(uid, { consent: proof('art9-blanket-en-v2') })).resolves.toEqual({ ok: true });
     const legal = (await user(uid)).legal;
-    expect(legal.art9).toMatchObject({ textVersion: 'art9-blanket-en-v1', textSha256: consentProofFor('art9-blanket-en-v1').textSha256 });
+    expect(legal.art9).toMatchObject({ textVersion: 'art9-blanket-en-v2', textSha256: consentProofFor('art9-blanket-en-v2').textSha256 });
     expect(legal.art9.at.toMillis()).toBe(NOW);
     expect(await events(uid)).toEqual([
-      expect.objectContaining({ scope: 'art9', action: 'grant', textVersion: 'art9-blanket-en-v1', locale: 'en', appVersion: '1.2.3', method: 'checkbox+button' }),
+      expect.objectContaining({ scope: 'art9', action: 'grant', textVersion: 'art9-blanket-en-v2', locale: 'en', appVersion: '1.2.3', method: 'checkbox+button' }),
     ]);
     expect(Object.keys((await events(uid))[0]!).sort()).toEqual(['action', 'appVersion', 'createdAt', 'locale', 'method', 'scope', 'textSha256', 'textVersion', 'uid']);
 
     // The same text again is a no-op; the Danish text is a new grant.
-    await grant(uid, { consent: proof('art9-blanket-en-v1') });
+    await grant(uid, { consent: proof('art9-blanket-en-v2') });
     expect(await events(uid)).toHaveLength(1);
     deps.clock.now = NOW + 1000;
     try {
-      await grant(uid, { consent: proof('art9-blanket-da-v1') });
+      await grant(uid, { consent: proof('art9-blanket-da-v2') });
     } finally {
       deps.clock.now = NOW;
     }
-    expect((await user(uid)).legal.art9.textVersion).toBe('art9-blanket-da-v1');
+    expect((await user(uid)).legal.art9.textVersion).toBe('art9-blanket-da-v2');
     expect(await events(uid)).toHaveLength(2);
   });
 
   it('refuses a proof that names no blanket Art. 9 text', async () => {
     const uid = await onboarded();
-    expect(await errorCode(grant(uid, { consent: { ...proof('art9-blanket-en-v1'), textSha256: '0'.repeat(64) } }))).toBe('ART9_CONSENT');
-    expect(await errorCode(grant(uid, { consent: proof('gender-en-v1') }))).toBe('ART9_CONSENT');
+    expect(await errorCode(grant(uid, { consent: { ...proof('art9-blanket-en-v2'), textSha256: '0'.repeat(64) } }))).toBe('ART9_CONSENT');
+    expect(await errorCode(grant(uid, { consent: proof('gender-en-v2') }))).toBe('ART9_CONSENT');
     expect(await errorCode(grant(uid, { consent: proof('interest-notice-en-v2') }))).toBe('ART9_CONSENT');
-    expect(await errorCode(grant(uid, { consent: { ...proof('art9-blanket-en-v1'), checked: false } }))).toBe('VALIDATION');
+    expect(await errorCode(grant(uid, { consent: { ...proof('art9-blanket-en-v2'), checked: false } }))).toBe('VALIDATION');
     expect(await events(uid)).toEqual([]);
     expect((await user(uid)).legal.art9).toBeUndefined();
   });
 
   it('withdraws a consent without holdings: withdraw event, 3-year expiry, ledger entry, legal.art9 removed', async () => {
     const uid = await onboarded();
-    await grant(uid, { consent: proof('art9-blanket-da-v1') });
+    await grant(uid, { consent: proof('art9-blanket-da-v2') });
     const later = NOW + 3_600_000;
     deps.clock.now = later;
     try {
@@ -73,7 +73,7 @@ describeEmulator('blanket Art. 9 consent (emulator)', () => {
     expect((await user(uid)).legal).toEqual({ terms: 't1', privacy: 'p1' });
     const all = await events(uid);
     expect(all.map((e) => e.action)).toEqual(['grant', 'withdraw']);
-    expect(all[1]).toMatchObject({ textVersion: 'art9-blanket-da-v1', locale: 'da' });
+    expect(all[1]).toMatchObject({ textVersion: 'art9-blanket-da-v2', locale: 'da' });
     for (const e of all) expect(e.expiresAt.toMillis()).toBe(later + CONSENT_EVENT_RETENTION_MS);
     const ledger = (await deps.db.collection('erasureLedger').where('uidH', '==', await uidHash(testUidHmac, uid)).get()).docs.map((d) => d.data());
     expect(ledger).toEqual([expect.objectContaining({ kind: 'consentWithdrawal', ref: 'art9' })]);

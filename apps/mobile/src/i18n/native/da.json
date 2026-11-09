@@ -1,6 +1,6 @@
 {
   "ios": {
-    "NSLocationWhenInUseUsageDescription": "Grouper bruger din omtrentlige placering én gang til at finde dit område. Den omregnes til et kortfelt på din telefon og gemmes aldrig.",
-    "NSPhotoLibraryUsageDescription": "Grouper lader dig vælge ét profilbillede. Kun personer i en bekræftet pod med dig kan se det."
+    "NSLocationWhenInUseUsageDescription": "Friendpod bruger din omtrentlige placering én gang til at finde dit område. Den omregnes til et kortfelt på din telefon og gemmes aldrig.",
+    "NSPhotoLibraryUsageDescription": "Friendpod lader dig vælge ét profilbillede. Kun personer i en bekræftet pod med dig kan se det."
   }
 }

@@ -8,7 +8,7 @@ import { FULL_SCREEN_SETTINGS, MainTabBar } from '@/features/shell/MainTabBar';
 /**
  * Me → Settings and its pages. They live under Me, so the main tab bar stays at the foot with Me selected, as on
  * priv-settings; deleting the account and the consent page take the whole screen. Settings, preferences,
- * notifications, blocked people and messages from Grouper draw their own header ("Me" above the Bricolage title, the
+ * notifications, blocked people and messages from Friendpod draw their own header ("Me" above the Bricolage title, the
  * back chevron above it when there is history); the titles below are what the back button and screen readers use.
  */
 export default function SettingsLayout() {

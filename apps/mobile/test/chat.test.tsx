@@ -160,7 +160,7 @@ describe('meetup chat (§3.6)', () => {
     await fireEvent.press(sendButton());
     await flush();
     expect(mockCall).not.toHaveBeenCalled();
-    expect(screen.getByText("This looks like a CPR number, so it wasn't saved. Never share CPR numbers on Grouper.")).toBeOnTheScreen();
+    expect(screen.getByText("This looks like a CPR number, so it wasn't saved. Never share CPR numbers on Friendpod.")).toBeOnTheScreen();
   });
 
   it('is read-only once closed, with the deletion notice', async () => {

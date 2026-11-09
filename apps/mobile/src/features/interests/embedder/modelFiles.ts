@@ -53,7 +53,7 @@ export function toUri(pathOrUri: string): string {
 
 /**
  * The plain path onnxruntime-react-native opens: it strips `file://` but does not percent-decode, and an iOS bundle
- * path has a space in it ("Grouper Dev.app").
+ * path has a space in it ("Friendpod Dev.app").
  */
 export function toNativePath(uri: string): string {
   if (!uri.startsWith('file://')) throw new Error(`not a file URI: ${uri}`);

@@ -1,4 +1,4 @@
-# Grouper: cost overview
+# Friendpod: cost overview
 
 | | |
 |---|---|

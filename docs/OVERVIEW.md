@@ -1,4 +1,4 @@
-# Grouper: founder overview
+# Friendpod: founder overview
 
 Start here. This page summarises the design in about ten minutes of reading. Everything links into the full documents:
 
@@ -72,7 +72,7 @@ The pod screen shows **one "next step" card** at a time (vote → confirm you're
 | F34 | **In-app waitlist per city:** sign up as usual; until your city opens, Home shows "<city>: N of 250 signed up" (exact; "<10" below 10), a progress bar, what happens next and "Invite people" / "Copy link" | The link is `https://<our domain>/c/<city>`: a static page with the city's name and store links. No referral codes, nothing about who shared it. When a city opens, everyone there gets "<city> is open — your first drop is Thursday 18:00" |
 | F35 | **First-timers first:** people who never had a confirmed pod are seeded first and get a bonus in the matcher | A setting per profile (+0.5, on in both) |
 | F36 | **Funnel from day 1** without an analytics SDK: sign-up → onboarded → waitlisted → eligible → first proposal → first confirmed → first meetup → second meetup, per city and week | Counters without user IDs; each person counted once per stage; anything under 10 shown as "<10"; kept 24 months; `funnel show` in the admin CLI |
-| F37 | **"Where did you hear about Grouper?"**, optional, one choice | Only counted per city and week, never saved on the profile |
+| F37 | **"Where did you hear about Friendpod?"**, optional, one choice | Only counted per city and week, never saved on the profile |
 
 **Decisions of 2026-11-06** (DESIGN F38–F39):
 

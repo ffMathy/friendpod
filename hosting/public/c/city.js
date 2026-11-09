@@ -15,10 +15,10 @@ document.addEventListener('DOMContentLoaded', function () {
   var match = /^\/c\/([a-z][a-z0-9-]{1,31})\/?$/.exec(window.location.pathname);
   var city = match && Object.prototype.hasOwnProperty.call(CITIES, match[1]) ? CITIES[match[1]] : null;
   if (!city) return;
-  document.title = 'Grouper ' + city.en;
-  document.getElementById('title').textContent = 'Grouper · ' + city.en + ' / ' + city.da;
+  document.title = 'Friendpod ' + city.en;
+  document.getElementById('title').textContent = 'Friendpod · ' + city.en + ' / ' + city.da;
   document.getElementById('lead-en').textContent =
-    'Grouper is opening in ' + city.en + '. Join the waitlist in the app: the more people in ' + city.en + ' sign up, the sooner it opens.';
+    'Friendpod is opening in ' + city.en + '. Join the waitlist in the app: the more people in ' + city.en + ' sign up, the sooner it opens.';
   document.getElementById('lead-da').textContent =
-    'Grouper åbner i ' + city.da + '. Skriv dig på ventelisten i appen: jo flere i ' + city.da + ' der tilmelder sig, jo før åbner vi.';
+    'Friendpod åbner i ' + city.da + '. Skriv dig på ventelisten i appen: jo flere i ' + city.da + ' der tilmelder sig, jo før åbner vi.';
 });

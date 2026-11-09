@@ -1,4 +1,4 @@
-// Labeled interest-tag test set (unchanged from the v1 experiment; 211 tags, 68 concepts) for the grouper EmbeddingGemma calibration experiment.
+// Labeled interest-tag test set (unchanged from the v1 experiment; 211 tags, 68 concepts) for the Friendpod EmbeddingGemma calibration experiment.
 // Fields: t = tag text as a user might type it, l = language (da|en|x = language-neutral name),
 // c = fine concept id (merge target), f = coarse family (related interests),
 // s = GDPR Art. 9 category or null, amb = note when the label is genuinely debatable.
