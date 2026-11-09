@@ -7,7 +7,7 @@
  * as the reveal (the base field), on the week-46 timeline of the brætspil pod. The colours follow from the theme words
  * and, for open-to-anyone, the pod id (`@/lib/podColor`); names are placeholders.
  */
-import type { Locale } from '@grouper/core';
+import type { Locale } from '@friendpod/core';
 import type { DocData } from '../runtime/types';
 import { FAR_PAA_BARSEL_CONCEPT, ME, profileWorld, roster, SOURDOUGH_CONCEPT, SOURDOUGH_MEMBERS, TRAIL_RUNNING_CONCEPT, ts, VIEWER } from './_kit';
 import { WEEK46 } from './_pod';

@@ -1,8 +1,8 @@
 {
-  "name": "grouper-rules-tests",
+  "name": "friendpod-rules-tests",
   "version": "0.0.0",
   "private": true,
-  "description": "Firestore and Storage security-rules tests (DESIGN.md §9, §13). Standalone npm project; run under `firebase emulators:exec --only firestore,storage --project demo-grouper` from the repo root.",
+  "description": "Firestore and Storage security-rules tests (DESIGN.md §9, §13). Standalone npm project; run under `firebase emulators:exec --only firestore,storage --project demo-friendpod` from the repo root.",
   "type": "module",
   "engines": {
     "node": ">=24.12"

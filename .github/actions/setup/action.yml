@@ -1,6 +1,6 @@
 name: Set up Node and install dependencies
 description: >-
-  Node 24 from .nvmrc with the npm cache, `npm ci` at the root (the workspace, which also provides @grouper/core's
+  Node 24 from .nvmrc with the npm cache, `npm ci` at the root (the workspace, which also provides @friendpod/core's
   own dependencies), then `npm ci` in each standalone project (DESIGN.md §14).
 inputs:
   projects:

@@ -1,4 +1,4 @@
-import { REPORT_CATEGORIES, REPORT_TEXT_MAX, type ReportCategory } from '@grouper/core';
+import { REPORT_CATEGORIES, REPORT_TEXT_MAX, type ReportCategory } from '@friendpod/core';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';

@@ -2,7 +2,7 @@
  * Times on the home tab and the drop cards, in Europe/Copenhagen like every drop and deadline (§4.1): the week
  * number, "Thursday 18:00", "Sat 18:00" and the countdown "in 2 days and 6 hours".
  */
-import { DROP_TIME_ZONE, parseWeekId, toLocal, weekIdAt, type Locale } from '@grouper/core';
+import { DROP_TIME_ZONE, parseWeekId, toLocal, weekIdAt, type Locale } from '@friendpod/core';
 import type { TFunction } from 'i18next';
 import { useEffect, useState } from 'react';
 

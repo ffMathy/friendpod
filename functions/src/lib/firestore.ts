@@ -37,7 +37,7 @@ import {
   userBlockDocSchema,
   userDocSchema,
   type WeekId,
-} from '@grouper/core';
+} from '@friendpod/core';
 import {
   Timestamp,
   type CollectionReference,

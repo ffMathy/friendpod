@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { nextDropWeek, type Prefs } from '@grouper/core';
+import { nextDropWeek, type Prefs } from '@friendpod/core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import i18next from 'i18next';

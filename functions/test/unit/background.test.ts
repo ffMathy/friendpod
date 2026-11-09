@@ -1,4 +1,4 @@
-import { purgeUserTask } from '@grouper/core';
+import { purgeUserTask } from '@friendpod/core';
 import type { Messaging } from 'firebase-admin/messaging';
 import { HttpsError } from 'firebase-functions/https';
 import { onSchedule } from 'firebase-functions/scheduler';
@@ -47,7 +47,7 @@ describe('background wrappers', () => {
 describe('background failures through the firebase-functions handlers', () => {
   const uid = 'RawUid0000000000000000000042';
   const firestoreError = (): Error =>
-    Object.assign(new Error(`5 NOT_FOUND: No document to update: projects/demo-grouper/databases/(default)/documents/users/${uid}`), { code: 5 });
+    Object.assign(new Error(`5 NOT_FOUND: No document to update: projects/demo-friendpod/databases/(default)/documents/users/${uid}`), { code: 5 });
 
   interface FakeResponse {
     statusCode: number;

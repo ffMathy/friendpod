@@ -4,7 +4,7 @@
  * (scoped to this file's users, other files' fixtures have no Auth users), the Monday nudge, Wednesday's interest
  * maintenance, area chips, the backfill watchdog, and the erasure-ledger replay entry points. Owns weeks 2027-W45–W52.
  */
-import { NOTICE_CODES, REPORT_RETENTION_MS, dropSchedule, fromLocal, uidHash, weekIdAt, type WeekId } from '@grouper/core';
+import { NOTICE_CODES, REPORT_RETENTION_MS, dropSchedule, fromLocal, uidHash, weekIdAt, type WeekId } from '@friendpod/core';
 import { FieldValue } from 'firebase-admin/firestore';
 import { expect, it } from 'vitest';
 import { blockUser, report, unblockUser } from '../../src/callables/safety';

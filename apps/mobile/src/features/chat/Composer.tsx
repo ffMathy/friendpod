@@ -1,4 +1,4 @@
-import { CHAT_MESSAGE_MAX } from '@grouper/core';
+import { CHAT_MESSAGE_MAX } from '@friendpod/core';
 import type { Ref } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, StyleSheet, TextInput, View, type TextInputInstance } from 'react-native';

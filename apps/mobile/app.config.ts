@@ -8,7 +8,7 @@
  *   EAS_PROJECT_ID           set once `eas init` has linked the project
  *   EXPO_PUBLIC_EMBEDDER     `stub` lets a development prebuild go without the bundled model (withBundledModel)
  *
- * Development falls back to committed placeholders for the `demo-grouper` emulator project; staging and
+ * Development falls back to committed placeholders for the `demo-friendpod` emulator project; staging and
  * production refuse to build without their real files.
  */
 import type { ConfigContext, ExpoConfig } from 'expo/config';
@@ -49,26 +49,26 @@ const ORT_NATIVE_VERSION = '1.30.0';
 const ENVIRONMENTS: Record<AppEnv, EnvSettings> = {
   development: {
     name: 'Friendpod Dev',
-    appId: 'dk.grouper.app.dev',
-    scheme: 'grouper-dev',
+    appId: 'dk.friendpod.app.dev',
+    scheme: 'friendpod-dev',
     // Dev builds talk to the emulators; links still need a real Hosting domain, so they use staging's.
-    linkProjectId: 'grouper-staging',
+    linkProjectId: 'friendpod-staging',
     apsEnvironment: 'development',
     appAttestEnvironment: 'development',
   },
   staging: {
     name: 'Friendpod Staging',
-    appId: 'dk.grouper.app.staging',
-    scheme: 'grouper-staging',
-    linkProjectId: 'grouper-staging',
+    appId: 'dk.friendpod.app.staging',
+    scheme: 'friendpod-staging',
+    linkProjectId: 'friendpod-staging',
     apsEnvironment: 'production',
     appAttestEnvironment: 'production',
   },
   production: {
     name: 'Friendpod',
-    appId: 'dk.grouper.app',
-    scheme: 'grouper',
-    linkProjectId: 'grouper-prod',
+    appId: 'dk.friendpod.app',
+    scheme: 'friendpod',
+    linkProjectId: 'friendpod-prod',
     apsEnvironment: 'production',
     appAttestEnvironment: 'production',
   },
@@ -87,8 +87,8 @@ function googleServicesFile(env: AppEnv, variable: 'GOOGLE_SERVICES_PLIST' | 'GO
     throw new Error(`${variable} is required for APP_ENV=${env} (an EAS file environment variable)`);
   }
   return variable === 'GOOGLE_SERVICES_PLIST'
-    ? './config/firebase/demo-grouper.GoogleService-Info.plist'
-    : './config/firebase/demo-grouper.google-services.json';
+    ? './config/firebase/demo-friendpod.GoogleService-Info.plist'
+    : './config/firebase/demo-friendpod.google-services.json';
 }
 
 const collected = (type: string) => ({
@@ -107,7 +107,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
   return {
     ...config,
     name: s.name,
-    slug: 'grouper',
+    slug: 'friendpod',
     description: 'Small groups. Real meetups.',
     version: '0.1.0',
     platforms: ['ios', 'android'],

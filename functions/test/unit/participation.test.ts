@@ -1,4 +1,4 @@
-import { dropSchedule, type WeekId } from '@grouper/core';
+import { dropSchedule, type WeekId } from '@friendpod/core';
 import { describe, expect, it } from 'vitest';
 import { AppError } from '../../src/lib/errors';
 import { applyParticipation, participatesIn, type ParticipationState } from '../../src/lib/participation';

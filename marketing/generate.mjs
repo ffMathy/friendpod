@@ -6,7 +6,7 @@
  *   npm run marketing -- --skip-build         reuse an existing preview build (--build-dir)
  *   npm run marketing -- --only play,social   compose only some groups (play, appstore, social)
  *
- * Options: --build-dir <dir> (default: <tmp>/grouper-marketing/build), --skip-build, --only <groups>.
+ * Options: --build-dir <dir> (default: <tmp>/friendpod-marketing/build), --skip-build, --only <groups>.
  *
  * 1. Builds the web preview harness (apps/mobile/preview) and shoots the chosen screens at 390x844 @3x in Danish and
  *    English, with the same scenarios, steps and timezone as `preview:shoot`.
@@ -31,7 +31,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const repo = path.dirname(here);
 const appRoot = path.join(repo, 'apps', 'mobile');
 const OUT = path.join(here, 'out');
-const CACHE = path.join(os.tmpdir(), 'grouper-marketing');
+const CACHE = path.join(os.tmpdir(), 'friendpod-marketing');
 
 // ---------------------------------------------------------------- brand tokens (blend spec, theme.ts)
 

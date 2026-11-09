@@ -36,7 +36,7 @@ describe('admin CLI', () => {
 
   it('requires a reason, known options and the right arguments before touching Firebase', async () => {
     const deps = { context: noFirebase };
-    expect((await run(['areas', 'set-status', 'aarhus', 'live', '--project', 'demo-grouper'], deps)).code).toBe(EXIT_USAGE);
+    expect((await run(['areas', 'set-status', 'aarhus', 'live', '--project', 'demo-friendpod'], deps)).code).toBe(EXIT_USAGE);
     expect((await run(['areas', 'set-status', 'aarhus', 'live', '--reason'], deps)).code).toBe(EXIT_USAGE);
     expect((await run(['areas', 'set-status', 'aarhus', 'live', '--reason', '  '], deps)).code).toBe(EXIT_USAGE);
     expect((await run(['areas', 'set-status', 'aarhus', '--reason', 'go live'], deps)).code).toBe(EXIT_USAGE);
@@ -51,7 +51,7 @@ describe('admin CLI', () => {
   });
 
   it('refuses sanctions ban without writing anything (no bans in the MVP, D2)', async () => {
-    const r = await run(['sanctions', 'ban', 'u1', '--project', 'grouper-prod', '--reason', 'harassment'], { context: noFirebase });
+    const r = await run(['sanctions', 'ban', 'u1', '--project', 'friendpod-prod', '--reason', 'harassment'], { context: noFirebase });
     expect(r.code).toBe(EXIT_REFUSED);
     expect(r.stderr).toMatch(/refused/);
   });
@@ -66,11 +66,11 @@ describe('admin CLI', () => {
 
 describe('project and emulator selection', () => {
   it('pairs demo-* projects with the emulator and real projects with ADC', () => {
-    expect(checkProject('grouper-prod', {})).toEqual({ project: 'grouper-prod', emulator: false });
-    expect(checkProject('demo-grouper', { FIRESTORE_EMULATOR_HOST: '127.0.0.1:8080' })).toEqual({ project: 'demo-grouper', emulator: true });
+    expect(checkProject('friendpod-prod', {})).toEqual({ project: 'friendpod-prod', emulator: false });
+    expect(checkProject('demo-friendpod', { FIRESTORE_EMULATOR_HOST: '127.0.0.1:8080' })).toEqual({ project: 'demo-friendpod', emulator: true });
     expect(() => checkProject(undefined, {})).toThrow(/--project/);
-    expect(() => checkProject('demo-grouper', {})).toThrow(/FIRESTORE_EMULATOR_HOST/);
-    expect(() => checkProject('grouper-prod', { FIRESTORE_EMULATOR_HOST: '127.0.0.1:8080' })).toThrow(/demo-\*/);
+    expect(() => checkProject('demo-friendpod', {})).toThrow(/FIRESTORE_EMULATOR_HOST/);
+    expect(() => checkProject('friendpod-prod', { FIRESTORE_EMULATOR_HOST: '127.0.0.1:8080' })).toThrow(/demo-\*/);
     expect(() => checkProject('Friendpod Prod', {})).toThrow(/not a Firebase project id/);
   });
 });
@@ -188,7 +188,7 @@ describe('funnel show (§6.8)', () => {
     expect(r.stdout).toContain('vejle');
     expect((await run(['funnel', 'show', '--from', file])).code).toBe(EXIT_USAGE);
     expect((await run(['funnel', 'show', '--from', join(file, 'missing'), '--reason', 'xyz'])).code).toBe(EXIT_USAGE);
-    expect((await run(['funnel', 'show', '--from', file, '--project', 'grouper-prod', '--reason', 'xyz'])).code).toBe(EXIT_USAGE);
+    expect((await run(['funnel', 'show', '--from', file, '--project', 'friendpod-prod', '--reason', 'xyz'])).code).toBe(EXIT_USAGE);
     expect((await run(['funnel', 'show', '--from', file, '--weeks', '0', '--reason', 'xyz'])).code).toBe(EXIT_USAGE);
   });
 });

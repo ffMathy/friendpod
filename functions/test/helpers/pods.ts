@@ -11,8 +11,8 @@ import {
   googleMapsPlaceUrl,
   type MatchResultFile,
   type WeekId,
-} from '@grouper/core';
-import { nodeHmacSha256 } from '@grouper/core/node';
+} from '@friendpod/core';
+import { nodeHmacSha256 } from '@friendpod/core/node';
 import { DAY_MS, docs, PATHS, ts, type DocOf } from '../../src/lib/firestore';
 import type { DropObjectStore } from '../../src/lib/storage';
 import { releaseDrop, type ReleaseDeps } from '../../src/pods/release';

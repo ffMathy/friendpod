@@ -1,4 +1,4 @@
-import type { Prefs } from '@grouper/core';
+import type { Prefs } from '@friendpod/core';
 import type { TFunction } from 'i18next';
 
 /** Spaces inside one part of the summary don't break, so a wrap never falls inside a part. */

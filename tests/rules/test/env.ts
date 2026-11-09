@@ -1,12 +1,12 @@
 /**
  * Shared setup for the rules suites. They run under `firebase emulators:exec --only firestore,storage
- * --project demo-grouper`, which sets FIRESTORE_EMULATOR_HOST and FIREBASE_STORAGE_EMULATOR_HOST;
+ * --project demo-friendpod`, which sets FIRESTORE_EMULATOR_HOST and FIREBASE_STORAGE_EMULATOR_HOST;
  * @firebase/rules-unit-testing reads those, so no port is hard-coded here.
  */
 import { readFileSync } from 'node:fs';
 import { initializeTestEnvironment, type RulesTestContext, type RulesTestEnvironment } from '@firebase/rules-unit-testing';
 
-export const PROJECT_ID = 'demo-grouper';
+export const PROJECT_ID = 'demo-friendpod';
 
 const REQUIRED_ENV = ['FIRESTORE_EMULATOR_HOST', 'FIREBASE_STORAGE_EMULATOR_HOST'] as const;
 
@@ -18,7 +18,7 @@ export async function rulesEnv(): Promise<RulesTestEnvironment> {
   if (missing.length > 0) {
     throw new Error(
       `rules tests need ${missing.join(' and ')}: from the repo root run ` +
-        '`firebase emulators:exec --only firestore,storage --project demo-grouper "npm --prefix tests/rules test"`',
+        '`firebase emulators:exec --only firestore,storage --project demo-friendpod "npm --prefix tests/rules test"`',
     );
   }
   return initializeTestEnvironment({

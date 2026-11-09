@@ -10,8 +10,8 @@
  * So a holding's partition decides its slot, and partitions never mix in a concept (§5.2 (5)). A tag's vector is in
  * a slot concept's `sum` only while that slot's count is above 0 (§5.2 (8)).
  */
-import { tagKeyMaterial, type Partition } from '@grouper/core';
-import { sha256Hex } from '@grouper/core/node';
+import { tagKeyMaterial, type Partition } from '@friendpod/core';
+import { sha256Hex } from '@friendpod/core/node';
 import type { DocumentSnapshot } from 'firebase-admin/firestore';
 import { vectorFromField } from './assign';
 

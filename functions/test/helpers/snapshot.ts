@@ -10,8 +10,8 @@ import {
   type MatchUser,
   type NonSensitiveConceptId,
   type WeekId,
-} from '@grouper/core';
-import { sha256Hex } from '@grouper/core/node';
+} from '@friendpod/core';
+import { sha256Hex } from '@friendpod/core/node';
 import { testUidHmac } from './keys';
 
 export const WEEK = '2026-W46' as WeekId;

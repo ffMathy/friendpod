@@ -48,7 +48,7 @@ export function appDeps(): AppDeps {
   return cached;
 }
 
-/** `gs://grouper-<env>-drops` (§7 Storage): the project id is `grouper-<env>`. */
+/** `gs://friendpod-<env>-drops` (§7 Storage): the project id is `friendpod-<env>`. */
 export function dropsStore(): DropObjectStore {
   const projectId = process.env.GCLOUD_PROJECT;
   if (!projectId) throw new Error('GCLOUD_PROJECT is not set');

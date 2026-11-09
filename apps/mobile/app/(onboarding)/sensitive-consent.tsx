@@ -15,7 +15,7 @@ const MIN_BOX = 160;
 /**
  * Step 3 of 6, the blanket Art. 9 consent (onb-consent; D3, DESIGN §3.1 step 7), after `completeOnboarding`
  * (setArt9Consent needs the onboarding claim) and before the interests. The text is the locked copy from
- * @grouper/core; the storyboard's look, not its wording: the "Private interests" eyebrow and the title stay put, the
+ * @friendpod/core; the storyboard's look, not its wording: the "Private interests" eyebrow and the title stay put, the
  * copy scrolls in its own white box with the 1.5 px Ink border (private stays quiet), and the consent box, "I agree"
  * and "Not now" are pinned under it. "Not now" records nothing and carries on; the consent can be given later in
  * Settings → Privacy. Opened from the interests step (a refused sensitive interest), it returns there.

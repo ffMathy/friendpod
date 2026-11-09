@@ -1,6 +1,6 @@
 /**
- * @grouper/core: shared by the app (Metro), both Functions codebases (esbuild) and tools (tsx/vitest).
- * Node-only helpers live in `@grouper/core/node`.
+ * @friendpod/core: shared by the app (Metro), both Functions codebases (esbuild) and tools (tsx/vitest).
+ * Node-only helpers live in `@friendpod/core/node`.
  */
 export * from './types';
 export * from './schemas';

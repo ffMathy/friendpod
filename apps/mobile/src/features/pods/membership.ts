@@ -1,4 +1,4 @@
-import type { PodCardDoc } from '@grouper/core';
+import type { PodCardDoc } from '@friendpod/core';
 
 const CONFIRMED_STATES = new Set(['planning', 'scheduled', 'happened', 'archived']);
 

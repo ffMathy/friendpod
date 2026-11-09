@@ -1,4 +1,4 @@
-import { LEGAL_TEXT_SHA256, setArt9ConsentInput } from '@grouper/core';
+import { LEGAL_TEXT_SHA256, setArt9ConsentInput } from '@friendpod/core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen, within } from '@testing-library/react-native';
 import { Art9BlanketConsent } from '@/features/consent/Art9BlanketConsent';

@@ -1,4 +1,4 @@
-import { consentProofFor, getLaunchArea, uidHash } from '@grouper/core';
+import { consentProofFor, getLaunchArea, uidHash } from '@friendpod/core';
 import { expect, it } from 'vitest';
 import { completeOnboarding } from '../../src/callables/completeOnboarding';
 import { updateProfile } from '../../src/callables/updateProfile';

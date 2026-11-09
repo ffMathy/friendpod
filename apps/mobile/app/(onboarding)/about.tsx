@@ -1,4 +1,4 @@
-import { firstNameSchema } from '@grouper/core';
+import { firstNameSchema } from '@friendpod/core';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';

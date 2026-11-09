@@ -1,7 +1,7 @@
 /**
  * Validates the preview fixtures without a browser (`npm -w apps/mobile run preview:check`):
  * - every scenario file default-exports a scenario whose id is its file name;
- * - every fixture document parses with the @grouper/core schema the app reads it with (a document that fails would
+ * - every fixture document parses with the @friendpod/core schema the app reads it with (a document that fails would
  *   render as an error or a spinner in the preview, not as the intended state);
  * - every screens.json entry names an existing scenario and, if it has one, an existing storyboard file.
  * Exits non-zero with a list of problems.
@@ -20,7 +20,7 @@ import {
   sensitiveInterestDocSchema,
   userBlockDocSchema,
   userDocSchema,
-} from '@grouper/core';
+} from '@friendpod/core';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';

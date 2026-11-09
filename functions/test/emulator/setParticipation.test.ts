@@ -1,4 +1,4 @@
-import { addWeeks, dropSchedule, getLaunchArea, weekIdAt } from '@grouper/core';
+import { addWeeks, dropSchedule, getLaunchArea, weekIdAt } from '@friendpod/core';
 import { Timestamp } from 'firebase-admin/firestore';
 import { expect, it } from 'vitest';
 import { completeOnboarding } from '../../src/callables/completeOnboarding';

@@ -3,7 +3,7 @@
  * never read, so the CLI reads only a projection: category, target type, status, the automated decision code and the
  * dates. Report text, the copied chat message, reporter and target uids and the pod id never leave Firestore.
  */
-import { REPORT_CATEGORIES, type ReportCategory } from '@grouper/core';
+import { REPORT_CATEGORIES, type ReportCategory } from '@friendpod/core';
 import type { Firestore, Query } from 'firebase-admin/firestore';
 import { UsageError } from './args';
 import { isoOf, millisOf, table } from './format';

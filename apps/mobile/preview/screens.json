@@ -280,7 +280,7 @@
       "id": "app-auth-complete-confirm",
       "title": "Email link landing: confirm the address",
       "storyboard": null,
-      "route": "/auth/complete?link=https%3A%2F%2Fgrouper-staging.firebaseapp.com%2F__%2Fauth%2Faction%3Fmode%3DsignIn%26oobCode%3Dpreview",
+      "route": "/auth/complete?link=https%3A%2F%2Ffriendpod-staging.firebaseapp.com%2F__%2Fauth%2Faction%3Fmode%3DsignIn%26oobCode%3Dpreview",
       "scenario": "signed-out",
       "notes": "A valid link opened on a phone that has no pending address stored: the person types the address."
     },
@@ -288,7 +288,7 @@
       "id": "app-auth-complete-invalid",
       "title": "Email link landing: link does not work",
       "storyboard": null,
-      "route": "/auth/complete?link=https%3A%2F%2Fgrouper-staging.firebaseapp.com%2F__%2Fauth%2Faction%3Fmode%3DsignIn",
+      "route": "/auth/complete?link=https%3A%2F%2Ffriendpod-staging.firebaseapp.com%2F__%2Fauth%2Faction%3Fmode%3DsignIn",
       "scenario": "signed-out-link-pending",
       "notes": "A pending address is stored but the link has no code: the dead-end state with \"Back to the start\"."
     },

@@ -13,8 +13,8 @@ import {
   newConceptId,
   type CallableOutput,
   type Prototypes,
-} from '@grouper/core';
-import { sha256Hex } from '@grouper/core/node';
+} from '@friendpod/core';
+import { sha256Hex } from '@friendpod/core/node';
 import { FieldValue, Timestamp } from 'firebase-admin/firestore';
 import { beforeEach, expect, it } from 'vitest';
 import { addInterestsWith, type InterestsRuntime } from '../../src/callables/addInterests';

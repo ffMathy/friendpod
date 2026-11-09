@@ -306,8 +306,8 @@ Many dating and community apps ask once for consent to sensitive profile data. T
 | Meetup-chat messages | `pods/{id}/messages` | `meetupAt` + 72 h; TTL deletes usually within a further 24 h, so the notice says "about 3 days after the meetup". The writer's messages go at once at erasure, and at withdrawal in pods on that theme | TTL (`expiresAt`), `purgeUser`, `withdrawArt9Consent` |
 | Feedback | `podFeedback` | With the pod, at most until the next Keep round starts (then deleted); only counters remain. Entries about an erased user are deleted at erasure | — |
 | Meet-again pair signals | `pairSignals/{pairKey}` (HMAC pair key; the two `uidH`s, their answers, the meetup week) | Until both outcomes are applied to `recentH`, at the latest when either account is erased [A: TTL 30 days after feedback closes] | `submitFeedback`, `hourlySweeper`, `purgeUser` |
-| Drop input and result snapshots | GCS `grouper-<env>-drops` (EU) | Deleted after release; lifecycle 2 days | `releaseDrop`, lifecycle |
-| Concept snapshots (int8 vectors) | GCS `grouper-<env>-snapshots` (EU) | 14 days | Lifecycle |
+| Drop input and result snapshots | GCS `friendpod-<env>-drops` (EU) | Deleted after release; lifecycle 2 days | `releaseDrop`, lifecycle |
+| Concept snapshots (int8 vectors) | GCS `friendpod-<env>-snapshots` (EU) | 14 days | Lifecycle |
 | Pair history (HMAC) | `matchProfiles.recentH` | 26 weeks [MAT]; 4 weeks after a mutual meet-again "yes"; a meet-again "no" (never again) until either account is erased | Pruned at the weekly `lastDrop` write; profiles not written in a drop are pruned daily (`recentMinUntil`); erasure removes the erased user's `uidH` from every profile |
 | No-show events | `matchProfiles.noShowEvents` | Last 8, at most 26 weeks | Pruned when written |
 | Blocks | `blocks`, `users/{uid}/blocks` | While both accounts exist | Cascade |

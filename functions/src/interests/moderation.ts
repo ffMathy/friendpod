@@ -4,7 +4,7 @@
  * code. Contact details and the blocklist are core's, shared with the meetup chat; third-party kinship is a signal
  * for the sensitivity step.
  */
-import { detectThirdParty, findPii, isBlocklisted } from '@grouper/core';
+import { detectThirdParty, findPii, isBlocklisted } from '@friendpod/core';
 
 export const MODERATION_RULES_VERSION = 'moderation-2026-11-04.1';
 

@@ -1,4 +1,4 @@
-import type { Prefs } from '@grouper/core';
+import type { Prefs } from '@friendpod/core';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Button, Card, ErrorText, Loading } from '@/components/ui';

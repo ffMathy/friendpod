@@ -1,9 +1,9 @@
 /**
  * Shared fixtures for scenarios: one small, consistent world that mirrors the storyboards (Aarhus C, the brætspil pod
  * with Mette, Jonas, Sofie and Ahmed, the viewer's interests). Names and places are placeholders: never real venues
- * or real people. Every document here must parse with its @grouper/core schema (`npm run preview:check`).
+ * or real people. Every document here must parse with its @friendpod/core schema (`npm run preview:check`).
  */
-import { AVAILABILITY, consentProofFor, fromLocal, googleMapsPlaceUrl, type Locale } from '@grouper/core';
+import { AVAILABILITY, consentProofFor, fromLocal, googleMapsPlaceUrl, type Locale } from '@friendpod/core';
 import { Timestamp } from '../runtime/timestamp';
 import type { DocData, PlaceFixture, PreviewUser } from '../runtime/types';
 

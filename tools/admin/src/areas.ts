@@ -4,7 +4,7 @@
  * readAreas), so "Aarhus live, Copenhagen waitlist" is this CLI's change, not a deploy. Going live enqueues the
  * idempotent `openArea` task, which marks everyone in the area eligible for the next drop and sends "<city> is open".
  */
-import { areaDocFromConfig, getLaunchArea, LAUNCH_AREA_STATUSES, LAUNCH_AREAS, waitlistDisplay, type LaunchAreaStatus } from '@grouper/core';
+import { areaDocFromConfig, getLaunchArea, LAUNCH_AREA_STATUSES, LAUNCH_AREAS, waitlistDisplay, type LaunchAreaStatus } from '@friendpod/core';
 import type { Firestore } from 'firebase-admin/firestore';
 import { UsageError } from './args';
 import { recorded } from './audit';

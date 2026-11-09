@@ -1,4 +1,4 @@
-import { DEVICE_GOLDEN_TOLERANCE, normalizeTag } from '@grouper/core';
+import { DEVICE_GOLDEN_TOLERANCE, normalizeTag } from '@friendpod/core';
 import type { Embedder } from './types';
 
 export interface GoldenReference {
@@ -50,5 +50,5 @@ export async function runGoldenTest(embedder: Embedder, refs: readonly GoldenRef
  * be exported from research/embedding-calibration into core alongside prototypes.bin.
  */
 export async function loadGoldenReferences(): Promise<readonly GoldenReference[]> {
-  throw new Error('NOT_IMPLEMENTED: golden reference vectors are not packaged in @grouper/core yet');
+  throw new Error('NOT_IMPLEMENTED: golden reference vectors are not packaged in @friendpod/core yet');
 }

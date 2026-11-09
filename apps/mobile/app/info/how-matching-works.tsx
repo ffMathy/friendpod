@@ -8,7 +8,7 @@ import {
   REPORT_WINDOW_MS,
   SENSITIVE_HOLD_MS,
   UNDERAGE_PAUSE_MS,
-} from '@grouper/core';
+} from '@friendpod/core';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Card, Heading, ListRow, Note, Text } from '@/components/ui';

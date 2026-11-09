@@ -1,4 +1,4 @@
-import { NOTICE_CODES, type NoticeDoc } from '@grouper/core';
+import { NOTICE_CODES, type NoticeDoc } from '@friendpod/core';
 import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';

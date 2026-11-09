@@ -1,4 +1,4 @@
-import { EMBEDDING_MODEL } from '@grouper/core';
+import { EMBEDDING_MODEL } from '@friendpod/core';
 
 /**
  * Credits for the open data, the fonts and the open-source software in the app (Me → Settings → Licences).

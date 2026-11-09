@@ -1,12 +1,12 @@
 /**
  * i18next + react-i18next with the device language from expo-localization (DESIGN.md §11).
  * Danish for any da-* locale, English otherwise. Consent and other legal copy is not here: it comes
- * versioned and hashed from @grouper/core (legal/).
+ * versioned and hashed from @friendpod/core (legal/).
  *
  * DESIGN-DEVIATION: §11 says "ICU plurals"; this uses i18next's built-in CLDR plural keys
  * (`_one` / `_other`, via Intl.PluralRules) instead of adding i18next-icu + intl-messageformat.
  */
-import type { Locale } from '@grouper/core';
+import type { Locale } from '@friendpod/core';
 import { getLocales } from 'expo-localization';
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';

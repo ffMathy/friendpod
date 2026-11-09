@@ -1,4 +1,4 @@
-import { consentProofFor, currentLegalText, type Art9BlanketConsent, type LegalTextId, type Locale } from '@grouper/core';
+import { consentProofFor, currentLegalText, type Art9BlanketConsent, type LegalTextId, type Locale } from '@friendpod/core';
 import { appVersion } from '@/lib/appVersion';
 
 /** What a consent callable receives (PRIVACY.md §3.4): the proof of the exact text shown, never its content. */
@@ -15,7 +15,7 @@ export interface Art9BlanketCopy {
   readonly copy: Art9BlanketConsent;
 }
 
-/** The current blanket Art. 9 consent text for the UI language (D3), verbatim from @grouper/core. */
+/** The current blanket Art. 9 consent text for the UI language (D3), verbatim from @friendpod/core. */
 export function art9BlanketCopy(locale: Locale): Art9BlanketCopy {
   const text = currentLegalText('art9Blanket', locale);
   if (text.kind !== 'art9Blanket') throw new Error('art9Blanket text has the wrong kind');

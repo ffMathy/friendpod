@@ -9,8 +9,8 @@
  * ban` exists only to refuse: `bans/{HMAC(email)}` is not written in the MVP (§8.2, PRIVACY.md §6: a ban needs a
  * human decision, and D2 removed human review).
  */
-import { uidHash, uidSchema } from '@grouper/core';
-import { nodeHmacSha256 } from '@grouper/core/node';
+import { uidHash, uidSchema } from '@friendpod/core';
+import { nodeHmacSha256 } from '@friendpod/core/node';
 import { Timestamp, type Firestore } from 'firebase-admin/firestore';
 import { UsageError } from './args';
 import { recorded } from './audit';

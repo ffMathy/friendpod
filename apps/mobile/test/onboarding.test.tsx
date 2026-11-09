@@ -1,4 +1,4 @@
-import { AVAILABILITY, MAX_AGE, MIN_AGE, completeOnboardingInput, postcodeToGh5, type Prefs } from '@grouper/core';
+import { AVAILABILITY, MAX_AGE, MIN_AGE, completeOnboardingInput, postcodeToGh5, type Prefs } from '@friendpod/core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { useEffect, type ReactElement } from 'react';

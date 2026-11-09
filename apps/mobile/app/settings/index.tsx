@@ -1,4 +1,4 @@
-import type { Locale } from '@grouper/core';
+import type { Locale } from '@friendpod/core';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';

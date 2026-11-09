@@ -3,7 +3,7 @@
  * This file owns drop weeks 2027-W06 and 2027-W07 (release touches every unreleased component of its week).
  */
 import { gunzipSync } from 'node:zlib';
-import { areaDocFromConfig, dropSchedule, getLaunchArea, uidHash, type WeekId } from '@grouper/core';
+import { areaDocFromConfig, dropSchedule, getLaunchArea, uidHash, type WeekId } from '@friendpod/core';
 import { expect, it } from 'vitest';
 import { respondToPod } from '../../src/callables/pods';
 import { docs, ts } from '../../src/lib/firestore';

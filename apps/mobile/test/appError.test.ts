@@ -1,4 +1,4 @@
-import { APP_ERRORS, type AppErrorCode } from '@grouper/core';
+import { APP_ERRORS, type AppErrorCode } from '@friendpod/core';
 import { toAppError } from '@/firebase/callables';
 
 jest.mock('@react-native-firebase/functions', () => ({ httpsCallable: jest.fn() }));

@@ -2,7 +2,7 @@
 
 Callables (DESIGN.md §10.1) and scheduled, task and event functions (§10.3). It is the only Functions codebase: the
 app embeds every tag on the device (D1), so `addInterests` lives here and no function ever loads the model. This is
-a standalone npm project with its own `package-lock.json`, not a workspace. `@grouper/core` is resolved through the
+a standalone npm project with its own `package-lock.json`, not a workspace. `@friendpod/core` is resolved through the
 tsconfig `paths` alias and bundled into `dist/index.js` by esbuild. Core's own dependencies (zod) resolve from the
 root `node_modules`, so install the root first:
 
@@ -12,7 +12,7 @@ npm --prefix functions ci
 npm --prefix functions run typecheck
 npm --prefix functions run build
 # Unit tests run anywhere. Emulator suites run under emulators:exec (skipped otherwise, and failing when CI is set):
-firebase emulators:exec --only auth,firestore --project demo-grouper 'npm --prefix functions test'
+firebase emulators:exec --only auth,firestore --project demo-friendpod 'npm --prefix functions test'
 ```
 
 Cloud Build only installs the uploaded `functions/` folder, so it must never rebuild there: the empty
@@ -59,7 +59,7 @@ options, validates its input, and fails with `unimplemented` / `details: {code: 
   `hourlySweeper` needs `UID_HMAC_KEY` too (meet-again pair keys and uidH at feedback close).
 - `sa-api@` enqueues `matchComponent`, `releaseDrop` and `backfillPod` (`roles/cloudtasks.enqueuer`, §9 IAM).
   For the Functions emulator, put test values in `functions/.secret.local` (not committed).
-- The drops bucket is `gs://<projectId>-drops` (`grouper-staging-drops`, `grouper-prod-drops`).
+- The drops bucket is `gs://<projectId>-drops` (`friendpod-staging-drops`, `friendpod-prod-drops`).
   `drops/{weekId}/components/{componentId}.inputPath` is an object path inside that bucket.
 - `addInterests` reads `models/eg2-q4-daa72c5/prototypes.bin` from `gs://<projectId>-models` (`sa-api@` needs object
   read there). Missing or unreadable, the server uses the client's detector margin alone and retries after 10 minutes.

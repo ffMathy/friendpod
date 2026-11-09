@@ -6,7 +6,7 @@
  * concepts get no label and no count. Each run stops after about 20 minutes and re-enqueues itself with a cursor.
  * Stored tags are never re-classified here (F38): their sensitivity was the first writer's on-device result.
  */
-import { EMBEDDING_MODEL } from '@grouper/core';
+import { EMBEDDING_MODEL } from '@friendpod/core';
 import { FieldPath, FieldValue, type DocumentSnapshot, type Query, type QuerySnapshot } from 'firebase-admin/firestore';
 import { ts } from '../lib/firestore';
 import type { AppDeps } from '../lib/runtime';

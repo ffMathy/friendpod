@@ -4,7 +4,7 @@
  * suites are skipped locally and fail in CI. Every test uses fresh uids, so files can run in parallel.
  */
 import { randomBytes } from 'node:crypto';
-import type { CallableInput, CallableName, CallableOutput } from '@grouper/core';
+import type { CallableInput, CallableName, CallableOutput } from '@friendpod/core';
 import { deleteApp, initializeApp, type App } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';

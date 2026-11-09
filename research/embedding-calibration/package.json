@@ -1,5 +1,5 @@
 {
-  "name": "grouper-embedding-calibration",
+  "name": "friendpod-embedding-calibration",
   "version": "1.0.0",
   "private": true,
   "description": "Reproducible calibration of EmbeddingGemma v1 vs v2 (ONNX, transformers.js) for free-form Danish/English interest tags: merge thresholds, sensitive-interest detector, online clustering, latency.",

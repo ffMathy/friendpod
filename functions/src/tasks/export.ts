@@ -5,7 +5,7 @@
  * or carry the report text. The file is owner-readable under the Storage rules (authenticated download, no public URL),
  * available for 24 h, then deleted by deleteExport (the lifecycle rule and TTL are backstops).
  */
-import { EMBEDDING_MODEL, NOTICE_CODES } from '@grouper/core';
+import { EMBEDDING_MODEL, NOTICE_CODES } from '@friendpod/core';
 import { COLLECTIONS, DAY_MS, PATHS, consentEvents, docs, podStates, ts } from '../lib/firestore';
 import { writeNotice } from '../lib/notices';
 import { OBJECT_PATHS } from '../lib/objects';

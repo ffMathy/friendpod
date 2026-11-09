@@ -5,7 +5,7 @@
  */
 import { writeFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
-import { getMatchingProfile, type MatchingProfileId } from '@grouper/core';
+import { getMatchingProfile, type MatchingProfileId } from '@friendpod/core';
 import { simulate, type SimResult } from './loop';
 
 const { values } = parseArgs({

@@ -1,12 +1,12 @@
 {
-  "//": "Standalone project. @grouper/core is consumed as source through `paths`; its own dependencies (zod) resolve from the root node_modules, so run `npm ci` at the repo root first.",
+  "//": "Standalone project. @friendpod/core is consumed as source through `paths`; its own dependencies (zod) resolve from the root node_modules, so run `npm ci` at the repo root first.",
   "extends": "../tsconfig.base.json",
   "compilerOptions": {
     "lib": ["ES2023"],
     "types": ["node"],
     "paths": {
-      "@grouper/core": ["../packages/core/src/index.ts"],
-      "@grouper/core/node": ["../packages/core/src/node.ts"]
+      "@friendpod/core": ["../packages/core/src/index.ts"],
+      "@friendpod/core/node": ["../packages/core/src/node.ts"]
     }
   },
   "include": ["src/**/*.ts", "test/**/*.ts", "vitest.config.ts"]

@@ -1,4 +1,4 @@
-import { LANGUAGES, MAX_AGE, MIN_AGE, MIN_AGE_RANGE_WIDTH, RADII_KM, prefsSchema, type Locale, type Prefs } from '@grouper/core';
+import { LANGUAGES, MAX_AGE, MIN_AGE, MIN_AGE_RANGE_WIDTH, RADII_KM, prefsSchema, type Locale, type Prefs } from '@friendpod/core';
 import { useState } from 'react';
 import { Controller, useForm, useWatch, type UseFormReturn } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';

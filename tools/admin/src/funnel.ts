@@ -15,7 +15,7 @@ import {
   type FunnelStage,
   type HeardFromSource,
   type WeekId,
-} from '@grouper/core';
+} from '@friendpod/core';
 import type { Firestore } from 'firebase-admin/firestore';
 import { table } from './format';
 

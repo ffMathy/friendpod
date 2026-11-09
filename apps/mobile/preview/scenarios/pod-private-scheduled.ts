@@ -1,4 +1,4 @@
-import type { Locale } from '@grouper/core';
+import type { Locale } from '@friendpod/core';
 import type { DocData, Scenario } from '../runtime/types';
 import { CAST_PHOTOS, ME, now, ONBOARDED_USER, place, POD_PRIVATE, profileWorld, roster, ts, VIEWER } from './_kit';
 import { CHAT_CALLABLES } from './_pod';

@@ -30,7 +30,7 @@ import {
   type MatchProfileDoc,
   type Prefs,
   type UserDoc,
-} from '@grouper/core';
+} from '@friendpod/core';
 import { AppError, grpcCode } from '../lib/errors';
 import { areaStage, readAreas, writeAreaDeltas } from '../lib/areas';
 import { docs, PATHS, ts, UNDERAGE_MARKER_TTL_MS } from '../lib/firestore';

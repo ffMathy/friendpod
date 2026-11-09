@@ -7,8 +7,8 @@
  * entry (function, outcome, code, latency); unexpected errors add one entry with uidH, the error class and stack
  * frames. Nothing here depends on Firestore.
  */
-import { CALLABLES, uidHash, type CallableInput, type CallableName, type CallableOutput, type HmacSha256 } from '@grouper/core';
-import { parseSafely, type Schema } from '@grouper/core/node';
+import { CALLABLES, uidHash, type CallableInput, type CallableName, type CallableOutput, type HmacSha256 } from '@friendpod/core';
+import { parseSafely, type Schema } from '@friendpod/core/node';
 import { onCall, type CallableFunction, type CallableOptions, type CallableRequest } from 'firebase-functions/https';
 import type { DecodedIdToken } from 'firebase-admin/auth';
 import { AppError, toHttpsError } from './errors';

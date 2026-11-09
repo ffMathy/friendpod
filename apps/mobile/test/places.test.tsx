@@ -1,4 +1,4 @@
-import { googleMapsPlaceUrl, placeSchema, proposeOptionInput } from '@grouper/core';
+import { googleMapsPlaceUrl, placeSchema, proposeOptionInput } from '@friendpod/core';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { useState } from 'react';
 import { getPlaces } from '@/features/places';

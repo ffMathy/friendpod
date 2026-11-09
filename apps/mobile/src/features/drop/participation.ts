@@ -2,7 +2,7 @@
  * Whether the viewer is in the next drop, as Home shows it (drop-home "You're in this week"). Mirrors the server's
  * `participatesIn` (functions/src/lib/participation.ts) for the drop week, plus who may lift a pause themselves.
  */
-import type { UserDoc, WeekId } from '@grouper/core';
+import type { UserDoc, WeekId } from '@friendpod/core';
 
 export type DropParticipation =
   /** In the next drop. */

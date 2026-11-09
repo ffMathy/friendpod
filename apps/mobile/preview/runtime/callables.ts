@@ -3,7 +3,7 @@
  * output (the app parses every output with the core schema) and make the obvious change to the fixture documents, so
  * tapping through a screen behaves plausibly. They are not the server: no validation beyond the app's own.
  */
-import { weekIdAt, type CallableName } from '@grouper/core';
+import { weekIdAt, type CallableName } from '@friendpod/core';
 import { preview, reportIssue } from './state';
 import { Timestamp } from './timestamp';
 import type { CallableContext, CallableHandlers, DocData } from './types';

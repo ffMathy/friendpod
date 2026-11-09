@@ -1,4 +1,4 @@
-import { registerPushTokenInput } from '@grouper/core';
+import { registerPushTokenInput } from '@friendpod/core';
 import { act, render } from '@testing-library/react-native';
 import { Platform } from 'react-native';
 import { registerPushToken } from '@/features/notifications/push';

@@ -2,7 +2,7 @@
  * `users/{uid}/notices` (DESIGN.md §8.1): a reason code and non-textual params only (ids, dates as epoch ms, counts),
  * never tag, option, message or report text. Statements of reasons (DSA Arts. 16–17) are `statementOfReasons`.
  */
-import type { NoticeCode } from '@grouper/core';
+import type { NoticeCode } from '@friendpod/core';
 import type { Firestore, Transaction, WriteBatch } from 'firebase-admin/firestore';
 import { DAY_MS, ts, userNotices } from './firestore';
 

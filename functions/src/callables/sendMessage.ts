@@ -16,7 +16,7 @@ import {
   type CallableInput,
   type CallableOutput,
   type PodState,
-} from '@grouper/core';
+} from '@friendpod/core';
 import { AppError } from '../lib/errors';
 import { docs, podMessages, ts } from '../lib/firestore';
 import type { CallContext } from '../lib/handler';

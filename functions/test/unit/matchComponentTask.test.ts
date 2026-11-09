@@ -1,5 +1,5 @@
-import { matchResultFileSchema, type WeekId } from '@grouper/core';
-import type * as Core from '@grouper/core';
+import { matchResultFileSchema, type WeekId } from '@friendpod/core';
+import type * as Core from '@friendpod/core';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { log } from '../../src/lib/log';
 import type { ObjectStore } from '../../src/lib/storage';
@@ -16,7 +16,7 @@ import { capturedEntries, forbidInLogs } from '../helpers/logCapture';
 import { COMPONENT_ID, WEEK, snapshotFile } from '../helpers/snapshot';
 
 const matcher = vi.hoisted(() => ({ failNext: false }));
-vi.mock('@grouper/core', async (importOriginal) => {
+vi.mock('@friendpod/core', async (importOriginal) => {
   const actual = await importOriginal<typeof Core>();
   return {
     ...actual,

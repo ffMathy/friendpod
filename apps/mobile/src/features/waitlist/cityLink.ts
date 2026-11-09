@@ -1,4 +1,4 @@
-import { cityLinkPath } from '@grouper/core';
+import { cityLinkPath } from '@friendpod/core';
 
 /**
  * The public host for links people share: the brand domain, connected as a custom domain to the production Hosting

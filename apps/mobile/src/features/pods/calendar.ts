@@ -1,4 +1,4 @@
-import { HOUR_MS, type Place } from '@grouper/core';
+import { HOUR_MS, type Place } from '@friendpod/core';
 import { createEventInCalendarAsync } from 'expo-calendar/legacy';
 
 /** The pod's `happened` timer fires 2 h after the start, so that is the event's length too. */

@@ -11,7 +11,7 @@ import {
   sensitiveInterestDocSchema,
   userBlockDocSchema,
   userDocSchema,
-} from '@grouper/core';
+} from '@friendpod/core';
 import { orderBy } from '@react-native-firebase/firestore';
 import { useLiveCollection, useLiveDoc } from './live';
 

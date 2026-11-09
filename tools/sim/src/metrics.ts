@@ -1,4 +1,4 @@
-import type { UnmatchedReason } from '@grouper/core';
+import type { UnmatchedReason } from '@friendpod/core';
 
 /** Percentile of censored values (Infinity = never); null when the percentile falls on a censored value. */
 export function censoredPercentile(values: readonly number[], p: number): number | null {

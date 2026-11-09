@@ -9,7 +9,7 @@ import {
   type AttendanceStatus,
   type Locale,
   type PodDoc,
-} from '@grouper/core';
+} from '@friendpod/core';
 import type { TFunction } from 'i18next';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';

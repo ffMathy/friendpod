@@ -1,4 +1,4 @@
-import type { PinnedModelFile } from '@grouper/core';
+import type { PinnedModelFile } from '@friendpod/core';
 import { EmbedderUnavailableError } from './types';
 
 /**

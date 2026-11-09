@@ -24,8 +24,8 @@ import {
   type MatchUser,
   type MatchingProfileId,
   type WeekId,
-} from '@grouper/core';
-import { sha256Hex } from '@grouper/core/node';
+} from '@friendpod/core';
+import { sha256Hex } from '@friendpod/core/node';
 import { FieldPath } from 'firebase-admin/firestore';
 import { grpcCode } from '../lib/errors';
 import { docs, matchProfiles, PATHS } from '../lib/firestore';

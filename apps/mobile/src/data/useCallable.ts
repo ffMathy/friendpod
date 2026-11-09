@@ -1,4 +1,4 @@
-import type { CallableName, CallableOutput } from '@grouper/core';
+import type { CallableName, CallableOutput } from '@friendpod/core';
 import { useMutation, type UseMutationOptions } from '@tanstack/react-query';
 import { callFunction, type AppError, type CallableRequest } from '@/firebase/callables';
 

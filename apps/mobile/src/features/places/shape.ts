@@ -1,4 +1,4 @@
-import { PLACE_ADDRESS_MAX, PLACE_NAME_MAX, PUBLIC_PLACE_TYPES, googleMapsPlaceUrl, placeSchema, roundPlaceCoord, type Place, type PublicPlaceType } from '@grouper/core';
+import { PLACE_ADDRESS_MAX, PLACE_NAME_MAX, PUBLIC_PLACE_TYPES, googleMapsPlaceUrl, placeSchema, roundPlaceCoord, type Place, type PublicPlaceType } from '@friendpod/core';
 import { PlaceNotPublicError } from './types';
 
 const PUBLIC: ReadonlySet<string> = new Set(PUBLIC_PLACE_TYPES);

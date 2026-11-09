@@ -20,8 +20,8 @@ import {
   type HmacSha256,
   type Partition,
   type SensitivityDecision,
-} from '@grouper/core';
-import { sha256Hex } from '@grouper/core/node';
+} from '@friendpod/core';
+import { sha256Hex } from '@friendpod/core/node';
 import type { Firestore } from 'firebase-admin/firestore';
 import { AppError } from '../lib/errors';
 import { docs } from '../lib/firestore';

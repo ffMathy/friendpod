@@ -4,7 +4,7 @@
  * private", "Remove & withdraw"), the "Did you mean" note, the eyebrow of the private card and the list card's title.
  * The add row is the design system's `AddField`; chips are its `Chip`.
  */
-import { DROP_TIME_ZONE, type Locale } from '@grouper/core';
+import { DROP_TIME_ZONE, type Locale } from '@friendpod/core';
 import type { ReactNode } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { Pressable, Text as RNText, StyleSheet, View } from 'react-native';

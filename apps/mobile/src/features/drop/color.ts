@@ -6,7 +6,7 @@
  * confirmed pod page. Open-to-anyone pods take theirs from the pod id; a pod about a private interest has none (it
  * stays quiet).
  */
-import type { PodCardDoc } from '@grouper/core';
+import type { PodCardDoc } from '@friendpod/core';
 import { podColorOf } from '@/features/pods/color';
 import type { PodColor } from '@/lib/podColor';
 

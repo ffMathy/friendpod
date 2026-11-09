@@ -1,4 +1,4 @@
-import { EMBEDDING_MODEL, deviceModelFiles, renormalize, type PinnedModelFile } from '@grouper/core';
+import { EMBEDDING_MODEL, deviceModelFiles, renormalize, type PinnedModelFile } from '@friendpod/core';
 import { loadGoldenReferences, runGoldenTest } from '@/features/interests/embedder/golden';
 import { getEmbedder, setEmbedderForTests } from '@/features/interests/embedder';
 import { createStubEmbedder } from '@/features/interests/embedder/stub';
@@ -16,7 +16,7 @@ import {
 import { EmbedderUnavailableError } from '@/features/interests/embedder/types';
 
 const DIR = 'models/eg2-test/';
-const DOCS = 'file:///data/user/0/dk.grouper.app/files/';
+const DOCS = 'file:///data/user/0/dk.friendpod.app/files/';
 const IOS_BUNDLE = 'file:///private/var/containers/Bundle/Application/X/Friendpod%20Dev.app/';
 const files: PinnedModelFile[] = [
   { path: 'tokenizer.json', sha256: 'a'.repeat(64), bytes: 10, device: true, source: 'hf' },
@@ -99,7 +99,7 @@ describe('bundled model files (D1)', () => {
 
     it('hands onnxruntime a plain, decoded file path', () => {
       expect(toNativePath(`${IOS_BUNDLE}${DIR}onnx/model_q4.onnx`)).toBe(`/private/var/containers/Bundle/Application/X/Friendpod Dev.app/${DIR}onnx/model_q4.onnx`);
-      expect(toNativePath(`${DOCS}${DIR}onnx/model_q4.onnx`)).toBe(`/data/user/0/dk.grouper.app/files/${DIR}onnx/model_q4.onnx`);
+      expect(toNativePath(`${DOCS}${DIR}onnx/model_q4.onnx`)).toBe(`/data/user/0/dk.friendpod.app/files/${DIR}onnx/model_q4.onnx`);
       expect(() => toNativePath(`asset:///${DIR}onnx/model_q4.onnx`)).toThrow(/file URI/);
       expect(toUri('asset:///x')).toBe('asset:///x');
     });

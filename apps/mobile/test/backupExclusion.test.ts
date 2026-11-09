@@ -1,4 +1,4 @@
-import { EMBEDDING_MODEL } from '@grouper/core';
+import { EMBEDDING_MODEL } from '@friendpod/core';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import withFirestoreBackupExclusion from '../plugins/withFirestoreBackupExclusion';

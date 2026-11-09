@@ -1,4 +1,4 @@
-import { getLaunchArea } from '@grouper/core';
+import { getLaunchArea } from '@friendpod/core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import * as Clipboard from 'expo-clipboard';
@@ -97,7 +97,7 @@ describe('in-app waitlist (§3.1 step 12)', () => {
     await act(async () => await fireEvent.press(screen.getByTestId('waitlist-share')));
     expect(share).toHaveBeenCalledTimes(1);
     const [content] = share.mock.calls[0]!;
-    // The public brand host, not the Firebase Hosting domain the email sign-in links use (grouper-staging.firebaseapp.com here).
+    // The public brand host, not the Firebase Hosting domain the email sign-in links use (friendpod-staging.firebaseapp.com here).
     const link = 'https://friendpod.dk/c/vejle';
     expect(content).toMatchObject({ url: link });
     expect((content as { message: string }).message).toContain(link);

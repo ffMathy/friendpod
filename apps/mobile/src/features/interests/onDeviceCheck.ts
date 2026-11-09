@@ -1,4 +1,4 @@
-import { detectThirdParty, findPii, normalizeTag, type NormalizeFailure } from '@grouper/core';
+import { detectThirdParty, findPii, normalizeTag, type NormalizeFailure } from '@friendpod/core';
 
 /**
  * Step (0) of the interest pipeline (DESIGN.md §5.2): the same normalization and PII patterns as the server, run

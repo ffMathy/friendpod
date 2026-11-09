@@ -3,10 +3,10 @@
  * deleteAccount. exportData and deleteAccount need a sign-in within 5 minutes and a replay-protected App Check token;
  * the callable wrapper checks both before any of this runs (handler.ts).
  */
-import { uidHash, type CallableInput, type CallableOutput } from '@grouper/core';
+import { uidHash, type CallableInput, type CallableOutput } from '@friendpod/core';
 import { FieldPath } from 'firebase-admin/firestore';
 import { AppError } from '../lib/errors';
-import { HOUR_MS } from '@grouper/core';
+import { HOUR_MS } from '@friendpod/core';
 import { DAY_MS, ERASURE_LEDGER_TTL_MS, docs, erasureLedger, ts } from '../lib/firestore';
 import type { CallContext } from '../lib/handler';
 import { OBJECT_PATHS, deletePrefix } from '../lib/objects';

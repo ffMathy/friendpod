@@ -3,7 +3,7 @@
  * after the commit, so a transaction that Firestore retries never pushes twice. Push failures are logged, never
  * thrown: the state change has committed and the app reads it from Firestore anyway.
  */
-import type { AppErrorCode } from '@grouper/core';
+import type { AppErrorCode } from '@friendpod/core';
 import { AppError } from '../lib/errors';
 import { docs } from '../lib/firestore';
 import { errorFields } from '../lib/log';

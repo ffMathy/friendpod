@@ -12,7 +12,7 @@ import {
   type CallableOutput,
   type InterestDoc,
   type SensitiveInterestDoc,
-} from '@grouper/core';
+} from '@friendpod/core';
 import { FieldValue } from 'firebase-admin/firestore';
 import { AppError } from '../lib/errors';
 import { ERASURE_LEDGER_TTL_MS, docs, erasureLedger, ts } from '../lib/firestore';

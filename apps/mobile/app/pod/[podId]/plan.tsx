@@ -1,4 +1,4 @@
-import { OPTIONS_PER_POD, yesVotes } from '@grouper/core';
+import { OPTIONS_PER_POD, yesVotes } from '@friendpod/core';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';

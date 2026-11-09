@@ -14,7 +14,7 @@ export interface Reference {
   readonly bucket: string;
 }
 
-const STORAGE: Storage = { bucket: 'demo-grouper.appspot.com' };
+const STORAGE: Storage = { bucket: 'demo-friendpod.appspot.com' };
 
 export const getStorage = (_app?: unknown): Storage => STORAGE;
 export const connectStorageEmulator = (): void => undefined;

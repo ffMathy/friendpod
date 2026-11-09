@@ -1,5 +1,5 @@
 {
-  "name": "@grouper/admin",
+  "name": "@friendpod/admin",
   "version": "0.0.0",
   "private": true,
   "description": "Admin CLI (DESIGN.md §9 Admin access, §13 Backups): launch areas, funnel, sanctions, reports and the restore runbook, with ADC.",
@@ -7,11 +7,11 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:emulator": "firebase --config firebase.test.json emulators:exec --only firestore --project demo-grouper \"vitest run\"",
+    "test:emulator": "firebase --config firebase.test.json emulators:exec --only firestore --project demo-friendpod \"vitest run\"",
     "admin": "tsx src/cli.ts"
   },
   "dependencies": {
-    "@grouper/core": "*",
+    "@friendpod/core": "*",
     "firebase-admin": "14.5.0"
   },
   "devDependencies": {

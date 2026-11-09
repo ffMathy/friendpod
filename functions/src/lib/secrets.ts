@@ -3,8 +3,8 @@
  * (`openssl rand -base64 32 | firebase functions:secrets:set UID_HMAC_KEY --data-file=-`).
  * UID_HMAC_KEY is domain-separated by message prefix: uidH, interestId, underage and ban email hashes.
  */
-import type { HmacSha256 } from '@grouper/core';
-import { nodeHmacSha256 } from '@grouper/core/node';
+import type { HmacSha256 } from '@friendpod/core';
+import { nodeHmacSha256 } from '@friendpod/core/node';
 import { defineSecret } from 'firebase-functions/params';
 
 export const UID_HMAC_KEY = defineSecret('UID_HMAC_KEY');

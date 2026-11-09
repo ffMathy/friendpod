@@ -5,7 +5,7 @@
 | | |
 |---|---|
 | Date | 2026-11-04 |
-| Matcher | `@grouper/core` `matchComponent` (DESIGN.md §6.3) at the scaffold commit that adds this file |
+| Matcher | `@friendpod/core` `matchComponent` (DESIGN.md §6.3) at the scaffold commit that adds this file |
 | Harness | `tools/sim` (DESIGN.md §6.9) |
 | Runs | n = 100 / 200 / 300 users × 3 variants × seeds 1–3, 12 weekly drops each |
 

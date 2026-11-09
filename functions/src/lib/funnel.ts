@@ -15,7 +15,7 @@ import {
   type FunnelStage,
   type HeardFromSource,
   type Milestones,
-} from '@grouper/core';
+} from '@friendpod/core';
 import { FieldValue, type Firestore, type Transaction, type WriteBatch } from 'firebase-admin/firestore';
 import { docs, ts } from './firestore';
 import type { AppDeps } from './runtime';

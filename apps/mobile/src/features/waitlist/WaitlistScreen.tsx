@@ -1,4 +1,4 @@
-import { waitlistDisplay, waitlistProgress } from '@grouper/core';
+import { waitlistDisplay, waitlistProgress } from '@friendpod/core';
 import * as Clipboard from 'expo-clipboard';
 import { useNavigation, useRouter } from 'expo-router';
 import { useLayoutEffect, useRef, useState } from 'react';

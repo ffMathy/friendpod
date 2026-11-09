@@ -1,4 +1,4 @@
-import { EMBEDDING_MODEL } from '@grouper/core';
+import { EMBEDDING_MODEL } from '@friendpod/core';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import withOrtPinned from '../plugins/withOrtPinned';
@@ -10,7 +10,7 @@ const PODFILE = `require File.join(File.dirname(\`node --print "require.resolve(
 
 platform :ios, podfile_properties['ios.deploymentTarget'] || '16.4'
 
-target 'GrouperDev' do
+target 'FriendpodDev' do
   use_expo_modules!
   config = use_native_modules!(config_command)
 end

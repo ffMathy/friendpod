@@ -5,13 +5,13 @@
  * which firebase-admin reads itself; then the project must be a `demo-*` project, and a `demo-*` project is refused
  * without the emulator, so a run can never be mistaken for the other.
  */
-import { FUNCTIONS_REGION, OPEN_AREA_DISPATCH_DEADLINE_SECONDS, openAreaTask, openAreaTaskId } from '@grouper/core';
+import { FUNCTIONS_REGION, OPEN_AREA_DISPATCH_DEADLINE_SECONDS, openAreaTask, openAreaTaskId } from '@friendpod/core';
 import { applicationDefault, deleteApp, initializeApp, type App } from 'firebase-admin/app';
 import { getFirestore, type Firestore } from 'firebase-admin/firestore';
 import { getFunctions } from 'firebase-admin/functions';
 import { UsageError } from './args';
 
-/** Shared with codebase "default" through @grouper/core (deploy.ts), so the two cannot drift. */
+/** Shared with codebase "default" through @friendpod/core (deploy.ts), so the two cannot drift. */
 export { FUNCTIONS_REGION, OPEN_AREA_DISPATCH_DEADLINE_SECONDS, openAreaTaskId };
 export const DEFAULT_DATABASE = '(default)';
 
@@ -44,7 +44,7 @@ export function checkDatabaseId(id: string): string {
 
 /** Validates `--project` against the emulator environment (see the module comment). */
 export function checkProject(project: string | undefined, env: NodeJS.ProcessEnv = process.env): { project: string; emulator: boolean } {
-  if (!project) throw new UsageError('--project <id> is required (grouper-staging, grouper-prod, or demo-grouper with the emulators)');
+  if (!project) throw new UsageError('--project <id> is required (friendpod-staging, friendpod-prod, or demo-friendpod with the emulators)');
   if (!PROJECT_ID.test(project)) throw new UsageError(`not a Firebase project id: ${project}`);
   const emulator = Boolean(env.FIRESTORE_EMULATOR_HOST?.trim());
   const demo = project.startsWith('demo-');
@@ -104,7 +104,7 @@ export function createContext(options: ContextOptions): AdminContext {
   const serviceAccountId = options.taskServiceAccount ?? `sa-api@${project}.iam.gserviceaccount.com`;
   const app = initializeApp(
     emulator ? { projectId: project } : { projectId: project, credential: applicationDefault(), serviceAccountId },
-    `grouper-admin-${project}-${Date.now()}`,
+    `friendpod-admin-${project}-${Date.now()}`,
   );
   const dbs = new Map<string, Firestore>();
   let principal: Promise<string> | undefined;

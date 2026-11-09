@@ -96,7 +96,7 @@ describe('callables over HTTP', () => {
   });
 
   it('checks a proposed place against the Places shape before proposeOption runs (D8)', async () => {
-    const { googleMapsPlaceUrl } = await import('@grouper/core');
+    const { googleMapsPlaceUrl } = await import('@friendpod/core');
     const placeId = 'ChIJ0000aarhusLibrary';
     const place = { placeId, name: 'Dokk1', address: 'Hack Kampmanns Plads 2, Aarhus', lat: 56.1532, lng: 10.214, type: 'library', mapUrl: googleMapsPlaceUrl(placeId, 'Dokk1') };
     const data = { podId: 'e'.repeat(20), startsAt: Date.UTC(2026, 10, 20, 17), place };

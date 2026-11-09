@@ -1,5 +1,5 @@
 /** Every callable of codebase "default" (DESIGN.md §10.1) with its final name and options. */
-import type { CallableInput, CallableName, CallableOutput } from '@grouper/core';
+import type { CallableInput, CallableName, CallableOutput } from '@friendpod/core';
 import { withActivity } from '../lib/activity';
 import { callable, type CallContext } from '../lib/handler';
 import { callableOptions } from '../lib/options';

@@ -1,4 +1,4 @@
-import { GENDERS, type Gender, type Locale } from '@grouper/core';
+import { GENDERS, type Gender, type Locale } from '@friendpod/core';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Modal, StyleSheet, View } from 'react-native';
@@ -19,7 +19,7 @@ export interface GenderConsentSheetProps {
  * app's other sheets are (spec §6.14): a content-height white panel with a handle over the dimmed page, the Headline
  * title with the close cross, the choices as pills (selected Ink), and the actions right under the consent box: the
  * primary, then the secondary "Cancel" every sheet with a primary or destructive action ends with. The
- * consent copy is verbatim from @grouper/core; gender is sent only with the consent proof.
+ * consent copy is verbatim from @friendpod/core; gender is sent only with the consent proof.
  */
 export function GenderConsentSheet({ visible, locale, onDone }: GenderConsentSheetProps) {
   const { t } = useTranslation();

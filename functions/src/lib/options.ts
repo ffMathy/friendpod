@@ -2,7 +2,7 @@
  * Deployment options for codebase "default" (DESIGN.md §7, §9, §10). Every function spreads one of these
  * explicitly instead of relying on setGlobalOptions(), so a function's options do not depend on import order.
  */
-import { CALLABLES, FUNCTIONS_REGION, LONG_TASK_DISPATCH_DEADLINE_SECONDS, type CallableName } from '@grouper/core';
+import { CALLABLES, FUNCTIONS_REGION, LONG_TASK_DISPATCH_DEADLINE_SECONDS, type CallableName } from '@friendpod/core';
 import type { CallableOptions } from 'firebase-functions/https';
 import type { GlobalOptions } from 'firebase-functions/options';
 import { UID_HMAC_KEY } from './secrets';

@@ -571,7 +571,7 @@ All figures [CAL]. False flags fall mostly on Danish hobby words: 64% of Danish 
 
 Firestore vector search is flat only and bills one read per 100 index entries scanned (https://firebase.google.com/docs/firestore/pricing, https://docs.cloud.google.com/firestore/native/docs/vector-search). With about 73% fragmentation (§5.3), concepts number about 0.73 × tags, so `findNearest` over all concepts costs about 1,800 reads per new text at 180k concepts (250k tags). That is $11–55/month at 20k–90k new tags per month, growing with new texts × concepts. Two stages:
 - **Up to about 20k active concepts (M1–M3):** `findNearest` over `concepts` prefiltered by `sensitive == partition AND status == 'active'`, `DOT_PRODUCT`, limit 3. This needs a composite flat vector index (`sensitive`, `status` + `centroid`; §8 Indexes) [SRV][FBX]. At 20k concepts a new text costs about 200 reads.
-- **Above 20k active concepts** (Wednesday maintenance reports the active-concept count and alerts at 15k): an in-memory shortlist. Weekly maintenance writes a snapshot of every active concept as a 256-d int8 vector (truncated, re-normalized, quantized; about 46 MB at 180k concepts) to `gs://grouper-<env>-snapshots/concepts-{gen}.bin`. `addInterests` (which then gets 1 GiB) loads it lazily on the first new text. It then (a) takes the top 20 from the snapshot in the right partition, (b) runs `findNearest` only over concepts created since the snapshot (`gen == currentGen`, a few thousand at most), and (c) rescores the union exactly at 768-d, using the centroids from `getAll` (≤ 25 reads). Thresholds stay at 768-d. Firestore remains the source of truth.
+- **Above 20k active concepts** (Wednesday maintenance reports the active-concept count and alerts at 15k): an in-memory shortlist. Weekly maintenance writes a snapshot of every active concept as a 256-d int8 vector (truncated, re-normalized, quantized; about 46 MB at 180k concepts) to `gs://friendpod-<env>-snapshots/concepts-{gen}.bin`. `addInterests` (which then gets 1 GiB) loads it lazily on the first new text. It then (a) takes the top 20 from the snapshot in the right partition, (b) runs `findNearest` only over concepts created since the snapshot (`gen == currentGen`, a few thousand at most), and (c) rescores the union exactly at 768-d, using the centroids from `getAll` (≤ 25 reads). Thresholds stay at 768-d. Firestore remains the source of truth.
 
 Never run `findNearest` over `tags` on the hot path: that would cost about $124/month at 100k users [SRV]. Merged concepts (`status: 'merged'`) are excluded by the prefilter and the snapshot.
 
@@ -753,7 +753,7 @@ function matchComponent(users, concepts, p, seed): { pods, unmatched, stats } {
 - Shards run sequentially inside one 1,800 s task. M0 benchmarks a 50k-user component; if it does not fit, shards become separate tasks and the leftover pass a final task.
 
 ### 6.5 Determinism and idempotency
-- **Frozen inputs.** At 16:00 `dropOrchestrator` reads the opted-in profiles of live areas once and writes one gzipped input snapshot per component to `gs://grouper-<env>-drops/{weekId}/{componentId}.input.json.gz`: profiles plus the projected concepts (§6.4). It records `inputHash = sha256(file)`. Retries read the same file, never live Firestore, so interests, preferences, blocks and deletions that change after 16:00 cannot change the result. They are handled by revalidation at release (§10.3).
+- **Frozen inputs.** At 16:00 `dropOrchestrator` reads the opted-in profiles of live areas once and writes one gzipped input snapshot per component to `gs://friendpod-<env>-drops/{weekId}/{componentId}.input.json.gz`: profiles plus the projected concepts (§6.4). It records `inputHash = sha256(file)`. Retries read the same file, never live Firestore, so interests, preferences, blocks and deletions that change after 16:00 cannot change the result. They are handled by revalidation at release (§10.3).
 - **No RNG state.** Ties break on `xxhash32(weekId:uid)`; all iteration runs over arrays sorted by ID; local search stops on a move budget, not a clock.
 - `podId = base32(HMAC-SHA256(POD_ID_KEY, weekId|sortedUids))[0..20]` (A18), computed from the member set in the result, before release revalidation, so a retried release finds the same IDs. Each user is in at most one new pod per drop, so the sorted uids identify the pod.
 - **Single result object.** `matchComponent` writes nothing to Firestore except stats. It writes its whole result to `…/{componentId}.result.{inputHash}.json`, then flips one pointer, `drops/{weekId}/components/{componentId}.computed = {inputHash, path}`, with create-if-absent. A retry that finds the pointer stops. A partial attempt leaves at most an unreferenced object, which is never read.
@@ -873,7 +873,7 @@ flowchart LR
 | Places | Google Places API (New): Autocomplete with session tokens and Place Details Essentials, called **from the app** with an API key restricted to the iOS bundle ID and the Android package + signing certificate, and to the Places API (New) only; per-day quota caps in the Cloud console (§9) | No server proxy, so no extra function and no place query in our logs; Google sees the query and the device IP (PRIVACY.md §9) [PX] |
 | Scheduler | 3 jobs: `dropOrchestrator`, `hourlySweeper`, `dailyMaintenance` | 3 free per billing account [FBX] |
 | Cloud Tasks | Queues `matchComponent`, `releaseDrop`, `backfillPod`, `buildExport`, `deleteExport`, `purgeUser`, `interestsBatch`, each with an explicit `retryConfig` and `rateLimits`. Long tasks are enqueued with `dispatchDeadlineSeconds: 1800` (the Cloud Tasks default is 10 minutes, the maximum 30) and deterministic task IDs (e.g. `${weekId}-${componentId}`) | 1M ops/month free [FBX] |
-| Storage | Bucket `grouper-prod.firebasestorage.app` in europe-west1 (photos, uploads, exports). Server-only buckets `grouper-<env>-drops` (lifecycle 2 days) and `grouper-<env>-snapshots` (14 days); `grouper-<env>-models` (private) holds a mirror of the pinned model files and `prototypes.bin` for CI and app builds; the app and Functions never read it (F32, F38) | EU buckets are billed from the first byte [FBX][PX] |
+| Storage | Bucket `friendpod-prod.firebasestorage.app` in europe-west1 (photos, uploads, exports). Server-only buckets `friendpod-<env>-drops` (lifecycle 2 days) and `friendpod-<env>-snapshots` (14 days); `friendpod-<env>-models` (private) holds a mirror of the pinned model files and `prototypes.bin` for CI and app builds; the app and Functions never read it (F32, F38) | EU buckets are billed from the first byte [FBX][PX] |
 | Hosting | Firebase Hosting: the default domain serves the email-link handler (`/__/auth/links`) and two static pages (account deletion for Google Play, privacy notice) | Global CDN; receives IP addresses and one-time codes (PRIVACY.md §9) |
 | App Check | RNFirebase provider: Play Integrity, App Attest with DeviceCheck fallback, debug in dev | JS SDK providers are web-only [FBX] |
 | Push | `@react-native-firebase/messaging` + Admin `sendEach()` | Generic payloads only [FBX] |
@@ -881,7 +881,7 @@ flowchart LR
 
 **Cloud regions:**
 - **Pinned to europe-west1:** Firestore, Functions (one codebase, `default`), the model bucket, Cloud Tasks, Scheduler, Storage and the server-only buckets, Artifact Registry, Secret Manager replication (user-managed, europe-west1), and **Cloud Logging buckets**.
-- **Logging location.** Cloud Logging creates `_Default` and `_Required` in the `global` location, and a bucket's location cannot be changed afterwards (https://docs.cloud.google.com/logging/docs/default-settings, https://docs.cloud.google.com/logging/docs/region-support). Therefore, **before** `grouper-staging` and `grouper-prod` are created:
+- **Logging location.** Cloud Logging creates `_Default` and `_Required` in the `global` location, and a bucket's location cannot be changed afterwards (https://docs.cloud.google.com/logging/docs/default-settings, https://docs.cloud.google.com/logging/docs/region-support). Therefore, **before** `friendpod-staging` and `friendpod-prod` are created:
   1. create a Cloud Identity Free organization for the company domain (it is also needed for organization policies);
   2. run `gcloud logging settings update --organization=ORG_ID --storage-location=europe-west1`;
   3. set the organization policy `gcp.resourceLocations` to `in:eu-locations`.
@@ -944,9 +944,9 @@ Conventions:
 - `uploads/{uid}/pending.jpg` and `pending_256.jpg`: fixed names, so at most one pending pair per uid. Owner create or overwrite only, ≤ 2 MB, `image/jpeg`. Deleted after processing; lifecycle 1 day as a backstop.
 - `photos/{uid}/{v}.jpg` and `{v}_256.jpg`: read by the owner or a grantee; server writes; `cacheControl: private, max-age=3600`. Only the current version exists: `onPhotoUploaded` deletes earlier versions.
 - `exports/{uid}/{id}.json`: owner read; deleted by a `deleteExport` task at +24 h; lifecycle 1 day as a backstop.
-- `gs://grouper-<env>-drops/{weekId}/…` (server only): drop input and result snapshots; deleted after release; lifecycle 2 days.
-- `gs://grouper-<env>-snapshots/` (server only): concept snapshots (14 days).
-- `gs://grouper-<env>-models/models/eg2-q4-daa72c5/` (private; build machines only: read by CI through WIF and by app builds through a 1-hour access token of `sa-build@` passed to `fetch-model` as `MODEL_MIRROR_TOKEN` (§9); written by CI): a mirror of the pinned model files and `prototypes.bin`; no user data. Not public: an unauthenticated read fails. The app never reads it; its model ships inside the app (F32).
+- `gs://friendpod-<env>-drops/{weekId}/…` (server only): drop input and result snapshots; deleted after release; lifecycle 2 days.
+- `gs://friendpod-<env>-snapshots/` (server only): concept snapshots (14 days).
+- `gs://friendpod-<env>-models/models/eg2-q4-daa72c5/` (private; build machines only: read by CI through WIF and by app builds through a 1-hour access token of `sa-build@` passed to `fetch-model` as `MODEL_MIRROR_TOKEN` (§9); written by CI): a mirror of the pinned model files and `prototypes.bin`; no user data. Not public: an unauthenticated read fails. The app never reads it; its model ships inside the app (F32).
 
 **Indexes (`firestore.indexes.json`):**
 - Two composite vector indexes on `concepts`: `sensitive` ASC + `status` ASC + `centroid`, and `sensitive` ASC + `status` ASC + `gen` ASC + `centroid`, both `{dimension: 768, flat: {}}` [SRV].
@@ -1129,7 +1129,7 @@ There is no `auth.user().onDelete` trigger. That trigger exists only in 1st gen,
 | Navigation | expo-router (typed routes). `+native-intent.tsx` rewrites incoming email-link URLs to `/auth/complete` |
 | Firebase | RNFirebase 27.1.0, modular API: `app`, `auth`, `firestore`, `functions` (region europe-west1), `storage`, `messaging`, `app-check`. Needs `expo-build-properties` `ios.useFrameworks: 'dynamic'`, Android minSdk 24 and Kotlin 2.4.0 [FBX] |
 | Auth | `expo-apple-authentication` 58.0.2 (**iOS only**, F25; the Android sign-in screen shows Google and email link; name/email not requested; `revokeToken` before deletion, §3.10). `@react-native-google-signin/google-signin` 17.0.0, requesting the smallest scopes the SDK allows (M0 checks whether the ID token still carries name and picture); test the iOS SPM build in week 1, fall back to `react-native-nitro-google-signin` [FBX]. Email link via `ActionCodeSettings.linkDomain` (Hosting domain, `/__/auth/links`), email kept in `expo-secure-store` [FBX]. Dynamic Links shut down on 25 Aug 2025, so the link needs App Links / Universal Links on the Hosting domain (https://firebase.google.com/docs/auth/web/email-link-auth) |
-| Email-link plumbing (per `APP_ENV`) | `app.config.ts` sets `ios.associatedDomains: ['applinks:<projectId>.firebaseapp.com']` (https://firebase.google.com/docs/auth/ios/email-link-auth) and `android.intentFilters: [{action: 'VIEW', autoVerify: true, data: [{scheme: 'https', host: '<projectId>.firebaseapp.com', pathPrefix: '/__/auth/links'}], category: ['BROWSABLE', 'DEFAULT']}]`, with `<projectId>` = `grouper-staging` or `grouper-prod`. Firebase console, per project (M0 checklist): Apple Team ID and bundle ID on the iOS app; SHA-256 fingerprints of the EAS upload key and the Play app-signing key on the Android app; the Hosting domain in Auth authorized domains |
+| Email-link plumbing (per `APP_ENV`) | `app.config.ts` sets `ios.associatedDomains: ['applinks:<projectId>.firebaseapp.com']` (https://firebase.google.com/docs/auth/ios/email-link-auth) and `android.intentFilters: [{action: 'VIEW', autoVerify: true, data: [{scheme: 'https', host: '<projectId>.firebaseapp.com', pathPrefix: '/__/auth/links'}], category: ['BROWSABLE', 'DEFAULT']}]`, with `<projectId>` = `friendpod-staging` or `friendpod-prod`. Firebase console, per project (M0 checklist): Apple Team ID and bundle ID on the iOS app; SHA-256 fingerprints of the EAS upload key and the Play app-signing key on the Android app; the Hosting domain in Auth authorized domains |
 | i18n | `i18next` + `react-i18next` + `expo-localization`; `src/i18n/{da,en}.json`; ICU plurals; Danish default for `da-*` locales. Legal and consent texts live in `packages/core/src/legal` (versioned, hashed) |
 | Data | TanStack Query v5 for callables; small hooks that bridge Firestore `onSnapshot` into the query cache; RNFirebase offline cache on, and cleared on sign-out and deletion with `terminate()` + `clearPersistence()` (§9 Photos) |
 | Forms | `react-hook-form` + zod resolvers using shared schemas |
@@ -1203,8 +1203,8 @@ The full overview, with every third-party service, unit prices, sources and date
 | Env | Project | Use |
 |---|---|---|
 | local | Emulator Suite (auth 9099, firestore 8080, functions 5001, storage 9199, tasks 9499 [A], UI 4000); Java 21 or newer [FBX] | Daily development, all automated tests |
-| staging | `grouper-staging` (Blaze, own budget) | Internal TestFlight / Play internal testing; schedules paused unless testing |
-| prod | `grouper-prod` | Production |
+| staging | `friendpod-staging` (Blaze, own budget) | Internal TestFlight / Play internal testing; schedules paused unless testing |
+| prod | `friendpod-prod` | Production |
 
 The app picks its environment from `APP_ENV` in `app.config.ts`. Per-env `GoogleService-Info.plist` and `google-services.json` are kept as EAS file env vars.
 
@@ -1259,7 +1259,7 @@ The app picks its environment from `APP_ENV` in `app.config.ts`. Per-env `Google
 **One explicit model.** The root is an npm workspace for `apps/*`, `packages/*`, `tools/*` and `tests/*`. The functions source directory, `functions/`, is a **standalone npm project, not a workspace**, with its own `package-lock.json` and real dependencies on `firebase-functions` and `firebase-admin`. (`services/embedder/` was removed with F16.) Cloud Build reinstalls dependencies from the uploaded source folder (the long-standing monorepo issue firebase-tools #653), so the source folder must be installable on its own. With its own lockfile, that install is reproducible, and there are no hoisted `node_modules` to confuse function discovery. `packages/core` is resolved through a tsconfig `paths` alias and **bundled into `dist/index.js` with esbuild**. It never appears in the functions `package.json`. Dependencies that must stay external (`firebase-functions`, `firebase-admin`) are marked external in esbuild.
 
 ```
-grouper/
+friendpod/
 ├── package.json                    # workspaces: apps/*, packages/*, tools/*, tests/*; engines node >=24.12
 ├── firebase.json                   # firestore, storage, hosting, emulators, functions: [default]
 ├── .firebaserc                     # staging / prod aliases
@@ -1274,7 +1274,7 @@ grouper/
 │   └── src/{firebase,features/{interests/embedder,places,pods,consent,...},components,i18n/{da,en}.json,lib}/
 ├── functions/                      # codebase "default"; standalone npm project (own package-lock.json)
 │   ├── package.json                # deps: firebase-functions 7.4.0, firebase-admin 14.5.0
-│   ├── esbuild.config.mjs          # bundles src + @grouper/core (tsconfig paths) → dist/index.js
+│   ├── esbuild.config.mjs          # bundles src + @friendpod/core (tsconfig paths) → dist/index.js
 │   └── src/{index.ts,callables/,interests/,scheduled/,tasks/,triggers/,lib/handler.ts}  test/   # interests/: addInterests pipeline (§5.2)
 ├── packages/core/
 │   └── src/{schemas/,types/,interests/{normalize,pii,blocklist,thirdParty,sensitivity,assign,model,detector}.ts,
@@ -1367,7 +1367,7 @@ Where the code departs from this document it carries a `DESIGN-DEVIATION` commen
 | Postcodes | DAWA (`api.dataforsyningen.dk`) answers 410 Gone; `dk-postcodes.json` comes from GeoNames DK (CC BY 4.0, 1,154 postcodes, attribution in the file) | §3.1, §14 |
 | Launch areas | `areas.json` uses every geohash-5 cell within 20 km of each city centre (Aarhus 95, Copenhagen 96, Aalborg 97, Odense 93, Vejle 94 cells) as an approximation; replace with municipality boundaries before go-live | §6.4 |
 | Funnel | `firstProposal` (release batch, backfill transaction), `firstConfirmed` (confirmation and late joins), `firstMeetupHappened`/`secondMeetup` (the sweeper at T+2 h, for members `coming` then) are counted in the transaction of the event. The abandoned-sign-up `signup` is counted by the `dailyMaintenance` Auth reconciliation; `purgeUser` uses `eraseMatchProfileAndAreaCount` | §6.8 |
-| Admin CLI | Region and the `openArea` dispatch deadline come from `@grouper/core` (`deploy.ts`), shared with the functions; runs are recorded in `adminRuns` (§8.2); `restore replay-ledger` needs `UID_HMAC_KEY` | §9, §10.3, §13 |
+| Admin CLI | Region and the `openArea` dispatch deadline come from `@friendpod/core` (`deploy.ts`), shared with the functions; runs are recorded in `adminRuns` (§8.2); `restore replay-ledger` needs `UID_HMAC_KEY` | §9, §10.3, §13 |
 | Layout | `tests/rules` is a standalone npm project (own lockfile) like `functions/`; the log scrubber lives in `packages/core/src/server/logSafe.ts` and the codebase keeps a thin handler | §13, §14 |
 | Roster "about me" | `pods.roster[uid].aboutMe` is in `podDocSchema`; confirmation and late joins copy it, and `updateProfile` refreshes `firstName` and `aboutMe` in every pod roster the user is on after its transaction (one transaction per pod), archived and dissolved pods included (founder decision 2026-11-05: an edited or cleared "about me" must not linger in old pods until they are deleted) | §8.1, §10.1 |
 | podState fields | `theme` (concept id and sensitivity, no label: a `proposed` pod has no `pods` doc, but backfill needs the concept), `sizeTarget`, `dueAt` (the earliest unprocessed timer of the state, the sweeper's one indexed query), timers `reminder` (T−2 h) and `happened` (T+2 h), member status `expired` (an invitation that lapsed: an ignored proposal, never a decline) and member flag `lateCancelled` (one late cancel per meetup). Processed timers are deleted, so a retried sweep never repeats one | §8.2 |

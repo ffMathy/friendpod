@@ -20,7 +20,7 @@ import {
   type MatchingProfile,
   type UnmatchedReason,
   type WeekId,
-} from '@grouper/core';
+} from '@friendpod/core';
 import type { DocumentSnapshot, Firestore } from 'firebase-admin/firestore';
 import { grpcCode } from '../lib/errors';
 import { errorFields } from '../lib/log';

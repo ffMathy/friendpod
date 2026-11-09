@@ -1,4 +1,4 @@
-import { DAY_MS, fromLocal, toLocal, ymdDateSchema, type Place } from '@grouper/core';
+import { DAY_MS, fromLocal, toLocal, ymdDateSchema, type Place } from '@friendpod/core';
 
 /** Planner limits (§3.5, §4.3): within 14 days, 08:00–22:00 local time. */
 export const OPTION_WINDOW_DAYS = 14;

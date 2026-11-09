@@ -4,7 +4,7 @@
  * priv-delete (the back chevron above it), white list cards, drop-why's disc bullets and onb-final's icon headings.
  * No pod colour here: these pages belong to no pod.
  */
-import { DROP_TIME_ZONE, type Locale } from '@grouper/core';
+import { DROP_TIME_ZONE, type Locale } from '@friendpod/core';
 import { useRouter } from 'expo-router';
 import { useId, type ReactNode } from 'react';
 import { StyleSheet, View, type ColorValue } from 'react-native';

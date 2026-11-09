@@ -6,7 +6,7 @@ import {
   renormalize,
   xxhash32,
   type Prototypes,
-} from '@grouper/core';
+} from '@friendpod/core';
 import type { Embedder } from './types';
 
 /** Mulberry32: a tiny seeded PRNG, so a norm always maps to the same vector. */

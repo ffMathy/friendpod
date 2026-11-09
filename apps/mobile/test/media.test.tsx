@@ -7,7 +7,7 @@ import { PhotoCard } from '@/features/photos/PhotoCard';
 import { uploadPhoto } from '@/features/photos/upload';
 import { storageAuthHeaders, storageObjectUrl } from '@/firebase/storageRest';
 
-jest.mock('@react-native-firebase/app', () => ({ getApp: () => ({ options: { storageBucket: 'demo-grouper.appspot.com' } }) }));
+jest.mock('@react-native-firebase/app', () => ({ getApp: () => ({ options: { storageBucket: 'demo-friendpod.appspot.com' } }) }));
 jest.mock('@react-native-firebase/app-check', () => ({ getToken: async () => ({ token: 'appcheck-token' }) }));
 let mockSignedIn = true;
 jest.mock('@react-native-firebase/auth', () => ({ getIdToken: async () => 'id-token' }));
@@ -102,7 +102,7 @@ beforeEach(() => {
 describe('authenticated Storage downloads (§9 Photos)', () => {
   it('uses the REST object URL with the ID token and App Check headers, never a download URL', async () => {
     expect(storageObjectUrl('photos/anna/3_256.jpg')).toBe(
-      'https://firebasestorage.googleapis.com/v0/b/demo-grouper.appspot.com/o/photos%2Fanna%2F3_256.jpg?alt=media',
+      'https://firebasestorage.googleapis.com/v0/b/demo-friendpod.appspot.com/o/photos%2Fanna%2F3_256.jpg?alt=media',
     );
     await expect(storageAuthHeaders()).resolves.toEqual({ Authorization: 'Firebase id-token', 'X-Firebase-AppCheck': 'appcheck-token' });
     mockSignedIn = false;
@@ -127,7 +127,7 @@ describe('authenticated Storage downloads (§9 Photos)', () => {
     await downloadExport('me', 'exp1', 'Your Friendpod data');
     expect(mockFs.deleted).toBe(1);
     const [url, target, options] = mockFs.download.mock.calls[0] as [string, { uri: string }, { headers: Record<string, string>; idempotent: boolean }];
-    expect(url).toBe('https://firebasestorage.googleapis.com/v0/b/demo-grouper.appspot.com/o/exports%2Fme%2Fexp1.json?alt=media');
+    expect(url).toBe('https://firebasestorage.googleapis.com/v0/b/demo-friendpod.appspot.com/o/exports%2Fme%2Fexp1.json?alt=media');
     expect(target.uri).toBe('cache:/exports/friendpod-data-exp1.json');
     expect(options).toMatchObject({ headers: { Authorization: 'Firebase id-token', 'X-Firebase-AppCheck': 'appcheck-token' }, idempotent: true });
     expect(mockFs.preview).toHaveBeenCalledWith({ uri: 'cache:/exports/friendpod-data-exp1.json' }, { title: 'Your Friendpod data', mimeType: 'application/json' });

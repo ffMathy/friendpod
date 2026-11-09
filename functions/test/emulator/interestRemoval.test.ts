@@ -5,7 +5,7 @@
  * included; `users.legal.art9` gone), single removals of either kind with tag and concept garbage collection,
  * `podInterests` recomputed after removals and "Keep this private", stars, and alias votes. Owns weeks 2027-W30–W34.
  */
-import { EMBEDDING_MODEL, consentProofFor, dropSchedule, interestId, uidHash, type Prototypes, type WeekId } from '@grouper/core';
+import { EMBEDDING_MODEL, consentProofFor, dropSchedule, interestId, uidHash, type Prototypes, type WeekId } from '@friendpod/core';
 import { FieldValue, Timestamp } from 'firebase-admin/firestore';
 import { beforeAll, expect, it } from 'vitest';
 import { addInterestsWith } from '../../src/callables/addInterests';

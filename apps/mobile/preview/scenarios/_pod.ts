@@ -4,7 +4,7 @@
  * them, and a `sendMessage` that warns about contact details before the meetup as the server does. Placeholders only,
  * never real venues.
  */
-import { checkChatText, DAY_MS, type Locale } from '@grouper/core';
+import { checkChatText, DAY_MS, type Locale } from '@friendpod/core';
 import type { CallableHandlers, DocData, PlaceFixture } from '../runtime/types';
 import { Timestamp } from '../runtime/timestamp';
 import { braetspilPod, chatMessages, ME, MEMBERS, place, ts } from './_kit';

@@ -3,7 +3,7 @@
  * Prints the run's metrics as JSON. Synthetic simulation with assumed behaviour (see behaviour.ts).
  */
 import { parseArgs } from 'node:util';
-import { getMatchingProfile, MATCHING_PROFILE_IDS, type MatchingProfileId } from '@grouper/core';
+import { getMatchingProfile, MATCHING_PROFILE_IDS, type MatchingProfileId } from '@friendpod/core';
 import { simulate } from './loop';
 
 const { values } = parseArgs({

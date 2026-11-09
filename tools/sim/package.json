@@ -1,5 +1,5 @@
 {
-  "name": "@grouper/sim",
+  "name": "@friendpod/sim",
   "version": "0.0.0",
   "private": true,
   "description": "Synthetic-city simulation harness for the matcher (DESIGN.md §6.9).",
@@ -13,7 +13,7 @@
     "bench": "tsx src/bench.ts"
   },
   "dependencies": {
-    "@grouper/core": "*"
+    "@friendpod/core": "*"
   },
   "devDependencies": {
     "@types/node": "24.19.2",

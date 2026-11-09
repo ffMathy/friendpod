@@ -3,18 +3,18 @@
 Security-rules tests for `firestore.rules` and `storage.rules` (DESIGN.md §9, §13), plus invariants of
 `firestore.indexes.json`. This is a standalone npm project with its own `package-lock.json`, not a workspace
 (DESIGN.md §14 lists it as a workspace; it is standalone so it never races the root lockfile). It does not use
-`@grouper/core`, so it does not need the root install.
+`@friendpod/core`, so it does not need the root install.
 
 ```sh
 npm ci --prefix tests/rules
 # from the repo root; the emulators set FIRESTORE_EMULATOR_HOST and FIREBASE_STORAGE_EMULATOR_HOST
-firebase emulators:exec --only firestore,storage --project demo-grouper "npm --prefix tests/rules test"
+firebase emulators:exec --only firestore,storage --project demo-friendpod "npm --prefix tests/rules test"
 npm --prefix tests/rules run typecheck
 npm --prefix tests/rules run validate:indexes   # firebase-tools' own deploy-time validator; needs `firebase` on PATH
 ```
 
 Without the emulator variables the rules suites fail with the command to run. They load the real rules files from
-the repo root and run one file at a time, because they share the `demo-grouper` emulator project.
+the repo root and run one file at a time, because they share the `demo-friendpod` emulator project.
 
 ## What is covered
 

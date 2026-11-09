@@ -6,7 +6,7 @@ import {
   type CallableInput,
   type CallableOutput,
   type ModerationReason,
-} from '@grouper/core';
+} from '@friendpod/core';
 import { useCallback, useState } from 'react';
 import { callFunction, toAppError, type AppError } from '@/firebase/callables';
 import { EmbedderUnavailableError, getEmbedder, type EmbedderUnavailableReason } from './embedder';

@@ -1,4 +1,4 @@
-import type { LaunchAreaStatus } from '@grouper/core';
+import type { LaunchAreaStatus } from '@friendpod/core';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import { BorderWidth, Radius, usePalette } from '@/components/theme';

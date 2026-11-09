@@ -19,7 +19,7 @@ import {
   type CallableName,
   type CallableOutput,
   type WeekId,
-} from '@grouper/core';
+} from '@friendpod/core';
 import { expect, it } from 'vitest';
 import * as pods from '../../src/callables/pods';
 import { docs, ts } from '../../src/lib/firestore';

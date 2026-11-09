@@ -1,4 +1,4 @@
-import type { InterestDoc, Prefs } from '@grouper/core';
+import type { InterestDoc, Prefs } from '@friendpod/core';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';

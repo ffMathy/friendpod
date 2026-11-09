@@ -1,6 +1,6 @@
 /**
  * HMAC-SHA256 with the key bound inside. Keys come from Secret Manager in Functions; core never sees them.
- * Async so a Web Crypto implementation fits; Node's is in `@grouper/core/node`.
+ * Async so a Web Crypto implementation fits; Node's is in `@friendpod/core/node`.
  */
 export type HmacSha256 = (message: Uint8Array) => Promise<Uint8Array>;
 

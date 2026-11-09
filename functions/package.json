@@ -1,8 +1,8 @@
 {
-  "name": "grouper-functions",
+  "name": "friendpod-functions",
   "version": "0.0.0",
   "private": true,
-  "description": "Cloud Functions codebase \"default\" (DESIGN.md §10.1, §10.3). Standalone npm project; @grouper/core is bundled from ../packages/core by esbuild.",
+  "description": "Cloud Functions codebase \"default\" (DESIGN.md §10.1, §10.3). Standalone npm project; @friendpod/core is bundled from ../packages/core by esbuild.",
   "type": "module",
   "main": "dist/index.js",
   "engines": {

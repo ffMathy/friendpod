@@ -1,4 +1,4 @@
-import { normalizeTag } from '@grouper/core';
+import { normalizeTag } from '@friendpod/core';
 import { checkInterestOnDevice } from '@/features/interests/onDeviceCheck';
 
 describe('on-device interest check (DESIGN.md §5.2 (0))', () => {

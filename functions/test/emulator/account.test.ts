@@ -5,7 +5,7 @@
  * completeness: afterwards no document or object holds the uid or its uidH except the documented pseudonymised
  * records. Owns weeks 2027-W40–W44.
  */
-import { NOTICE_CODES, dropSchedule, uidHash, type WeekId } from '@grouper/core';
+import { NOTICE_CODES, dropSchedule, uidHash, type WeekId } from '@friendpod/core';
 import { expect, it } from 'vitest';
 import { deleteAccount, deletePhoto, exportData, registerPushToken } from '../../src/callables/account';
 import { report } from '../../src/callables/safety';

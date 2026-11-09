@@ -7,7 +7,7 @@ import {
   postcodeToGh5,
   resolveLaunchArea,
   type Gh5,
-} from '@grouper/core';
+} from '@friendpod/core';
 import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';

@@ -3,7 +3,7 @@
  * dropOrchestrator and release revalidation read, in one transaction. Writing matchProfiles also makes a
  * concurrent release batch fail its `lastUpdateTime` precondition, so a pause after 16:00 still applies (§10.3).
  */
-import type { CallableInput, CallableOutput, UserDoc } from '@grouper/core';
+import type { CallableInput, CallableOutput, UserDoc } from '@friendpod/core';
 import { AppError } from '../lib/errors';
 import { docs, ts } from '../lib/firestore';
 import type { CallContext } from '../lib/handler';

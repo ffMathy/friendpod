@@ -5,7 +5,7 @@
  * (founder decision 2026-11-05, "<city> is open — your first drop is Thursday 18:00").
  * The app opens Home and reads everything else from Firestore under the rules.
  */
-import type { Locale } from '@grouper/core';
+import type { Locale } from '@friendpod/core';
 import type { Message, Messaging } from 'firebase-admin/messaging';
 
 export const PUSH_KINDS = [

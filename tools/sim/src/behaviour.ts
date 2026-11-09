@@ -2,7 +2,7 @@
  * Assumed behaviour (DESIGN.md §6.9). None of these constants is measured; they are set so the mean
  * invite acceptance lands in the 0.6–0.7 range that [MAT] uses for its confirmation estimates.
  */
-import { type MatchContext, pairScore, secScore } from '@grouper/core';
+import { type MatchContext, pairScore, secScore } from '@friendpod/core';
 import { logistic, type Rng } from './rng';
 
 export const BEHAVIOUR = {

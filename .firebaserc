@@ -1,7 +1,7 @@
 {
   "projects": {
-    "default": "grouper-staging",
-    "staging": "grouper-staging",
-    "prod": "grouper-prod"
+    "default": "friendpod-staging",
+    "staging": "friendpod-staging",
+    "prod": "friendpod-prod"
   }
 }

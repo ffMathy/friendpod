@@ -6,7 +6,7 @@
  * (purgeUser).
  */
 import { createHash } from 'node:crypto';
-import type { Platform } from '@grouper/core';
+import type { Platform } from '@friendpod/core';
 import { DAY_MS, docs, ts, type DocOf } from './firestore';
 import type { AppDeps } from './runtime';
 
