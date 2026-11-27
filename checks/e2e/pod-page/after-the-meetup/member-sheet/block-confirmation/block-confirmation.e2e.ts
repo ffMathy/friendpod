@@ -1,4 +1,3 @@
-// ail-derived-from: BlockConfirmation@388f3b053a12658d
 // End-to-end check of BlockConfirmation (ail/pod-page/after-the-meetup/member-sheet/block-confirmation): each test is one
 // of its scenarios, by name, played through the running app as a user would, with what the user sees.
 import { afterAll, expect, setDefaultTimeout, test } from 'bun:test';

@@ -47,6 +47,7 @@ node InfoAutomaticPauses : view   level: experience
     info.howMatchingWorks.noReview              "Nobody reads reports or what's written in them, and nobody is banned for good. A pause can't be appealed: if it was wrong, it simply runs out."   da "Ingen læser anmeldelser eller det, der står i dem, og ingen bliver udelukket for altid. En pause kan ikke ankes: Er den forkert, udløber den bare."
     info.howMatchingWorks.humanReview           "You can still use your data protection rights by contacting our privacy team (see the privacy notice)."   da "Du kan stadig bruge dine rettigheder efter databeskyttelsesreglerne ved at kontakte vores privatlivsteam (se privatlivserklæringen)."
   binds
+    route    "/info/how-matching-works" (the automatic pauses on How matching works)
     props    reportWindowDays: integer (30), reportPauseDays: integer (28), underagePauseDays: integer (28), noShowWindowWeeks: integer (8),
              noShowPauseWeeks: integer (2), noShowSuspensionWeeks: integer (8), privateHoldDays: integer (28)
   sources

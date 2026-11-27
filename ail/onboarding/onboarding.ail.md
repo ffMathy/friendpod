@@ -71,6 +71,8 @@ node Onboarding : flow   level: experience
     common.stepOf    "Step {{step}} of {{total}}"   da "Trin {{step}} af {{total}}"
     common.back      "Back"                         da "Tilbage"
     common.continue  "Continue"                     da "Fortsæt"
+  binds
+    route    "/" (the app opens on the step the member has reached)
   uses AboutYou, AreaStep, SensitiveInterestsStep, InterestsStep, PreferencesStep, FinalStep
   children AboutYou, AreaStep, SensitiveInterestsStep, InterestsStep, PreferencesStep, FinalStep
   sources

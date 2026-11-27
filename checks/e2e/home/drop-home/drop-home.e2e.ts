@@ -1,4 +1,3 @@
-// ail-derived-from: DropHome@379b4777ca4713fc
 // End-to-end check of DropHome (ail/home/drop-home): each test is one of its scenarios, by name, played through the
 // running app as a user would, with what the user sees: roles, labels and the copy texts.
 import { afterAll, expect, setDefaultTimeout, test } from 'bun:test';

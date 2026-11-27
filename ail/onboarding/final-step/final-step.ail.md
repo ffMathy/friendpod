@@ -49,6 +49,7 @@ node FinalStep : flow   level: experience
     onboarding.final.finish  "Finish"        da "Færdig"
     common.loading           "Loading"       da "Indlæser"
   binds
+    route    "/almost-done"
     state    pledged: boolean, starting at false; finishing: boolean
     events   Finish, when pledged and About me is fine, saves About me if it changed, marks onboarding finished on the phone, and the app opens on its main tabs
   uses FinalStepAboutMe, FinalStepCards

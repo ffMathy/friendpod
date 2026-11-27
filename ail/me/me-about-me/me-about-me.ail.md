@@ -60,6 +60,7 @@ node MeAboutMe : view   level: experience
     aboutMe.save          "Save"                                        da "Gem"
     aboutMe.saved         "Saved."                                      da "Gemt."
   binds
+    route    "/me" (About me on Me)
     state    text: text, starting at the saved sentence or ""
     fields   a text box named "About me", at most 140 characters, Return closes the keyboard
     shows    the counter as the number of characters typed / 140

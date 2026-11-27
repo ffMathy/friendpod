@@ -72,6 +72,7 @@ node MemberSheet : flow   level: experience
     pod.gone                  "This pod no longer exists."   da "Denne pod findes ikke længere."
   binds
     route    the pod's member route, with the pod and the member; drawn over the pod, without a header
+    route    "/pod/braetspilpodaarhus46/member/u_jonas" or "/pod/braetspilpodaarhus46/member/u_me" or "/pod/privatepodaarhusweek/member/u_line"
     events   Report opens the report with the pod and the member; Close, or the scrim, goes back, or to the pod when there is nothing to go back to
   uses MemberSheetHeader, BlockConfirmation
   children MemberSheetHeader, BlockConfirmation

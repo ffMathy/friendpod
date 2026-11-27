@@ -62,6 +62,7 @@ node PodRevealField : view   level: experience
     pod.photoOf            "Photo of {{name}}"                   da "Billede af {{name}}"
     common.you             "You"                                 da "Dig"
   binds
+    route    "/pod/farpaabarselpod46aaa" or "/pod/sourdoughpodwk46aaaa" or "/pod/trailrunpodwk46aaaaa" or "/pod/openpodaarhusweek46a" or "/pod/braetspilpodaarhus46" (the top of the reveal)
     props    the theme in the viewer's words (or Open to anyone), the pod's colour from PodColors, "5 people near Aarhus C", the members
     events   a member (not the viewer) opens their sheet
   uses PodColors

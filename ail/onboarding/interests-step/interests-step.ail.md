@@ -64,6 +64,7 @@ node InterestsStep : flow   level: experience
     onboarding.interests.title   "What are you into?"   da "Hvad går du op i?"
     onboarding.interests.lede    "In your own words, Danish or English. Pods form around one thing you all share."   da "Med dine egne ord, på dansk eller engelsk. En pod samles om én ting, I alle deler."
   binds
+    route    "/add-interests"
     state    the member's interests and private interests, read live from their profile
     events   Continue, when there are at least 3, opens step 5; Back opens step 3
   uses InterestsStepField, InterestsStepChips, InterestsStepSuggestions, InterestRules

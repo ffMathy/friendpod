@@ -85,6 +85,7 @@ node MeetupChat : flow   level: experience
     common.back       "Back"                                                 da "Tilbage"
   binds
     route    the pod's chat, opened from the pod's Chat row
+    route    "/pod/braetspilpodaarhus46/chat" or "/pod/braetspilpodaarhus46" (the Chat row on the pod) or "/pod/neverapodofmine/chat"
     events   press and hold another member's message opens the report sheet with the pod and that message
   uses MeetupChatWindow, MeetupChatMessages, MeetupChatComposer, ContactDetailsWarning
   children MeetupChatWindow, MeetupChatMessages, MeetupChatComposer, ContactDetailsWarning, MeetupChatRules

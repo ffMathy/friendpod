@@ -63,6 +63,7 @@ node PreferencesStep : flow   level: experience
     prefs.pickAvailability    "Pick at least one time."       da "Vælg mindst ét tidspunkt."
     common.loading            "Loading"                       da "Indlæser"
   binds
+    route    "/pod-preferences"
     state    the form's preferences, starting at the profile's
     events   Continue checks them, saves all but same-gender pods, then opens step 6
   uses PodPreferenceFields

@@ -60,6 +60,7 @@ node PodPlanCard : view   level: experience
     pod.mapFailed         "The map didn't open."                  da "Kortet kunne ikke åbnes."
     pod.safety.title      "Meeting safely"                        da "Mød hinanden trygt"
   binds
+    route    "/pod/braetspilpodaarhus46" (the Plan card on the pod page)
     props    the meetup's time, its place (name, address, map link), the pod's colour, and whether the meetup is past
     events   Open in Maps opens the map link; Add to calendar opens the add-event sheet; Meeting safely opens the safety page (/info/safety), only while the pod is scheduled and the meetup ahead
   uses PodColors, InfoMeetingSafely, MeetupAttendance

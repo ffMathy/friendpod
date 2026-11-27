@@ -66,6 +66,7 @@ node DataExport : flow   level: experience
     settings.privacy.exportFileTitle       "Your Friendpod data"                                                da "Dine Friendpod-data"
     common.loading                         "Loading"                                                            da "Indlæser"
   binds
+    route    "/settings/privacy" (Download my data on Privacy)
     state    request: "idle" | "working" | "requested" | "link sent" | an error text, starting at "idle"
     shows    the newest export while its expiry is later than now: preparing, ready until its expiry (day, date and time in the app's language), or failed
     events   Download my data re-authenticates, then asks the server for an export; Download the file fetches the file with the member's sign-in and opens it

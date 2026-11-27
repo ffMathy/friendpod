@@ -69,6 +69,7 @@ node WhoWasThere : flow   level: experience
     feedback.explainer        "Everyone is ticked; untick anyone who wasn't there. It only counts as a no-show if most of you do. Meet again: if you both say yes, you can be matched again after 4 weeks. If either of you says no, never again. Not sure? Leave it blank."   da "Alle er krydset af – fjern krydset ved dem, der ikke kom. Det tæller kun som udeblivelse, hvis de fleste af jer gør det. Ses igen: Siger I begge ja, kan I blive matchet igen efter 4 uger. Siger en af jer nej, sker det aldrig. I tvivl? Så spring over."
     member.formerMember       "Former member"                   da "Tidligere medlem"
   binds
+    route    "/pod/braetspilpodaarhus46/feedback" (the card at the top of How did it go?)
     props    people: the pod's other members in the pod's order, each with first name (or Former member), photo and colour
     state    notThere: set of people, starting empty; meetAgain: map of person to "yes" | "no", starting empty
     role     each tick is a checkbox named "{{name}} was there"; Yes and No are radios named "Yes, meet {{name}} again" and "No, don't meet {{name}} again";

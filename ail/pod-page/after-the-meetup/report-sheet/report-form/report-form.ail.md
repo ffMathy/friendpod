@@ -51,6 +51,7 @@ node ReportForm : view   level: experience
     common.close              "Close"                  da "Luk"
   binds
     route    the report sheet, with the pod and one of: a member, a suggestion (and its author), or a message
+    route    "/sheets/report?podId=braetspilpodaarhus46&uid=u_jonas" or "/sheets/report?podId=braetspilpodaarhus46&optionId=optionSaturday" or "/sheets/report?podId=braetspilpodaarhus46&messageId=m4" or "/sheets/report?podId=privatepodaarhusweek&uid=u_line"
     state    reason: one of the reasons or nothing, starting at nothing; note: text, starting at ""
     role     the reasons are a radio group named "What happened?"; the note is a text field labelled "Tell us more"
     events   Send report, once a reason is chosen, sends the report with the trimmed note when it has one, waits, then goes back; an error shows above the button

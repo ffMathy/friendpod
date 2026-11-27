@@ -80,6 +80,7 @@ node PodScheduled : flow   level: experience
     pod.newMessages_one  "{{count}} new"              da "{{count}} ny"
     pod.newMessages_other "{{count}} new"             da "{{count}} nye"
   binds
+    route    "/pod/braetspilpodaarhus46"
     shows    the next step from PodNextStep, with feedback counted as given once sent or once 7 days have passed since 2 hours after the meetup
     events   Open chat and the Chat row open the chat; Give feedback opens the feedback form; Open the planner opens the planner
     role     the Chat row is a link named "Chat, <its window>, <n> new"

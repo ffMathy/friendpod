@@ -62,6 +62,7 @@ node WithdrawPrivateInterestConsent : flow   level: experience
     settings.privacy.withdrawSensitive  "Withdraw consent for sensitive interests"    da "Træk samtykket til følsomme interesser tilbage"
     common.cancel                       "Cancel"                                      da "Annullér"
   binds
+    route    "/settings/sensitive-consent"
     shows    the date the consent was given, as day, short month and year in the app's language; the count of private interests
     events   the see-them link opens the interests tab; Withdraw consent opens the confirmation; its confirm withdraws, then goes back (or to Privacy)
   uses PrivateInterestConsentText

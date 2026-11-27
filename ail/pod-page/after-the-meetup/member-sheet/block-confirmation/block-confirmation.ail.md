@@ -87,6 +87,7 @@ node BlockConfirmation : flow   level: experience
     member.replanExplainer    "They already know where and when you're meeting. Re-planning picks a new time and place within 48 hours."   da "Personen ved allerede, hvor og hvornår I mødes. Ny planlægning finder et nyt tidspunkt og sted inden for 48 timer."
     common.cancel             "Cancel"             da "Annullér"
   binds
+    route    "/pod/braetspilpodaarhus46/member/u_jonas" or "/pod/braetspilpodaarhus46/member/u_mette" or "/pod/climbingpodaarhus42a/member/u_sofie" or "/pod/climbingpodaarhus42a/member/u_rasmus"
     state    confirming: boolean, starting at false; choice: "removeThem" | "leave" | "replan", starting at "removeThem", shown as the radio group "What should happen to the pod?"
     events   Block (confirmed) blocks the member, with leave or replan when chosen, then closes the sheet; Unblock unblocks at once, with no question
   sources

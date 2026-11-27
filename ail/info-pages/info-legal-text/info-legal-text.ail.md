@@ -55,6 +55,7 @@ node InfoLegalText : view   level: experience
     info.legalTitle            "Legal"   da "Juridisk"
     info.legalUnknown          "This page does not exist."   da "Siden findes ikke."
   binds
+    route    "/info/legal/terms" or "/info/legal/privacy" or "/info/legal/nope"
     props    doc: text, from the route
     shows    for doc "terms" or "privacy": its title, Draft, the version line with the draft's month and year in the app's language, written out ("November 2026", "november 2026"), and its text
     shows    for doc "licences": the Licences page; for any other doc: Legal and This page does not exist.

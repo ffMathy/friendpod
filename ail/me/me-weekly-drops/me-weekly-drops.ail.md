@@ -63,6 +63,7 @@ node MeWeeklyDrops : view   level: experience
     home.resume         "Resume matching"                da "Start matchningen igen"
     home.pause          "Pause matching"                 da "Sæt på pause"
   binds
+    route    "/me" (Weekly drops on Me)
     props    the member's status and participation (mode every week or when I opt in, the skipped or opted-in week, paused until, why paused)
     role     the choices are radios named Every week and When I opt in
     events   a choice, Skip this week, Join this week, Resume matching and Pause matching each send the participation change; the pressed one shows it is busy

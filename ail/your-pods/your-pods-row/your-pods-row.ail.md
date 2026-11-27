@@ -77,6 +77,7 @@ node YourPodsRow : view   level: experience
     podState.archived       "Archived"                       da "Arkiveret"
     podState.dissolved      "Didn't come together"           da "Blev ikke til noget"
   binds
+    route    "/pods" (a row on the Pods tab)
     props    a pod card: its theme, whether it is private, its state, the member's own answer, how many said yes of how many, its answer-by time; and, once confirmed, its members and plan
     role     a link named "<theme>. <state line>", with ", Private interest" after the theme of a private pod
     shows    the place as its name and the first part of its address, when the two differ; times as 14:00 in English and 14.00 in Danish

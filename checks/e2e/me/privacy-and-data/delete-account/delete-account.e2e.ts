@@ -1,4 +1,3 @@
-// ail-derived-from: DeleteAccount@211fbf5d482a5f51
 // End-to-end check of DeleteAccount (ail/me/privacy-and-data/delete-account): each test is one of its scenarios, by
 // name, played through the running app as a user would, with what the user sees.
 import { afterAll, expect, setDefaultTimeout, test } from 'bun:test';

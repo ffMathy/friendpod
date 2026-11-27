@@ -42,6 +42,7 @@ node WaitlistShareCard : view   level: experience
     waitlist.copyLink          "Copy invite link"                         da "Kopiér invitationslink"
     waitlist.copied            "Copied"                                   da "Kopieret"
   binds
+    route    "/" (the share card on the city waitlist, on Home)
     props    city: text, the city's area id
     state    copied: boolean, starting at false
     role     the link field is read as the shown link; the Copy button is named waitlist.copyLink, and waitlist.copied once copied

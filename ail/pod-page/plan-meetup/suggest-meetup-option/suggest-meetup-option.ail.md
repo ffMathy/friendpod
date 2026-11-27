@@ -82,6 +82,7 @@ node SuggestMeetupOption : flow   level: experience
     errors.STATE        "This isn't possible at this stage of the pod."   da "Det er ikke muligt på dette trin i poden."
   binds
     route    "/pod/{podId}/propose", opened from the planner
+    route    "/pod/braetspilpodaarhus46/plan" or "/pod/braetspilpodaarhus46/propose"
     state    day: text, time: text, place: a picked place or nothing, starting empty; the form's problem: "DATE" | "WINDOW" | "PLACE" or nothing
     events   Suggest this time checks the form, then sends the option's start and place; on success it goes back; Close goes back
   uses MeetupTimePicker, MeetupPlacePicker, MeetupPlanningRules

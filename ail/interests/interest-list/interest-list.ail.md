@@ -68,6 +68,7 @@ node InterestList : flow   level: experience
     interests.madePrivate    "This interest is now private."   da "Interessen er nu privat."
     interests.empty          "No interests yet."               da "Ingen interesser endnu."
   binds
+    route    "/interests" (the card of ordinary interests on the Interests tab)
     state    open: the row whose actions show, or nothing, starting at nothing
     role     "…" is a button named "More for <interest>"; Remove is a button named "Remove <interest>"
     events   Keep this private sends the interest again as private and closes the row; Remove deletes the interest

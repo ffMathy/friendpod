@@ -1,4 +1,3 @@
-// ail-derived-from: SensitiveInterestsStep@f0bcea13cfe78ab3
 // End-to-end check of SensitiveInterestsStep (ail/onboarding/sensitive-interests-step): each test is one of its
 // scenarios, by name, played through the running app as a user would, with what the user sees: labels, roles and the
 // copy texts.

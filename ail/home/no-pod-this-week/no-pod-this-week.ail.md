@@ -77,6 +77,7 @@ node NoPodThisWeek : flow   level: experience
     home.openToAnyoneHint "A pod without a shared theme"                  da "En pod uden et fælles tema"
     home.nextDropAt       "Next drop: {{day}} {{time}}"                   da "Næste drop: {{day}} kl. {{time}}"
   binds
+    route    "/" (Home, after a drop without a pod)
     props    reason: UnmatchedReason or nothing, the member's preferences
     state    openToAnyone: boolean, starting at the member's setting
     role     the tips are links; the last is a switch named home.openToAnyone

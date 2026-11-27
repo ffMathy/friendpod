@@ -72,6 +72,7 @@ node DropWhy : flow   level: experience
     pods.why.neverBody    "Photos, looks, or anything you haven't told us. Gender only if you chose same-gender pods. Private interests only as the theme of a pod about them."   da "Billeder, udseende eller noget, du ikke har fortalt os. Køn kun, hvis du har valgt pods for samme køn. Private interesser kun som tema for en pod om netop dem."
     home.howMatching      "How matching works"                                            da "Sådan matcher vi"
   binds
+    route    "/sheets/why-this-pod?podId=braetspilpodaarhus46" or "/" (Why this pod? on the proposal card on Home)
     props    podId: text, from the route
     shows    one line per reason from DropReasons, in the order the server sent them, PRIORITY moved last and AREA left out when NEAR_YOU is there
     events   Close and the dimmed part go back; How matching works opens "/info/how-matching-works"

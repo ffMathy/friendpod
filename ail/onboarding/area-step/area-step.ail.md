@@ -84,6 +84,7 @@ node AreaStep : flow   level: experience
     onboarding.area.attribution      "Postal code data: {{source}}"   da "Postnummerdata: {{source}}"
     common.ok                        "OK"                    da "OK"
   binds
+    route    "/about" (Continue on About you leads to Where do you live?) or "/area" (opened directly)
     state    postcode: text, starting at ""; district: text or nothing; locating: boolean; locationFailed: boolean; heardFrom: a source or nothing
     fields   the postcode is labelled "Postcode", on a number pad, at most 4 characters
     events   Continue sends the onboarding call with the draft's first name and birth date, the app's language, the cell, the legal versions and heardFrom when chosen

@@ -78,6 +78,8 @@ node AddInterest : flow   level: experience
     moderation.TAG_TOO_LONG       "An interest can have at most 40 characters."   da "En interesse kan højst have 40 tegn."
     moderation.PII                "Interests cannot contain contact details such as phone numbers, emails, links or handles."   da "Interesser må ikke indeholde kontaktoplysninger som telefonnumre, e-mails, links eller brugernavne."
     moderation.THIRD_PARTY_SENSITIVE   "This seems to describe someone else's sensitive situation. Describe your own instead, for example “parent of an autistic child”."   da "Det ser ud til at handle om en andens følsomme situation. Beskriv din egen i stedet, fx »forælder til et barn med autisme«."
+  binds
+    route    "/interests" (the add row at the top of the Interests tab)
   uses AddInterestAnswers, InterestRules
   children AddInterestAnswers
   sources

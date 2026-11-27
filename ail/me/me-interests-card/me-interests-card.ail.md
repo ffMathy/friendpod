@@ -50,6 +50,7 @@ node MeInterestsCard : view   level: experience
     me.privateInterests_other  "{{count}} private interests"   da "{{count}} private interesser"
     common.mainInterest        "Main interest"    da "Hovedinteresse"
   binds
+    route    "/me" (Your interests on Me)
     props    the member's interests (word, starred) and the number of private ones
     role     Edit is a link named "Edit your interests"; a star is an image named "Main interest"
     events   Edit opens "/interests"

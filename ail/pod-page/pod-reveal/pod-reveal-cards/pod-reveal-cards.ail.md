@@ -58,6 +58,7 @@ node PodRevealCards : view   level: experience
     plan.extendedTitle  "No time works yet — add another option"   da "Intet tidspunkt passer endnu – tilføj et forslag mere"
     plan.extendedBody   "You have one more day, until {{when}}. If no option gets 3 yes votes by then, the pod ends."   da "I har én dag mere, indtil {{when}}. Hvis intet forslag får 3 ja-stemmer inden da, stopper poden."
   binds
+    route    "/pod/braetspilpodaarhus46" (the cards under the reveal's field)
     shows    the deadline as pod.pickTimeBy while the pod has no option, pod.voteBy while an option lacks the viewer's vote, else plan.votingCloses; the time as the weekday and the clock in Copenhagen time ("Tuesday 18:00", "tirsdag kl. 18.00")
     shows    the extra round's alert while the planning round is extended
     state    safetyOpen: boolean, starting at false

@@ -66,6 +66,7 @@ node InfoLicences : view   level: experience
     info.legalOnDeviceModel    "{{name}} (the on-device model)"   da "{{name}} (modellen på telefonen)"
     info.legalSoftwareNote     "Each package's full licence text comes with its source code."   da "Den fulde licenstekst følger med hver pakkes kildekode."
   binds
+    route    "/info/legal/licences"
     links    "GeoNames (www.geonames.org)" opens "https://www.geonames.org"; "CC BY 4.0" opens "https://creativecommons.org/licenses/by/4.0/"
     rows     "React and React Native", MIT; "Expo, Expo Router and Expo Modules", MIT; "React Native Firebase", Apache-2.0; "React Native Google Sign-In", MIT; TanStack Query, MIT;
              "i18next and react-i18next", MIT; "React Hook Form", MIT; Zod, MIT; "react-native-svg", MIT; "React Native Screens, Gesture Handler and Safe Area Context", MIT;

@@ -65,6 +65,7 @@ node InterestsStepChips : view   level: experience
     interests.privateLabel        "{{name}}, private"   da "{{name}}, privat"
     interests.removeNamed         "Remove {{name}}"     da "Fjern {{name}}"
   binds
+    route    "/add-interests" (the chips on What are you into?)
     state    open: the tapped interest or nothing
     role     each chip a button named by its word (a private one "gravid, private"), each cross a button "Remove brætspil"
   sources

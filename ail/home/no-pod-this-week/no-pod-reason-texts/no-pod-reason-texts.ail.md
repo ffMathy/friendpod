@@ -45,6 +45,7 @@ node NoPodReasonTexts : view   level: experience
     home.changeSetting.LANGUAGE     "Add a meetup language"                   da "Tilføj et sprog til møderne"
     home.changeSetting.AVAILABILITY "Add more times that suit you"            da "Tilføj flere tidspunkter, der passer dig"
   binds
+    route    "/" (the reason on No pod this week, on Home)
     props    reason: UnmatchedReason or nothing
     shows    the text of unmatched.{reason}, or home.noPodBody when there is no reason; the tip home.changeSetting.{reason} when isUserSettingReason(reason)
   uses DropReasons

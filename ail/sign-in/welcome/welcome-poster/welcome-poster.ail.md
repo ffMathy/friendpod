@@ -59,6 +59,7 @@ node WelcomePoster : view   level: experience
     welcome.headline    "Small groups.\nReal meetups."   da "Små grupper.\nRigtige møder."
     welcome.tagline     "There’s room for you."       da "Der er plads til dig."
   binds
+    route    "/" (the top of the welcome screen, signed out)
     props    locale: "da" | "en", onChange(locale: "da" | "en")
     role     a radio group named "Language" with two radios, "Dansk" and "English"
     role     the lockup is an image named "Friendpod"; the headline is a level-1 heading; the mark is decorative

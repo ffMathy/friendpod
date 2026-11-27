@@ -69,6 +69,7 @@ node PrivacyDataAndMatching : flow   level: experience
     privacy.blockedNone         "Nobody"                                    da "Ingen"
     info.howMatchingWorks.title "How matching works"                        da "Sådan matcher vi"
   binds
+    route    "/settings/privacy" (the second card on Privacy)
     events   Pause matching sets participation to pause, with no end; its line then reads the week the answer gives
     shows    the pause line: the week from the last answer, else Paused until the end of the pause, else Paused while the account is paused, else Skip drops until you come back
     events   Blocked people opens the blocked people route; How matching works opens the how matching works page

@@ -1,4 +1,3 @@
-// ail-derived-from: EmailSignIn@24f5833efb6bb22d
 // End-to-end check of EmailSignIn (ail/sign-in/email-sign-in): each test is one of its scenarios, by name, played
 // through the running app as a user would, with what the user sees: labels, roles and the copy texts.
 import { afterAll, expect, setDefaultTimeout, test } from 'bun:test';

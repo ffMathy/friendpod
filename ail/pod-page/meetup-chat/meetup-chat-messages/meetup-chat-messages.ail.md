@@ -65,6 +65,7 @@ node MeetupChatMessages : view   level: experience
     chat.report       "Report message"   da "Anmeld besked"
     common.private    "Private"    da "Privat"
   binds
+    route    "/pod/braetspilpodaarhus46/chat" or "/pod/privatepodaarhusweek/chat"
     props    messages: list of { writer: text, own: boolean, time: text, text: text }, oldest first; color: the pod's colour, or nothing for a private pod
     role     the list is named "Messages"; each message is one element named "<writer>, <time>: <text>", with a screen-reader action "Report message" on others' messages
   sources

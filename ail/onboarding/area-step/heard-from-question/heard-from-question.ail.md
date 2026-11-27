@@ -48,6 +48,7 @@ node HeardFromQuestion : view   level: experience
     onboarding.heardFrom.press          "News or press"             da "Nyheder eller presse"
     onboarding.heardFrom.other          "Somewhere else"            da "Et andet sted"
   binds
+    route    "/about" (under the area card on Where do you live?, reached with Continue on About you)
     props    chosen: "dadsGroup" | "newcomerEvent" | "university" | "venuePoster" | "friend" | "socialMedia" | "press" | "other" or nothing, onChange(chosen)
     role     a radio group named "Where did you hear about Friendpod?", each answer a radio
   sources

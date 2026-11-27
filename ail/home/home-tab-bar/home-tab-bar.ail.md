@@ -39,6 +39,7 @@ node HomeTabBar : view   level: experience
     tabs.interests   "Interests"   da "Interesser"
     tabs.me          "Me"          da "Mig"
   binds
+    route    "/" (the bar at the bottom of Home)
     role     a tab list with four tabs, named by their labels; the page on show is the selected one
     events   pressing a tab opens its page: the routes "/", "/pods", "/interests" and "/me", in the tabs' order
   sources

@@ -69,6 +69,7 @@ node Welcome : flow   level: experience
     welcome.legal          "You accept the <terms>Terms</terms> before you start. Read how we handle your data in the <privacy>privacy notice</privacy>."   da "Du skal acceptere vores <terms>vilkår</terms>, før du går i gang. Læs, hvordan vi behandler dine data, i <privacy>privatlivserklæringen</privacy>."
     settings.delete.done   "Your account has been deleted. Thanks for trying Friendpod."   da "Din konto er slettet. Tak, fordi du prøvede Friendpod."
   binds
+    route    "/" (signed out)
     state    busy: "apple" | "google" | nothing, starting at nothing
     state    failed: boolean, starting at false
     events   Continue with Apple or Google sets busy and clears failed; a closed sheet only clears busy; any other error sets failed

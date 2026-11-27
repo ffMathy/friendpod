@@ -55,6 +55,7 @@ node MeetupChatWindow : view   level: experience
     chat.closedOff     "This chat closed because the meetup is no longer scheduled. Messages are deleted about 3 days after the original meetup time."   da "Chatten er lukket, fordi mødet ikke længere er aftalt. Beskederne slettes cirka 3 dage efter det oprindelige mødetidspunkt."
     chat.notScheduled  "The chat opens 24 hours before your meetup, once you have picked a time."   da "Chatten åbner 24 timer før jeres møde, når I har valgt et tidspunkt."
   binds
+    route    "/pod/braetspilpodaarhus46/chat"
     state    status: "upcoming" | "open" | "ended" | "off", from the pod's meetup time and state and the clock, re-read at the window's next edge
     shows    the band's line: open until the closing time, opens at the opening time, or closed; the note only while not open
   uses MeetupChatRules

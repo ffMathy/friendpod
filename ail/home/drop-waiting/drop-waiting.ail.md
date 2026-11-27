@@ -64,6 +64,7 @@ node DropWaiting : flow   level: experience
     pods.leaveConfirm "Leave"                                   da "Forlad"
     pods.saidNo       "You said no"                             da "Du sagde nej tak"
   binds
+    route    "/" (Home, after the member said yes)
     role     "3 of 5 said yes" is read with the threshold ("3 of 5 said yes. 4 needed."); the seats are hidden from screen readers
     events   Okay adds the pod to Home's acknowledged set; the leave link opens a system alert, whose Leave asks the server to take the member out
   sources

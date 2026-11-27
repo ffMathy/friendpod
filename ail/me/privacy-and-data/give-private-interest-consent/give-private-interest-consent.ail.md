@@ -63,6 +63,7 @@ node GivePrivateInterestConsent : flow   level: experience
   copy
     common.back   "Back"   da "Tilbage"
   binds
+    route    "/settings/sensitive-consent" or "/settings/privacy"
     state    ticked: boolean, starting at false
     role     a checkbox named with the tick text; buttons "I agree" and "Not now"
     events   I agree records the consent, then goes back; Not now and Back go back without recording

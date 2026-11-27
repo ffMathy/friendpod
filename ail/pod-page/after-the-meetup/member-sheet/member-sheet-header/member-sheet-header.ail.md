@@ -34,6 +34,7 @@ node MemberSheetHeader : view   level: experience
     common.private       "Private"                da "Privat"
     common.close         "Close"                  da "Luk"
   binds
+    route    "/pod/braetspilpodaarhus46/member/u_jonas" (the top of the member sheet)
     props    name: the roster's first name, or Former member; theme: the viewer's word for the pod, or nothing; private: whether the pod is about a private interest;
              photo: the member's photo version unless blocked; aboutMe: text or nothing
     role     the pod line is one element labelled "In your {{theme}} pod"; the lock is an image named "Private"; the cross is a button named "Close"

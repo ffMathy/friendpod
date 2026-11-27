@@ -69,6 +69,7 @@ node EmailLinkLanding : flow   level: experience
     auth.complete.newLink       "Send a new link"           da "Send et nyt link"
     auth.complete.restart       "Back to the start"         da "Tilbage til start"
   binds
+    route    "/auth/complete?link=https%3A%2F%2Ffriendpod-staging.firebaseapp.com%2F__%2Fauth%2Faction%3Fmode%3DsignIn%26oobCode%3Dpreview" (a sign-in link) or "/auth/complete?link=https%3A%2F%2Ffriendpod-staging.firebaseapp.com%2F__%2Fauth%2Faction%3Fmode%3DsignIn" (not a sign-in link) or "/auth/complete" (no link)
     props    link: text, the incoming address, or nothing
     state    result: "idle" | "working" | "invalid" | "failed", starting at "idle"
     events   with link and a kept address, signs in at once, and success opens the start; without a kept address, asks for it; Send a new link opens the email step; Back to the start opens the start

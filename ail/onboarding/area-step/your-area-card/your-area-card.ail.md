@@ -53,6 +53,7 @@ node YourAreaCard : view   level: experience
     onboarding.area.storedNote   "We store only this area, never your address or exact location. Nobody is ever shown how far away you live."   da "Vi gemmer kun det her område – aldrig din adresse eller præcise placering. Ingen får nogensinde at se, hvor langt væk du bor."
     onboarding.area.outsideHint  "You can still sign up; we'll tell you when we open near you."   da "Du kan stadig tilmelde dig. Vi giver besked, når vi åbner i nærheden af dig."
   binds
+    route    "/about" (the area card on Where do you live?, reached with Continue on About you)
     props    name: text, area: { label: text, status: "live" | "waitlist" | "beta" } or nothing
   sources
     Code: "apps/mobile/src/features/onboarding/AreaCard.tsx", "apps/mobile/app/(onboarding)/area.tsx", "packages/core/src/geo/areas.ts", "packages/core/src/geo/areas.json"

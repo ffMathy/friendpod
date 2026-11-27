@@ -65,6 +65,7 @@ node MeetupAttendance : flow   level: experience
     attendance.mine.notComing      "You said you can't make it."   da "Du har meldt afbud."
     attendance.mine.unconfirmed    "You haven't confirmed. Let the others know if you're coming."   da "Du har ikke bekræftet. Fortæl de andre, om du kommer."
   binds
+    route    "/pod/braetspilpodaarhus46" (Still coming? on the pod page)
     events   Yes, I'm coming, I'm coming and I'm coming after all tell the pod the viewer is coming; Can't make it, once confirmed, that they are not; both buttons wait while it is sent, and a failure shows its message
   uses PodNextStep
   sources

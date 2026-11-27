@@ -58,6 +58,7 @@ node FinalStepCards : view   level: experience
     onboarding.final.pledge       "I'll meet in public places, treat people with respect, and use Report if something feels wrong."   da "Jeg mødes på offentlige steder, behandler andre med respekt og bruger Anmeld, hvis noget føles forkert."
     common.optional               "(optional)"   da "(valgfrit)"
   binds
+    route    "/almost-done" (the photo, notifications and pledge cards on Almost done)
     props    pledged: boolean, onPledge(pledged: boolean)
     state    notifications: "ask" | "on" | "off", starting at "on" when the phone already allows them, else "ask"
     role     the pledge is a checkbox named with its text

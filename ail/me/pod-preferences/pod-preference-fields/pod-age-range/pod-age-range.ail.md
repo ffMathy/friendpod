@@ -51,6 +51,7 @@ node PodAgeRange : view   level: experience
     prefs.agesHint           "Starts around your own age. Everyone in a pod fits everyone else's range."   da "Starter omkring din egen alder. Alle i en pod passer ind i hinandens aldersinterval."
     prefs.ageRangeTooNarrow  "The age range must span at least 5 years."   da "Aldersintervallet skal dække mindst 5 år."
   binds
+    route    "/settings/preferences" (the ages card on Pod preferences)
     props    youngest: integer, oldest: integer, onChange(youngest: integer, oldest: integer)
     role     two sliders named "Youngest age" and "Oldest age", from 18 to 99; the number reads aloud as "Ages 28 to 42"
     events   dragging a thumb moves it in whole years, never below 18 or above 99, and never closer than 5 years to the other thumb

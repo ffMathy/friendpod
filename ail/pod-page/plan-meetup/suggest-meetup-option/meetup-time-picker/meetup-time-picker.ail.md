@@ -60,6 +60,7 @@ node MeetupTimePicker : view   level: experience
     plan.pickTime    "What time?"   da "Hvilket tidspunkt?"
     plan.timeWindow  "Between 08:00 and 22:00, within the next 14 days."   da "Mellem kl. 8 og 22 inden for de næste 14 dage."
   binds
+    route    "/pod/braetspilpodaarhus46/propose" (Day and Time on Suggest a time)
     props    day: text, time: text, onDay(day: text), onTime(time: text), openedAt: time
     role     each field is a button named "Day, <value or hint>" and "Time, <value or hint>", the day spoken in full ("Sunday 22 Nov"); each sheet is a dialog with a radio group of its choices
     shows    a day as "Sun 22 Nov" ("søn. 22. nov."), a time as "15:00" ("15.00")

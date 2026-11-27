@@ -78,6 +78,7 @@ node DeleteAccount : flow   level: experience
     settings.delete.done        "Your account has been deleted. Thanks for trying Friendpod."   da "Din konto er slettet. Tak, fordi du prøvede Friendpod."
     common.cancel               "Cancel"   da "Annullér"
   binds
+    route    "/settings/privacy" or "/settings/delete-account"
     state    deletion: "idle" | "working" | "link sent" | an error text, starting at "idle"
     events   Cancel and Back go back, or to Privacy when there is no earlier screen; the export button follows DataExport
   uses DataExport

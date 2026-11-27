@@ -83,6 +83,7 @@ node MeetupChatComposer : flow   level: experience
     errors.CHAT_CLOSED  "This chat is closed."          da "Chatten er lukket."
     errors.NETWORK    "No connection. Please try again."   da "Ingen forbindelse. Prøv igen."
   binds
+    route    "/pod/braetspilpodaarhus46/chat" (the field and Send at the bottom of the chat)
     state    draft: text, starting at ""; refusal: an error message or nothing, starting at nothing, cleared when Send is pressed
     role     a text field named "Message"; a button named "Send"
     events   Send checks the trimmed draft with checkChatText (as after the meetup); refused shows the reason, else sends it to the server

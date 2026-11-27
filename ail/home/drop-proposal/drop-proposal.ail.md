@@ -71,6 +71,7 @@ node DropProposal : flow   level: experience
     pods.decline          "Not this time"                        da "Ikke nu"
     pods.whyLink          "Why this pod?"                        da "Hvorfor denne pod?"
   binds
+    route    "/" (Home, right after the drop brought a pod)
     props    the pod's id, its card, the number that confirms it (or nothing), and what Okay does
     events   I'm in asks the server to answer yes; Not this time opens ProposalDecline; Why this pod? opens "/sheets/why-this-pod" with the pod's id
   uses ProposalFacts, ProposalDecline, DropWhy, DropWaiting

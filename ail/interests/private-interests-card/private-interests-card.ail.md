@@ -61,6 +61,7 @@ node PrivateInterestsCard : flow   level: experience
     interests.madeOrdinary         "Done. We now treat this as an ordinary interest, for you only."   da "Sådan. Vi behandler den nu som en almindelig interesse, kun for dig."
     interests.privateLabel         "{{name}}, private"                                  da "{{name}}, privat"
   binds
+    route    "/interests" (the private card under the list on the Interests tab)
     shows    the day as "4 Nov 2026" in English and "4. nov. 2026" in Danish, in Copenhagen time
     events   Remove & withdraw deletes the private interest; This isn't sensitive for me sends it again as not sensitive for this member
   sources

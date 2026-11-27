@@ -82,6 +82,7 @@ node PlanMeetup : flow   level: experience
     common.loadFailed   "This could not be loaded. Try again later."   da "Det kunne ikke indlæses. Prøv igen senere."
   binds
     route    the planner of a pod, "/pod/{podId}/plan"; while the pod is planning it shows the options, otherwise LockedMeetupPlan ("Your meetup")
+    route    "/pod/braetspilpodaarhus46/plan" or "/pod/braetspilpodaarhus46" (Plan the meetup on the pod page)
     shows    the deadline as "Voting closes" with the weekday and time; ExtraPlanningRound while the round is extended; plan.noOptions when there is no option; the suggest button while fewer than 3 options exist
     events   Yes and No on an option send the vote (a second press on the chosen answer takes it back); the suggest button opens SuggestMeetupOption; Done voting (Back to the pod with no options) goes back
   uses PlanOption, ExtraPlanningRound, LockedMeetupPlan, SuggestMeetupOption, MeetupPlanningRules

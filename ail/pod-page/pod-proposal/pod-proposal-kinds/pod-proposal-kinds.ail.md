@@ -61,6 +61,7 @@ node PodProposalKinds : view   level: experience
       "Private interest" chip (white, color.private.border ring, a lock); the name in color.text; the private pod badge;
       the note with a shield; the link "How private interests are protected" centred under the card in color.link.
   binds
+    route    "/pod/farpaabarselpod46aaa" or "/pod/sourdoughpodwk46aaaa" or "/pod/braetspilpodaarhus46" or "/pod/openpodaarhusweek46a" or "/pod/privatepodaarhusweek"
     shows    the colour of PodColors' podColorOf for the pod
   uses PodColors, PrivatePodProposal, DropProposal
   sources

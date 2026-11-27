@@ -65,6 +65,7 @@ node PlanOption : view   level: experience
     plan.yourVote       "Your vote on {{when}}"   da "Din stemme om {{when}}"
     plan.reportOption   "Report the option at {{place}}"   da "Anmeld forslaget ved {{place}}"
   binds
+    route    "/pod/braetspilpodaarhus46/plan" (an option on the planner)
     props    startsAt: time, place: { name: text, address: text, mapUrl: text }, yesVoters: list of { firstName: text, photoVersion: integer? }, yesCount: integer, mine: "yes" | "no" | nothing, leading: boolean, podColor: "solsikke" | "blad" | "baer" | "tomat" | "fjord" | "blomme" | nothing, onVote(vote: "yes" | "no" | nothing), onReport()?
     role     the time is a heading; Yes and No are buttons named "Yes to <time>" and "No to <time>"; Open map is a link named "Open <place> in Maps"
     events   Yes sends yes, or takes the vote back when mine is yes; No likewise; press and hold (450 ms) opens the report sheet for the option, when it is not the member's own

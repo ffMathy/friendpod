@@ -72,6 +72,7 @@ node MeetupFeedback : flow   level: experience
     feedback.notForMe            "Not for me"                                                    da "Nej tak"
     pod.gone                     "This pod no longer exists."                                    da "Denne pod findes ikke længere."
   binds
+    route    "/pod/braetspilpodaarhus46/feedback"
     state    met: boolean, starting at true; rating: 1 to 5 or nothing, starting at nothing
     role     the rating is a radio group named "How was it overall?", each choice a radio named "{{n}} of 5"; I wasn't there myself is a checkbox
     events   Keep pod or Not for me sends { met, notThere: the unticked people when met, else none, meetAgain: the answered people who were there when met,

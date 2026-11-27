@@ -1,4 +1,3 @@
-// ail-derived-from: PrivacyAgreements@524e4092279d10eb
 // End-to-end check of PrivacyAgreements (ail/me/privacy-and-data/privacy-agreements): each test is one of its
 // scenarios, by name, played through the running app as a user would, with what the user sees.
 import { afterAll, expect, setDefaultTimeout, test } from 'bun:test';

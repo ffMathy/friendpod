@@ -82,6 +82,7 @@ node EmailSignIn : flow   level: experience
     auth.email.failed       "We couldn’t send the link. Check the address and try again."   da "Vi kunne ikke sende linket. Tjek adressen, og prøv igen."
     common.back             "Back"                      da "Tilbage"
   binds
+    route    "/email" or "/" (Continue with email on the welcome screen)
     state    email: text, starting at "" or the kept address
     state    sending: "idle" | "sending" | "sent" | "failed", starting at "idle"
     events   the button, or the return key, sends a sign-in link to the trimmed address and keeps it on the phone; sent shows the note with that address

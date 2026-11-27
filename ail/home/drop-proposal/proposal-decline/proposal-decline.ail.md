@@ -58,6 +58,7 @@ node ProposalDecline : flow   level: experience
     common.cancel                    "Cancel"                 da "Annullér"
     pods.confirmDecline              "Decline this pod"       da "Sig nej tak til poden"
   binds
+    route    "/" (Not this time on the proposal card on Home)
     state    declining: boolean, starting at false; reason: "notThisWeek" | "theme" | "distance" | "groupSize" | "other" or nothing, starting at nothing
     role     each reason is a radio button named by its text
     events   Not this time sets declining; Cancel clears it; a chip sets reason, or clears it when it is the chosen one;

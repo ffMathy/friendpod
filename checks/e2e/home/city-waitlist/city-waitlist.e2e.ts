@@ -1,4 +1,3 @@
-// ail-derived-from: CityWaitlist@96508150a7025f43
 // End-to-end check of CityWaitlist (ail/home/city-waitlist): each test is one of its scenarios, by name, played through
 // the running app as a user would, with what the user sees: roles, labels and the copy texts.
 import { afterAll, expect, setDefaultTimeout, test } from 'bun:test';

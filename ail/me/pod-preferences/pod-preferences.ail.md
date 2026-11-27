@@ -56,7 +56,7 @@ node PodPreferences : flow   level: experience
     tabs.me              "Me"                da "Mig"
     common.loadFailed    "This could not be loaded. Try again later."   da "Det kunne ikke indlæses. Prøv igen senere."
   binds
-    route    "/settings/preferences"
+    route    "/settings/preferences", or "/me" (its Pod preferences row) where a scenario starts on Me
     shows    Loading while the profile loads; the title and a card with common.loadFailed if it cannot be
     state    the form, starting at the saved preferences
     events   Save checks the form; when it passes, sends every preference but same-gender pods and, once saved, returns to the previous screen; the button shows it is busy meanwhile

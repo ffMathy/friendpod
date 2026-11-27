@@ -61,6 +61,7 @@ node InfoHowMatchingWorks : view   level: experience
     info.howMatchingWorks.pauseLink      "Pause matching"   da "Sæt matchning på pause"
     info.howMatchingWorks.pause          "You can pause matching at any time."   da "Du kan altid sætte matchning på pause."
   binds
+    route    "/info/how-matching-works"
     props    signedIn: boolean, meetAgainWeeks: integer (4)
     role     the title and the two card headings are headings; signed in, Pause matching is a link
     events   Pause matching returns to Me

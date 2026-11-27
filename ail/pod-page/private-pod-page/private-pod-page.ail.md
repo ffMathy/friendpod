@@ -56,6 +56,7 @@ node PrivatePodPage : flow   level: experience
     pod.showMyPhotoHint   "In a pod about a private interest, photos stay hidden until each person chooses to show theirs. Yours shows once you turn this on."   da "I en pod om en privat interesse er billederne skjult, indtil hver enkelt selv vælger at vise sit. Dit eget bliver vist, når du slår det til."
     pods.privateInterest  "Private interest"            da "Privat interesse"
   binds
+    route    "/pod/privatepodaarhusweek"
     state    shown: boolean, from the viewer's pod card, starting at off
     events   the switch shows or hides the viewer's photo to this pod; it cannot be pressed while that is being saved; a failure shows its message under it
   uses PodColors, PodReveal, PodScheduled

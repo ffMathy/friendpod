@@ -53,6 +53,7 @@ node EmailLinkConfirmAddress : flow   level: experience
     auth.email.label            "Email address"             da "E-mailadresse"
     auth.email.placeholder      "you@example.com"           da "dig@example.com"
   binds
+    route    "/auth/complete?link=https%3A%2F%2Ffriendpod-staging.firebaseapp.com%2F__%2Fauth%2Faction%3Fmode%3DsignIn%26oobCode%3Dpreview" (a sign-in link) or "/auth/complete?link=https%3A%2F%2Ffriendpod-staging.firebaseapp.com%2F__%2Fauth%2Faction%3Fmode%3DsignIn" (not a sign-in link), with no address kept on the phone
     state    email: text, starting at ""
     events   Sign in, when the link and the trimmed address are not empty, signs in with them; success opens the start
     events   Back to the start opens the start

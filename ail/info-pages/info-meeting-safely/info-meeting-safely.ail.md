@@ -58,6 +58,7 @@ node InfoMeetingSafely : view   level: experience
     onboarding.final.pledgeTitle "Our safety pledge"   da "Vores sikkerhedsløfte"
     onboarding.final.pledge     "I'll meet in public places, treat people with respect, and use Report if something feels wrong."   da "Jeg mødes på offentlige steder, behandler andre med respekt og bruger Anmeld, hvis noget føles forkert."
   binds
+    route    "/info/safety"
     props    signedIn: boolean
     role     the title, Before you go, At the meetup and Our safety pledge are headings; the page has no links
   sources

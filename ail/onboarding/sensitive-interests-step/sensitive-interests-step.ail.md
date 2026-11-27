@@ -65,6 +65,7 @@ node SensitiveInterestsStep : flow   level: experience
     I agree: full width, size.button, radius.pill, type.button 700, color.primary with color.on.primary text, color.disabled with color.disabled.text while it waits.
     Not now: centred, size.hit tall, type.label 700, color.text.secondary, underlined.
   binds
+    route    "/sensitive-consent" or "/add-interests" (Sensitive interests: give consent on What are you into?)
     state    ticked: boolean, starting at false
     role     a checkbox named with the consent's tick text; buttons "I agree" and "Not now" (Danish "Jeg siger ja" and "Ikke nu"), from the locked consent text
     events   I agree records the consent with the text's version, checksum and the app's version, then goes on; Not now goes on

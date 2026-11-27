@@ -65,6 +65,7 @@ node SameGenderPods : flow   level: experience
     prefs.sameGenderOffBody   "We'll delete your gender everywhere."   da "Vi sletter dit køn alle steder."
     prefs.turnOff       "Turn off"                                 da "Slå fra"
   binds
+    route    "/settings/preferences" (Same-gender pods only and its sheet, on Pod preferences)
     texts    the consent texts "gender-en-v2", "gender-da-v2" and "gender-nonbinary-en-v2" from the locked legal texts, word for word
     state    gender: "woman" | "man" | "nonbinary" or nothing, starting at nothing; consented: boolean, starting at false
     role     a dialog; the genders are a radio group named "Your gender"; the consent is a checkbox named by its text

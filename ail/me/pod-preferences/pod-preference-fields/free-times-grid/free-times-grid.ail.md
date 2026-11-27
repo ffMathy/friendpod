@@ -45,6 +45,7 @@ node FreeTimesGrid : view   level: experience
     availability.sundayEvening    "Sunday, evening"      da "Søndag, aften"
     prefs.pickAvailability    "Pick at least one time."   da "Vælg mindst ét tidspunkt."
   binds
+    route    "/settings/preferences" (the free-times grid on Pod preferences)
     props    value: integer (the six slots, see PodPreferenceRules), onChange(value: integer)
     role     six checkboxes named by their slots
     events   a box flips its slot on or off

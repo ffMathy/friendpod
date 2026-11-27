@@ -44,6 +44,7 @@ node ProposalFacts : view   level: experience
     pods.revealOnConfirm  "Names and photos appear once the pod is confirmed."             da "Navne og billeder vises, når poden er bekræftet."
     pods.revealOnJoin     "This pod is already confirmed. You'll see names and photos once you join."   da "Poden er allerede bekræftet. Du ser navne og billeder, når du siger ja."
   binds
+    route    "/" (the middle of the proposal card on Home)
     props    the pod's card (size, age span, area, reasons, state, private or not), the confirming number or nothing, the pod's colour
     role     the seats are hidden from screen readers
   uses DropReasons

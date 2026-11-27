@@ -51,6 +51,7 @@ node PrivateInterestConsentText : view   level: experience
   copy
     onboarding.consent.badge   "Private interests"   da "Private interesser"
   binds
+    route    "/settings/sensitive-consent" (the consent text on the private-interest consent)
     props    language: "en" | "da"
     events   Read more about sensitive interests opens the page on private interests
   sources

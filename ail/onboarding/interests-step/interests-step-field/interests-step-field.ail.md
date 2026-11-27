@@ -66,6 +66,7 @@ node InterestsStepField : view   level: experience
     interests.openSensitiveConsent        "Sensitive interests: give consent"   da "Følsomme interesser: giv samtykke"
     interests.thirdPartyWarning           "Added. Please only add interests about yourself."   da "Tilføjet. Tilføj kun interesser om dig selv."
   binds
+    route    "/add-interests" (the field and Add on What are you into?)
     state    text: text, starting at ""; message: the last answer or nothing
     fields   the field is named "Add an interest in your own words", at most 80 characters
     shows    the refusal's text from its reason

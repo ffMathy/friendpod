@@ -69,6 +69,7 @@ node CityWaitlist : flow   level: experience
     waitlist.moreInterests     "Add a few more interests"                 da "Tilføj et par interesser mere"
     waitlist.profileAndSettings "Profile and settings"                    da "Profil og indstillinger"
   binds
+    route    "/" (Home, while the member's city is on the waitlist)
     props    city: text (the city's name in the app's language), count: integer (the city's exact total), goal: integer, the city's area id
     role     the count is one element named waitlist.counter; the bar is a progress bar named waitlist.progressLabel, from 0 to the goal
     events   Add a few more interests opens "/interests"; Profile and settings opens "/me"

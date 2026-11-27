@@ -65,6 +65,7 @@ node DropHome : flow   level: experience
     pods.rowScheduledNoPlace "{{day}} {{time}}"                          da "{{day}} kl. {{time}}"
     pods.openToAnyone        "Open to anyone"                            da "Åben for at møde alle"
   binds
+    route    "/" (Home, This week, before the drop)
     state    acknowledged: set of pod ids whose waiting card got Okay in this session, starting empty (kept by Home)
     events   a pod row opens the pod route "/pod/{podId}"; How matching works opens "/info/how-matching-works"
   uses NextDropPoster, MatchOnCard, YourPodsRow

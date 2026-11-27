@@ -75,6 +75,7 @@ node FriendpodMessageCard : view   level: experience
     settings.privacy.exportDownload        "Download the file"   da "Hent filen"
     settings.privacy.exportDownloadFailed  "The download didn't work. Try again."   da "Filen kunne ikke hentes. Prøv igen."
   binds
+    route    "/settings/notices" (a card on Messages from Friendpod)
     props    message: { kind: "statementOfReasons" | "system", code: text, dates, the export it names, the report's category }, exportReady: boolean
     shows    the time sent and any date in the text as weekday, day, month and time in Copenhagen ("Mon 26 Oct, 09:00", "man. 26. okt., 09.00")
     events   Download the file fetches the export through the signed-in account and hands it to the phone's share sheet; a failure shows under the button

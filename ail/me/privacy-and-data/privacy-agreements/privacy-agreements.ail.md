@@ -71,6 +71,7 @@ node PrivacyAgreements : flow   level: experience
     privacy.photoOn             "Shown to confirmed pods"                     da "Vises for bekræftede pods"
     privacy.photoOff            "No photo"                                    da "Intet billede"
   binds
+    route    "/settings/privacy" (the first card on Privacy)
     shows    the private count is the number of the member's private interests; consent counts as given while the profile records it
     events   Private interests opens the private-interest consent route; Same-gender pods the preferences route; Photo the Me tab
     events   Turn off and delete my gender updates the profile with same-gender pods off, busy while it is sent

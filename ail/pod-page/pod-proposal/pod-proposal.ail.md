@@ -69,6 +69,7 @@ node PodProposal : flow   level: experience
     home.titleDrop     "Your weekly drop"     da "Ugens drop"
     home.week          "Week {{week}}"        da "Uge {{week}}"
   binds
+    route    "/pod/braetspilpodaarhus46"
     shows    the week number of the answer deadline
     events   I'm in and Decline this pod answer the proposal and stay on the page; Why this pod? opens the reasons sheet; How private interests are protected opens the private-interests page
   uses DropProposal, ProposalDecline, DropWaiting, PrivatePodProposal, PodProposalKinds

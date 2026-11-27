@@ -62,6 +62,7 @@ node PrivacyAndData : flow   level: experience
     privacy.deleteAccount   "Delete account"                                              da "Slet konto"
     privacy.complaint       "Unhappy with how we handle your data? You can complain to the Danish Data Protection Agency (<a>datatilsynet.dk</a>)."   da "Utilfreds med, hvordan vi behandler dine data? Du kan klage til Datatilsynet (<a>datatilsynet.dk</a>)."
   binds
+    route    "/settings/privacy" or "/me"
     role     the eyebrow, with an earlier screen, is a button named "Back: Me"; without one, plain text
     events   Delete account opens the delete account route; datatilsynet.dk opens "https://www.datatilsynet.dk" outside the app
   uses PrivacyAgreements, PrivacyDataAndMatching, DataExport, DeleteAccount

@@ -59,6 +59,7 @@ node PodMenu : flow   level: experience
     pod.leaveBody      "The others will only see that a member left."    da "De andre ser kun, at et medlem er gået."
     common.cancel      "Cancel"                                          da "Annullér"
   binds
+    route    "/pod/braetspilpodaarhus46" (the "⋯" at the top right of the pod page)
     state    open: boolean, starting at false
     events   More options opens the sheet; Close closes it; Meeting safely closes it and opens the safety page (/info/safety)
     events   Leave pod asks; Leave pod in the question closes the sheet, leaves the pod and, once that succeeds, goes back; a failure shows its message on the page

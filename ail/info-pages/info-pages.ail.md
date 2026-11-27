@@ -61,6 +61,7 @@ node InfoPages : flow   level: experience
   copy
     common.back   "Back"   da "Tilbage"
   binds
+    route    "/me" or "/info/how-matching-works" or "/" (the welcome screen, signed out) or "/sensitive-consent"
     routes   "/info/how-matching-works", "/info/safety", "/info/sensitive-interests", "/info/legal/[doc]" with doc "terms", "privacy" or "licences"
     events   Back returns to the screen the page was opened from; Pause matching returns to Me, closing what lies between
   uses InfoHowMatchingWorks, InfoMeetingSafely, InfoPrivateInterests, InfoLegalText, InfoLicences

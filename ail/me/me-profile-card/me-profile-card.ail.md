@@ -64,6 +64,7 @@ node MeProfileCard : view   level: experience
     me.photoFailed       "The upload didn't work. Try again."           da "Billedet kunne ikke uploades. Prøv igen."
     common.cancel        "Cancel"                                       da "Annullér"
   binds
+    route    "/me" (the profile card at the top of Me)
     props    the member's first name, area label, photo version (or none) and meetup counts (attended, no-shows)
     shows    the record: total meetups is attended plus no-shows; none yet when that is 0
     events   Add a photo or Change photo opens the phone's photo library (square crop); a chosen picture is uploaded at 1080 px and 256 px, then the thanks shows; cancelling changes nothing

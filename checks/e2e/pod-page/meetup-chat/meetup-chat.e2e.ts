@@ -1,4 +1,3 @@
-// ail-derived-from: MeetupChat@955e57436a66d168
 // End-to-end check of MeetupChat (ail/pod-page/meetup-chat): each test is one of its scenarios, by name, played through
 // the running app as a user would, with what the user sees: labels, roles and the copy texts.
 import { afterAll, expect, setDefaultTimeout, test } from 'bun:test';

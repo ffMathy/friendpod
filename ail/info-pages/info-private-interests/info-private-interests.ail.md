@@ -56,6 +56,7 @@ node InfoPrivateInterests : view   level: experience
     info.sensitive.withdraw         "You can withdraw your consent at any time. We then delete all your private interests and take you out of pods built around them. To stop one interest only, remove it."   da "Du kan til enhver tid trække dit samtykke tilbage. Så sletter vi alle dine private interesser og tager dig ud af pods, der er bygget op om dem. Vil du kun stoppe én interesse, så fjern den."
     info.sensitive.risk             "We cannot verify who people are, so only share in a pod what you are comfortable with."   da "Vi kan ikke kontrollere, hvem folk er, så del kun det i en pod, som du er tryg ved."
   binds
+    route    "/info/sensitive-interests"
     role     the title and the four section headings are headings
   sources
     Code: "apps/mobile/app/info/sensitive-interests.tsx", "apps/mobile/src/components/Card.tsx" (the private note), "apps/mobile/src/i18n/en/shell.json", "apps/mobile/src/i18n/da/shell.json"

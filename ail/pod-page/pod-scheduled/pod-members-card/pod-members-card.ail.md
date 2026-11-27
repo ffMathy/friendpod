@@ -53,6 +53,7 @@ node PodMembersCard : view   level: experience
     attendance.hasntConfirmedShort  "Hasn't confirmed"            da "Har ikke bekræftet"
     attendance.hasntConfirmed       "{{name}} hasn't confirmed"   da "{{name}} har ikke bekræftet"
   binds
+    route    "/pod/braetspilpodaarhus46" (the members card on the pod page)
     role     each row is a link named "<first name>, <status>, <sentence>", or "<first name> hasn't confirmed" when not confirmed
     events   a row opens that member's sheet
   uses PodColors, MemberSheet

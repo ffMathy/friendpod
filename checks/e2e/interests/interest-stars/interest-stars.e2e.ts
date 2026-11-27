@@ -1,4 +1,3 @@
-// ail-derived-from: InterestStars@daef6300271c2ad8
 // End-to-end check of InterestStars (ail/interests/interest-stars): each test is one of its scenarios, by name, played
 // through the running app as a user would, with what the user sees: labels, roles and the copy texts.
 import { afterAll, expect, setDefaultTimeout, test } from 'bun:test';

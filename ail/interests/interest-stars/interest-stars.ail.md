@@ -44,6 +44,7 @@ node InterestStars : flow   level: experience
     interests.starNamed     "Star {{name}}"                        da "Stjernemarkér {{name}}"
     interests.starLimit     "You can star up to 3 interests."      da "Du kan stjernemarkere op til 3 interesser."
   binds
+    route    "/interests" (the stars on the interest rows of the Interests tab)
     role     each star is a toggle button named "Star <interest>"; whether it is on is read from its filled star
     events   a star on an interest that is not a main interest, while 3 are, shows the limit message and changes nothing; any other press flips it
   sources

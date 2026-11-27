@@ -73,6 +73,7 @@ node ContactDetailsWarning : flow   level: experience
     chat.sendAnyway           "Send anyway"            da "Send alligevel"
     chat.edit                 "Edit"                   da "Ret"
   binds
+    route    "/pod/braetspilpodaarhus46/chat"
     state    held: the text the server held back, or nothing; the warning shows while it is the draft
     role     the warning's text is an alert
     events   Send anyway resends held with the warning acknowledged; Edit clears held and focuses the field

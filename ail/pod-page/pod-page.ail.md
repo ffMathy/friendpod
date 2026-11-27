@@ -67,6 +67,7 @@ node PodPage : flow   level: experience
     common.back        "Back"                                 da "Tilbage"
   binds
     route    /pod/{podId}, inside a stack whose planner, suggest-a-time and chat draw their own headers, and whose feedback and member sheet keep the stack header
+    route    "/pod/braetspilpodaarhus46" or "/pod/doesnotexist"
     state    now: time, read once when the page opens
     shows    PodProposal unless the viewer's card says accepted and the pod is planning, scheduled, happened or archived; else PodReveal while both the card and the pod are planning; else PodScheduled
     shows    common.loadFailed over the page's blocks when the shared pod record cannot be read

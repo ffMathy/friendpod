@@ -55,6 +55,7 @@ node PrivatePodProposal : flow   level: experience
     pods.privateReveal   "Once the pod is confirmed, members see first names. Your photo stays hidden unless you choose to show it in this pod."   da "Når poden er bekræftet, kan medlemmerne se hinandens fornavne. Dit billede forbliver skjult, medmindre du selv vælger at vise det i denne pod."
     pods.privateHow      "How private interests are protected"   da "Sådan beskytter vi private interesser"
   binds
+    route    "/" (Home, with a proposal about a private interest)
     events   How private interests are protected opens "/info/sensitive-interests"
     platform screen capture is prevented while any proposal on Home is about a private interest
   uses DropProposal, ProposalDecline

@@ -1,4 +1,3 @@
-// ail-derived-from: SameGenderPods@28cb7c31a2264082
 // End-to-end check of SameGenderPods (ail/me/pod-preferences/pod-preference-fields/same-gender-pods): each test is one
 // of its scenarios, by name, played through the running app as a user would, with what the user sees: labels, roles
 // and the copy texts.

@@ -41,6 +41,7 @@ node ExtraPlanningRound : view   level: experience
     plan.extendedTitle  "No time works yet — add another option"   da "Intet tidspunkt passer endnu – tilføj et forslag mere"
     plan.extendedBody   "You have one more day, until {{when}}. If no option gets 3 yes votes by then, the pod ends."   da "I har én dag mere, indtil {{when}}. Hvis intet forslag får 3 ja-stemmer inden da, stopper poden."
   binds
+    route    "/pod/braetspilpodaarhus46/plan" (the banner on the planner)
     shows    while the pod's planning is marked extended; when is the deadline as a weekday and a time
   uses MeetupPlanningRules
   sources

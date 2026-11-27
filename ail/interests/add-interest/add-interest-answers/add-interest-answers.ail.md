@@ -48,6 +48,7 @@ node AddInterestAnswers : view   level: experience
     interests.useSuggestion       "Yes, same thing"                       da "Ja, samme ting"
     interests.keepOwnWording      "No, keep it"                           da "Nej, behold den"
   binds
+    route    "/interests" (the message under the add row on the Interests tab)
     shows    the message for the server's answer: added (or added with the third-party warning), duplicate, limit, or rejected with its reason
     events   Yes, same thing confirms the suggested word for the new interest; No, keep it only closes the question
   sources

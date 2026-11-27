@@ -56,6 +56,7 @@ node PodPreferenceFields : view   level: experience
     prefs.openToAnyone     "Open to meeting anyone"      da "Åben for at møde alle"
     prefs.openToAnyoneHint "If no interest fits, you can be matched with nearby people without a shared theme."   da "Hvis ingen interesse passer, kan du blive matchet med folk i nærheden uden et fælles tema."
   binds
+    route    "/settings/preferences" (the fields of Pod preferences)
     props    the form, the app's language, and whether to show Open to meeting anyone (yes unless onboarding)
     role     the distances are a radio group named "How far would you travel?", each radio named "about N km"; each language is a checkbox; each switch is named by its label
     events   a distance sets the distance; a language ticks or unticks it; Open to meeting anyone flips it; Same-gender pods only opens SameGenderPods

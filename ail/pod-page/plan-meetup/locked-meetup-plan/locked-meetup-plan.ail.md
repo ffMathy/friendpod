@@ -86,6 +86,7 @@ node LockedMeetupPlan : flow   level: experience
     attendance.coming     "I'm coming"   da "Jeg kommer"
     attendance.cantMakeIt "Can't make it"   da "Kan ikke komme"
   binds
+    route    "/pod/braetspilpodaarhus46/plan"
     shows    the plan whenever the pod is confirmed, not planning, and has a locked time and place; else plan.notPlanning
     events   Meeting safely opens the safety tips; Open in Maps opens the option's map link; Add to calendar opens the add-event sheet titled pod.calendarTitle; I'm coming and Can't make it send the member's answer
   sources

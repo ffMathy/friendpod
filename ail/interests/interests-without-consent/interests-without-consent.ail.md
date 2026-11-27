@@ -73,6 +73,7 @@ node InterestsWithoutConsent : flow   level: experience
     moderation.ART9_CONSENT_REQUIRED   "This interest may be sensitive, so we only save it if you've agreed to sensitive interests. Nothing was sent or saved. You can give consent in Settings → Privacy."   da "Interessen kan være følsom, så vi gemmer den kun, hvis du har sagt ja til følsomme interesser. Intet blev sendt eller gemt. Du kan give samtykke under Indstillinger → Privatliv."
     legal.interestNotice          "Tip: interests that say something about your health, beliefs, sexuality, politics, ethnic origin or union membership are only saved if you have agreed to sensitive interests (Settings → Privacy). We then keep them private and use them only as a pod's theme. Only add things about yourself."   da "Tip: Interesser, der siger noget om dit helbred, din tro, din seksualitet, politik, etniske oprindelse eller fagforening, gemmer vi kun, hvis du har sagt ja til følsomme interesser (Indstillinger → Privatliv). Så holder vi dem private og bruger dem kun som tema for en pod. Tilføj kun noget om dig selv."
   binds
+    route    "/interests"
     shows    the Off card when the member holds no private interest, has not given the consent, and their profile has loaded
     events   Agree to sensitive interests and Sensitive interests: give consent open "/settings/sensitive-consent"
   sources

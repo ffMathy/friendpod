@@ -57,6 +57,7 @@ node MatchOnCard : view   level: experience
     home.language.da      "Danish"                                           da "Dansk"
     home.language.en      "English"                                          da "Engelsk"
   binds
+    route    "/" (the What we'll match on card on Home, before the drop)
     props    interests: list of the member's ordinary interests or nothing while loading, prefs: the member's preferences, areaLabel: text
     role     the title is a header; Edit is a link
     events   Edit opens "/interests"

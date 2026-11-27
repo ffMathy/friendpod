@@ -74,6 +74,7 @@ node MeetupPlacePicker : view   level: experience
     plan.placeTypes.library "Library"   da "Bibliotek"
     plan.placeTypes.park  "Park"   da "Park"
   binds
+    route    "/pod/braetspilpodaarhus46/propose" (Place on Suggest a time)
     props    language: "da" | "en", value: a picked place or nothing, onChange(place)
     role     the search is a text box named "Place"; each result is a button named "name, kind, area"; the picked one holds an image named "Selected"
     shows    each place's kind from plan.placeTypes, one text for each of the 25 public place types

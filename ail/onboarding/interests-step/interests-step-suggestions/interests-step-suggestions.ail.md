@@ -49,6 +49,7 @@ node InterestsStepSuggestions : view   level: experience
     interests.popularIn        "Popular in {{area}}"   da "Populært i {{area}}"
     interests.addNamed         "Add {{name}}"      da "Tilføj {{name}}"
   binds
+    route    "/add-interests" (the suggestions on What are you into?)
     state    suggestion: { the interest, the common one's name, what was typed } or nothing
     role     each popular chip a button named "Add løb"
   sources

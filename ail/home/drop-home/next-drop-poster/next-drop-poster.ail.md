@@ -73,6 +73,7 @@ node NextDropPoster : view   level: experience
     home.resume        "Resume matching"                   da "Start matchningen igen"
     home.fromWeek      "This week's sign-up closed Thursday at 12:00, so you're in from week {{week}}."   da "Tilmeldingen til denne uge lukkede torsdag kl. 12, så du er med fra uge {{week}}."
   binds
+    route    "/" (the top of Home, before the drop)
     role     the title is a header; the field and foot are one link named "Next drop, the day and time, the countdown, the status", with the hint home.dropLinkHint
     events   the link opens "/info/how-matching-works"; Skip this week asks the server for mode "skipNext", Pause matching for "pause", Join and Resume for the member's own mode
   sources

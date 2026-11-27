@@ -46,6 +46,7 @@ node FinalStepAboutMe : view   level: experience
     aboutMe.CONTACT_INFO  "No contact details here: you haven't met yet. Share them in person if you like."   da "Ingen kontaktoplysninger her: I har ikke mødt hinanden endnu. Del dem gerne, når I ses."
     aboutMe.BLOCKLIST     "This contains words that aren't allowed on Friendpod."   da "Teksten indeholder ord, der ikke er tilladt på Friendpod."
   binds
+    route    "/almost-done" (About me on Almost done)
     state    value: text, starting at the profile's About me or ""
     fields   a text box named "About me (optional)", at most 140 characters
   sources
