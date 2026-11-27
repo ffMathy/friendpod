@@ -8,7 +8,7 @@ are children of their own.
 ```ail
 node AboutYou : flow   level: experience
   why   A new member gives only what pods need: the name pod members will see, proof of
-        being an adult, and consent to the Terms as a contract (DESIGN §3.1 steps 3–5).   <- Friendpod
+        being an adult, and consent to the Terms as a contract (DESIGN §3.1 steps 3–5).   <- Onboarding
   what
     Scenario: The step starts empty and Continue waits
       Given a new member who has just signed in

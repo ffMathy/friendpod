@@ -82,6 +82,9 @@ glossary
   term "first name"               plain "the name other members see once a pod is confirmed"   formal users/{uid}.firstName
   term "birth date"               plain "day, month and year of birth; only the year is kept"   formal completeOnboarding.dob, stored as birthYear
   term adult                      plain "18 or older on the day"   formal ageOn(birthDate, today) ≥ MIN_AGE
+  term basics       plain "first name, birth date, the Terms, the area and the optional source, sent together on step 2"   formal the completeOnboarding input
+  term "area cell"  plain "an area of about 5 km that the phone works out from a postcode or the location"   formal users/{uid}.area.gh5 (geohash-5)
+  term "launch area" plain "a city Friendpod is opening in"   formal LAUNCH_AREAS, areas/{areaId}
   term "welcome screen"           plain "the first screen, with sign-in"   formal the (auth) index route
   term "safety pledge"            plain "the promise a member makes at the end of onboarding to meet safely"   formal onboarding.final.pledge
   term interest                   plain "something a member cares about, in their own words"   formal a holding in users/{uid}/interests
