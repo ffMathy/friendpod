@@ -1,3 +1,4 @@
+// ail-derived-from: DeleteAccount@211fbf5d482a5f51
 // End-to-end check of DeleteAccount (ail/me/privacy-and-data/delete-account): each test is one of its scenarios, by
 // name, played through the running app as a user would, with what the user sees.
 import { afterAll, expect, setDefaultTimeout, test } from 'bun:test';
@@ -15,8 +16,8 @@ const button = (page: Page, name: string) => page.getByRole('button', { name, ex
 const WHAT_HAPPENS = [
   'Your profile, interests, private interests, photo and votes are deleted now.',
   'You leave every pod. The others only see “A member left”.',
-  'Copies in our backups disappear within 7 days.',
-  "Your sign-in record at Google's login service can take up to 180 days to clear.",
+  'Copies in our backups disappear within 7\u00a0days.',
+  "Your sign-in record at Google's login service can take up to 180\u00a0days to clear.",
   'A few records we must keep, such as proof of consent and reports, are kept without your name.',
 ];
 
@@ -30,7 +31,7 @@ test('The screen says what happens', async () => {
   for (const point of WHAT_HAPPENS) await page.getByText(point, { exact: true }).waitFor();
   const order = [
     button(page, 'Download my data first'),
-    page.getByText("To keep your account safe, we'll ask you to sign in again first.", { exact: true }),
+    page.getByText("To keep your account safe, we'll ask you to sign in again\u00a0first.", { exact: true }),
     button(page, 'Sign in again and delete'),
     button(page, 'Cancel'),
   ];

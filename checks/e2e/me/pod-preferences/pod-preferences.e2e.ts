@@ -1,3 +1,4 @@
+// ail-derived-from: PodPreferences@89b28d5d5574b482
 // End-to-end check of PodPreferences (ail/me/pod-preferences): each test is one of its scenarios, by name, played
 // through the running app as a user would, with what the user sees: labels, roles and the copy texts.
 import { afterAll, expect, setDefaultTimeout, test } from 'bun:test';
@@ -40,7 +41,7 @@ test('Saved changes show on Me', async () => {
   await save(page).click();
   await heading(page, 'Your account').waitFor();
   const row = page.getByRole('link', { name: /^Pod preferences/ });
-  const summary = (await row.innerText()).replace(/ /g, ' ');
+  const summary = (await row.innerText()).replace(/\u00a0/g, ' ');
   expect(summary).toContain('Ages 28–42 · about 15 km');
   expect(summary.split('\n').map((l) => l.trim())).toContain('English');
   expect(summary).not.toContain('Danish');
