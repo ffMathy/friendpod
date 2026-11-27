@@ -1,4 +1,4 @@
-// ail-derived-from: AfterTheMeetup@ab54f111a4657419
+// ail-derived-from: AfterTheMeetup@0d9212b23e421ed4
 // End-to-end check of AfterTheMeetup (ail/pod-page/after-the-meetup): each test is one of its scenarios, by name, played
 // through the running app as a user would, with what the user sees: labels, roles and the copy texts.
 import { afterAll, expect, setDefaultTimeout, test } from 'bun:test';

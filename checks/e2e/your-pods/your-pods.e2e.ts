@@ -1,4 +1,4 @@
-// ail-derived-from: YourPods@183e5e4e75f82b1e
+// ail-derived-from: YourPods@f1df678c8153ff1c
 // End-to-end check of YourPods (ail/your-pods): each test is one of its scenarios, by name, played through the running
 // app as a user would, with what the user sees: labels, roles and the copy texts.
 import { afterAll, expect, setDefaultTimeout, test } from 'bun:test';

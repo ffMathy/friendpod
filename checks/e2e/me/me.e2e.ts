@@ -1,4 +1,4 @@
-// ail-derived-from: Me@b090e204ab215b0f
+// ail-derived-from: Me@bde2c1aaac149ea5
 // End-to-end check of Me (ail/me): each test is one of its scenarios, by name, played through the running app as a
 // user would, with what the user sees: labels, roles and the copy texts.
 import { afterAll, expect, setDefaultTimeout, test } from 'bun:test';

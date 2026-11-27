@@ -1,4 +1,4 @@
-// ail-derived-from: PodPreferences@89b28d5d5574b482
+// ail-derived-from: PodPreferences@5e85b452102426f9
 // End-to-end check of PodPreferences (ail/me/pod-preferences): each test is one of its scenarios, by name, played
 // through the running app as a user would, with what the user sees: labels, roles and the copy texts.
 import { afterAll, expect, setDefaultTimeout, test } from 'bun:test';

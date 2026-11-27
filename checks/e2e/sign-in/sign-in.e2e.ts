@@ -1,4 +1,4 @@
-// ail-derived-from: SignIn@8d8fedb5fd101400
+// ail-derived-from: SignIn@047b740aa9500377
 // End-to-end check of SignIn (ail/sign-in): each test is one of its scenarios, by name, played through the running
 // app as a user would, with what the user sees: labels, roles and the copy texts.
 import { afterAll, expect, setDefaultTimeout, test } from 'bun:test';
