@@ -1,0 +1,21 @@
+{
+  "node": "FriendpodMessageCard",
+  "shots": [
+    {
+      "test": "A safety report's receipt adds the 112 line",
+      "file": "01-a-safety-report-s-receipt-adds-the-112-line.png"
+    },
+    {
+      "test": "An automated pause says it was decided automatically",
+      "file": "02-an-automated-pause-says-it-was-decided-automatically.png"
+    },
+    {
+      "test": "Ready data can be downloaded from its message",
+      "file": "03-ready-data-can-be-downloaded-from-its-message.png"
+    },
+    {
+      "test": "A download that does not work says so",
+      "file": "04-a-download-that-does-not-work-says-so.png"
+    }
+  ]
+}

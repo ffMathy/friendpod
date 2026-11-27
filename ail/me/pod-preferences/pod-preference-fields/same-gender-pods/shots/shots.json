@@ -1,0 +1,21 @@
+{
+  "node": "SameGenderPods",
+  "shots": [
+    {
+      "test": "Turning on asks for a gender first",
+      "file": "01-turning-on-asks-for-a-gender-first.png"
+    },
+    {
+      "test": "The consent box must be ticked",
+      "file": "02-the-consent-box-must-be-ticked.png"
+    },
+    {
+      "test": "Cancel closes the sheet",
+      "file": "03-cancel-closes-the-sheet.png"
+    },
+    {
+      "test": "In Danish, the non-binary text is only in English",
+      "file": "04-in-danish-the-non-binary-text-is-only-in-english.png"
+    }
+  ]
+}

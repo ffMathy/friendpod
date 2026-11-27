@@ -1,0 +1,29 @@
+{
+  "node": "InfoPages",
+  "shots": [
+    {
+      "test": "How matching works opens from Me and goes back",
+      "file": "01-how-matching-works-opens-from-me-and-goes-back.png"
+    },
+    {
+      "test": "Pause matching leads to Me",
+      "file": "02-pause-matching-leads-to-me.png"
+    },
+    {
+      "test": "Signed out, the page only says matching can be paused",
+      "file": "03-signed-out-the-page-only-says-matching-can-be-paused.png"
+    },
+    {
+      "test": "The Terms open from the welcome screen and go back",
+      "file": "04-the-terms-open-from-the-welcome-screen-and-go-back.png"
+    },
+    {
+      "test": "The privacy notice from the welcome screen in Danish",
+      "file": "05-the-privacy-notice-from-the-welcome-screen-in-danish.png"
+    },
+    {
+      "test": "Read more on the consent step opens Private interests full screen",
+      "file": "06-read-more-on-the-consent-step-opens-private-interests-full-s.png"
+    }
+  ]
+}

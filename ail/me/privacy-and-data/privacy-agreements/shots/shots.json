@@ -1,0 +1,29 @@
+{
+  "node": "PrivacyAgreements",
+  "shots": [
+    {
+      "test": "The agreements of a member with private-interest consent",
+      "file": "01-the-agreements-of-a-member-with-private-interest-consent.png"
+    },
+    {
+      "test": "Without private-interest consent nothing sensitive is saved",
+      "file": "02-without-private-interest-consent-nothing-sensitive-is-saved.png"
+    },
+    {
+      "test": "Private interests opens the private-interest consent",
+      "file": "03-private-interests-opens-the-private-interest-consent.png"
+    },
+    {
+      "test": "Same-gender pods opens the pod preferences",
+      "file": "04-same-gender-pods-opens-the-pod-preferences.png"
+    },
+    {
+      "test": "Photo opens Me",
+      "file": "05-photo-opens-me.png"
+    },
+    {
+      "test": "The agreements in Danish",
+      "file": "06-the-agreements-in-danish.png"
+    }
+  ]
+}

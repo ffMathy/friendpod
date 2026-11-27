@@ -1,0 +1,21 @@
+{
+  "node": "PrivacyAndData",
+  "shots": [
+    {
+      "test": "Privacy opens on what you have agreed to and your data",
+      "file": "01-privacy-opens-on-what-you-have-agreed-to-and-your-data.png"
+    },
+    {
+      "test": "Coming from Me, Me leads back",
+      "file": "02-coming-from-me-me-leads-back.png"
+    },
+    {
+      "test": "Delete account opens the delete screen",
+      "file": "03-delete-account-opens-the-delete-screen.png"
+    },
+    {
+      "test": "Privacy in Danish",
+      "file": "04-privacy-in-danish.png"
+    }
+  ]
+}

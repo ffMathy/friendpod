@@ -1,0 +1,21 @@
+{
+  "node": "InfoLicences",
+  "shots": [
+    {
+      "test": "The licences credit postcodes, fonts and software",
+      "file": "01-the-licences-credit-postcodes-fonts-and-software.png"
+    },
+    {
+      "test": "A font's licence opens and closes",
+      "file": "02-a-font-s-licence-opens-and-closes.png"
+    },
+    {
+      "test": "The GeoNames link opens its website",
+      "file": "03-the-geonames-link-opens-its-website.png"
+    },
+    {
+      "test": "Licences in Danish",
+      "file": "04-licences-in-danish.png"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "node": "InfoHowMatchingWorks",
+  "shots": [
+    {
+      "test": "The page says what is used and what never is",
+      "file": "01-the-page-says-what-is-used-and-what-never-is.png"
+    },
+    {
+      "test": "How matching works in Danish",
+      "file": "02-how-matching-works-in-danish.png"
+    }
+  ]
+}

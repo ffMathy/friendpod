@@ -1,0 +1,25 @@
+{
+  "node": "GivePrivateInterestConsent",
+  "shots": [
+    {
+      "test": "The consent starts unticked and I agree waits",
+      "file": "01-the-consent-starts-unticked-and-i-agree-waits.png"
+    },
+    {
+      "test": "Agreeing returns to Privacy",
+      "file": "02-agreeing-returns-to-privacy.png"
+    },
+    {
+      "test": "Not now returns to Privacy with nothing given",
+      "file": "03-not-now-returns-to-privacy-with-nothing-given.png"
+    },
+    {
+      "test": "Back with no earlier screen opens Privacy",
+      "file": "04-back-with-no-earlier-screen-opens-privacy.png"
+    },
+    {
+      "test": "Giving consent in Danish",
+      "file": "05-giving-consent-in-danish.png"
+    }
+  ]
+}

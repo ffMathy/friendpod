@@ -1,0 +1,21 @@
+{
+  "node": "PodPreferences",
+  "shots": [
+    {
+      "test": "The page shows what is saved",
+      "file": "01-the-page-shows-what-is-saved.png"
+    },
+    {
+      "test": "Saved changes show on Me",
+      "file": "02-saved-changes-show-on-me.png"
+    },
+    {
+      "test": "Save needs a language and a time",
+      "file": "03-save-needs-a-language-and-a-time.png"
+    },
+    {
+      "test": "Pod preferences in Danish",
+      "file": "04-pod-preferences-in-danish.png"
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "node": "MeAboutMe",
+  "shots": [
+    {
+      "test": "The saved sentence, and no Save until it changes",
+      "file": "01-the-saved-sentence-and-no-save-until-it-changes.png"
+    },
+    {
+      "test": "A changed sentence is saved",
+      "file": "02-a-changed-sentence-is-saved.png"
+    },
+    {
+      "test": "Contact details are refused",
+      "file": "03-contact-details-are-refused.png"
+    },
+    {
+      "test": "About me in Danish",
+      "file": "04-about-me-in-danish.png"
+    }
+  ]
+}

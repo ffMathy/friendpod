@@ -1,0 +1,17 @@
+{
+  "node": "PodPreferenceFields",
+  "shots": [
+    {
+      "test": "One distance at a time",
+      "file": "01-one-distance-at-a-time.png"
+    },
+    {
+      "test": "Meetup languages are ticked one by one",
+      "file": "02-meetup-languages-are-ticked-one-by-one.png"
+    },
+    {
+      "test": "Open to meeting anyone is offered here",
+      "file": "03-open-to-meeting-anyone-is-offered-here.png"
+    }
+  ]
+}

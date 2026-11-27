@@ -1,0 +1,17 @@
+{
+  "node": "PrivateInterestsCard",
+  "shots": [
+    {
+      "test": "The private interest is shown quietly",
+      "file": "01-the-private-interest-is-shown-quietly.png"
+    },
+    {
+      "test": "Remove and withdraw takes the private interest away",
+      "file": "02-remove-and-withdraw-takes-the-private-interest-away.png"
+    },
+    {
+      "test": "The private card in Danish",
+      "file": "03-the-private-card-in-danish.png"
+    }
+  ]
+}

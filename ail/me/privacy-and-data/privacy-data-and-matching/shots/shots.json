@@ -1,0 +1,29 @@
+{
+  "node": "PrivacyDataAndMatching",
+  "shots": [
+    {
+      "test": "Pausing matching says from which week",
+      "file": "01-pausing-matching-says-from-which-week.png"
+    },
+    {
+      "test": "Blocked people counts whom the member blocked",
+      "file": "02-blocked-people-counts-whom-the-member-blocked.png"
+    },
+    {
+      "test": "Nobody blocked",
+      "file": "03-nobody-blocked.png"
+    },
+    {
+      "test": "Blocked people opens the list",
+      "file": "04-blocked-people-opens-the-list.png"
+    },
+    {
+      "test": "How matching works opens its page",
+      "file": "05-how-matching-works-opens-its-page.png"
+    },
+    {
+      "test": "Your data and matching in Danish",
+      "file": "06-your-data-and-matching-in-danish.png"
+    }
+  ]
+}

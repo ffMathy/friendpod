@@ -1,0 +1,29 @@
+{
+  "node": "YourPods",
+  "shots": [
+    {
+      "test": "Active and past pods are listed apart",
+      "file": "01-active-and-past-pods-are-listed-apart.png"
+    },
+    {
+      "test": "No past pods yet",
+      "file": "02-no-past-pods-yet.png"
+    },
+    {
+      "test": "A member with no pods",
+      "file": "03-a-member-with-no-pods.png"
+    },
+    {
+      "test": "A row opens its pod",
+      "file": "04-a-row-opens-its-pod.png"
+    },
+    {
+      "test": "A pod said no to leaves the list",
+      "file": "05-a-pod-said-no-to-leaves-the-list.png"
+    },
+    {
+      "test": "The Pods tab in Danish",
+      "file": "06-the-pods-tab-in-danish.png"
+    }
+  ]
+}

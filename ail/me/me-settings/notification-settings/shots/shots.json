@@ -1,0 +1,21 @@
+{
+  "node": "NotificationSettings",
+  "shots": [
+    {
+      "test": "Notifications that are on",
+      "file": "01-notifications-that-are-on.png"
+    },
+    {
+      "test": "Turning notifications on",
+      "file": "02-turning-notifications-on.png"
+    },
+    {
+      "test": "When the phone's settings cannot be opened",
+      "file": "03-when-the-phone-s-settings-cannot-be-opened.png"
+    },
+    {
+      "test": "Notifications in Danish",
+      "file": "04-notifications-in-danish.png"
+    }
+  ]
+}

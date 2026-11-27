@@ -1,0 +1,41 @@
+{
+  "node": "YourPodsRow",
+  "shots": [
+    {
+      "test": "A proposal not answered yet",
+      "file": "01-a-proposal-not-answered-yet.png"
+    },
+    {
+      "test": "A pod waiting for the others",
+      "file": "02-a-pod-waiting-for-the-others.png"
+    },
+    {
+      "test": "A pod planning its meetup",
+      "file": "03-a-pod-planning-its-meetup.png"
+    },
+    {
+      "test": "A scheduled meetup",
+      "file": "04-a-scheduled-meetup.png"
+    },
+    {
+      "test": "A pod that has met",
+      "file": "05-a-pod-that-has-met.png"
+    },
+    {
+      "test": "A past pod reads Archived",
+      "file": "06-a-past-pod-reads-archived.png"
+    },
+    {
+      "test": "A pod without a theme",
+      "file": "07-a-pod-without-a-theme.png"
+    },
+    {
+      "test": "A private pod stays quiet",
+      "file": "08-a-private-pod-stays-quiet.png"
+    },
+    {
+      "test": "Rows in Danish",
+      "file": "09-rows-in-danish.png"
+    }
+  ]
+}
