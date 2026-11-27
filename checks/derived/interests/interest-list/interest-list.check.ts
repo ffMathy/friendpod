@@ -98,7 +98,10 @@ test(
     await keepPrivate.first().waitFor({ state: 'visible' });
     const keepBefore = await keepPrivate.count();
     expect(keepBefore).toBeGreaterThanOrEqual(1);
-    expect(await page.getByRole('button', { name: 'More for far på barsel', exact: true }).count()).toBe(0);
+    // No "…": the only control named More for far på barsel is the interest's name itself, which opens its actions.
+    const more = page.getByRole('button', { name: 'More for far på barsel', exact: true });
+    expect(await more.count()).toBe(1);
+    expect((await more.innerText()).trim()).toBe('far på barsel');
 
     const remove = page.getByRole('button', { name: 'Remove far på barsel', exact: true });
     expect(await remove.count()).toBe(0);

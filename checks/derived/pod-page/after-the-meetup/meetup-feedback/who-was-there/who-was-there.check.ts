@@ -41,6 +41,22 @@ async function isChosen(locator: Locator): Promise<boolean> {
   return (await drawnBackground(locator)) === INK;
 }
 
+/** Waits until the answer is drawn as chosen (or not): the redraw follows the press. */
+async function untilChosen(page: Page, locator: Locator, chosen: boolean): Promise<void> {
+  const handle = await locator.elementHandle();
+  await page.waitForFunction(
+    ([root, ink, want]) => {
+      if (!root) return false;
+      const nodes: Element[] = [root, ...Array.from(root.querySelectorAll('*'))];
+      const bg = nodes
+        .map((node) => getComputedStyle(node).backgroundColor)
+        .find((c) => c && c !== 'transparent' && c !== 'rgba(0, 0, 0, 0)');
+      return (bg === ink) === want;
+    },
+    [handle, INK, chosen] as const,
+  );
+}
+
 describe('WhoWasThere', () => {
   test(
     'Everyone starts ticked and no one has a meet-again answer',
@@ -117,11 +133,12 @@ describe('WhoWasThere', () => {
       await yes.waitFor();
 
       await yes.click();
-      await page.waitForFunction(() => true);
+      await untilChosen(page, yes, true);
       expect(await isChosen(yes)).toBe(true);
       expect(await isChosen(no)).toBe(false);
 
       await yes.click();
+      await untilChosen(page, yes, false);
       expect(await isChosen(yes)).toBe(false);
       expect(await isChosen(no)).toBe(false);
 

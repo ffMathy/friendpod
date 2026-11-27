@@ -35,12 +35,16 @@ const DA = {
 
 const CONSENT_URL = /\/settings\/sensitive-consent(\?|#|$)/;
 
-/** The innermost element holding both the private card's title and its Off badge: the Off card. */
+/**
+ * The innermost element holding the private card's title, its Off badge and a link or button: the Off card (the
+ * title and the badge alone share a smaller row, the card's eyebrow).
+ */
 function offCard(page: Page, title: string, badge: string): Locator {
   return page
     .locator('div')
     .filter({ has: page.getByText(title, { exact: true }) })
     .filter({ has: page.getByText(badge, { exact: true }) })
+    .filter({ has: page.getByRole('link').or(page.getByRole('button')) })
     .last();
 }
 

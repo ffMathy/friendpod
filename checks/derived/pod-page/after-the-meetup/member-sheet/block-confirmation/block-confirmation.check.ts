@@ -2,7 +2,7 @@
 import { describe, expect, test } from 'bun:test';
 import type { Locator } from 'playwright';
 
-import { isTicked, openApp } from '../../../../../harness/preview';
+import { openApp } from '../../../../../harness/preview';
 
 const TIMEOUT = 300_000;
 
@@ -12,6 +12,13 @@ const SOFIE_ROUTE = '/pod/climbingpodaarhus42a/member/u_sofie';
 const RASMUS_ROUTE = '/pod/climbingpodaarhus42a/member/u_rasmus';
 
 const BLOCK_BODY = "You'll never be matched again, and photos are hidden both ways.";
+
+const PRIMARY = 'rgb(27, 100, 82)';
+
+/** Whether a choice row is drawn as chosen: its border in color.primary (the app's radios carry no checked state on the web). */
+async function isChosen(row: Locator): Promise<boolean> {
+  return (await row.first().evaluate((el) => getComputedStyle(el).borderTopColor)) === PRIMARY;
+}
 
 async function visible(locator: Locator): Promise<void> {
   await locator.first().waitFor({ state: 'visible' });
@@ -38,7 +45,8 @@ describe('BlockConfirmation', () => {
       const removeThem = page.getByRole('radio', { name: 'Take Jonas out of the pod', exact: true });
       await visible(removeThem);
       await visible(page.getByRole('radio', { name: 'Leave the pod myself instead', exact: true }));
-      expect(await isTicked(removeThem)).toBe(true);
+      expect(await isChosen(removeThem)).toBe(true);
+      expect(await isChosen(page.getByRole('radio', { name: 'Leave the pod myself instead', exact: true }))).toBe(false);
       expect(await page.getByRole('radio', { name: 'Take them out and re-plan the meetup', exact: true }).count()).toBe(0);
       expect(await page.getByText('Take them out and re-plan the meetup', { exact: true }).count()).toBe(0);
 

@@ -101,11 +101,12 @@ describe('YourPodsRow', () => {
     async () => {
       await using app = await openApp({ route: '/pods', world: 'member the morning after a meetup', locale: 'en' });
       const row = await rowNamed(app.page, exactName('brætspil', 'Met'));
-      const active = app.page.getByText('Active', { exact: true }).first();
+      // The section heading carries its count: "Active · 1".
+      const active = app.page.getByRole('heading', { name: /^Active\b/ }).first();
       await active.waitFor({ state: 'visible' });
       const rowTop = await topOf(row);
       expect(rowTop).toBeGreaterThan(await topOf(active));
-      const past = app.page.getByText('Past', { exact: true });
+      const past = app.page.getByRole('heading', { name: /^Past\b/ });
       if ((await past.count()) > 0) {
         expect(rowTop).toBeLessThan(await topOf(past.first()));
       }
@@ -119,7 +120,7 @@ describe('YourPodsRow', () => {
     async () => {
       await using app = await openApp({ route: '/pods', world: 'member this week', locale: 'en' });
       const row = await rowNamed(app.page, exactName('bouldering', 'Archived'));
-      const past = app.page.getByText('Past', { exact: true }).first();
+      const past = app.page.getByRole('heading', { name: /^Past\b/ }).first();
       await past.waitFor({ state: 'visible' });
       expect(await topOf(row)).toBeGreaterThan(await topOf(past));
       const text = (await row.textContent()) ?? '';
@@ -158,8 +159,16 @@ describe('YourPodsRow', () => {
         for (const el of all) {
           const style = window.getComputedStyle(el);
           found.push(style.backgroundColor, style.color, style.borderTopColor);
-          const fill = el.getAttribute('fill');
-          if (fill !== null) found.push(fill);
+          // Icons are drawn with their stroke (and the filled ones with their fill).
+          for (const attr of ['fill', 'stroke']) {
+            const value = el.getAttribute(attr);
+            const hex = value === null ? null : /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(value);
+            if (hex !== null && hex[1] !== undefined && hex[2] !== undefined && hex[3] !== undefined) {
+              found.push(`rgb(${parseInt(hex[1], 16)}, ${parseInt(hex[2], 16)}, ${parseInt(hex[3], 16)})`);
+            } else if (value !== null) {
+              found.push(value);
+            }
+          }
           found.push(style.fill);
         }
         return found;

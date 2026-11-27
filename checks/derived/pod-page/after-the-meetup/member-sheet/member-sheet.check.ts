@@ -104,8 +104,9 @@ test(
     await shows(report);
     await report.first().click();
 
+    // The sheet stays mounted (hidden) under the report, so the report is read from its heading.
+    await shows(page.getByRole('heading', { name: 'Report Jonas', exact: true }));
     await shows(page.getByText('What happened?'));
-    await shows(page.getByText('Report Jonas', { exact: true }));
 
     await app.saveScreen('report-opens-the-report-for-that-member.png');
   },
