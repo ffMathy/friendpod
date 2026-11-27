@@ -9,5 +9,13 @@
       "adopted": true
     }
   },
-  "glue": {}
+  "glue": {},
+  "hand": {
+    "AboutYou": {
+      "shots": "26c05d9381ba4e34"
+    },
+    "BirthDate": {
+      "shots": "d755b0534ac76ed0"
+    }
+  }
 }

@@ -1,0 +1,29 @@
+{
+  "node": "AboutYou",
+  "shots": [
+    {
+      "test": "The step starts empty and Continue waits",
+      "file": "01-the-step-starts-empty-and-continue-waits.png"
+    },
+    {
+      "test": "The basics lead to step 2",
+      "file": "02-the-basics-lead-to-step-2.png"
+    },
+    {
+      "test": "A first name with a digit is refused",
+      "file": "03-a-first-name-with-a-digit-is-refused.png"
+    },
+    {
+      "test": "A first name with a hyphen and an apostrophe is accepted",
+      "file": "04-a-first-name-with-a-hyphen-and-an-apostrophe-is-accepted.png"
+    },
+    {
+      "test": "Going back from the first step signs out",
+      "file": "05-going-back-from-the-first-step-signs-out.png"
+    },
+    {
+      "test": "The step in Danish",
+      "file": "06-the-step-in-danish.png"
+    }
+  ]
+}
