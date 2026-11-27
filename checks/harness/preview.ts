@@ -7,6 +7,7 @@
 //   await app.saveScreen('the-step-starts-empty.png');
 //
 // Playwright with Chromium must be loadable as `playwright` (as apps/mobile/preview/README.md requires).
+import { afterAll, setDefaultTimeout } from 'bun:test';
 import { spawnSync } from 'node:child_process';
 import { mkdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
@@ -15,6 +16,11 @@ import { urlFor, type World } from '../e2e/data.ts';
 
 const repo = resolve(import.meta.dir, '..', '..');
 const BUILD = join(repo, '.ail', 'preview');
+
+// Every check that uses the harness gets these: the first test also builds the preview, which takes a while, and the
+// shared browser (and preview server) are closed once the file's tests are done.
+setDefaultTimeout(120_000);
+afterAll(() => closeApps());
 
 let base: Promise<string> | null = null;
 let server: { close: () => Promise<void> } | null = null;
