@@ -42,7 +42,7 @@ test(
       'Two missed meetups within 8 weeks: a 2-week pause. Three: no drops for 8 weeks.',
       at,
     );
-    at = indexAfter(
+    indexAfter(
       text,
       'A report marked “Not a genuine member”: no pods about private interests for 28 days.',
       at,

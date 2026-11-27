@@ -1,13 +1,13 @@
 // ail-derived-from: InfoLegalText@baa74ba3f043bf02
 import { describe, expect, test } from 'bun:test';
-import type { Locator } from 'playwright';
+import type { Locator, Page } from 'playwright';
 
 import { openApp } from '../../../harness/preview';
 
 type Box = { x: number; y: number; width: number; height: number };
 
 /** The first visible element showing exactly this text, waited for. */
-async function shown(app: { page: import('playwright').Page }, text: string): Promise<Locator> {
+async function shown(app: { page: Page }, text: string): Promise<Locator> {
   const locator = app.page.getByText(text, { exact: true }).filter({ visible: true }).first();
   await locator.waitFor({ state: 'visible' });
   return locator;
