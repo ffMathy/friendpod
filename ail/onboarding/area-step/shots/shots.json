@@ -1,0 +1,33 @@
+{
+  "node": "AreaStep",
+  "shots": [
+    {
+      "test": "The step starts with no area and Continue waits",
+      "file": "01-the-step-starts-with-no-area-and-continue-waits.png"
+    },
+    {
+      "test": "A known postcode gives an area",
+      "file": "02-a-known-postcode-gives-an-area.png"
+    },
+    {
+      "test": "An unknown postcode is refused",
+      "file": "03-an-unknown-postcode-is-refused.png"
+    },
+    {
+      "test": "No approximate location",
+      "file": "04-no-approximate-location.png"
+    },
+    {
+      "test": "Continue sends the basics and opens step 3",
+      "file": "05-continue-sends-the-basics-and-opens-step-3.png"
+    },
+    {
+      "test": "Opened directly, the step cannot be finished",
+      "file": "06-opened-directly-the-step-cannot-be-finished.png"
+    },
+    {
+      "test": "The step in Danish",
+      "file": "07-the-step-in-danish.png"
+    }
+  ]
+}

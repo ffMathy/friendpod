@@ -1,0 +1,17 @@
+{
+  "node": "PrivateInterestConsentText",
+  "shots": [
+    {
+      "test": "The consent text is shown word for word",
+      "file": "01-the-consent-text-is-shown-word-for-word.png"
+    },
+    {
+      "test": "Read more opens the page on private interests",
+      "file": "02-read-more-opens-the-page-on-private-interests.png"
+    },
+    {
+      "test": "The consent text in Danish",
+      "file": "03-the-consent-text-in-danish.png"
+    }
+  ]
+}

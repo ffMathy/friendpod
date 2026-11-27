@@ -1,0 +1,21 @@
+{
+  "node": "MeProfileCard",
+  "shots": [
+    {
+      "test": "A member with a photo",
+      "file": "01-a-member-with-a-photo.png"
+    },
+    {
+      "test": "A new member has no photo and no meetups yet",
+      "file": "02-a-new-member-has-no-photo-and-no-meetups-yet.png"
+    },
+    {
+      "test": "Adding a photo thanks the member",
+      "file": "03-adding-a-photo-thanks-the-member.png"
+    },
+    {
+      "test": "The card in Danish",
+      "file": "04-the-card-in-danish.png"
+    }
+  ]
+}

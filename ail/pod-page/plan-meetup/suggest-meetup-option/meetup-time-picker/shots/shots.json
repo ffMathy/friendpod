@@ -1,0 +1,25 @@
+{
+  "node": "MeetupTimePicker",
+  "shots": [
+    {
+      "test": "The days run from today to 14 days ahead",
+      "file": "01-the-days-run-from-today-to-14-days-ahead.png"
+    },
+    {
+      "test": "Times that have passed today cannot be picked",
+      "file": "02-times-that-have-passed-today-cannot-be-picked.png"
+    },
+    {
+      "test": "The last day ends at the time it is now",
+      "file": "03-the-last-day-ends-at-the-time-it-is-now.png"
+    },
+    {
+      "test": "A time picked before the day is not limited",
+      "file": "04-a-time-picked-before-the-day-is-not-limited.png"
+    },
+    {
+      "test": "Day and time in Danish",
+      "file": "05-day-and-time-in-danish.png"
+    }
+  ]
+}

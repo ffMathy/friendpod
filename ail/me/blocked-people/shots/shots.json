@@ -1,0 +1,21 @@
+{
+  "node": "BlockedPeople",
+  "shots": [
+    {
+      "test": "One blocked person",
+      "file": "01-one-blocked-person.png"
+    },
+    {
+      "test": "Unblocking takes the block away at once",
+      "file": "02-unblocking-takes-the-block-away-at-once.png"
+    },
+    {
+      "test": "Nobody blocked",
+      "file": "03-nobody-blocked.png"
+    },
+    {
+      "test": "Blocked people in Danish",
+      "file": "04-blocked-people-in-danish.png"
+    }
+  ]
+}

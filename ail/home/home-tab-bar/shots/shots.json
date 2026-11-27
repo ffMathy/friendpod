@@ -1,0 +1,13 @@
+{
+  "node": "HomeTabBar",
+  "shots": [
+    {
+      "test": "This week is the active tab on Home",
+      "file": "01-this-week-is-the-active-tab-on-home.png"
+    },
+    {
+      "test": "The tab bar in Danish",
+      "file": "02-the-tab-bar-in-danish.png"
+    }
+  ]
+}

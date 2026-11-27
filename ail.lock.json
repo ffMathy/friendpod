@@ -1,0 +1,471 @@
+{
+  "version": 1,
+  "nodes": {
+    "AboutYouRules": {
+      "hash": "28992b1a94fa1095dacd6c85d29e105266094643166df6c8cb60a4eebe07fb8d",
+      "files": {
+        "packages/core/src/gen/onboarding/about-you/about-you-rules/about-you-rules.ts": "58ee56ce82d682c6ef685b6015ae8c2d5c7517cab0210594e7f6f8445c19a1c7"
+      },
+      "by": "claude-code"
+    },
+    "CityWaitlistRules": {
+      "hash": "bf4f8e9deb760993ca6b5631acd47dd03ceaa76c6c82c4631cb2038f1108cd79",
+      "spec": "99d9c4a8f62ee5c3e4793847de5374c6af2b6ce535a8e03b48f7511e36ea611c",
+      "files": {},
+      "by": "adopted",
+      "adopted": true
+    },
+    "DropReasons": {
+      "hash": "c60f915851e72412b6d7fadbb274edb7e37d216ca687da9eae3953f81b39ffdf",
+      "spec": "dc9bd5d08b1d61d5b4756f0d8f9c319b616737a9bc3a5e1c318f6cd69a08d819",
+      "files": {},
+      "by": "adopted",
+      "adopted": true
+    },
+    "InterestRules": {
+      "hash": "4e7b7e84bdc6f744c29139f669390f1ea3b6c874d386b890b8f3d4f579a98423",
+      "spec": "a6b8d6dfef7b39175cc849e481a799979d623cd37a9df01688d90f1fdd6473f4",
+      "files": {},
+      "by": "adopted",
+      "adopted": true
+    },
+    "MeetupChatRules": {
+      "hash": "cf3c3ad0610997de6bc0df7776f5c2d6bc540f45d54c27aead0807a59a31b100",
+      "spec": "13d8627409a1cb7be5dbd288dff982b8e0476f760547b39f63b1183ae040af19",
+      "files": {},
+      "by": "adopted",
+      "adopted": true
+    },
+    "MeetupPlanningRules": {
+      "hash": "c59b26ba7101fbe9e69ee58d4ce6e1ed8131bf173f0af3dff85e360f5afbce9f",
+      "spec": "5323fd0f032fc1ff03425202cbaf7dcd3ac68b170388ad9a7828abccca80ce00",
+      "files": {},
+      "by": "adopted",
+      "adopted": true
+    },
+    "PodColors": {
+      "hash": "9bf117a2edcac816d3a19a6c29e6384a7ac13931c9c2cf0e4602ea2a14106478",
+      "spec": "d51902f675036be7c171dfd4c62c961f9869e2e44faddb1938b6b95b9590ec75",
+      "files": {},
+      "by": "adopted",
+      "adopted": true
+    },
+    "PodNextStep": {
+      "hash": "1fa0739cb6411af455bf7295e0f66f6f3fb706ba71f2a6af01aa2e8a8d7e0818",
+      "spec": "93fac712fb5ba9f2e002abe7b23fd2d8365abfa6c1bab6d90e2fa7f4de228ce1",
+      "files": {},
+      "by": "adopted",
+      "adopted": true
+    },
+    "PodPreferenceRules": {
+      "hash": "096ac4fa8fe77be85e66b23e65ed36459bd1c0c730cc6a24855d08e293f6fffd",
+      "spec": "6d0c4386a5319fabe10aed3a7eac161833721695d945bbf686c80df5ea36b8b0",
+      "files": {},
+      "by": "adopted",
+      "adopted": true
+    }
+  },
+  "glue": {},
+  "hand": {
+    "AboutYou": {
+      "shots": "c17554c57564a1ee",
+      "look": "a840a3fb1be6f534d71719844c9312d5048a862f7071dec326bbef7d8adb66da"
+    },
+    "AddInterest": {
+      "shots": "ecdc1ca4f73835ca",
+      "look": "24b469b03fce63a1c2c0ef3d02c0ba3f72f8d6b144687a930b1d1ee417909f93"
+    },
+    "AreaStep": {
+      "shots": "3c87955f81c425c4",
+      "look": "2eaf9459ba8608d57f282c22df7e5121cc66f3e2fea08638415f8da4b216b626"
+    },
+    "BirthDate": {
+      "shots": "4cf4112410de83ce",
+      "look": "97dcc192d1093d7ccdbbd1f3f9df8e20b0855aa0dd5e98c02bed8d2e307704ff"
+    },
+    "BlockConfirmation": {
+      "shots": "249997988c0e3f48",
+      "look": "49c21a56051c7a87b27d83dacdd5fa3769dfd289972d1f2f4386b21540bbdd8d"
+    },
+    "BlockedPeople": {
+      "shots": "86027c2540fea8be",
+      "look": "c434376012e2486328262434fb67ca2a51aec15b6b51d4c3c3065bd8e3470340"
+    },
+    "CityWaitlist": {
+      "shots": "30aaeea3350d3959",
+      "look": "99b098dd261db8ee28bd83532e4d5c742d6912c90828d3609ce2c10f9cec5059"
+    },
+    "ContactDetailsWarning": {
+      "shots": "d7e10a964ddf0e6c",
+      "look": "07f556c513d8480b623944ac80c27d4c5b9ab5f19a90e04070c2dadf9a1a5511"
+    },
+    "DataExport": {
+      "shots": "714d61043846b322",
+      "look": "d5f4db310c25c14eb9aba5439e6880f3207e33b104661748d0036f81d83326f8"
+    },
+    "DeleteAccount": {
+      "shots": "3dcd4ba816b4f6c9",
+      "look": "454ea14e6bbaeefaf8a5f38b39722d2afda6e3ffd34b12e654dc361d0bf5e0b1"
+    },
+    "DropHome": {
+      "shots": "a2e1a66f29d2d075",
+      "look": "b7d7351a415b3400bac9bd027e938d8e834702ac1491ad8091d3e5c42c81a7e9"
+    },
+    "DropProposal": {
+      "shots": "217cbca0949f8ff5",
+      "look": "78d4bed39c1fc7986ae057c43697d20978b4bb6d64c1d18f9f15c7c05de77790"
+    },
+    "DropWaiting": {
+      "shots": "9b47c68686763504",
+      "look": "376195ef0f12273dac6f8112b739a389455bf8bb4b2f3f65b68b62de8f32dcda"
+    },
+    "DropWhy": {
+      "shots": "7b581fdec9dd6dc0",
+      "look": "ee8b75a3ef9248b95c30e144869b7a7b1e538b54a97bfae7c4effe4153be5055"
+    },
+    "EmailLinkConfirmAddress": {
+      "shots": "7815a53493aab7b4",
+      "look": "8f7016be0bee88c7b8f091d6c4e4190cc8406065e1ce5be6825c6cf2aa583694"
+    },
+    "EmailLinkLanding": {
+      "shots": "c2080a3b41ed3380",
+      "look": "54edfd439c678abd28c75bf3b9c0a57e8cfe01e1fe91ec2c85fbf3e41064f073"
+    },
+    "EmailSignIn": {
+      "shots": "ad1f6fe3dcfafc4c",
+      "look": "9cd66f3ef3be10fbebc7f99ee055f270faff56f4ae3b1aebb4a74f0b37056914"
+    },
+    "ExtraPlanningRound": {
+      "shots": "04ff3f1688e81573",
+      "look": "26f7de4682278ec06cdd1184e5f0a71a665046f788cf5d687ecc29ea62742f4f"
+    },
+    "FinalStep": {
+      "shots": "932d6e31757880ca",
+      "look": "c7e0976e7cbfcd15476ae1bd09880af4285ca6e5f73c8032d5fc035243c749a6"
+    },
+    "FinalStepAboutMe": {
+      "shots": "c764808ec8658182",
+      "look": "a83a96bf20296e626f21ff7da5922e109f5cd095edb2aacac1ab811e75796d62"
+    },
+    "FinalStepCards": {
+      "shots": "ef4edcb69df2b303",
+      "look": "6c20b239fc999cc7ac2f2fd2162646c563a5adaaeda5260f655a2dfb041c8649"
+    },
+    "FreeTimesGrid": {
+      "shots": "dea49ede3029275e",
+      "look": "074f6f8ac36ae75081fbc2658c57d8acc86370713048cc6d12e7f2d9f572eec3"
+    },
+    "FriendpodMessageCard": {
+      "shots": "89eb2d3b3ccfd509",
+      "look": "f09bdbe8f732d2eb88bc667c62112990e00911900e9d89a755a3481122c70664"
+    },
+    "FriendpodMessages": {
+      "shots": "341451db7c4853f5",
+      "look": "0c794405ee9e3d7c9114ac838f1728ef013918277b25acea6d18500e1272daac"
+    },
+    "GivePrivateInterestConsent": {
+      "shots": "20fd20e731a979b3",
+      "look": "ab3f10a2a488803917f8d2f5d8d711b85d71f0673d3c0a8de267d55ae7e6ccd1"
+    },
+    "HeardFromQuestion": {
+      "shots": "24d940c5a2d0e90d",
+      "look": "6890d399e886caed4e64540138e2babbbcad4d7347810f181bb6f523fa8dcfd7"
+    },
+    "HomeTabBar": {
+      "shots": "815f28a168dfb880",
+      "look": "5c9cc7e2eb3f657304878ad00ddb1f03768d0aa5a6a1791cb1112413f0e4f85a"
+    },
+    "InfoAutomaticPauses": {
+      "shots": "7916e492688add3d",
+      "look": "ddc4bb4050ab10cead07b9505df5fbc32eb2e8f70ac7d7c1453d47c4ef67fda1"
+    },
+    "InfoHowMatchingWorks": {
+      "shots": "d5a04791dac42bf7",
+      "look": "d8b030b01bd704eb0294df12feedbe322c978ff723d121891ac953df878e14c5"
+    },
+    "InfoLegalText": {
+      "shots": "baa74ba3f043bf02",
+      "look": "b325954946f67022c7dc701b435016cfc0cb7be2b94bf47485c4966326783956"
+    },
+    "InfoLicences": {
+      "shots": "02f7c4865340ee0a",
+      "look": "e9e55007e443c876b415f2007eba28e6eac9bd8494ac0fc15b78e32f04e1554e"
+    },
+    "InfoMeetingSafely": {
+      "shots": "3185a1a4125ca71b",
+      "look": "2f286d37a8fadb5e2c6d921c7a3193f234d256e555ade079189a17156cf6904f"
+    },
+    "InfoPages": {
+      "shots": "4a68795eb787ebbe",
+      "look": "8935348d5f4bfca4a2528a81a05195f343b6a428740541ea3f0b5ab0a98e4362"
+    },
+    "InfoPrivateInterests": {
+      "shots": "775704214fb73d06",
+      "look": "3536988f269e0665512d5a3492f86905321fa8aa0f39ffbb0da9aaccabb46a91"
+    },
+    "InterestList": {
+      "shots": "4034a7077f1b2b7b",
+      "look": "984f688a2ad6d16c013b5760914b096c8213d07332f3be001125359b7bf471d0"
+    },
+    "Interests": {
+      "shots": "04f59b53d171c9ae",
+      "look": "4c8907bd35ddf676656a449d364af196c9795d08ff4f92e4058fbdd34f149fb7"
+    },
+    "InterestsStep": {
+      "shots": "b82f22f198da5535",
+      "look": "247098d501e48b711da3ec5a7a6722ec151aec40f65f52e40dfb31b9f8064b32"
+    },
+    "InterestsStepChips": {
+      "shots": "8eafeb76c0c7912c",
+      "look": "81ad92e6604a09f566dfe679767ba998f28fda3a0fe746e00d0fed165bbc1d94"
+    },
+    "InterestsStepField": {
+      "shots": "93df91b3a2f14779",
+      "look": "30d2876515b8161bf3318095b90b4f40307e82d15cab800fb7e447248c080405"
+    },
+    "InterestsStepSuggestions": {
+      "shots": "e611543a3e3f6fe7",
+      "look": "d5b056979a3c11e82759f477446efe4ddb089eebb52be2cb91663971eaba8814"
+    },
+    "InterestStars": {
+      "shots": "334d41d581d939f6",
+      "look": "0fbeb0249ad3410b12fda7c82112016dd40eb15129d6ed500d10227d3e86a2ae"
+    },
+    "InterestsWithoutConsent": {
+      "shots": "7b2184d078643403",
+      "look": "44eed174e0513ae622ae62054a4aa6944bcdc58e361c0dae8ad309785b64c188"
+    },
+    "LockedMeetupPlan": {
+      "shots": "5c349ca77849f9b3",
+      "look": "d5bcc6b70cdfed121db5861c98466fda842e0eba52ecfde10dc3b8301c58d391"
+    },
+    "MatchOnCard": {
+      "shots": "5426236bdde05af9",
+      "look": "2f41e2297f916a3ff03a36b22be8561423ae62cbf583113c7a254fab20ca6a05"
+    },
+    "Me": {
+      "shots": "918d46ff9bc0d626",
+      "look": "c20bcc20c2c38c63a713a4e440e8830d4504e8d3a9e49bb50d38499cc5447275"
+    },
+    "MeAboutMe": {
+      "shots": "2069d316e0845468",
+      "look": "17f676e262758b29ac685237a07876c59de73924de8a5cfb67035dff69d347cd"
+    },
+    "MeetupAttendance": {
+      "shots": "45e1402ffa172f9a",
+      "look": "904840108a74a18e7866b1c2a482d2beab45cf9246569d1f93dae4c01b50c7d3"
+    },
+    "MeetupChat": {
+      "shots": "2b810564f2949305",
+      "look": "d418a8e33db1d4750df0159f2bb2c126fbd4a5637cf1286a4ed91ba5141a4099"
+    },
+    "MeetupChatComposer": {
+      "shots": "d9feef71f7f23069",
+      "look": "18af9090216764dc0628b7334098ff6b474742379800d872d8e244333dfebd2e"
+    },
+    "MeetupChatMessages": {
+      "shots": "6c2de99c4766c3d4",
+      "look": "0a1af4915689d06b87ff7b6372fa244aaca2af3d66ea9976059e5629220eeb5a"
+    },
+    "MeetupChatWindow": {
+      "shots": "fe9f31c5be357557",
+      "look": "01f6c49e430fc6c3b713a69ba44bfd6d55bf7bcc9f6e1af27a4e2b44d70c2302"
+    },
+    "MeetupFeedback": {
+      "shots": "23a51b48ec31d4db",
+      "look": "e25cc814ab31fd3e4e4644d15bab6d5aa04019fd0b48c0a3f4b7fc0b90e44977"
+    },
+    "MeetupPlacePicker": {
+      "shots": "2eea0e88fc1b8edf",
+      "look": "9eb6aaa8a3b208eb963f7ef8593656678b6ddb6f3f5ee3e1a28bede796b9e697"
+    },
+    "MeetupTimePicker": {
+      "shots": "3c1b00c6971298ba",
+      "look": "e2d214e36e611ba11b701def73899af68bd39f211ddea500ff0d173e06971ec4"
+    },
+    "MeInterestsCard": {
+      "shots": "3eb2463d7aa24f5d",
+      "look": "9f9f8be95399272d6095998e0d3834401df9060d49513aa145b9fd7200bc3662"
+    },
+    "MemberSheet": {
+      "shots": "3c8f575922432588",
+      "look": "d3f7fbf3efc61fd138b6e050f640c830f36525871ba789d81492b3a4df2793a1"
+    },
+    "MeProfileCard": {
+      "shots": "95ee3ac2a04ef3c2",
+      "look": "1ec98312750d99d01ab65866b48fa3748534df04a59000a112d9373029215069"
+    },
+    "MeSettings": {
+      "shots": "8a477716fd4de16d",
+      "look": "7014549bb95af202126f37a34b953b05d5cf2dd6448cc008b3a9bd2476f32b42"
+    },
+    "MeWeeklyDrops": {
+      "shots": "f9e8d616f0bf7176",
+      "look": "274b82b1eeaf27439cb45b2feccdaa7eea37057c0559d0b642f3e777f83f663c"
+    },
+    "NextDropPoster": {
+      "shots": "0e96d8a9a5d113aa",
+      "look": "0055b362a93bdf3f5aa98ac465b2e5fae460e9cb40aedaca23cee22c2bb664cf"
+    },
+    "NoPodReasonTexts": {
+      "shots": "dd370bfba6f4943c",
+      "look": "463fd4d216f996c69e17d9303849db59d6c098f227645757e637bdb9c9259ecb"
+    },
+    "NoPodThisWeek": {
+      "shots": "69d3b8114b8fe271",
+      "look": "1daee2cc75f966ec45f618020a15320783e5d3d09a49e32c14043e78aec3b8ba"
+    },
+    "NotificationSettings": {
+      "shots": "d39869525c9fb015",
+      "look": "1990ae586368f3470bd05e91cc27834c1513cd96f998faa224f6c02614a3af90"
+    },
+    "Onboarding": {
+      "shots": "24a321459ab6bac4",
+      "look": "5b8a3888f01b055c33f97c0c309443114478a6a4cafc9c8557b4ace85dd5217b"
+    },
+    "PlanMeetup": {
+      "shots": "5d4320b1b200e7d9",
+      "look": "6b57af1e28441e4f80d6738b647aff06d67248960d37fdac1fe2366e4d652b9a"
+    },
+    "PlanOption": {
+      "shots": "57aab761f5117470",
+      "look": "7416be55668c231d385d8a6a7eaeb34173d06c31c78d6aa75b2226345c0b5de3"
+    },
+    "PodAgeRange": {
+      "shots": "23c9fdaeb8786ffd",
+      "look": "587f44ccfd4a6b226ee744989b7b642d3247bda13e92bb44315206ea51f8a77d"
+    },
+    "PodMembersCard": {
+      "shots": "cbc431539f892ab2",
+      "look": "d75579bf7ecc48d1411d4238b7f84606286ce1584d600f1d84da4d89aea9885d"
+    },
+    "PodMenu": {
+      "shots": "ac9176ff10c02c9f",
+      "look": "24ba539b2301c2e9bd640405beb5b6764da1fecd04e35e53727f034d02bec8ba"
+    },
+    "PodPage": {
+      "shots": "f9a8bc2b74fb7d96",
+      "look": "c08dce93e2c02974bb07d3681b8d2aa720e0c78fc57fd06d3bdb147fbccfc154"
+    },
+    "PodPlanCard": {
+      "shots": "dd61546a76b8aea5",
+      "look": "dd2fd73f3e6399dea328db8c11a1093d09f2c56b2b88a15e2e05eda249b45679"
+    },
+    "PodPreferenceFields": {
+      "shots": "f6353012f41a8b9a",
+      "look": "a447149873df32b26ea9183dbb49c0ddb5f888dce41e8f9e33262a0dd4b550a9"
+    },
+    "PodPreferences": {
+      "shots": "5e85b452102426f9",
+      "look": "f6937196463b6418d999b38bd6c4da4b1ba539d112bbd0366e454dc5dc1c64ef"
+    },
+    "PodProposal": {
+      "shots": "5fd442bd5c5e47e3",
+      "look": "b9ace4e4f39c9a1d9f0bb666018c783af32af02183473d2025d3b42159c6555e"
+    },
+    "PodProposalKinds": {
+      "shots": "b61051192454eeb4",
+      "look": "aa4ad878221b40f372cd8385f70076908f8ab41542d29f49eec5ea25ae1c5f73"
+    },
+    "PodRevealCards": {
+      "shots": "44845595ce4be41f",
+      "look": "fc3b2563cd83c7d39f9e8cdfc1c6b3dcfdcf316c0173febc0588057a8b9ab3c9"
+    },
+    "PodRevealField": {
+      "shots": "5c00a05c54b66528",
+      "look": "6c253265f0ef9eb67b127749b3a0b4a7e7d4b6c284ae0e356f567c975b894722"
+    },
+    "PodScheduled": {
+      "shots": "78bcb427260e4f4a",
+      "look": "21f2ffe9a51706e9e6849ece3619a824b4fed50728a22bc6013d3feb4c9dab0a"
+    },
+    "PreferencesStep": {
+      "shots": "2308df55283d58be",
+      "look": "e0336304a907e42c004e857d3f5f7951e4f56bb62ebe1792323a841ba34f93da"
+    },
+    "PrivacyAgreements": {
+      "shots": "2f8768d951180689",
+      "look": "c7579b516994d985351d8f2c49aa911fa1c904f3b14434bb70a46f6e8df38280"
+    },
+    "PrivacyAndData": {
+      "shots": "6b5347d1cb08a621",
+      "look": "0a499b7038d7c39c78a6676c3416a24e49e13f0b6cdd75e4149d77bb6383ef31"
+    },
+    "PrivacyDataAndMatching": {
+      "shots": "2b01918420dca0e7",
+      "look": "17856d1702e46bb4c43f41d1117d06c1628efc33fdc1ca2f334f95d285316020"
+    },
+    "PrivateInterestConsentText": {
+      "shots": "fe1869a23f68347d",
+      "look": "56306e59878e2dfe1fa3378ec723152570fbf6b7052a7a020bf52457609bd43c"
+    },
+    "PrivateInterestsCard": {
+      "shots": "24a315b876034aef",
+      "look": "5d6e27188c27402e1c6d90d4c29ccee7d42fb39041b4dc0bfe621bfb14789c59"
+    },
+    "PrivatePodPage": {
+      "shots": "099ba2114749f7eb",
+      "look": "b55409d270d0690013782686b47b05f5318256c4c34f870f1e9d1c769f5ceef5"
+    },
+    "PrivatePodProposal": {
+      "shots": "0fe381d46fc8b6d6",
+      "look": "3835cd26d8af83449ac4f03239dea94d8732a34408b6953ad8724aad98e63b86"
+    },
+    "ProposalDecline": {
+      "shots": "0bcef545c0618e4b",
+      "look": "dc2d044c6e9fcd81ec29940e5a3d31a059b72e0e39ead1289e1d318153b4a228"
+    },
+    "ProposalFacts": {
+      "shots": "29641329ce4c1332",
+      "look": "9e128d10d414a917949e84f5dc36a1433ecd50db55443f3d48ed2077c3097461"
+    },
+    "SameGenderPods": {
+      "shots": "37b5fec124f6ccb0",
+      "look": "12310191a44fd993b2a4fb3aabdeb4f120ea7114120ba71afe08109c9a9bc5a6"
+    },
+    "SensitiveInterestsStep": {
+      "shots": "faf8e832d7783fa4",
+      "look": "42259c8b82e089957922e6e046cf760b3abeb62a669adf3ec707be10b75636ec"
+    },
+    "SuggestMeetupOption": {
+      "shots": "0642c6f363504011",
+      "look": "d8857982f7b68dd5d743814637b7c4d268af1409da41ac4fcbdf8fbbc6792c63"
+    },
+    "TermsAcceptance": {
+      "shots": "eb6239a8077f17aa",
+      "look": "6d2380b312898737154e6a4d3f9397bf97e502d624a8b4d29d78fb998d1affd3"
+    },
+    "WaitlistShareCard": {
+      "shots": "839fbde59682c3fe",
+      "look": "89478e1bc2dfa5c0cc2a71eedcd56017104577e02750c2f320cad01c33de63f2"
+    },
+    "Welcome": {
+      "shots": "7bae2b57d6883110",
+      "look": "297eec23a17b2764326964b0005bc788a3d8299a2461aef2e885ea93ac8d605a"
+    },
+    "WelcomePoster": {
+      "shots": "8e33c451e868b51e",
+      "look": "c5ed9447c3e2668ff72a6aad7a0a1e53441590b123cd6d72e50b6beb55cccab7"
+    },
+    "WhoWasThere": {
+      "shots": "2a6f97200d9a6095",
+      "look": "94bca6dc807004d98aa0aec0f68d97a4bcb919a89642387ae3c675486f2a8b33"
+    },
+    "WithdrawPrivateInterestConsent": {
+      "shots": "d4c5f7a9a4d1098c",
+      "look": "19cd097aaa5e861f51d08467ebcc03b24a2bee2c7d7e2198cd16513349e17ab6"
+    },
+    "YourAreaCard": {
+      "shots": "7a3399cd6afdb09c",
+      "look": "4b506f9386649aa1383c126d4a26b5e4a9c21bba47d047d9f54c2a345a06b979"
+    },
+    "YourPods": {
+      "shots": "f1df678c8153ff1c",
+      "look": "4c16a8dda4e63e5dcbcf567ea19fdcc3304dbe807a076febd355e7fb3193e767"
+    },
+    "YourPodsRow": {
+      "shots": "243df0abb96b7310",
+      "look": "558c9296ce18b76225d168f0ca491802e4a14434d6a45bc7c3c1de7bada972b4"
+    }
+  }
+}

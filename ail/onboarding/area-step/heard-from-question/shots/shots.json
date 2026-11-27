@@ -1,0 +1,13 @@
+{
+  "node": "HeardFromQuestion",
+  "shots": [
+    {
+      "test": "The question lists eight answers and is optional",
+      "file": "01-the-question-lists-eight-answers-and-is-optional.png"
+    },
+    {
+      "test": "The question in Danish",
+      "file": "02-the-question-in-danish.png"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "node": "FreeTimesGrid",
+  "shots": [
+    {
+      "test": "Ticking and unticking a time",
+      "file": "01-ticking-and-unticking-a-time.png"
+    },
+    {
+      "test": "The grid in Danish",
+      "file": "02-the-grid-in-danish.png"
+    }
+  ]
+}

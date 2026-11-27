@@ -1,0 +1,17 @@
+{
+  "node": "FinalStepCards",
+  "shots": [
+    {
+      "test": "The cards before anything is chosen",
+      "file": "01-the-cards-before-anything-is-chosen.png"
+    },
+    {
+      "test": "Turning on notifications",
+      "file": "02-turning-on-notifications.png"
+    },
+    {
+      "test": "The cards in Danish",
+      "file": "03-the-cards-in-danish.png"
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "node": "PodProposalKinds",
+  "shots": [
+    {
+      "test": "A Fjord pod's proposal",
+      "file": "01-a-fjord-pod-s-proposal.png"
+    },
+    {
+      "test": "A Solsikke pod's proposal",
+      "file": "02-a-solsikke-pod-s-proposal.png"
+    },
+    {
+      "test": "The brætspil proposal is Tomat",
+      "file": "03-the-br-tspil-proposal-is-tomat.png"
+    },
+    {
+      "test": "An open pod's proposal takes its colour from the pod",
+      "file": "04-an-open-pod-s-proposal-takes-its-colour-from-the-pod.png"
+    },
+    {
+      "test": "A private pod's proposal shows less",
+      "file": "05-a-private-pod-s-proposal-shows-less.png"
+    },
+    {
+      "test": "A private pod's proposal in Danish",
+      "file": "06-a-private-pod-s-proposal-in-danish.png"
+    }
+  ]
+}

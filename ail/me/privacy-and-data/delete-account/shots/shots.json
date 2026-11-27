@@ -1,0 +1,29 @@
+{
+  "node": "DeleteAccount",
+  "shots": [
+    {
+      "test": "The screen says what happens",
+      "file": "01-the-screen-says-what-happens.png"
+    },
+    {
+      "test": "Download my data first asks for the file",
+      "file": "02-download-my-data-first-asks-for-the-file.png"
+    },
+    {
+      "test": "With a ready file, Download my data first downloads it",
+      "file": "03-with-a-ready-file-download-my-data-first-downloads-it.png"
+    },
+    {
+      "test": "Deleting waits for a confirmation",
+      "file": "04-deleting-waits-for-a-confirmation.png"
+    },
+    {
+      "test": "Cancel and Back return to Privacy",
+      "file": "05-cancel-and-back-return-to-privacy.png"
+    },
+    {
+      "test": "Delete account in Danish",
+      "file": "06-delete-account-in-danish.png"
+    }
+  ]
+}

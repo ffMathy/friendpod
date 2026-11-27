@@ -1,0 +1,3 @@
+# Generated from the AIL spec (ail/): committed, collapsed in pull request diffs so review is of the spec
+packages/core/src/gen/** linguist-generated=true
+ail.lock.json linguist-generated=true

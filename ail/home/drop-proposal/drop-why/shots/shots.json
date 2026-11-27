@@ -1,0 +1,25 @@
+{
+  "node": "DropWhy",
+  "shots": [
+    {
+      "test": "The reasons for the brætspil pod",
+      "file": "01-the-reasons-for-the-br-tspil-pod.png"
+    },
+    {
+      "test": "Close returns to the proposal",
+      "file": "02-close-returns-to-the-proposal.png"
+    },
+    {
+      "test": "Tapping beside the sheet closes it",
+      "file": "03-tapping-beside-the-sheet-closes-it.png"
+    },
+    {
+      "test": "How matching works from the sheet",
+      "file": "04-how-matching-works-from-the-sheet.png"
+    },
+    {
+      "test": "Why this pod in Danish",
+      "file": "05-why-this-pod-in-danish.png"
+    }
+  ]
+}

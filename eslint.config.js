@@ -12,6 +12,7 @@ export default defineConfig(
     '**/.expo/',
     '**/.firebase/',
     'tools/sim/out/',
+    '.ail/',
   ]),
   js.configs.recommended,
   tseslint.configs.recommended,

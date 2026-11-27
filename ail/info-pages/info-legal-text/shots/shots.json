@@ -1,0 +1,21 @@
+{
+  "node": "InfoLegalText",
+  "shots": [
+    {
+      "test": "The Terms are marked as a draft",
+      "file": "01-the-terms-are-marked-as-a-draft.png"
+    },
+    {
+      "test": "The privacy notice is marked as a draft",
+      "file": "02-the-privacy-notice-is-marked-as-a-draft.png"
+    },
+    {
+      "test": "The Terms in Danish",
+      "file": "03-the-terms-in-danish.png"
+    },
+    {
+      "test": "A legal page that does not exist",
+      "file": "04-a-legal-page-that-does-not-exist.png"
+    }
+  ]
+}

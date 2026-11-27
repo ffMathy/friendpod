@@ -1,0 +1,21 @@
+{
+  "node": "WithdrawPrivateInterestConsent",
+  "shots": [
+    {
+      "test": "The consent shows when it was given and what it covers",
+      "file": "01-the-consent-shows-when-it-was-given-and-what-it-covers.png"
+    },
+    {
+      "test": "See them under Interests opens Interests",
+      "file": "02-see-them-under-interests-opens-interests.png"
+    },
+    {
+      "test": "Withdrawing waits for a confirmation",
+      "file": "03-withdrawing-waits-for-a-confirmation.png"
+    },
+    {
+      "test": "The given consent in Danish",
+      "file": "04-the-given-consent-in-danish.png"
+    }
+  ]
+}

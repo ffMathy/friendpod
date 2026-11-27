@@ -1,0 +1,17 @@
+{
+  "node": "PrivatePodProposal",
+  "shots": [
+    {
+      "test": "A private proposal shows less",
+      "file": "01-a-private-proposal-shows-less.png"
+    },
+    {
+      "test": "How private interests are protected",
+      "file": "02-how-private-interests-are-protected.png"
+    },
+    {
+      "test": "A private proposal in Danish",
+      "file": "03-a-private-proposal-in-danish.png"
+    }
+  ]
+}

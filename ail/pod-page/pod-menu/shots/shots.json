@@ -1,0 +1,25 @@
+{
+  "node": "PodMenu",
+  "shots": [
+    {
+      "test": "The menu offers the safety tips and Leave pod",
+      "file": "01-the-menu-offers-the-safety-tips-and-leave-pod.png"
+    },
+    {
+      "test": "Meeting safely in the menu opens the safety tips",
+      "file": "02-meeting-safely-in-the-menu-opens-the-safety-tips.png"
+    },
+    {
+      "test": "Close shuts the menu",
+      "file": "03-close-shuts-the-menu.png"
+    },
+    {
+      "test": "The reveal has the same menu",
+      "file": "04-the-reveal-has-the-same-menu.png"
+    },
+    {
+      "test": "The menu in Danish",
+      "file": "05-the-menu-in-danish.png"
+    }
+  ]
+}

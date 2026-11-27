@@ -1,0 +1,17 @@
+{
+  "node": "InfoMeetingSafely",
+  "shots": [
+    {
+      "test": "The tips for a member, with the pledge",
+      "file": "01-the-tips-for-a-member-with-the-pledge.png"
+    },
+    {
+      "test": "Signed out, the tips without the pledge",
+      "file": "02-signed-out-the-tips-without-the-pledge.png"
+    },
+    {
+      "test": "Meeting safely in Danish",
+      "file": "03-meeting-safely-in-danish.png"
+    }
+  ]
+}

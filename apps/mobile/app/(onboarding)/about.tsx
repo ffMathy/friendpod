@@ -1,18 +1,19 @@
-import { firstNameSchema } from '@friendpod/core';
+import { birthDateFrom, firstNameFrom, isAdult, isPlausible } from '@friendpod/core';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import { Button, ErrorText, Label, Small, Text, TextField } from '@/components/ui';
 import { signOut } from '@/features/account/account';
-import { composeDob, isAdult, splitDob } from '@/features/onboarding/dob';
+import { splitDob } from '@/features/onboarding/dob';
 import { useOnboardingDraft } from '@/features/onboarding/draft';
 import { OnboardingStep } from '@/features/onboarding/OnboardingStep';
 import { TermsAcceptance } from '@/features/onboarding/TermsAcceptance';
 
 /**
- * Step 1 of 6, "About you" (onb-about; DESIGN §3.1 steps 3–5): first name (seen only by confirmed pod members), date of
- * birth entered on the device (the server keeps only the birth year), and the Terms. Nothing is sent yet: the answers
+ * Step 1 of 6, "About you" (onb-about; DESIGN §3.1 steps 3–5; spec: ail/onboarding/about-you): first name (seen only by
+ * confirmed pod members, no length limit), date of birth entered on the device (the server keeps only the birth year), and
+ * the Terms. Continue needs a plausible, adult date (the owner, 2026-11-27); the server repeats both checks. Nothing is sent yet: the answers
  * wait in the in-memory draft until completeOnboarding on the next step. As onb-about draws it: 52 px inputs with 15/700
  * labels, Day / Month / Year sub-labels, the Terms tick (§3.1 step 3: explicit, unticked at first) with the Terms and
  * privacy notice links under it, Continue (Skov) at the bottom.
@@ -28,16 +29,19 @@ export default function AboutYou() {
   const [year, setYear] = useState(initialDob.year);
   const [accepted, setAccepted] = useState(draft.legalAccepted);
 
-  const parsedName = firstNameSchema.safeParse(name);
-  const dob = year.length === 4 && day.length > 0 && month.length > 0 ? composeDob(year, month, day) : null;
-  const dobInvalid = year.length === 4 && day.length > 0 && month.length > 0 && dob === null;
-  const underage = dob !== null && !isAdult(dob, new Date());
-  const ready = parsedName.success && dob !== null && accepted;
+  const firstName = firstNameFrom(name);
+  const today = new Date();
+  const typed = birthDateFrom(day, month, year);
+  const whole = year.length === 4 && day.length > 0 && month.length > 0;
+  const dobInvalid = whole && (typed === null || !isPlausible(typed, today));
+  const underage = typed !== null && !dobInvalid && !isAdult(typed, today);
+  const dob = typed !== null && !dobInvalid && !underage ? typed : null;
+  const ready = firstName !== null && dob !== null && accepted;
 
   const next = () => {
-    if (!parsedName.success || dob === null || !accepted) return;
-    // An under-18 date still goes to the server, which deletes the Auth user and answers UNDERAGE (§3.1).
-    update({ firstName: parsedName.data, dob, legalAccepted: true });
+    if (firstName === null || dob === null || !accepted) return;
+    // The server repeats both checks: under 18 it deletes the Auth user and answers UNDERAGE (§3.1).
+    update({ firstName, dob, legalAccepted: true });
     router.push('/area');
   };
 
@@ -64,13 +68,12 @@ export default function AboutYou() {
           size="md"
           label={t('onboarding.about.firstName')}
           helper={t('onboarding.about.firstNameHelp')}
-          error={name.length > 0 && !parsedName.success ? t('onboarding.about.firstNameInvalid') : null}
+          error={name.length > 0 && firstName === null ? t('onboarding.about.firstNameInvalid') : null}
           value={name}
           onChangeText={setName}
           autoComplete="given-name"
           textContentType="givenName"
           autoCapitalize="words"
-          maxLength={30}
         />
       </View>
 

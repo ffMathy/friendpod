@@ -1,0 +1,25 @@
+{
+  "node": "CityWaitlist",
+  "shots": [
+    {
+      "test": "The waitlist instead of this week",
+      "file": "01-the-waitlist-instead-of-this-week.png"
+    },
+    {
+      "test": "Copy copies the invite link",
+      "file": "02-copy-copies-the-invite-link.png"
+    },
+    {
+      "test": "The interests while you wait",
+      "file": "03-the-interests-while-you-wait.png"
+    },
+    {
+      "test": "Profile and settings opens Me",
+      "file": "04-profile-and-settings-opens-me.png"
+    },
+    {
+      "test": "The waitlist in Danish",
+      "file": "05-the-waitlist-in-danish.png"
+    }
+  ]
+}

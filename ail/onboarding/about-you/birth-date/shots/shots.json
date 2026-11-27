@@ -1,0 +1,25 @@
+{
+  "node": "BirthDate",
+  "shots": [
+    {
+      "test": "A date that does not exist is refused",
+      "file": "01-a-date-that-does-not-exist-is-refused.png"
+    },
+    {
+      "test": "Someone under 18 cannot continue",
+      "file": "02-someone-under-18-cannot-continue.png"
+    },
+    {
+      "test": "A birth date in the future is refused",
+      "file": "03-a-birth-date-in-the-future-is-refused.png"
+    },
+    {
+      "test": "A birth date more than 120 years ago is refused",
+      "file": "04-a-birth-date-more-than-120-years-ago-is-refused.png"
+    },
+    {
+      "test": "Turning 18 today is old enough",
+      "file": "05-turning-18-today-is-old-enough.png"
+    }
+  ]
+}

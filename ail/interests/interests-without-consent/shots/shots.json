@@ -1,0 +1,29 @@
+{
+  "node": "InterestsWithoutConsent",
+  "shots": [
+    {
+      "test": "The private card is Off",
+      "file": "01-the-private-card-is-off.png"
+    },
+    {
+      "test": "A sensitive interest is refused on the phone",
+      "file": "02-a-sensitive-interest-is-refused-on-the-phone.png"
+    },
+    {
+      "test": "Keep this private is refused without the consent",
+      "file": "03-keep-this-private-is-refused-without-the-consent.png"
+    },
+    {
+      "test": "The refusal leads to the consent",
+      "file": "04-the-refusal-leads-to-the-consent.png"
+    },
+    {
+      "test": "Agree to sensitive interests leads to the consent",
+      "file": "05-agree-to-sensitive-interests-leads-to-the-consent.png"
+    },
+    {
+      "test": "Without consent in Danish",
+      "file": "06-without-consent-in-danish.png"
+    }
+  ]
+}

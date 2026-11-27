@@ -1,0 +1,21 @@
+{
+  "node": "InterestList",
+  "shots": [
+    {
+      "test": "\"…\" opens the row's actions",
+      "file": "01-opens-the-row-s-actions.png"
+    },
+    {
+      "test": "Remove takes an interest off the list at once",
+      "file": "02-remove-takes-an-interest-off-the-list-at-once.png"
+    },
+    {
+      "test": "An interest made ordinary keeps Keep this private at hand",
+      "file": "03-an-interest-made-ordinary-keeps-keep-this-private-at-hand.png"
+    },
+    {
+      "test": "The row's actions in Danish",
+      "file": "04-the-row-s-actions-in-danish.png"
+    }
+  ]
+}

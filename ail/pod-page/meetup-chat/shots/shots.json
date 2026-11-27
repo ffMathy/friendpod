@@ -1,0 +1,37 @@
+{
+  "node": "MeetupChat",
+  "shots": [
+    {
+      "test": "The chat just before the meetup",
+      "file": "01-the-chat-just-before-the-meetup.png"
+    },
+    {
+      "test": "Opening the chat clears its new messages",
+      "file": "02-opening-the-chat-clears-its-new-messages.png"
+    },
+    {
+      "test": "Back from a chat opened on its own goes to the Pods tab",
+      "file": "03-back-from-a-chat-opened-on-its-own-goes-to-the-pods-tab.png"
+    },
+    {
+      "test": "Press and hold a message to report it",
+      "file": "04-press-and-hold-a-message-to-report-it.png"
+    },
+    {
+      "test": "Your own message cannot be reported",
+      "file": "05-your-own-message-cannot-be-reported.png"
+    },
+    {
+      "test": "Only members see the chat",
+      "file": "06-only-members-see-the-chat.png"
+    },
+    {
+      "test": "The chat of a pod that is gone",
+      "file": "07-the-chat-of-a-pod-that-is-gone.png"
+    },
+    {
+      "test": "The chat in Danish",
+      "file": "08-the-chat-in-danish.png"
+    }
+  ]
+}

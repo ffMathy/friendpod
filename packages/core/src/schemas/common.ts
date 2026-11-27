@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { firstNameFrom } from '../gen/onboarding/about-you/about-you-rules/about-you-rules';
 import { GH5_PATTERN } from '../geo/geohash';
 import { isBlocklisted } from '../interests/blocklist';
 import { findPii, hasFloorAndSide, looksLikeAddress, looksLikeLink, mentionsHandle } from '../interests/pii';
@@ -49,16 +50,19 @@ export const ymdDateSchema = z.string().refine(
   { message: 'invalid date' },
 );
 
-/** First name, 1–30 characters: letters, marks, spaces, apostrophes, periods and hyphens (no contact details). */
-export const firstNameSchema = z
-  .string()
-  .transform((v) => v.normalize('NFC').replace(/\s+/gu, ' ').trim())
-  .pipe(
-    z
-      .string()
-      .refine((v) => [...v].length >= 1 && [...v].length <= 30, { message: 'length 1-30' })
-      .refine((v) => /^[\p{L}\p{M}][\p{L}\p{M}' .’-]*$/u.test(v), { message: 'letters only' }),
-  );
+/**
+ * First name, cleaned (NFC, runs of white space made one space, trimmed): letters, marks, spaces, apostrophes, periods
+ * and hyphens, no length limit (no contact details). The rule is generated from the AIL spec (`firstNameFrom`), so the
+ * app and the server share it.
+ */
+export const firstNameSchema = z.string().transform((v, ctx) => {
+  const name = firstNameFrom(v);
+  if (name === null) {
+    ctx.addIssue({ code: 'custom', message: 'letters only' });
+    return z.NEVER;
+  }
+  return name;
+});
 
 /**
  * What the client sends with an explicit consent (PRIVACY.md §3.4).

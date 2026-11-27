@@ -1,0 +1,17 @@
+{
+  "node": "PrivatePodPage",
+  "shots": [
+    {
+      "test": "The private reveal hides photos until shown",
+      "file": "01-the-private-reveal-hides-photos-until-shown.png"
+    },
+    {
+      "test": "The private pod the day before its meetup",
+      "file": "02-the-private-pod-the-day-before-its-meetup.png"
+    },
+    {
+      "test": "The private reveal in Danish",
+      "file": "03-the-private-reveal-in-danish.png"
+    }
+  ]
+}

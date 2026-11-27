@@ -1,0 +1,9 @@
+{
+  "node": "ProposalFacts",
+  "shots": [
+    {
+      "test": "The facts of the brætspil proposal",
+      "file": "01-the-facts-of-the-br-tspil-proposal.png"
+    }
+  ]
+}

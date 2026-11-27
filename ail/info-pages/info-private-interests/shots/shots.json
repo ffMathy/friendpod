@@ -1,0 +1,13 @@
+{
+  "node": "InfoPrivateInterests",
+  "shots": [
+    {
+      "test": "The page says how private interests are protected",
+      "file": "01-the-page-says-how-private-interests-are-protected.png"
+    },
+    {
+      "test": "Private interests in Danish",
+      "file": "02-private-interests-in-danish.png"
+    }
+  ]
+}

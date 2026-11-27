@@ -1,0 +1,25 @@
+{
+  "node": "MeSettings",
+  "shots": [
+    {
+      "test": "Settings lists what Me's row promises",
+      "file": "01-settings-lists-what-me-s-row-promises.png"
+    },
+    {
+      "test": "Choosing Dansk switches the app to Danish",
+      "file": "02-choosing-dansk-switches-the-app-to-danish.png"
+    },
+    {
+      "test": "Signing out returns to the welcome screen",
+      "file": "03-signing-out-returns-to-the-welcome-screen.png"
+    },
+    {
+      "test": "The rows open their pages",
+      "file": "04-the-rows-open-their-pages.png"
+    },
+    {
+      "test": "Settings in Danish",
+      "file": "05-settings-in-danish.png"
+    }
+  ]
+}

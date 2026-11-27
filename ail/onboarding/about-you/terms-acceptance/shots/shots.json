@@ -1,0 +1,13 @@
+{
+  "node": "TermsAcceptance",
+  "shots": [
+    {
+      "test": "Continue waits for the Terms",
+      "file": "01-continue-waits-for-the-terms.png"
+    },
+    {
+      "test": "The Terms link opens the Terms",
+      "file": "02-the-terms-link-opens-the-terms.png"
+    }
+  ]
+}

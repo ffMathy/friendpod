@@ -1,0 +1,21 @@
+{
+  "node": "ProposalDecline",
+  "shots": [
+    {
+      "test": "Declining asks why, optionally",
+      "file": "01-declining-asks-why-optionally.png"
+    },
+    {
+      "test": "Cancel keeps the proposal",
+      "file": "02-cancel-keeps-the-proposal.png"
+    },
+    {
+      "test": "Declining leaves the proposal behind",
+      "file": "03-declining-leaves-the-proposal-behind.png"
+    },
+    {
+      "test": "Declining in Danish",
+      "file": "04-declining-in-danish.png"
+    }
+  ]
+}

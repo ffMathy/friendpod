@@ -1,0 +1,25 @@
+{
+  "node": "PodRevealField",
+  "shots": [
+    {
+      "test": "A Fjord pod's reveal",
+      "file": "01-a-fjord-pod-s-reveal.png"
+    },
+    {
+      "test": "A Solsikke pod's reveal",
+      "file": "02-a-solsikke-pod-s-reveal.png"
+    },
+    {
+      "test": "A Blad pod's reveal",
+      "file": "03-a-blad-pod-s-reveal.png"
+    },
+    {
+      "test": "An open pod's reveal",
+      "file": "04-an-open-pod-s-reveal.png"
+    },
+    {
+      "test": "The brætspil reveal is Tomat",
+      "file": "05-the-br-tspil-reveal-is-tomat.png"
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "node": "InterestsStepSuggestions",
+  "shots": [
+    {
+      "test": "Did you mean after a longer word",
+      "file": "01-did-you-mean-after-a-longer-word.png"
+    },
+    {
+      "test": "A popular interest is added with one tap",
+      "file": "02-a-popular-interest-is-added-with-one-tap.png"
+    },
+    {
+      "test": "Suggestions in Danish",
+      "file": "03-suggestions-in-danish.png"
+    }
+  ]
+}

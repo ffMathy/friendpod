@@ -1,0 +1,21 @@
+{
+  "node": "DataExport",
+  "shots": [
+    {
+      "test": "Asking for the data",
+      "file": "01-asking-for-the-data.png"
+    },
+    {
+      "test": "A ready file shows until when it can be downloaded",
+      "file": "02-a-ready-file-shows-until-when-it-can-be-downloaded.png"
+    },
+    {
+      "test": "A download that does not work says so",
+      "file": "03-a-download-that-does-not-work-says-so.png"
+    },
+    {
+      "test": "The data export in Danish",
+      "file": "04-the-data-export-in-danish.png"
+    }
+  ]
+}

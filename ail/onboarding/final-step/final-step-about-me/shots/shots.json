@@ -1,0 +1,17 @@
+{
+  "node": "FinalStepAboutMe",
+  "shots": [
+    {
+      "test": "About me starts with what the profile holds",
+      "file": "01-about-me-starts-with-what-the-profile-holds.png"
+    },
+    {
+      "test": "Contact details are refused",
+      "file": "02-contact-details-are-refused.png"
+    },
+    {
+      "test": "About me in Danish",
+      "file": "03-about-me-in-danish.png"
+    }
+  ]
+}

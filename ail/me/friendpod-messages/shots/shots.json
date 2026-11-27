@@ -1,0 +1,17 @@
+{
+  "node": "FriendpodMessages",
+  "shots": [
+    {
+      "test": "One message of each kind, newest first",
+      "file": "01-one-message-of-each-kind-newest-first.png"
+    },
+    {
+      "test": "No messages yet",
+      "file": "02-no-messages-yet.png"
+    },
+    {
+      "test": "Messages in Danish",
+      "file": "03-messages-in-danish.png"
+    }
+  ]
+}

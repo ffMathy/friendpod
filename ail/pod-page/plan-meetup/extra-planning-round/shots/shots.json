@@ -1,0 +1,13 @@
+{
+  "node": "ExtraPlanningRound",
+  "shots": [
+    {
+      "test": "The extra round asks for another option",
+      "file": "01-the-extra-round-asks-for-another-option.png"
+    },
+    {
+      "test": "The extra round in Danish",
+      "file": "02-the-extra-round-in-danish.png"
+    }
+  ]
+}

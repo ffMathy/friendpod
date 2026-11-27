@@ -1,0 +1,21 @@
+{
+  "node": "DropHome",
+  "shots": [
+    {
+      "test": "This week before the drop",
+      "file": "01-this-week-before-the-drop.png"
+    },
+    {
+      "test": "The next drop explains the drop",
+      "file": "02-the-next-drop-explains-the-drop.png"
+    },
+    {
+      "test": "A pod row opens its pod",
+      "file": "03-a-pod-row-opens-its-pod.png"
+    },
+    {
+      "test": "This week in Danish",
+      "file": "04-this-week-in-danish.png"
+    }
+  ]
+}

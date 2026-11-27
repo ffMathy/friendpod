@@ -17,6 +17,8 @@ export * from './pods';
 export * from './metrics';
 export * from './profile';
 export * from './deploy';
+// Generated from the AIL spec (ail/onboarding/about-you/about-you-rules): never edit by hand.
+export { MAX_PLAUSIBLE_AGE, ageOn, birthDateFrom, firstNameFrom, isAdult, isPlausible } from './gen/onboarding/about-you/about-you-rules/about-you-rules';
 export { xxhash32 } from './util/xxhash32';
 export { base64Decode, base64Encode } from './util/base64';
 export { utf8Encode } from './util/utf8';

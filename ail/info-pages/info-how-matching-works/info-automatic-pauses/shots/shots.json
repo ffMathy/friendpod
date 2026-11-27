@@ -1,0 +1,13 @@
+{
+  "node": "InfoAutomaticPauses",
+  "shots": [
+    {
+      "test": "Every pause is listed with its length",
+      "file": "01-every-pause-is-listed-with-its-length.png"
+    },
+    {
+      "test": "The pauses in Danish",
+      "file": "02-the-pauses-in-danish.png"
+    }
+  ]
+}

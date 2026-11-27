@@ -144,10 +144,10 @@ describe('onboarding step 1, About you', () => {
     expect(mockCall).not.toHaveBeenCalled();
   });
 
-  it('says why a date or a name is refused; an under-18 date still goes to the server, which decides', async () => {
+  it('says why a date or a name is refused, and an under-18 or implausible date stops Continue', async () => {
     await renderStep(<AboutYou />);
     await fill({ name: 'ea@example.com', day: '31', month: '2' });
-    expect(screen.getByText('Use 1–30 letters. No contact details.')).toBeOnTheScreen();
+    expect(screen.getByText('Use letters only. No contact details.')).toBeOnTheScreen();
     expect(screen.getByText('That is not a valid date.')).toBeOnTheScreen();
     expect(screen.getByTestId('about-continue')).toBeDisabled();
 
@@ -155,7 +155,15 @@ describe('onboarding step 1, About you', () => {
     await fireEvent.changeText(screen.getByTestId('dob-day'), '1');
     await fireEvent.changeText(screen.getByTestId('dob-year'), String(new Date().getFullYear() - 10));
     expect(screen.getByText('Friendpod is only for people aged 18 and over.')).toBeOnTheScreen();
-    expect(screen.getByTestId('about-continue')).toBeEnabled();
+    expect(screen.getByTestId('about-continue')).toBeDisabled();
+
+    await fireEvent.changeText(screen.getByTestId('dob-year'), String(new Date().getFullYear() + 1));
+    expect(screen.getByText('That is not a valid date.')).toBeOnTheScreen();
+    expect(screen.getByTestId('about-continue')).toBeDisabled();
+
+    await fireEvent.changeText(screen.getByTestId('dob-year'), '0199');
+    expect(screen.getByText('That is not a valid date.')).toBeOnTheScreen();
+    expect(screen.getByTestId('about-continue')).toBeDisabled();
   });
 
   it('back on the first step returns to the welcome screen by signing out', async () => {

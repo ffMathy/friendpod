@@ -5,7 +5,7 @@
       "lede": "Just the basics. Nobody sees this until you're in a confirmed pod together.",
       "firstName": "First name",
       "firstNameHelp": "Only people in a confirmed pod with you see it.",
-      "firstNameInvalid": "Use 1–30 letters. No contact details.",
+      "firstNameInvalid": "Use letters only. No contact details.",
       "dob": "Date of birth",
       "day": "Day",
       "month": "Month",

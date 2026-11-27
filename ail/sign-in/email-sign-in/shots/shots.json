@@ -1,0 +1,29 @@
+{
+  "node": "EmailSignIn",
+  "shots": [
+    {
+      "test": "Send waits for a whole address",
+      "file": "01-send-waits-for-a-whole-address.png"
+    },
+    {
+      "test": "Sending the link",
+      "file": "02-sending-the-link.png"
+    },
+    {
+      "test": "The return key sends the link",
+      "file": "03-the-return-key-sends-the-link.png"
+    },
+    {
+      "test": "An address kept from an earlier link fills the field",
+      "file": "04-an-address-kept-from-an-earlier-link-fills-the-field.png"
+    },
+    {
+      "test": "Back returns to the welcome screen",
+      "file": "05-back-returns-to-the-welcome-screen.png"
+    },
+    {
+      "test": "The email step in Danish",
+      "file": "06-the-email-step-in-danish.png"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "node": "EmailLinkLanding",
+  "shots": [
+    {
+      "test": "A link opened on the phone that asked for it signs in at once",
+      "file": "01-a-link-opened-on-the-phone-that-asked-for-it-signs-in-at-onc.png"
+    },
+    {
+      "test": "A link that does not work offers a new one",
+      "file": "02-a-link-that-does-not-work-offers-a-new-one.png"
+    },
+    {
+      "test": "Back to the start from a link that does not work",
+      "file": "03-back-to-the-start-from-a-link-that-does-not-work.png"
+    },
+    {
+      "test": "Opened without a link, the landing only waits",
+      "file": "04-opened-without-a-link-the-landing-only-waits.png"
+    },
+    {
+      "test": "A link that does not work, in Danish",
+      "file": "05-a-link-that-does-not-work-in-danish.png"
+    }
+  ]
+}

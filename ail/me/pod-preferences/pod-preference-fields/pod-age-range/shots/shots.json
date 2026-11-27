@@ -1,0 +1,21 @@
+{
+  "node": "PodAgeRange",
+  "shots": [
+    {
+      "test": "The saved range",
+      "file": "01-the-saved-range.png"
+    },
+    {
+      "test": "The youngest age stops five years below the oldest",
+      "file": "02-the-youngest-age-stops-five-years-below-the-oldest.png"
+    },
+    {
+      "test": "The oldest age goes up to 99",
+      "file": "03-the-oldest-age-goes-up-to-99.png"
+    },
+    {
+      "test": "Ages in Danish",
+      "file": "04-ages-in-danish.png"
+    }
+  ]
+}

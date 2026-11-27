@@ -1,0 +1,17 @@
+{
+  "node": "MeInterestsCard",
+  "shots": [
+    {
+      "test": "Interests as chips, the private one only counted",
+      "file": "01-interests-as-chips-the-private-one-only-counted.png"
+    },
+    {
+      "test": "Edit opens the Interests tab",
+      "file": "02-edit-opens-the-interests-tab.png"
+    },
+    {
+      "test": "Your interests in Danish",
+      "file": "03-your-interests-in-danish.png"
+    }
+  ]
+}

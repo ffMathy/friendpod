@@ -1,0 +1,17 @@
+{
+  "node": "WelcomePoster",
+  "shots": [
+    {
+      "test": "The welcome in English",
+      "file": "01-the-welcome-in-english.png"
+    },
+    {
+      "test": "Switching the welcome to Danish",
+      "file": "02-switching-the-welcome-to-danish.png"
+    },
+    {
+      "test": "The welcome in Danish",
+      "file": "03-the-welcome-in-danish.png"
+    }
+  ]
+}

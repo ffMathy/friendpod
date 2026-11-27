@@ -1,0 +1,29 @@
+{
+  "node": "InterestsStep",
+  "shots": [
+    {
+      "test": "Three or more interests let the member continue",
+      "file": "01-three-or-more-interests-let-the-member-continue.png"
+    },
+    {
+      "test": "Below three interests Continue waits",
+      "file": "02-below-three-interests-continue-waits.png"
+    },
+    {
+      "test": "An added interest joins the chips",
+      "file": "03-an-added-interest-joins-the-chips.png"
+    },
+    {
+      "test": "No interests yet",
+      "file": "04-no-interests-yet.png"
+    },
+    {
+      "test": "Continue opens step 5",
+      "file": "05-continue-opens-step-5.png"
+    },
+    {
+      "test": "The step in Danish",
+      "file": "06-the-step-in-danish.png"
+    }
+  ]
+}

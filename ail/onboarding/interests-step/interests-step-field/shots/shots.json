@@ -1,0 +1,21 @@
+{
+  "node": "InterestsStepField",
+  "shots": [
+    {
+      "test": "A one-letter interest is refused",
+      "file": "01-a-one-letter-interest-is-refused.png"
+    },
+    {
+      "test": "An interest with a phone number is refused",
+      "file": "02-an-interest-with-a-phone-number-is-refused.png"
+    },
+    {
+      "test": "Someone else's sensitive situation is refused",
+      "file": "03-someone-else-s-sensitive-situation-is-refused.png"
+    },
+    {
+      "test": "The notice and a refusal in Danish",
+      "file": "04-the-notice-and-a-refusal-in-danish.png"
+    }
+  ]
+}

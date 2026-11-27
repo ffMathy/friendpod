@@ -1,0 +1,17 @@
+{
+  "node": "YourAreaCard",
+  "shots": [
+    {
+      "test": "A postcode in another launch city",
+      "file": "01-a-postcode-in-another-launch-city.png"
+    },
+    {
+      "test": "A postcode outside every launch area",
+      "file": "02-a-postcode-outside-every-launch-area.png"
+    },
+    {
+      "test": "The card in Danish",
+      "file": "03-the-card-in-danish.png"
+    }
+  ]
+}

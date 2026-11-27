@@ -1,0 +1,21 @@
+{
+  "node": "Me",
+  "shots": [
+    {
+      "test": "Me shows the member and their account",
+      "file": "01-me-shows-the-member-and-their-account.png"
+    },
+    {
+      "test": "A setting that kept a new member out is named",
+      "file": "02-a-setting-that-kept-a-new-member-out-is-named.png"
+    },
+    {
+      "test": "The account rows open their pages",
+      "file": "03-the-account-rows-open-their-pages.png"
+    },
+    {
+      "test": "Me in Danish",
+      "file": "04-me-in-danish.png"
+    }
+  ]
+}

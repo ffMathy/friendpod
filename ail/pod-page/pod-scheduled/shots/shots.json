@@ -1,0 +1,25 @@
+{
+  "node": "PodScheduled",
+  "shots": [
+    {
+      "test": "The day before the meetup",
+      "file": "01-the-day-before-the-meetup.png"
+    },
+    {
+      "test": "Just before the meetup the next step is the chat",
+      "file": "02-just-before-the-meetup-the-next-step-is-the-chat.png"
+    },
+    {
+      "test": "The morning after the meetup",
+      "file": "03-the-morning-after-the-meetup.png"
+    },
+    {
+      "test": "The Chat row opens the chat",
+      "file": "04-the-chat-row-opens-the-chat.png"
+    },
+    {
+      "test": "The pod band in Danish",
+      "file": "05-the-pod-band-in-danish.png"
+    }
+  ]
+}

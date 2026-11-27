@@ -1,0 +1,9 @@
+{
+  "node": "NoPodReasonTexts",
+  "shots": [
+    {
+      "test": "The reason in English and Danish",
+      "file": "01-the-reason-in-english-and-danish.png"
+    }
+  ]
+}

@@ -1,7 +1,8 @@
 import { z } from 'zod';
+import { MIN_AGE } from '../gen/onboarding/about-you/about-you-rules/about-you-rules';
 import { availabilitySchema, languagesSchema, radiusKmSchema } from './common';
 
-export const MIN_AGE = 18;
+export { MIN_AGE };
 export const MAX_AGE = 99;
 /** Minimum width of the age range [A] (§4.3). */
 export const MIN_AGE_RANGE_WIDTH = 5;

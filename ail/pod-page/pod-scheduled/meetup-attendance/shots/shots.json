@@ -1,0 +1,17 @@
+{
+  "node": "MeetupAttendance",
+  "shots": [
+    {
+      "test": "Saying yes moves the next step on to the chat",
+      "file": "01-saying-yes-moves-the-next-step-on-to-the-chat.png"
+    },
+    {
+      "test": "The viewer already said they are coming",
+      "file": "02-the-viewer-already-said-they-are-coming.png"
+    },
+    {
+      "test": "Still coming? in Danish",
+      "file": "03-still-coming-in-danish.png"
+    }
+  ]
+}

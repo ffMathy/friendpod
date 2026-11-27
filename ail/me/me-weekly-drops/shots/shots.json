@@ -1,0 +1,21 @@
+{
+  "node": "MeWeeklyDrops",
+  "shots": [
+    {
+      "test": "In every week",
+      "file": "01-in-every-week.png"
+    },
+    {
+      "test": "Opting in week by week leaves this week's drop",
+      "file": "02-opting-in-week-by-week-leaves-this-week-s-drop.png"
+    },
+    {
+      "test": "Skipping a week says when it applies",
+      "file": "03-skipping-a-week-says-when-it-applies.png"
+    },
+    {
+      "test": "Weekly drops in Danish",
+      "file": "04-weekly-drops-in-danish.png"
+    }
+  ]
+}

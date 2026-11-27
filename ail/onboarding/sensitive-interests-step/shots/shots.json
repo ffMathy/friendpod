@@ -1,0 +1,25 @@
+{
+  "node": "SensitiveInterestsStep",
+  "shots": [
+    {
+      "test": "The consent starts unticked and I agree waits",
+      "file": "01-the-consent-starts-unticked-and-i-agree-waits.png"
+    },
+    {
+      "test": "I agree gives the consent and opens the interests",
+      "file": "02-i-agree-gives-the-consent-and-opens-the-interests.png"
+    },
+    {
+      "test": "Not now carries on without the consent",
+      "file": "03-not-now-carries-on-without-the-consent.png"
+    },
+    {
+      "test": "Asked for from the interests, it returns there",
+      "file": "04-asked-for-from-the-interests-it-returns-there.png"
+    },
+    {
+      "test": "The step in Danish",
+      "file": "05-the-step-in-danish.png"
+    }
+  ]
+}

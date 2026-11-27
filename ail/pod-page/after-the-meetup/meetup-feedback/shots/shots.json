@@ -1,0 +1,25 @@
+{
+  "node": "MeetupFeedback",
+  "shots": [
+    {
+      "test": "Not there myself leaves only the pod question",
+      "file": "01-not-there-myself-leaves-only-the-pod-question.png"
+    },
+    {
+      "test": "Keep pod sends the answers and returns to the pod",
+      "file": "02-keep-pod-sends-the-answers-and-returns-to-the-pod.png"
+    },
+    {
+      "test": "Not for me also sends the answers",
+      "file": "03-not-for-me-also-sends-the-answers.png"
+    },
+    {
+      "test": "A pod the member is not in",
+      "file": "04-a-pod-the-member-is-not-in.png"
+    },
+    {
+      "test": "The form in Danish",
+      "file": "05-the-form-in-danish.png"
+    }
+  ]
+}
