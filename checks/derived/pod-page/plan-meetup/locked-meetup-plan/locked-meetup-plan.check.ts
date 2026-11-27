@@ -12,6 +12,11 @@ function control(page: Page, name: string): Locator {
   return page.getByRole('button', { name, exact: true }).or(page.getByRole('link', { name, exact: true }));
 }
 
+/** The map link, by the text it shows (its accessible name also names the place: "Open [Board game café] in Maps"). */
+function mapLink(page: Page, text: string): Locator {
+  return page.getByRole('link').filter({ hasText: text });
+}
+
 /** Waits until the text is on the page. */
 async function seeText(page: Page, text: string): Promise<void> {
   await page.getByText(text, { exact: true }).first().waitFor({ state: 'visible' });
@@ -49,7 +54,7 @@ describe('LockedMeetupPlan', () => {
       await seeText(page, 'Saturday 21 Nov, 14:00');
       const body = (await page.locator('body').textContent()) ?? '';
       expect(body).toMatch(/\S · Aarhus C/);
-      await control(page, 'Open in Maps').first().waitFor({ state: 'visible' });
+      await mapLink(page, 'Open in Maps').first().waitFor({ state: 'visible' });
       await control(page, 'Add to calendar').first().waitFor({ state: 'visible' });
       await control(page, 'Meeting safely').first().waitFor({ state: 'visible' });
 
@@ -117,7 +122,7 @@ describe('LockedMeetupPlan', () => {
       const body = (await page.locator('body').textContent()) ?? '';
       expect(body).toMatch(/\S · Aarhus C/);
 
-      expect(await control(page, 'Open in Maps').count()).toBe(0);
+      expect(await mapLink(page, 'Open in Maps').count()).toBe(0);
       expect(await control(page, 'Add to calendar').count()).toBe(0);
       expect(await control(page, 'Meeting safely').count()).toBe(0);
       expect(await control(page, "I'm coming").count()).toBe(0);
@@ -150,7 +155,7 @@ describe('LockedMeetupPlan', () => {
       await seeText(page, 'Jeres møde');
       await seeText(page, 'Afstemningen er lukket, og det her tidspunkt vandt med 3 ja-stemmer.');
       await seeText(page, 'Lørdag 21. nov. kl. 14.00');
-      await control(page, 'Åbn i Kort').first().waitFor({ state: 'visible' });
+      await mapLink(page, 'Åbn i Kort').first().waitFor({ state: 'visible' });
       await control(page, 'Føj til kalender').first().waitFor({ state: 'visible' });
       await control(page, 'Mød hinanden trygt').first().waitFor({ state: 'visible' });
 

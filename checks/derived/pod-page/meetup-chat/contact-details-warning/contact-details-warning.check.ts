@@ -16,6 +16,8 @@ const normalize = (text: string): string => text.replace(/\s+/g, ' ').trim();
 
 const field = (page: Page): Locator => page.getByRole('textbox');
 const sendButton = (page: Page): Locator => page.getByRole('button', { name: 'Send', exact: true });
+/** The messages shown (the list named "Messages"; the field's own text is not one of them). */
+const messages = (page: Page): Locator => page.getByLabel('Messages', { exact: true });
 const warning = (page: Page, firstSentence: string): Locator =>
   page.getByRole('alert').filter({ hasText: firstSentence });
 
@@ -38,7 +40,7 @@ async function pageText(page: Page): Promise<string> {
 
 /** Asserts that a message with the given meta line and text shows, with the text after the meta line. */
 async function expectMessage(page: Page, meta: RegExp, text: string): Promise<void> {
-  await page.getByText(text, { exact: true }).first().waitFor({ state: 'visible' });
+  await messages(page).getByText(text, { exact: true }).first().waitFor({ state: 'visible' });
   const all = await pageText(page);
   const metaMatches = [...all.matchAll(new RegExp(meta.source, 'g'))];
   const lastMeta = metaMatches[metaMatches.length - 1];
@@ -68,7 +70,7 @@ describe('ContactDetailsWarning', () => {
       expect(await page.getByRole('button', { name: 'Send anyway', exact: true }).isVisible()).toBe(true);
       expect(await page.getByRole('button', { name: 'Edit', exact: true }).isVisible()).toBe(true);
       expect(await sendButton(page).isDisabled()).toBe(true);
-      expect(await page.getByText('20 30 40 50', { exact: true }).count()).toBe(0);
+      expect(await messages(page).getByText('20 30 40 50', { exact: true }).count()).toBe(0);
 
       await app.saveScreen('a-phone-number-before-the-meetup-needs-a-second-tap.png');
     },

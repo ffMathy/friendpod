@@ -33,12 +33,15 @@ const expectedTimes = (): string[] => {
 
 const escapeRegExp = (s: string): string => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
+/** Collapses white space, so a no-break space the app puts in short dates ("Mon\u00a016\u00a0Nov") reads as a space. */
+const flat = (s: string | null): string => (s ?? '').replace(/\s+/g, ' ').trim();
+
 const sheet = (app: App, title: string) => app.page.getByRole('dialog').filter({ hasText: title });
 
 const choice = (app: App, title: string, label: string) =>
   sheet(app, title)
     .getByRole('radio')
-    .filter({ hasText: new RegExp(`^\\s*${escapeRegExp(label)}\\s*$`) });
+    .filter({ hasText: new RegExp(`^\\s*${escapeRegExp(label).replace(/ /g, '\\s')}\\s*$`) });
 
 const closeIfOpen = async (app: App, title: string): Promise<void> => {
   const s = sheet(app, title);
@@ -67,11 +70,11 @@ describe('MeetupTimePicker', () => {
       await daySheet.waitFor({ state: 'visible' });
 
       const radios = daySheet.getByRole('radio');
-      const texts = (await radios.allTextContents()).map((t) => t.trim());
+      const texts = (await radios.allTextContents()).map(flat);
       expect(texts).toEqual(expectedDays());
 
       await pick(app, 'Which day?', 'Sun 22 Nov');
-      expect(await dayField(app).textContent()).toContain('Sun 22 Nov');
+      expect(flat(await dayField(app).textContent())).toContain('Sun 22 Nov');
 
       await app.saveScreen('the-days-run-from-today-to-14-days-ahead.png');
     },
@@ -91,9 +94,9 @@ describe('MeetupTimePicker', () => {
       const timeSheet = sheet(app, 'What time?');
       await timeSheet.waitFor({ state: 'visible' });
 
-      expect(await timeSheet.textContent()).toContain('Between 08:00 and 22:00, within the next 14 days.');
+      expect(flat(await timeSheet.textContent())).toContain('Between 08:00 and 22:00, within the next 14 days.');
 
-      const texts = (await timeSheet.getByRole('radio').allTextContents()).map((t) => t.trim());
+      const texts = (await timeSheet.getByRole('radio').allTextContents()).map(flat);
       expect(texts).toEqual(expectedTimes());
 
       for (const t of ['08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00']) {
@@ -156,10 +159,10 @@ describe('MeetupTimePicker', () => {
       await timeField(app, /^Tidspunkt, /).click();
       const timeSheet = sheet(app, 'Hvilket tidspunkt?');
       await timeSheet.waitFor({ state: 'visible' });
-      expect(await timeSheet.textContent()).toContain('Mellem kl. 8 og 22 inden for de næste 14 dage.');
+      expect(flat(await timeSheet.textContent())).toContain('Mellem kl. 8 og 22 inden for de næste 14 dage.');
       await pick(app, 'Hvilket tidspunkt?', '15.00');
 
-      expect(await dayField(app, /^Dag, /).textContent()).toContain('søn. 22. nov.');
+      expect(flat(await dayField(app, /^Dag, /).textContent())).toContain('søn. 22. nov.');
       expect(await timeField(app, /^Tidspunkt, /).textContent()).toContain('15.00');
 
       await app.saveScreen('day-and-time-in-danish.png');

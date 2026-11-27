@@ -138,7 +138,8 @@ test('A CPR number is never sent', async () => {
     .waitFor({ state: 'visible', timeout: WAIT });
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
-  expect(await page.getByText('010190-1234').count()).toBe(0);
+  // No message is added: the text is in no message of the list (the field itself still holds it).
+  expect(await page.getByLabel('Messages', { exact: true }).getByText('010190-1234').count()).toBe(0);
   expect(await field.inputValue()).toBe('010190-1234');
 
   await app.saveScreen('a-cpr-number-is-never-sent.png');

@@ -10,7 +10,7 @@ const TIMEOUT = 180_000;
 
 type App = Awaited<ReturnType<typeof openApp>>;
 
-const OPTION_PATTERN = /(Mon|Tues|Wednes|Thurs|Fri|Satur|Sun)day \d{1,2} Nov\W+\d{2}:\d{2}/g;
+const OPTION_PATTERN = /(Mon|Tues|Wednes|Thurs|Fri|Satur|Sun)day\s\d{1,2}\sNov\W+\d{2}:\d{2}/g;
 
 async function pageText(app: App): Promise<string> {
   return app.page.locator('body').innerText();
@@ -118,7 +118,7 @@ test(
     await app.page.getByRole('button', { name: 'Suggest this time', exact: true }).click();
     await app.page.getByText(/Latin Quarter, Aarhus C/).first().waitFor({ state: 'visible' });
     const after = await pageText(app);
-    expect(after).toMatch(/Sunday 22 Nov\W+15:00\W+at\s[\s\S]*Latin Quarter\W+Aarhus C/);
+    expect(after).toMatch(/Sunday\s22\sNov,\s15:00\s+\[Café name\], Latin Quarter, Aarhus C/);
     expect(countOptions(after)).toBe(before + 1);
     expect(await app.page.getByRole('button', { name: 'Suggest another time' }).count()).toBe(0);
     await app.saveScreen('a-suggestion-joins-the-planner.png');

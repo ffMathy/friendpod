@@ -7,7 +7,7 @@ import { openApp } from '../../../../harness/preview';
 const TIMEOUT = 180_000;
 
 /** A message's accessible name: "<writer>, <time>: <text>", where time is "13:41", "Fri 15:02", "13.41" or "fre. 15.02". */
-const MESSAGE_NAME = /^(.+?), ((?:\S+ )?\d{1,2}[:.]\d{2}): ([\s\S]*)$/;
+const MESSAGE_NAME = /^(.+?), ((?:\S+\s)?\d{1,2}[:.]\d{2}): ([\s\S]*)$/;
 
 interface Reading {
   writer: string;
@@ -15,8 +15,12 @@ interface Reading {
   text: string;
 }
 
-function messagesList(page: Page): Locator {
-  return page.getByRole('list', { name: 'Messages' });
+/**
+ * The message list, by its name. (On the web react-native-web renders it as a plain element named "Messages", with no
+ * list role, so it is found by its label.)
+ */
+function messagesList(page: Page, name = 'Messages'): Locator {
+  return page.getByLabel(name, { exact: true });
 }
 
 async function readMessages(list: Locator): Promise<Reading[]> {
@@ -31,7 +35,7 @@ async function readMessages(list: Locator): Promise<Reading[]> {
     const time = match[2];
     const text = match[3];
     if (writer === undefined || time === undefined || text === undefined) continue;
-    readings.push({ writer, time, text });
+    readings.push({ writer, time: time.replace(/\s+/g, ' '), text });
   }
   return readings;
 }
@@ -117,7 +121,7 @@ test(
       world: 'member just before a meetup',
       locale: 'da',
     });
-    const list = app.page.getByRole('list', { name: 'Beskeder' });
+    const list = messagesList(app.page, 'Beskeder');
     await list.waitFor({ state: 'visible', timeout: 30_000 });
     const deadline = Date.now() + 15_000;
     let readings = await readMessages(list);
