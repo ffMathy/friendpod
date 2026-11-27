@@ -1,19 +1,21 @@
-// ail-derived-from: AboutYou@26c05d9381ba4e34
+// ail-derived-from: AboutYou@25b3223a1f0f2e89
 import { expect, test } from 'bun:test';
-import type { Page } from 'playwright';
-
 import { isTicked, openApp } from '../../../harness/preview';
 
 const TIMEOUT = 180_000;
 
-async function shown(page: Page, text: string): Promise<void> {
-  await page.getByText(text, { exact: true }).first().waitFor({ state: 'visible' });
-}
-
-async function enterBirthDate(page: Page, day: string, month: string, year: string): Promise<void> {
-  await page.getByLabel('Date of birth, Day').fill(day);
-  await page.getByLabel('Date of birth, Month').fill(month);
-  await page.getByLabel('Date of birth, Year').fill(year);
+/** Waits until `check` resolves to true, polling, or fails after `ms`. */
+async function eventually(check: () => Promise<boolean>, ms = 10_000): Promise<boolean> {
+  const end = Date.now() + ms;
+  for (;;) {
+    if (await check()) {
+      return true;
+    }
+    if (Date.now() > end) {
+      return false;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
 }
 
 test(
@@ -22,18 +24,19 @@ test(
     await using app = await openApp({ route: '/about', world: 'new member', locale: 'en' });
     const page = app.page;
 
-    await shown(page, 'Step 1 of 6');
-    await shown(page, 'About you');
+    await page.getByText('Step 1 of 6', { exact: true }).first().waitFor();
+    await page.getByText('About you', { exact: true }).first().waitFor();
 
     expect(await page.getByLabel('First name').inputValue()).toBe('');
     expect(await page.getByLabel('Date of birth, Day').inputValue()).toBe('');
     expect(await page.getByLabel('Date of birth, Month').inputValue()).toBe('');
     expect(await page.getByLabel('Date of birth, Year').inputValue()).toBe('');
 
-    const terms = page.getByRole('checkbox', { name: 'I accept the Terms' });
-    expect(await isTicked(terms)).toBe(false);
+    const box = page.getByRole('checkbox', { name: 'I accept the Terms' });
+    expect(await isTicked(box)).toBe(false);
 
-    expect(await page.getByRole('button', { name: 'Continue' }).isDisabled()).toBe(true);
+    const next = page.getByRole('button', { name: 'Continue', exact: true });
+    expect(await next.isDisabled()).toBe(true);
 
     await app.saveScreen('the-step-starts-empty-and-continue-waits.png');
   },
@@ -45,19 +48,18 @@ test(
   async () => {
     await using app = await openApp({ route: '/about', world: 'new member', locale: 'en' });
     const page = app.page;
-    await shown(page, 'About you');
 
     await page.getByLabel('First name').fill('Emil');
-    await enterBirthDate(page, '14', '03', '1991');
-    const terms = page.getByRole('checkbox', { name: 'I accept the Terms' });
-    await terms.click();
-    expect(await isTicked(terms)).toBe(true);
+    await page.getByLabel('Date of birth, Day').fill('14');
+    await page.getByLabel('Date of birth, Month').fill('03');
+    await page.getByLabel('Date of birth, Year').fill('1991');
+    await page.getByRole('checkbox', { name: 'I accept the Terms' }).click();
 
-    const continueButton = page.getByRole('button', { name: 'Continue' });
-    expect(await continueButton.isDisabled()).toBe(false);
+    const next = page.getByRole('button', { name: 'Continue', exact: true });
+    expect(await eventually(async () => !(await next.isDisabled()))).toBe(true);
 
-    await continueButton.click();
-    await shown(page, 'Where do you live?');
+    await next.click();
+    await page.getByText('Where do you live?', { exact: true }).first().waitFor();
 
     await app.saveScreen('the-basics-lead-to-step-2.png');
   },
@@ -69,17 +71,17 @@ test(
   async () => {
     await using app = await openApp({ route: '/about', world: 'new member', locale: 'en' });
     const page = app.page;
-    await shown(page, 'About you');
 
-    await enterBirthDate(page, '14', '03', '1991');
-    const terms = page.getByRole('checkbox', { name: 'I accept the Terms' });
-    await terms.click();
-    expect(await isTicked(terms)).toBe(true);
+    await page.getByLabel('Date of birth, Day').fill('14');
+    await page.getByLabel('Date of birth, Month').fill('03');
+    await page.getByLabel('Date of birth, Year').fill('1991');
+    await page.getByRole('checkbox', { name: 'I accept the Terms' }).click();
 
     await page.getByLabel('First name').fill('Emil2');
 
-    await shown(page, 'Use 1–30 letters. No contact details.');
-    expect(await page.getByRole('button', { name: 'Continue' }).isDisabled()).toBe(true);
+    await page.getByText('Use letters only. No contact details.', { exact: true }).first().waitFor();
+    const next = page.getByRole('button', { name: 'Continue', exact: true });
+    expect(await next.isDisabled()).toBe(true);
 
     await app.saveScreen('a-first-name-with-a-digit-is-refused.png');
   },
@@ -87,19 +89,19 @@ test(
 );
 
 test(
-  'A first name with a hyphen and an apostrophe is accepted',
+  'A long first name is accepted',
   async () => {
     await using app = await openApp({ route: '/about', world: 'new member', locale: 'en' });
     const page = app.page;
-    await shown(page, 'About you');
+    const name = 'Maria Josefine Augusta Wilhelmine Charlotte';
 
-    const firstName = page.getByLabel('First name');
-    await firstName.fill('Anne-Marie O’Brien');
-    expect(await firstName.inputValue()).toBe('Anne-Marie O’Brien');
+    const field = page.getByLabel('First name');
+    await field.fill(name);
 
-    expect(await page.getByText('Use 1–30 letters. No contact details.', { exact: true }).count()).toBe(0);
+    expect(await field.inputValue()).toBe(name);
+    expect(await page.getByText('Use letters only. No contact details.').count()).toBe(0);
 
-    await app.saveScreen('a-first-name-with-a-hyphen-and-an-apostrophe-is-accepted.png');
+    await app.saveScreen('a-long-first-name-is-accepted.png');
   },
   TIMEOUT,
 );
@@ -109,11 +111,10 @@ test(
   async () => {
     await using app = await openApp({ route: '/about', world: 'new member', locale: 'en' });
     const page = app.page;
-    await shown(page, 'About you');
 
-    await page.getByRole('button', { name: 'Back' }).click();
+    await page.getByRole('button', { name: 'Back', exact: true }).click();
 
-    await page.getByRole('button', { name: 'Continue with email' }).waitFor({ state: 'visible' });
+    await page.getByText('Continue with email', { exact: true }).first().waitFor();
 
     await app.saveScreen('going-back-from-the-first-step-signs-out.png');
   },
@@ -126,13 +127,13 @@ test(
     await using app = await openApp({ route: '/about', world: 'new member', locale: 'da' });
     const page = app.page;
 
-    await shown(page, 'Trin 1 af 6');
-    await shown(page, 'Om dig');
-    await shown(page, 'Fornavn');
+    await page.getByText('Trin 1 af 6', { exact: true }).first().waitFor();
+    await page.getByText('Om dig', { exact: true }).first().waitFor();
+    await page.getByText('Fornavn', { exact: true }).first().waitFor();
 
     await page.getByLabel('Fornavn').fill('Emil2');
 
-    await shown(page, 'Brug 1–30 bogstaver. Ingen kontaktoplysninger.');
+    await page.getByText('Brug kun bogstaver. Ingen kontaktoplysninger.', { exact: true }).first().waitFor();
 
     await app.saveScreen('the-step-in-danish.png');
   },
