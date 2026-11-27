@@ -1,4 +1,4 @@
-// ail-derived-from: AboutYou@25b3223a1f0f2e89
+// ail-derived-from: AboutYou@c17554c57564a1ee
 // End-to-end check of AboutYou (ail/onboarding/about-you): each test is one of its scenarios, by name, played through
 // the running app as a user would, with what the user sees: labels, roles and the copy texts.
 import { afterAll, expect, setDefaultTimeout, test } from 'bun:test';

@@ -35,7 +35,7 @@ node AboutYou : flow   level: experience
     Scenario: A long first name is accepted
       Given a new member on About you
       When they enter the first name Maria Josefine Augusta Wilhelmine Charlotte
-      Then the whole name shows in the field
+      Then the field keeps the whole name, scrolling it sideways when it is longer than the field
       And no message is shown about the name
 
     Scenario: Going back from the first step signs out
@@ -67,7 +67,7 @@ node AboutYou : flow   level: experience
       under it six size.segment segments with radius.pill ends, the first color.primary and the other five color.track.
     Title "About you" in font.display, type.title, 700, color.text; the lede 4px under it in font.body, type.lede, color.text.secondary.
     First name: label (type.label, 700, color.text) over a size.input white (color.surface) input with a border.field color.field border and radius.input;
-      the helper under it in type.small, color.text.secondary. With an error the border is border.strong color.danger, with the message in type.small, 700, color.danger.
+      the helper under it in type.small, color.text.secondary. While it has focus the border is border.strong color.link; with an error it is border.strong color.danger, with the message in type.small, 700, color.danger.
     Continue pinned at the bottom, 20px above the edge: full width, size.button tall, radius.pill, type.button in font.body 700;
       color.primary with color.on.primary text when it can be pressed, color.disabled with color.disabled.text when it cannot.
   copy
