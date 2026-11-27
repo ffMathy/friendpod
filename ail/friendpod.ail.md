@@ -97,7 +97,7 @@ catalog
     color.house=#1B6452  color.on.house=#FFFFFF  color.field.pill=#FFFFFF  color.on.field.pill=#18211D
     color.ink=#18211D  color.on.ink=#FFFFFF  color.needs.you=#FFD84D  color.on.needs.you=#18211D  color.inset=#F6F3EC
     color.danger=#C41E3A  color.private.bg=#FFFFFF  color.private.border=#18211D  color.private.fill=#3A423D
-    color.inset=#F6F3EC  color.private.text=#18211D
+    color.private.text=#18211D
     color.scrim=rgba(24,33,29,0.5)  color.disabled=#DDD8CD  color.disabled.text=#4A514C  color.switch.thumb=#FFFFFF
     pod.solsikke.base=#FFD84D  pod.solsikke.deep=#6A4900  pod.solsikke.tint=#FFF1C2
     pod.blad.base=#9FD05E  pod.blad.deep=#395500  pod.blad.tint=#E6F3D4
