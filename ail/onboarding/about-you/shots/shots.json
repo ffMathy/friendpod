@@ -14,6 +14,10 @@
       "file": "03-a-first-name-with-a-digit-is-refused.png"
     },
     {
+      "test": "A long first name is accepted",
+      "file": "04-a-long-first-name-is-accepted.png"
+    },
+    {
       "test": "Going back from the first step signs out",
       "file": "05-going-back-from-the-first-step-signs-out.png"
     },
