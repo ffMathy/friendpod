@@ -29,14 +29,16 @@ test('Privacy opens on what you have agreed to and your data', async () => {
   await using app = await openApp({ route: '/settings/privacy', world: 'member in privacy settings', locale: 'en' });
   const page = app.page;
 
+  // Wait for the profile to load: until then the screen shows only a loading sign.
+  const agreed = await visible(page.getByText(/What you['’]ve agreed to/).first());
   const title = await visible(page.getByText('Privacy', { exact: true }).first());
-  // The Me eyebrow over the title is plain text, not a way back.
-  const eyebrow = page.getByText('Me', { exact: true }).first();
+  // The Me eyebrow over the title is plain text, not a way back. It is drawn in capitals (ME); the tab bar's Me
+  // comes after it.
+  const eyebrow = page.getByText(/^me$/i).first();
   await visible(eyebrow);
   expect(await page.getByRole('button', { name: 'Back: Me' }).count()).toBe(0);
   expect(await topOf(eyebrow)).toBeLessThan(await topOf(title));
 
-  const agreed = await visible(page.getByText(/What you['’]ve agreed to/).first());
   const data = await visible(page.getByText('Your data and matching', { exact: true }).first());
   const deleteButton = await visible(page.getByRole('button', { name: 'Delete account' }));
   const agreedTop = await topOf(agreed);
@@ -87,7 +89,8 @@ test('Privacy in Danish', async () => {
   await using app = await openApp({ route: '/settings/privacy', world: 'member in privacy settings', locale: 'da' });
   const page = app.page;
 
-  await visible(page.getByText('Mig', { exact: true }).first());
+  await visible(page.getByText('Det har du sagt ja til', { exact: true }).first());
+  await visible(page.getByText(/^mig$/i).first());
   await visible(page.getByText('Privatliv', { exact: true }).first());
   await visible(page.getByText('Det har du sagt ja til', { exact: true }).first());
   await visible(page.getByText('Dine data og matchning', { exact: true }).first());

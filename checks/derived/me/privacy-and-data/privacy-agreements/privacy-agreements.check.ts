@@ -13,7 +13,8 @@ function escapeRegExp(text: string): string {
 
 /** The row of the agreements card whose label starts its accessible name. */
 function agreementRow(page: Page, label: string) {
-  return page.getByRole('button', { name: new RegExp(`^\\s*${escapeRegExp(label)}`) }).first();
+  // The rows are links on the web.
+  return page.getByRole('link', { name: new RegExp(`^\\s*${escapeRegExp(label)}`) }).first();
 }
 
 /** The whole text of a row: its label and its state, which sit in separate elements. */
@@ -78,7 +79,8 @@ test(
     await row.click();
 
     await page.getByText('Sensitive interests', { exact: true }).first().waitFor({ state: 'visible' });
-    await page.getByText(/You agreed on 4 Nov 2026\./).first().waitFor({ state: 'visible' });
+    // The date is written with no-break spaces.
+    await page.getByText(/You agreed on 4\sNov\s2026\./).first().waitFor({ state: 'visible' });
 
     await app.saveScreen('private-interests-opens-the-private-interest-consent.png');
   },

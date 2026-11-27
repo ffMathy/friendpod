@@ -12,6 +12,7 @@ test(
     await using app = await openApp({ route: ROUTE, world: 'member this week', locale: 'en' });
     const page = app.page;
 
+    await page.getByRole('heading', { name: 'Private interests', exact: true }).first().waitFor({ state: 'visible' });
     await expect(page.getByRole('heading', { name: 'Private interests', exact: true }).first().isVisible()).resolves.toBe(
       true,
     );
@@ -81,6 +82,9 @@ test(
     await using app = await openApp({ route: ROUTE, world: 'member this week', locale: 'da' });
     const page = app.page;
 
+    // isVisible does not wait: wait for the page to render first.
+    await page.getByRole('heading', { name: 'Private interesser', exact: true }).first().waitFor({ state: 'visible' });
+    await page.getByText('Når du tilføjer en interesse', { exact: true }).waitFor({ state: 'visible' });
     expect(
       await page.getByRole('heading', { name: 'Private interesser', exact: true }).first().isVisible(),
     ).toBe(true);

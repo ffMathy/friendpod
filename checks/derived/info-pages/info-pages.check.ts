@@ -94,7 +94,8 @@ test(
     const page = app.page;
 
     await heading(page, 'How matching works').waitFor({ state: 'visible' });
-    await page.getByRole('link', { name: 'Pause matching', exact: true }).first().click();
+    // The link is a row: its name is its label followed by You can pause matching at any time.
+    await page.getByRole('link', { name: /^Pause matching/ }).first().click();
 
     await page.getByText('Weekly drops', { exact: true }).first().waitFor({ state: 'visible' });
     await page.getByRole('button', { name: 'Pause matching', exact: true }).first().waitFor({ state: 'visible' });

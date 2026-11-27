@@ -17,7 +17,7 @@ test(
     await using app = await openApp({ route: '/info/how-matching-works', world: 'member this week', locale: 'en' });
     const page = app.page;
 
-    await expect(page.getByRole('heading', { name: 'How matching works' }).first()).toBeVisible();
+    await page.getByRole('heading', { name: 'How matching works' }).first().waitFor({ state: 'visible' });
 
     const text = await pageText(page);
 
@@ -67,7 +67,7 @@ test(
     await using app = await openApp({ route: '/info/how-matching-works', world: 'member this week', locale: 'da' });
     const page = app.page;
 
-    await expect(page.getByRole('heading', { name: 'Sådan matcher vi' }).first()).toBeVisible();
+    await page.getByRole('heading', { name: 'Sådan matcher vi' }).first().waitFor({ state: 'visible' });
 
     const text = await pageText(page);
 

@@ -45,7 +45,7 @@ test(
       locale: 'en',
     });
     const page = app.page;
-    const row = page.getByRole('button', { name: /Private interests/ }).first();
+    const row = page.getByRole('link', { name: /Private interests/ }).first();
     await row.waitFor();
     await row.click();
 
@@ -58,7 +58,7 @@ test(
 
     await agree.click();
     await page.waitForURL(PRIVACY_URL);
-    await page.getByRole('button', { name: /Private interests/ }).first().waitFor();
+    await page.getByRole('link', { name: /Private interests/ }).first().waitFor();
     expect(PRIVACY_URL.test(page.url())).toBe(true);
 
     await app.saveScreen('agreeing-returns-to-privacy.png');
@@ -75,7 +75,7 @@ test(
       locale: 'en',
     });
     const page = app.page;
-    const row = page.getByRole('button', { name: /Private interests/ }).first();
+    const row = page.getByRole('link', { name: /Private interests/ }).first();
     await row.waitFor();
     await row.click();
 
@@ -84,7 +84,7 @@ test(
     await notNow.click();
 
     await page.waitForURL(PRIVACY_URL);
-    const rowAgain = page.getByRole('button', { name: /Private interests/ }).first();
+    const rowAgain = page.getByRole('link', { name: /Private interests/ }).first();
     await rowAgain.waitFor();
     expect(PRIVACY_URL.test(page.url())).toBe(true);
     const rowText = (await rowAgain.textContent()) ?? '';
@@ -109,7 +109,7 @@ test(
     await back.click();
 
     await page.waitForURL(PRIVACY_URL);
-    await page.getByRole('button', { name: /Private interests/ }).first().waitFor();
+    await page.getByRole('link', { name: /Private interests/ }).first().waitFor();
     expect(PRIVACY_URL.test(page.url())).toBe(true);
 
     await app.saveScreen('back-with-no-earlier-screen-opens-privacy.png');

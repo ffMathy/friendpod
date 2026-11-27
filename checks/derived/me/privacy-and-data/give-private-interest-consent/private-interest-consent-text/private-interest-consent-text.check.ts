@@ -73,7 +73,12 @@ test(
       (expected: string) => (document.body.textContent ?? '').replace(/\s+/g, ' ').includes(expected),
       lede,
     );
-    await page.getByText(/^\s*private interests\s*$/i).first().waitFor({ state: 'visible' });
+    // The consent screen stays mounted, hidden, under the page, with its own Private interests eyebrow.
+    await page
+      .getByText(/^\s*private interests\s*$/i)
+      .filter({ visible: true })
+      .first()
+      .waitFor({ state: 'visible' });
     expect(normalize((await page.locator('body').textContent()) ?? '')).toContain(lede);
 
     await app.saveScreen('read-more-opens-the-page-on-private-interests.png');
