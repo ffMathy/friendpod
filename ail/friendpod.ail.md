@@ -54,7 +54,7 @@ target
   naming       lowerCamelCase functions and fields, UpperCamelCase types and components, UPPER_CASE constants; files in kebab-case
   exports      named exports only; export every name `what` mentions and nothing else except types
   absence      `nothing` is null
-  time         `time` is a JavaScript Date; calendar days are read in its local time (getFullYear, getMonth, getDate)
+  time         `time` is a JavaScript Date, read in its local time (getFullYear, getMonth, getDate), unless a node says its times are epoch milliseconds: then each `time` is a number of milliseconds since 1970-01-01 00:00 UTC, as packages/core's pod and planning rules pass them; a time literal such as 2026-11-21 14:00:00 is wall-clock time in Europe/Copenhagen
   copy         user-visible text is never written in code: each `copy` key is an i18next key in apps/mobile/src/i18n/{en,da}/*.json, with both an English and a Danish text
   styling      React Native StyleSheet with the values of apps/mobile/src/components/theme.ts; design tokens are its Colors, Radius, Size and Layout
   comments     one doc comment per export quoting the clause it implements
@@ -72,15 +72,57 @@ target
 
 ```ail
 glossary
-  term member        plain "someone who has signed in to Friendpod"                              formal a Firebase Auth user
-  term onboarding    plain "the six steps a new member goes through before their first pod"     formal the (onboarding) route group, steps 1–6
-  term pod           plain "a group of 4–6 people near each other who share an interest"         formal pods/{podId}
-  term "the Terms"   plain "Friendpod's terms of use, which a member accepts as a contract"      formal LEGAL_TEXTS terms, version recorded by completeOnboarding
-  term "privacy notice" plain "how Friendpod handles personal data: information, not consent"   formal LEGAL_TEXTS privacy
-  term "first name"  plain "the name other members see once a pod is confirmed"                  formal users/{uid}.firstName
-  term "birth date"  plain "day, month and year of birth; only the year is kept"                 formal completeOnboarding.dob, stored as birthYear
-  term adult         plain "18 or older on the day"                                              formal ageOn(birthDate, today) ≥ MIN_AGE
-  term "welcome screen" plain "the first screen, with sign-in"                                   formal the (auth) index route
+  term member                     plain "someone who has signed in to Friendpod"   formal a Firebase Auth user
+  term onboarded                  plain "has finished the six onboarding steps on this phone"   formal the onb claim and the onboardingComplete.<uid> flag on the phone
+  term onboarding                 plain "the six steps a new member goes through before their first pod"   formal the (onboarding) route group, steps 1–6
+  term "sign-in link"             plain "a one-time link emailed to sign in without a password"   formal a Firebase Auth email sign-in link
+  term "kept address"             plain "the email address a link was asked for, kept on this phone until the link is used"   formal secure-store key emailLink.pendingEmail
+  term "the Terms"                plain "Friendpod's terms of use, which a member accepts as a contract"   formal LEGAL_TEXTS terms, version recorded by completeOnboarding
+  term "privacy notice"           plain "how Friendpod handles personal data: information, not consent"   formal LEGAL_TEXTS privacy
+  term "first name"               plain "the name other members see once a pod is confirmed"   formal users/{uid}.firstName
+  term "birth date"               plain "day, month and year of birth; only the year is kept"   formal completeOnboarding.dob, stored as birthYear
+  term adult                      plain "18 or older on the day"   formal ageOn(birthDate, today) ≥ MIN_AGE
+  term "welcome screen"           plain "the first screen, with sign-in"   formal the (auth) index route
+  term "safety pledge"            plain "the promise a member makes at the end of onboarding to meet safely"   formal onboarding.final.pledge
+  term interest                   plain "something a member cares about, in their own words"   formal a holding in users/{uid}/interests
+  term "main interest"            plain "one of up to 3 starred interests"   formal a holding with starred: true
+  term "private interest"         plain "an interest that may say something sensitive (health, faith, sexuality…), kept apart and only ever used as the theme of a pod about it"   formal a sensitive or self-flagged holding in users/{uid}/sensitiveInterests
+  term "private-interest consent" plain "the one explicit consent that lets Friendpod save private interests; it can be withdrawn at any time"   formal the blanket Art. 9 consent, users.legal.art9
+  term drop                       plain "the weekly moment, Thursday 18:00, when Friendpod proposes pods or says why there is none"   formal releaseDrop at Thursday 18:00 Europe/Copenhagen
+  term pod                        plain "a group of 4–6 people near each other who share an interest"   formal pods/{podId}
+  term "pod colour"               plain "one of six colours (Solsikke, Blad, Bær, Tomat, Fjord, Blomme), taken from the pod's theme word"   formal podColorFor, PodColors
+  term proposal                   plain "a pod offered to a member, which they answer yes or no by the deadline"   formal users/{uid}/pods/{podId} with state proposed
+  term confirmed                  plain "a pod enough people said yes to, so names and photos appear"   formal the area profile's confirmationMin (4 at launch, 3 alpha)
+  term "private pod"              plain "a pod formed around a private interest"   formal a pod card with themeSensitive
+  term "active pod"               plain "a pod not over yet: proposed, planning, scheduled, or met with its chat still open"   formal state in proposed, planning, scheduled, or happened while the chat is open
+  term "past pod"                 plain "a pod that ended"   formal state archived or dissolved
+  term waitlist                   plain "a city that is not open yet, counting sign-ups toward its goal"   formal areas/{areaId}.status waitlist or beta, waitlistCount, goal.waitlist
+  term reason                     plain "why the drop proposed a pod, or why there was none"   formal PodReason and UnmatchedReason codes (DESIGN §6.7)
+  term priority                   plain "being placed first next week after waiting"   formal PRIORITY weeks in the matcher
+  term participation              plain "whether a member is in each week's drop: every week, opt-in, skip or pause"   formal users/{uid}.participation
+  term "pause matching"           plain "stop getting drops until coming back; nothing is deleted"   formal setParticipation with mode pause
+  term "pod preferences"          plain "the ages, distance, meetup languages and free times a member wants"   formal users/{uid}.prefs
+  term "same-gender pods"         plain "pods only with people of the member's gender, which needs its own consent"   formal prefs.sameGenderOnly plus a gender consent event
+  term option                     plain "a time and a public place a member suggests for the meetup"   formal pods/{podId}/options/{optionId}
+  term planner                    plain "where a confirmed pod suggests options and votes on them"   formal route /pod/{podId}/plan
+  term "voting deadline"          plain "when voting closes, 72 hours after the pod is confirmed"   formal pods.planning.deadline
+  term "extra round"              plain "one more day to add an option when nothing got 3 yes votes"   formal pods.planning.extended (F22)
+  term "locked plan"              plain "the time and place that won, once voting is over"   formal a pod in scheduled, with planning.winningOptionId, meetupAt and place
+  term "public place"             plain "a café, library, park or the like, picked from the place search"   formal a Google Places pick of a PUBLIC_PLACE_TYPES type
+  term "meetup chat"              plain "the pod's short chat, open from a day before until a day after the meetup"   formal pods/{podId}/messages, written only by sendMessage
+  term "chat window"              plain "when the chat can be written in: 24 hours before to 24 hours after the meetup"   formal chatWindow(meetupAt), isChatOpen
+  term "contact details"          plain "a phone number, email address, handle or link"   formal checkChatText warning CONTACT_INFO_BEFORE_MEETUP
+  term "member sheet"             plain "the panel that opens on a member's name in a pod"   formal route pod/[podId]/member/[uid]
+  term block                      plain "never be matched with someone again; photos hidden both ways"   formal blockUser, users/{uid}/blocks/{uid}
+  term report                     plain "tell Friendpod about a person, suggestion or message; the other side never learns who"   formal the report callable, REPORT_CATEGORIES
+  term "meet again"               plain "a private yes or no about meeting one person again"   formal submitFeedback.meetAgain, pairSignals (F24)
+  term "Keep pod"                 plain "choosing to meet the same pod again"   formal submitFeedback.keep
+  term "message from Friendpod"   plain "a note about the account, kept for a year"   formal users/{uid}/notices/{id}
+  term "statement of reasons"     plain "why an automatic decision was made, with no person involved"   formal notice type statementOfReasons (DSA Art. 17)
+  term "data export"              plain "a file with everything Friendpod holds about the member, ready for 24 hours"   formal exportData, users/{uid}/exports/{id}
+  term "sign in again"            plain "confirming it's you before exporting or deleting"   formal reauthenticate; the server wants a sign-in within 5 minutes
+  term "tab bar"                  plain "the four tabs at the bottom: This week, Pods, Interests, Me"   formal the (tabs) navigator
+  term "draft legal text"         plain "a legal text the lawyer has not approved yet"   formal a LEGAL_DOC_VERSIONS version ending in .draftN
 ```
 
 ## Design tokens

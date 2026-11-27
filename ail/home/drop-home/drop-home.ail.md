@@ -67,7 +67,7 @@ node DropHome : flow   level: experience
   binds
     state    acknowledged: set of pod ids whose waiting card got Okay in this session, starting empty (kept by Home)
     events   a pod row opens the pod route "/pod/{podId}"; How matching works opens "/info/how-matching-works"
-  uses NextDropPoster, MatchOnCard
+  uses NextDropPoster, MatchOnCard, YourPodsRow
   children NextDropPoster, MatchOnCard
   sources
     Code: "apps/mobile/app/(tabs)/index.tsx", "apps/mobile/src/features/drop/PodRow.tsx", "apps/mobile/src/features/drop/parts.tsx", "apps/mobile/src/features/drop/time.ts", "apps/mobile/src/i18n/en/drop.json", "apps/mobile/src/i18n/da/drop.json"

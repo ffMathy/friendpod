@@ -10,6 +10,7 @@ node MeetupPlanningRules : fn   level: system
   why   One set of rules for the phone and the server, so the planner shows what the
         deadline will decide (DESIGN §3.5, §4.3, §4.6, D7, F22).              <- PlanMeetup
   what
+    Every time in this node is passed as epoch milliseconds, as its callers in the app and on the server pass them.
     type Vote = "yes" | "no"
     type OptionVotes = { id: text, startsAt: time, votes: map of text to Vote }
     type PlanningDeadlineOutcome = "schedule" | "extend" | "dissolve" | "archive"
