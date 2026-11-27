@@ -29,7 +29,7 @@ node NextDropPoster : view   level: experience
 
     Scenario: Right after the drop the next one is a week away
       Given a member with a pod proposal, on Thursday 12 November 2026 at 18:30
-      When they decline the proposal
+      When they decline the proposal on Home: Not this time, the reason Too far, then Decline this pod
       Then the poster reads Next drop Thursday 18:00 and in 6 days and 23 hours
 
   how
