@@ -115,6 +115,9 @@ glossary
   term "meetup chat"              plain "the pod's short chat, open from a day before until a day after the meetup"   formal pods/{podId}/messages, written only by sendMessage
   term "chat window"              plain "when the chat can be written in: 24 hours before to 24 hours after the meetup"   formal chatWindow(meetupAt), isChatOpen
   term "contact details"          plain "a phone number, email address, handle or link"   formal checkChatText warning CONTACT_INFO_BEFORE_MEETUP
+  term "next step"  plain "the one thing a pod asks of the member now"   formal PodNextStep's podNextStep
+  term attendance   plain "whether each member says they are coming to the meetup"   formal "coming" | "notComing" | "pending" | "unconfirmed"
+  term reveal       plain "the moment a pod is confirmed and its members' names appear"   formal the pod page of a confirmed pod while it plans
   term "member sheet"             plain "the panel that opens on a member's name in a pod"   formal route pod/[podId]/member/[uid]
   term block                      plain "never be matched with someone again; photos hidden both ways"   formal blockUser, users/{uid}/blocks/{uid}
   term report                     plain "tell Friendpod about a person, suggestion or message; the other side never learns who"   formal the report callable, REPORT_CATEGORIES
