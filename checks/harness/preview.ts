@@ -10,7 +10,7 @@
 import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { chromium, type Browser, type Page } from 'playwright';
+import { chromium, type Browser, type Locator, type Page } from 'playwright';
 import { urlFor, type World } from '../e2e/data.ts';
 
 const repo = resolve(import.meta.dir, '..', '..');
@@ -72,6 +72,14 @@ export async function openApp(opts: { route: string; world: World; locale?: 'en'
       await context.close();
     },
   };
+}
+
+/**
+ * Whether a checkbox is ticked, as a user sees it: its tick mark shows. (The app's checkboxes carry no checked state on
+ * the web: react-native-web drops `accessibilityState`, so `isChecked()` cannot tell.)
+ */
+export async function isTicked(box: Locator): Promise<boolean> {
+  return (await box.locator('svg').count()) > 0;
 }
 
 /** Closes the shared browser, and the preview server when this process started one; the checks call it in afterAll. */

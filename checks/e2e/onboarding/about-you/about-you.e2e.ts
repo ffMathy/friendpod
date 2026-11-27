@@ -3,7 +3,7 @@
 // the running app as a user would, with what the user sees: labels, roles and the copy texts.
 import { afterAll, expect, setDefaultTimeout, test } from 'bun:test';
 import type { Page } from 'playwright';
-import { closeApps, openApp } from '../../../harness/preview.ts';
+import { closeApps, isTicked, openApp } from '../../../harness/preview.ts';
 
 setDefaultTimeout(60_000);
 afterAll(closeApps);
@@ -26,7 +26,7 @@ test('The step starts empty and Continue waits', async () => {
   for (const label of ['First name', 'Date of birth, Day', 'Date of birth, Month', 'Date of birth, Year']) {
     expect(await page.getByLabel(label, { exact: true }).inputValue()).toBe('');
   }
-  expect(await terms(page).getAttribute('aria-checked')).not.toBe('true');
+  expect(await isTicked(terms(page))).toBe(false);
   expect(await continueButton(page).isDisabled()).toBe(true);
 });
 
@@ -36,6 +36,7 @@ test('The basics lead to step 2', async () => {
   await page.getByLabel('First name', { exact: true }).fill('Emil');
   await enterBirthDate(page, '14', '03', '1991');
   await terms(page).click();
+  expect(await isTicked(terms(page))).toBe(true);
   expect(await continueButton(page).isDisabled()).toBe(false);
   await continueButton(page).click();
   await page.getByText('Where do you live?', { exact: true }).waitFor();
