@@ -142,7 +142,8 @@ test(
     expect(text).toContain('gravid');
     expect(text).toContain('5 people near Aarhus C');
     expect(await inkOnWhite(page, '5 people near Aarhus C')).toBe(true);
-    expect(await page.getByLabel('Private interest').count()).toBeGreaterThan(0);
+    // The band's private badge (the lock named Private interest is the reveal's).
+    expect(await page.getByRole('img', { name: 'Private', exact: true }).count()).toBeGreaterThan(0);
 
     expect(text).toContain('The meetup chat is open');
     expect(await page.getByText('Open chat', { exact: true }).first().isVisible()).toBe(true);
@@ -150,11 +151,12 @@ test(
     expect(text).toContain('Saturday 5 Dec, 14:00');
     expect(text).toContain("You're coming.");
 
-    expect(text).toContain('Members');
-    expect(text).toMatch(/Nikolaj\W{0,3}[^]{0,30}hasn['’]t confirmed/);
+    // The section header is drawn in capitals (CSS), so the page's innerText reads it as MEMBERS.
+    expect(text.toLowerCase()).toContain('members');
+    expect(text).toMatch(/Nikolaj\W{0,3}[^]{0,30}hasn['’]t confirmed/i);
 
-    const membersAt = text.indexOf('Members');
-    const notConfirmedAt = text.search(/hasn['’]t confirmed/);
+    const membersAt = text.toLowerCase().indexOf('members');
+    const notConfirmedAt = text.search(/hasn['’]t confirmed/i);
     const switchAt = text.lastIndexOf('Show my photo to this pod');
     expect(switchAt).toBeGreaterThan(membersAt);
     expect(switchAt).toBeGreaterThan(notConfirmedAt);

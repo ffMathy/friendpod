@@ -1,6 +1,6 @@
 // ail-derived-from: PodPage@f9a8bc2b74fb7d96
 import { expect, test } from 'bun:test';
-import type { Page } from 'playwright';
+import type { Locator, Page } from 'playwright';
 
 import { openApp } from '../../harness/preview';
 
@@ -13,9 +13,26 @@ function tab(page: Page, name: string) {
   return page.getByRole('tab', { name, exact: false });
 }
 
-/** The tab named `name`, only when it is the selected one. */
-function selectedTab(page: Page, name: string) {
-  return page.getByRole('tab', { name, exact: false, selected: true });
+/**
+ * Whether a tab is drawn selected, as the user sees it: its icon sits on the active pill (color.tab.active.bg). (The
+ * pod page's tab bar carries no selected state on the web: react-native-web drops `accessibilityState`.)
+ */
+function looksSelected(t: Locator): Promise<boolean> {
+  return t.evaluate((node) =>
+    [node, ...node.querySelectorAll('*')].some((e) => getComputedStyle(e).backgroundColor === 'rgb(225, 239, 233)'),
+  );
+}
+
+/** Waits until the tab named `name` is drawn selected. */
+async function waitSelected(page: Page, name: string): Promise<void> {
+  const t = tab(page, name).first();
+  await t.waitFor({ state: 'visible' });
+  const handle = await t.elementHandle();
+  await t.page().waitForFunction(
+    (node) => [node, ...node.querySelectorAll('*')].some((e) => getComputedStyle(e).backgroundColor === 'rgb(225, 239, 233)'),
+    handle,
+  );
+  expect(await looksSelected(t)).toBe(true);
 }
 
 test(
@@ -33,11 +50,9 @@ test(
       await t.waitFor({ state: 'visible' });
       expect(await t.isVisible()).toBe(true);
     }
-    const pods = selectedTab(page, 'Pods');
-    await pods.first().waitFor({ state: 'visible' });
-    expect(await pods.count()).toBe(1);
+    await waitSelected(page, 'Pods');
     for (const name of ['This week', 'Interests', 'Me']) {
-      expect(await selectedTab(page, name).count()).toBe(0);
+      expect(await looksSelected(tab(page, name).first())).toBe(false);
     }
 
     await app.saveScreen('a-pod-that-no-longer-exists.png');
@@ -59,9 +74,11 @@ test(
     await back.waitFor({ state: 'visible' });
     await back.click();
 
-    const active = page.getByText('Active', { exact: true }).first();
+    // The section header reads "Active · <count>".
+    const active = page.getByText(/^Active\b/).first();
     await active.waitFor({ state: 'visible' });
-    const pods = selectedTab(page, 'Pods').first();
+    // Off the pod page, the main tab bar shows which tab is selected.
+    const pods = page.getByRole('tab', { name: 'Pods', exact: false, selected: true }).first();
     await pods.waitFor({ state: 'visible' });
     expect(await pods.isVisible()).toBe(true);
     expect(new URL(page.url()).pathname.startsWith('/pod/')).toBe(false);
@@ -96,16 +113,16 @@ test(
     });
     const page = app.page;
 
-    const pods = selectedTab(page, 'Pods').first();
-    await pods.waitFor({ state: 'visible' });
+    await waitSelected(page, 'Pods');
 
     const thisWeek = tab(page, 'This week').first();
     await thisWeek.click();
 
-    const selected = selectedTab(page, 'This week').first();
+    await page.waitForURL((url) => !url.pathname.startsWith('/pod/'));
+    // Off the pod page, the main tab bar shows which tab is selected.
+    const selected = page.getByRole('tab', { name: 'This week', exact: false, selected: true }).first();
     await selected.waitFor({ state: 'visible' });
     expect(await selected.isVisible()).toBe(true);
-    await page.waitForURL((url) => !url.pathname.startsWith('/pod/'));
     expect(new URL(page.url()).pathname.startsWith('/pod/')).toBe(false);
 
     await app.saveScreen('a-tab-leaves-the-pod.png');

@@ -34,9 +34,9 @@ test(
 
     await page.getByRole('button', { name: 'More options' }).click();
 
-    await shows(page.getByText('More options', { exact: true }));
-    await shows(page.getByText('Meeting safely', { exact: true }));
-    await shows(page.getByText('Leave pod', { exact: true }));
+    await shows(page.getByRole('dialog').getByText('More options', { exact: true }));
+    await shows(page.getByRole('dialog').getByText('Meeting safely', { exact: true }));
+    await shows(page.getByRole('dialog').getByText('Leave pod', { exact: true }));
 
     await app.saveScreen('the-menu-offers-the-safety-tips-and-leave-pod.png');
   },
@@ -50,9 +50,9 @@ test(
     const page = app.page;
 
     await page.getByRole('button', { name: 'More options' }).click();
-    await shows(page.getByText('Meeting safely', { exact: true }));
+    await shows(page.getByRole('dialog').getByText('Meeting safely', { exact: true }));
 
-    await page.getByText('Meeting safely', { exact: true }).click();
+    await page.getByRole('dialog').getByText('Meeting safely', { exact: true }).click();
 
     await shows(page.getByRole('heading', { name: 'Meeting safely' }));
     await shows(page.getByRole('heading', { name: 'Before you go' }));
@@ -69,12 +69,12 @@ test(
     const page = app.page;
 
     await page.getByRole('button', { name: 'More options' }).click();
-    await shows(page.getByText('More options', { exact: true }));
+    await shows(page.getByRole('dialog').getByText('More options', { exact: true }));
 
     await page.getByRole('button', { name: 'Close' }).click();
 
-    await gone(page.getByText('More options', { exact: true }));
-    await gone(page.getByText('Leave pod', { exact: true }));
+    await gone(page.getByRole('dialog').getByText('More options', { exact: true }));
+    await gone(page.getByRole('dialog').getByText('Leave pod', { exact: true }));
     await pageReads(page, 'Still coming tomorrow at 14:00?');
 
     await app.saveScreen('close-shuts-the-menu.png');
@@ -90,8 +90,8 @@ test(
 
     await page.getByRole('button', { name: 'More options' }).click();
 
-    await shows(page.getByText('Meeting safely', { exact: true }));
-    await shows(page.getByText('Leave pod', { exact: true }));
+    await shows(page.getByRole('dialog').getByText('Meeting safely', { exact: true }));
+    await shows(page.getByRole('dialog').getByText('Leave pod', { exact: true }));
 
     await app.saveScreen('the-reveal-has-the-same-menu.png');
   },
@@ -106,8 +106,8 @@ test(
 
     await page.getByRole('button', { name: 'Flere muligheder' }).click();
 
-    await shows(page.getByText('Mød hinanden trygt', { exact: true }));
-    await shows(page.getByText('Forlad poden', { exact: true }));
+    await shows(page.getByRole('dialog').getByText('Mød hinanden trygt', { exact: true }));
+    await shows(page.getByRole('dialog').getByText('Forlad poden', { exact: true }));
 
     await app.saveScreen('the-menu-in-danish.png');
   },

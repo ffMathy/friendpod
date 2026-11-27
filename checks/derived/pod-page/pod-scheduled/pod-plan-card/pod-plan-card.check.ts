@@ -48,7 +48,7 @@ test('The plan the day before', async () => {
   await seeText(page, 'Saturday 21 Nov, 14:00');
   await seeText(page, '[Board game café] · Aarhus C');
 
-  const map = page.getByRole('button', { name: 'Open [Board game café] in Maps', exact: true });
+  const map = page.getByRole('link', { name: 'Open [Board game café] in Maps', exact: true });
   await map.first().waitFor({ state: 'visible' });
   expect(await map.first().textContent()).toContain('Open in Maps');
 
@@ -86,7 +86,7 @@ test('After the meetup the plan is a record', async () => {
   await seeText(page, 'Saturday 21 Nov, 14:00');
   await seeText(page, '[Board game café] · Aarhus C');
 
-  expect(await page.getByRole('button', { name: 'Open [Board game café] in Maps' }).count()).toBe(0);
+  expect(await page.getByRole('link', { name: 'Open [Board game café] in Maps' }).count()).toBe(0);
   expect(await page.getByText('Open in Maps', { exact: true }).count()).toBe(0);
   expect(await page.getByRole('button', { name: 'Add to calendar' }).count()).toBe(0);
   expect(await page.getByText('Add to calendar', { exact: true }).count()).toBe(0);
@@ -103,7 +103,7 @@ test('The plan in Danish', async () => {
   await seeText(page, 'Lørdag 21. nov. kl. 14.00');
   await seeText(page, '[Brætspilscafé] · Aarhus C');
 
-  const map = page.getByRole('button', { name: 'Åbn [Brætspilscafé] i Kort', exact: true });
+  const map = page.getByRole('link', { name: 'Åbn [Brætspilscafé] i Kort', exact: true });
   await map.first().waitFor({ state: 'visible' });
   expect(await map.first().textContent()).toContain('Åbn i Kort');
 

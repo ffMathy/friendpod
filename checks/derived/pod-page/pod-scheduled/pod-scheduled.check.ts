@@ -63,7 +63,8 @@ test(
     await expectText(page, 'Open until Sunday 14:00');
     await expectText(page, '3 new');
 
-    await expectText(page, 'Members');
+    // The section header is drawn in capitals (CSS), so it is found by its text, not the page's innerText.
+    await page.getByText('Members', { exact: true }).first().waitFor({ state: 'visible' });
     for (const name of ['Mette', 'Jonas', 'Sofie', 'Ahmed']) {
       await page.getByRole('link', { name: new RegExp(`^${name}\\b`) }).first().waitFor({ state: 'visible' });
     }
@@ -144,7 +145,8 @@ test(
     await expectText(page, '5 personer i nærheden af Aarhus C');
     await expectText(page, 'Næste skridt');
     await expectText(page, 'Kommer du stadig i morgen kl. 14.00?');
-    await expectText(page, 'Medlemmer');
+    // The section header is drawn in capitals (CSS), so it is found by its text, not the page's innerText.
+    await page.getByText('Medlemmer', { exact: true }).first().waitFor({ state: 'visible' });
 
     await page.getByRole('link', { name: /^Chat, / }).first().waitFor({ state: 'visible' });
     await expectText(page, 'Åben til søndag kl. 14.00');

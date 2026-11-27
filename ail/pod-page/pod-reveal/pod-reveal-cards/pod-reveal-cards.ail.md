@@ -43,7 +43,7 @@ node PodRevealCards : view   level: experience
       title in type.body, 700 and its text in type.small.text.
     Pinned at the foot over the tab bar: "Plan the meetup" full width, size.button tall, color.primary, radius.pill, type.button,
       700, color.on.primary; 12px under it, centred, the deadline: a needs-you pill (color.needs.you, a border.control color.ink
-      border, a clock, type.caption, 700, color.on.needs.you) or a quiet line (a clock and type.caption, 600, color.text.muted).
+      border, a clock, type.caption, 700, color.on.needs.you) or a quiet line (a clock and type.caption, 700, color.text.secondary).
   copy
     pod.inTheirWords    "In their own words"                    da "Med deres egne ord"
     pod.alsoLikes       "More than one of you also likes"       da "Flere af jer kan også lide"
