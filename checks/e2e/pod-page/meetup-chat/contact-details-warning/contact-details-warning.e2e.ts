@@ -1,3 +1,4 @@
+// ail-derived-from: ContactDetailsWarning@92d668c6e8211922
 // End-to-end check of ContactDetailsWarning (ail/pod-page/meetup-chat/contact-details-warning): each test is one of its
 // scenarios, by name, played through the running app as a user would, with what the user sees.
 import { afterAll, expect, setDefaultTimeout, test } from 'bun:test';

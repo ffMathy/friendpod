@@ -1,3 +1,4 @@
+// ail-derived-from: NotificationSettings@d39869525c9fb015
 // End-to-end check of NotificationSettings (ail/me/me-settings/notification-settings): each test is one of its
 // scenarios, by name, played through the running app as a user would, with what the user sees: labels, roles and the
 // copy texts.

@@ -1,3 +1,4 @@
+// ail-derived-from: PrivatePodProposal@28a0252eda2986ce
 // End-to-end check of PrivatePodProposal (ail/home/private-pod-proposal): each test is one of its scenarios, by name,
 // played through the running app as a user would, with what the user sees: roles, labels and the copy texts.
 import { afterAll, expect, setDefaultTimeout, test } from 'bun:test';

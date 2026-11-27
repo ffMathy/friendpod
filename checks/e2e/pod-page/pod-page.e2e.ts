@@ -1,3 +1,4 @@
+// ail-derived-from: PodPage@2f8300bf0827967b
 // End-to-end check of PodPage (ail/pod-page): each test is one of its scenarios, by name, played through the running
 // app as a user would, with what the user sees: labels, roles and the copy texts.
 import { afterAll, expect, setDefaultTimeout, test } from 'bun:test';

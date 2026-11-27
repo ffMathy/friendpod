@@ -1,3 +1,4 @@
+// ail-derived-from: DropWhy@08be718f879770b2
 // End-to-end check of DropWhy (ail/home/drop-proposal/drop-why): each test is one of its scenarios, by name, played
 // through the running app as a user would, with what the user sees: roles, labels and the copy texts.
 import { afterAll, expect, setDefaultTimeout, test } from 'bun:test';

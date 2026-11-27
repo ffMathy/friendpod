@@ -1,3 +1,4 @@
+// ail-derived-from: DropProposal@ed33e0f23f81e1d1
 // End-to-end check of DropProposal (ail/home/drop-proposal): each test is one of its scenarios, by name, played through
 // the running app as a user would, with what the user sees: roles, labels and the copy texts.
 import { afterAll, expect, setDefaultTimeout, test } from 'bun:test';

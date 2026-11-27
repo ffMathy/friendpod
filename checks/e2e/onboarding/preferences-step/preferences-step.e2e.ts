@@ -1,3 +1,4 @@
+// ail-derived-from: PreferencesStep@f67c78b37bb965c1
 // End-to-end check of PreferencesStep (ail/onboarding/preferences-step): each test is one of its scenarios, by name,
 // played through the running app as a user would, with what the user sees: labels, roles and the copy texts.
 import { afterAll, expect, setDefaultTimeout, test } from 'bun:test';

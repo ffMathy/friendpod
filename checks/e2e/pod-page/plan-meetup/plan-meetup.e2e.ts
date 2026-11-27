@@ -1,3 +1,4 @@
+// ail-derived-from: PlanMeetup@37315211b296cd11
 // End-to-end check of PlanMeetup (ail/pod-page/plan-meetup): each test is one of its scenarios, by name, played through
 // the running app as a user would, with what the user sees: labels, roles and the copy texts.
 import { afterAll, expect, setDefaultTimeout, test } from 'bun:test';

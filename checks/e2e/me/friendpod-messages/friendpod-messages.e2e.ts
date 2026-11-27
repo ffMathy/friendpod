@@ -1,3 +1,4 @@
+// ail-derived-from: FriendpodMessages@e7b8b75f74d5d22d
 // End-to-end check of FriendpodMessages (ail/me/friendpod-messages): each test is one of its scenarios, by name, played
 // through the running app as a user would, with what the user sees: labels, roles and the copy texts.
 import { afterAll, expect, setDefaultTimeout, test } from 'bun:test';

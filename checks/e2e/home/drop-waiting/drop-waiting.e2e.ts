@@ -1,3 +1,4 @@
+// ail-derived-from: DropWaiting@c6d59b6dbaa401c2
 // End-to-end check of DropWaiting (ail/home/drop-waiting): each test is one of its scenarios, by name, played through
 // the running app as a user would, with what the user sees: roles, labels and the copy texts.
 import { afterAll, expect, setDefaultTimeout, test } from 'bun:test';
