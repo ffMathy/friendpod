@@ -7,6 +7,62 @@
         "packages/core/src/gen/onboarding/about-you/about-you-rules/about-you-rules.ts": "7788933cf21c6cf445825b5522b93728810ec7aa67db027ec0102232b2493c43"
       },
       "by": "claude-code"
+    },
+    "CityWaitlistRules": {
+      "hash": "bf4f8e9deb760993ca6b5631acd47dd03ceaa76c6c82c4631cb2038f1108cd79",
+      "spec": "99d9c4a8f62ee5c3e4793847de5374c6af2b6ce535a8e03b48f7511e36ea611c",
+      "files": {},
+      "by": "adopted",
+      "adopted": true
+    },
+    "DropReasons": {
+      "hash": "c60f915851e72412b6d7fadbb274edb7e37d216ca687da9eae3953f81b39ffdf",
+      "spec": "dc9bd5d08b1d61d5b4756f0d8f9c319b616737a9bc3a5e1c318f6cd69a08d819",
+      "files": {},
+      "by": "adopted",
+      "adopted": true
+    },
+    "InterestRules": {
+      "hash": "4e7b7e84bdc6f744c29139f669390f1ea3b6c874d386b890b8f3d4f579a98423",
+      "spec": "a6b8d6dfef7b39175cc849e481a799979d623cd37a9df01688d90f1fdd6473f4",
+      "files": {},
+      "by": "adopted",
+      "adopted": true
+    },
+    "MeetupChatRules": {
+      "hash": "cf3c3ad0610997de6bc0df7776f5c2d6bc540f45d54c27aead0807a59a31b100",
+      "spec": "13d8627409a1cb7be5dbd288dff982b8e0476f760547b39f63b1183ae040af19",
+      "files": {},
+      "by": "adopted",
+      "adopted": true
+    },
+    "MeetupPlanningRules": {
+      "hash": "c59b26ba7101fbe9e69ee58d4ce6e1ed8131bf173f0af3dff85e360f5afbce9f",
+      "spec": "5323fd0f032fc1ff03425202cbaf7dcd3ac68b170388ad9a7828abccca80ce00",
+      "files": {},
+      "by": "adopted",
+      "adopted": true
+    },
+    "PodColors": {
+      "hash": "9bf117a2edcac816d3a19a6c29e6384a7ac13931c9c2cf0e4602ea2a14106478",
+      "spec": "d51902f675036be7c171dfd4c62c961f9869e2e44faddb1938b6b95b9590ec75",
+      "files": {},
+      "by": "adopted",
+      "adopted": true
+    },
+    "PodNextStep": {
+      "hash": "1fa0739cb6411af455bf7295e0f66f6f3fb706ba71f2a6af01aa2e8a8d7e0818",
+      "spec": "93fac712fb5ba9f2e002abe7b23fd2d8365abfa6c1bab6d90e2fa7f4de228ce1",
+      "files": {},
+      "by": "adopted",
+      "adopted": true
+    },
+    "PodPreferenceRules": {
+      "hash": "096ac4fa8fe77be85e66b23e65ed36459bd1c0c730cc6a24855d08e293f6fffd",
+      "spec": "6d0c4386a5319fabe10aed3a7eac161833721695d945bbf686c80df5ea36b8b0",
+      "files": {},
+      "by": "adopted",
+      "adopted": true
     }
   },
   "glue": {},
