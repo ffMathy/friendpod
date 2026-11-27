@@ -12,13 +12,16 @@
   "glue": {},
   "hand": {
     "AboutYou": {
-      "shots": "26c05d9381ba4e34"
+      "shots": "26c05d9381ba4e34",
+      "look": "2e11a062b84e12a54ffcc797936238d08eaa59399c75b6a4337829615da8104a"
     },
     "BirthDate": {
-      "shots": "d755b0534ac76ed0"
+      "shots": "d755b0534ac76ed0",
+      "look": "4038d2657a6526592766903257363d3185fd83cb816fb4a86b4607391a721934"
     },
     "TermsAcceptance": {
-      "shots": "eb6239a8077f17aa"
+      "shots": "eb6239a8077f17aa",
+      "look": "6d2380b312898737154e6a4d3f9397bf97e502d624a8b4d29d78fb998d1affd3"
     }
   }
 }
