@@ -1,0 +1,29 @@
+{
+  "node": "PodProposal",
+  "shots": [
+    {
+      "test": "The proposal names the pod, never its people",
+      "file": "01-the-proposal-names-the-pod-never-its-people.png"
+    },
+    {
+      "test": "I'm in turns the proposal into the wait",
+      "file": "02-i-m-in-turns-the-proposal-into-the-wait.png"
+    },
+    {
+      "test": "Waiting for the others",
+      "file": "03-waiting-for-the-others.png"
+    },
+    {
+      "test": "Saying no on the pod page",
+      "file": "04-saying-no-on-the-pod-page.png"
+    },
+    {
+      "test": "Why this pod? gives the reasons",
+      "file": "05-why-this-pod-gives-the-reasons.png"
+    },
+    {
+      "test": "The proposal in Danish",
+      "file": "06-the-proposal-in-danish.png"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "node": "WaitlistShareCard",
+  "shots": [
+    {
+      "test": "The share card for Odense",
+      "file": "01-the-share-card-for-odense.png"
+    }
+  ]
+}

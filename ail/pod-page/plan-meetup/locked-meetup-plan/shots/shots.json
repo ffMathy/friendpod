@@ -1,0 +1,29 @@
+{
+  "node": "LockedMeetupPlan",
+  "shots": [
+    {
+      "test": "The plan once it is locked",
+      "file": "01-the-plan-once-it-is-locked.png"
+    },
+    {
+      "test": "Saying I'm coming on the plan",
+      "file": "02-saying-i-m-coming-on-the-plan.png"
+    },
+    {
+      "test": "Meeting safely opens the safety tips",
+      "file": "03-meeting-safely-opens-the-safety-tips.png"
+    },
+    {
+      "test": "After the meetup the plan is a record",
+      "file": "04-after-the-meetup-the-plan-is-a-record.png"
+    },
+    {
+      "test": "Before the pod is confirmed",
+      "file": "05-before-the-pod-is-confirmed.png"
+    },
+    {
+      "test": "The plan in Danish",
+      "file": "06-the-plan-in-danish.png"
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "node": "InterestStars",
+  "shots": [
+    {
+      "test": "A fourth main interest is refused",
+      "file": "01-a-fourth-main-interest-is-refused.png"
+    },
+    {
+      "test": "Unstarring makes room, and the message stays",
+      "file": "02-unstarring-makes-room-and-the-message-stays.png"
+    },
+    {
+      "test": "The star limit in Danish",
+      "file": "03-the-star-limit-in-danish.png"
+    }
+  ]
+}

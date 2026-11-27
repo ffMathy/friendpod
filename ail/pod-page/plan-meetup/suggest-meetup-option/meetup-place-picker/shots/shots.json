@@ -1,0 +1,25 @@
+{
+  "node": "MeetupPlacePicker",
+  "shots": [
+    {
+      "test": "Searching shows public places",
+      "file": "01-searching-shows-public-places.png"
+    },
+    {
+      "test": "One letter searches nothing",
+      "file": "02-one-letter-searches-nothing.png"
+    },
+    {
+      "test": "A picked place is marked and stays on top",
+      "file": "03-a-picked-place-is-marked-and-stays-on-top.png"
+    },
+    {
+      "test": "Nothing found",
+      "file": "04-nothing-found.png"
+    },
+    {
+      "test": "The place search in Danish",
+      "file": "05-the-place-search-in-danish.png"
+    }
+  ]
+}

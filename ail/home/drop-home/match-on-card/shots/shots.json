@@ -1,0 +1,17 @@
+{
+  "node": "MatchOnCard",
+  "shots": [
+    {
+      "test": "The card before the drop",
+      "file": "01-the-card-before-the-drop.png"
+    },
+    {
+      "test": "Edit opens the interests",
+      "file": "02-edit-opens-the-interests.png"
+    },
+    {
+      "test": "The card in Danish",
+      "file": "03-the-card-in-danish.png"
+    }
+  ]
+}

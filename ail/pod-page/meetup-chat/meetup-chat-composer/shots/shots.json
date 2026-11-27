@@ -1,0 +1,33 @@
+{
+  "node": "MeetupChatComposer",
+  "shots": [
+    {
+      "test": "A message is sent and the field empties",
+      "file": "01-a-message-is-sent-and-the-field-empties.png"
+    },
+    {
+      "test": "Only spaces cannot be sent",
+      "file": "02-only-spaces-cannot-be-sent.png"
+    },
+    {
+      "test": "The counter shows near the limit",
+      "file": "03-the-counter-shows-near-the-limit.png"
+    },
+    {
+      "test": "A message stops at 500 characters",
+      "file": "04-a-message-stops-at-500-characters.png"
+    },
+    {
+      "test": "A CPR number is never sent",
+      "file": "05-a-cpr-number-is-never-sent.png"
+    },
+    {
+      "test": "Words that are not allowed are refused",
+      "file": "06-words-that-are-not-allowed-are-refused.png"
+    },
+    {
+      "test": "A CPR number in Danish",
+      "file": "07-a-cpr-number-in-danish.png"
+    }
+  ]
+}

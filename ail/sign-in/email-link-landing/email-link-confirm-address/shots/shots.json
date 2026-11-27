@@ -1,0 +1,21 @@
+{
+  "node": "EmailLinkConfirmAddress",
+  "shots": [
+    {
+      "test": "A link opened on another phone asks for the address",
+      "file": "01-a-link-opened-on-another-phone-asks-for-the-address.png"
+    },
+    {
+      "test": "A link that does not work, on another phone",
+      "file": "02-a-link-that-does-not-work-on-another-phone.png"
+    },
+    {
+      "test": "Back to the start instead of the address",
+      "file": "03-back-to-the-start-instead-of-the-address.png"
+    },
+    {
+      "test": "Confirming the address in Danish",
+      "file": "04-confirming-the-address-in-danish.png"
+    }
+  ]
+}

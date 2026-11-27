@@ -1,0 +1,21 @@
+{
+  "node": "DropProposal",
+  "shots": [
+    {
+      "test": "The proposal on Home",
+      "file": "01-the-proposal-on-home.png"
+    },
+    {
+      "test": "Saying yes shows the wait for the others",
+      "file": "02-saying-yes-shows-the-wait-for-the-others.png"
+    },
+    {
+      "test": "An open pod proposal",
+      "file": "03-an-open-pod-proposal.png"
+    },
+    {
+      "test": "The proposal in Danish",
+      "file": "04-the-proposal-in-danish.png"
+    }
+  ]
+}

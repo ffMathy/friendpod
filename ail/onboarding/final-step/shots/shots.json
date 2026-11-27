@@ -1,0 +1,17 @@
+{
+  "node": "FinalStep",
+  "shots": [
+    {
+      "test": "Finish waits for the safety pledge",
+      "file": "01-finish-waits-for-the-safety-pledge.png"
+    },
+    {
+      "test": "Finishing opens Home",
+      "file": "02-finishing-opens-home.png"
+    },
+    {
+      "test": "The step in Danish",
+      "file": "03-the-step-in-danish.png"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "node": "NextDropPoster",
+  "shots": [
+    {
+      "test": "The next drop on Tuesday",
+      "file": "01-the-next-drop-on-tuesday.png"
+    },
+    {
+      "test": "Right after the drop the next one is a week away",
+      "file": "02-right-after-the-drop-the-next-one-is-a-week-away.png"
+    }
+  ]
+}

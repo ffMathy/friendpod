@@ -1,0 +1,21 @@
+{
+  "node": "Welcome",
+  "shots": [
+    {
+      "test": "Signing in with Apple leads to onboarding",
+      "file": "01-signing-in-with-apple-leads-to-onboarding.png"
+    },
+    {
+      "test": "A sign-in that fails says so",
+      "file": "02-a-sign-in-that-fails-says-so.png"
+    },
+    {
+      "test": "Continue with email opens the email step",
+      "file": "03-continue-with-email-opens-the-email-step.png"
+    },
+    {
+      "test": "A failed sign-in in Danish",
+      "file": "04-a-failed-sign-in-in-danish.png"
+    }
+  ]
+}

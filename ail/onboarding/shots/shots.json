@@ -1,0 +1,21 @@
+{
+  "node": "Onboarding",
+  "shots": [
+    {
+      "test": "A new member starts at About you",
+      "file": "01-a-new-member-starts-at-about-you.png"
+    },
+    {
+      "test": "A member who sent the basics resumes at the interests",
+      "file": "02-a-member-who-sent-the-basics-resumes-at-the-interests.png"
+    },
+    {
+      "test": "Back from resumed interests opens the private-interests step",
+      "file": "03-back-from-resumed-interests-opens-the-private-interests-step.png"
+    },
+    {
+      "test": "Resuming in Danish",
+      "file": "04-resuming-in-danish.png"
+    }
+  ]
+}

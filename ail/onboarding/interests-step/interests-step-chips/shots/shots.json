@@ -1,0 +1,21 @@
+{
+  "node": "InterestsStepChips",
+  "shots": [
+    {
+      "test": "Tapping a private interest offers to make it ordinary",
+      "file": "01-tapping-a-private-interest-offers-to-make-it-ordinary.png"
+    },
+    {
+      "test": "Tapping an ordinary interest offers to keep it private",
+      "file": "02-tapping-an-ordinary-interest-offers-to-keep-it-private.png"
+    },
+    {
+      "test": "The nudge stays until five interests",
+      "file": "03-the-nudge-stays-until-five-interests.png"
+    },
+    {
+      "test": "The chips in Danish",
+      "file": "04-the-chips-in-danish.png"
+    }
+  ]
+}

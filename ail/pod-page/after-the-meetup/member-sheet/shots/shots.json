@@ -1,0 +1,29 @@
+{
+  "node": "MemberSheet",
+  "shots": [
+    {
+      "test": "The sheet of a member in an active pod",
+      "file": "01-the-sheet-of-a-member-in-an-active-pod.png"
+    },
+    {
+      "test": "The sheet of a member in a private pod",
+      "file": "02-the-sheet-of-a-member-in-a-private-pod.png"
+    },
+    {
+      "test": "The member's own sheet",
+      "file": "03-the-member-s-own-sheet.png"
+    },
+    {
+      "test": "Report opens the report for that member",
+      "file": "04-report-opens-the-report-for-that-member.png"
+    },
+    {
+      "test": "A pod the member is not in",
+      "file": "05-a-pod-the-member-is-not-in.png"
+    },
+    {
+      "test": "The sheet in Danish",
+      "file": "06-the-sheet-in-danish.png"
+    }
+  ]
+}

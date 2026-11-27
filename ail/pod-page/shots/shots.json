@@ -1,0 +1,21 @@
+{
+  "node": "PodPage",
+  "shots": [
+    {
+      "test": "A pod that no longer exists",
+      "file": "01-a-pod-that-no-longer-exists.png"
+    },
+    {
+      "test": "Back from a pod opened on its own goes to the Pods tab",
+      "file": "02-back-from-a-pod-opened-on-its-own-goes-to-the-pods-tab.png"
+    },
+    {
+      "test": "A tab leaves the pod",
+      "file": "03-a-tab-leaves-the-pod.png"
+    },
+    {
+      "test": "A pod that no longer exists, in Danish",
+      "file": "04-a-pod-that-no-longer-exists-in-danish.png"
+    }
+  ]
+}

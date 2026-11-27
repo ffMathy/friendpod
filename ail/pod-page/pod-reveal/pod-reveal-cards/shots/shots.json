@@ -1,0 +1,17 @@
+{
+  "node": "PodRevealCards",
+  "shots": [
+    {
+      "test": "The shared interests wear their own colours",
+      "file": "01-the-shared-interests-wear-their-own-colours.png"
+    },
+    {
+      "test": "The deadline is a needs-you pill while there is no option",
+      "file": "02-the-deadline-is-a-needs-you-pill-while-there-is-no-option.png"
+    },
+    {
+      "test": "Once every option has the viewer's vote, the deadline is quiet",
+      "file": "03-once-every-option-has-the-viewer-s-vote-the-deadline-is-quie.png"
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "node": "AddInterest",
+  "shots": [
+    {
+      "test": "A new interest is added at the end of the list",
+      "file": "01-a-new-interest-is-added-at-the-end-of-the-list.png"
+    },
+    {
+      "test": "An interest of one character is refused",
+      "file": "02-an-interest-of-one-character-is-refused.png"
+    },
+    {
+      "test": "An interest of more than 40 characters is refused",
+      "file": "03-an-interest-of-more-than-40-characters-is-refused.png"
+    },
+    {
+      "test": "Contact details are refused",
+      "file": "04-contact-details-are-refused.png"
+    },
+    {
+      "test": "Someone else's sensitive situation is refused",
+      "file": "05-someone-else-s-sensitive-situation-is-refused.png"
+    },
+    {
+      "test": "Adding in Danish",
+      "file": "06-adding-in-danish.png"
+    }
+  ]
+}

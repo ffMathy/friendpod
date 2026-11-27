@@ -1,0 +1,25 @@
+{
+  "node": "PreferencesStep",
+  "shots": [
+    {
+      "test": "The step starts from the profile's preferences",
+      "file": "01-the-step-starts-from-the-profile-s-preferences.png"
+    },
+    {
+      "test": "Continue saves and opens step 6",
+      "file": "02-continue-saves-and-opens-step-6.png"
+    },
+    {
+      "test": "A language is needed",
+      "file": "03-a-language-is-needed.png"
+    },
+    {
+      "test": "A free time is needed",
+      "file": "04-a-free-time-is-needed.png"
+    },
+    {
+      "test": "The step in Danish",
+      "file": "05-the-step-in-danish.png"
+    }
+  ]
+}

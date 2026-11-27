@@ -1,0 +1,21 @@
+{
+  "node": "Interests",
+  "shots": [
+    {
+      "test": "The tab shows every interest and the private one apart",
+      "file": "01-the-tab-shows-every-interest-and-the-private-one-apart.png"
+    },
+    {
+      "test": "Fewer than five interests show the nudge",
+      "file": "02-fewer-than-five-interests-show-the-nudge.png"
+    },
+    {
+      "test": "How private interests work opens its page",
+      "file": "03-how-private-interests-work-opens-its-page.png"
+    },
+    {
+      "test": "The tab in Danish",
+      "file": "04-the-tab-in-danish.png"
+    }
+  ]
+}

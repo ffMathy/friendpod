@@ -1,0 +1,21 @@
+{
+  "node": "PlanOption",
+  "shots": [
+    {
+      "test": "An option shows its time, its place and who said yes",
+      "file": "01-an-option-shows-its-time-its-place-and-who-said-yes.png"
+    },
+    {
+      "test": "A second press takes the vote back",
+      "file": "02-a-second-press-takes-the-vote-back.png"
+    },
+    {
+      "test": "No replaces Yes",
+      "file": "03-no-replaces-yes.png"
+    },
+    {
+      "test": "Pressing and holding another member's option reports it",
+      "file": "04-pressing-and-holding-another-member-s-option-reports-it.png"
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "node": "DropWaiting",
+  "shots": [
+    {
+      "test": "Waiting for the others",
+      "file": "01-waiting-for-the-others.png"
+    },
+    {
+      "test": "Okay moves the pod to Your pods",
+      "file": "02-okay-moves-the-pod-to-your-pods.png"
+    },
+    {
+      "test": "The waiting pod opens from Your pods",
+      "file": "03-the-waiting-pod-opens-from-your-pods.png"
+    },
+    {
+      "test": "Waiting in Danish",
+      "file": "04-waiting-in-danish.png"
+    }
+  ]
+}

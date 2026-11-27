@@ -1,0 +1,17 @@
+{
+  "node": "MeetupChatWindow",
+  "shots": [
+    {
+      "test": "Before a time is picked the chat is closed",
+      "file": "01-before-a-time-is-picked-the-chat-is-closed.png"
+    },
+    {
+      "test": "The morning after the meetup the chat is still open",
+      "file": "02-the-morning-after-the-meetup-the-chat-is-still-open.png"
+    },
+    {
+      "test": "The closed chat in Danish",
+      "file": "03-the-closed-chat-in-danish.png"
+    }
+  ]
+}

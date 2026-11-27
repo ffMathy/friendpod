@@ -1,0 +1,21 @@
+{
+  "node": "PodPlanCard",
+  "shots": [
+    {
+      "test": "The plan the day before",
+      "file": "01-the-plan-the-day-before.png"
+    },
+    {
+      "test": "Meeting safely beside the plan opens the tips",
+      "file": "02-meeting-safely-beside-the-plan-opens-the-tips.png"
+    },
+    {
+      "test": "After the meetup the plan is a record",
+      "file": "03-after-the-meetup-the-plan-is-a-record.png"
+    },
+    {
+      "test": "The plan in Danish",
+      "file": "04-the-plan-in-danish.png"
+    }
+  ]
+}

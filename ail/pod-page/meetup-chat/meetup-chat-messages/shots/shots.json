@@ -1,0 +1,21 @@
+{
+  "node": "MeetupChatMessages",
+  "shots": [
+    {
+      "test": "Five messages just before the meetup",
+      "file": "01-five-messages-just-before-the-meetup.png"
+    },
+    {
+      "test": "Three messages the day before",
+      "file": "02-three-messages-the-day-before.png"
+    },
+    {
+      "test": "A private pod's chat stays uncoloured",
+      "file": "03-a-private-pod-s-chat-stays-uncoloured.png"
+    },
+    {
+      "test": "The messages in Danish",
+      "file": "04-the-messages-in-danish.png"
+    }
+  ]
+}

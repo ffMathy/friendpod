@@ -1,0 +1,33 @@
+{
+  "node": "ContactDetailsWarning",
+  "shots": [
+    {
+      "test": "A phone number before the meetup needs a second tap",
+      "file": "01-a-phone-number-before-the-meetup-needs-a-second-tap.png"
+    },
+    {
+      "test": "Send anyway sends it",
+      "file": "02-send-anyway-sends-it.png"
+    },
+    {
+      "test": "Edit keeps the text to change",
+      "file": "03-edit-keeps-the-text-to-change.png"
+    },
+    {
+      "test": "Changing the text hides the warning",
+      "file": "04-changing-the-text-hides-the-warning.png"
+    },
+    {
+      "test": "A map link is not contact details",
+      "file": "05-a-map-link-is-not-contact-details.png"
+    },
+    {
+      "test": "After the meetup there is no warning",
+      "file": "06-after-the-meetup-there-is-no-warning.png"
+    },
+    {
+      "test": "The warning in Danish",
+      "file": "07-the-warning-in-danish.png"
+    }
+  ]
+}

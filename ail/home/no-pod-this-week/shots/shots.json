@@ -1,0 +1,25 @@
+{
+  "node": "NoPodThisWeek",
+  "shots": [
+    {
+      "test": "No pod this week",
+      "file": "01-no-pod-this-week.png"
+    },
+    {
+      "test": "The reason names the setting",
+      "file": "02-the-reason-names-the-setting.png"
+    },
+    {
+      "test": "A tip opens the setting",
+      "file": "03-a-tip-opens-the-setting.png"
+    },
+    {
+      "test": "A tip opens the interests",
+      "file": "04-a-tip-opens-the-interests.png"
+    },
+    {
+      "test": "No pod in Danish",
+      "file": "05-no-pod-in-danish.png"
+    }
+  ]
+}

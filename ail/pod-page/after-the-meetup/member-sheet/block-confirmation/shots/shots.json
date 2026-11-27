@@ -1,0 +1,37 @@
+{
+  "node": "BlockConfirmation",
+  "shots": [
+    {
+      "test": "Block asks first and takes the member out by default",
+      "file": "01-block-asks-first-and-takes-the-member-out-by-default.png"
+    },
+    {
+      "test": "Leaving instead keeps the member in the pod",
+      "file": "02-leaving-instead-keeps-the-member-in-the-pod.png"
+    },
+    {
+      "test": "A scheduled meetup can be re-planned",
+      "file": "03-a-scheduled-meetup-can-be-re-planned.png"
+    },
+    {
+      "test": "In a past pod, Block asks without choices",
+      "file": "04-in-a-past-pod-block-asks-without-choices.png"
+    },
+    {
+      "test": "Cancel returns to the sheet",
+      "file": "05-cancel-returns-to-the-sheet.png"
+    },
+    {
+      "test": "Confirming the block closes the sheet",
+      "file": "06-confirming-the-block-closes-the-sheet.png"
+    },
+    {
+      "test": "Someone already blocked can be unblocked",
+      "file": "07-someone-already-blocked-can-be-unblocked.png"
+    },
+    {
+      "test": "The confirmation in Danish",
+      "file": "08-the-confirmation-in-danish.png"
+    }
+  ]
+}

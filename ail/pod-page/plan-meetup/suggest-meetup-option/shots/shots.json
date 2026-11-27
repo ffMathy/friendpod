@@ -1,0 +1,37 @@
+{
+  "node": "SuggestMeetupOption",
+  "shots": [
+    {
+      "test": "The form opens from the planner",
+      "file": "01-the-form-opens-from-the-planner.png"
+    },
+    {
+      "test": "Sending without a day and a time is refused",
+      "file": "02-sending-without-a-day-and-a-time-is-refused.png"
+    },
+    {
+      "test": "Sending without a place is refused",
+      "file": "03-sending-without-a-place-is-refused.png"
+    },
+    {
+      "test": "A time that has passed is refused",
+      "file": "04-a-time-that-has-passed-is-refused.png"
+    },
+    {
+      "test": "A suggestion joins the planner",
+      "file": "05-a-suggestion-joins-the-planner.png"
+    },
+    {
+      "test": "Close returns to the planner",
+      "file": "06-close-returns-to-the-planner.png"
+    },
+    {
+      "test": "The form once the plan is locked",
+      "file": "07-the-form-once-the-plan-is-locked.png"
+    },
+    {
+      "test": "The form in Danish",
+      "file": "08-the-form-in-danish.png"
+    }
+  ]
+}

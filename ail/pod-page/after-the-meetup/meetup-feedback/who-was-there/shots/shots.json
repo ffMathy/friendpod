@@ -1,0 +1,21 @@
+{
+  "node": "WhoWasThere",
+  "shots": [
+    {
+      "test": "Everyone starts ticked and no one has a meet-again answer",
+      "file": "01-everyone-starts-ticked-and-no-one-has-a-meet-again-answer.png"
+    },
+    {
+      "test": "Unticking someone takes away their meet-again question",
+      "file": "02-unticking-someone-takes-away-their-meet-again-question.png"
+    },
+    {
+      "test": "A meet-again answer can be taken back",
+      "file": "03-a-meet-again-answer-can-be-taken-back.png"
+    },
+    {
+      "test": "The card in Danish",
+      "file": "04-the-card-in-danish.png"
+    }
+  ]
+}

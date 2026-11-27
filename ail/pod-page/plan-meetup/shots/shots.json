@@ -1,0 +1,25 @@
+{
+  "node": "PlanMeetup",
+  "shots": [
+    {
+      "test": "The planner shows the options to vote on",
+      "file": "01-the-planner-shows-the-options-to-vote-on.png"
+    },
+    {
+      "test": "A yes and a yes taken back move the lead",
+      "file": "02-a-yes-and-a-yes-taken-back-move-the-lead.png"
+    },
+    {
+      "test": "Done voting returns to the pod",
+      "file": "03-done-voting-returns-to-the-pod.png"
+    },
+    {
+      "test": "A pod with no options yet",
+      "file": "04-a-pod-with-no-options-yet.png"
+    },
+    {
+      "test": "The planner in Danish",
+      "file": "05-the-planner-in-danish.png"
+    }
+  ]
+}
