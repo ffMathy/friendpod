@@ -1,70 +1,94 @@
-// ail-derived-from: WelcomePoster@45b8a42590f67a24
+// ail-derived-from: WelcomePoster@8e33c451e868b51e
 import { expect, test } from 'bun:test';
-import type { Locator } from 'playwright';
+import type { Locator, Page } from 'playwright';
 
 import { openApp } from '../../../../harness/preview';
 
-/** The whitespace-normalised text of an element, so a headline split over two lines reads as one line. */
-async function readText(locator: Locator): Promise<string> {
-  const text = await locator.textContent();
+const TIMEOUT = 180_000;
+
+function normalize(text: string | null): string {
   return (text ?? '').replace(/\s+/g, ' ').trim();
 }
 
-test('The welcome in English', async () => {
-  await using app = await openApp({ route: '/', world: 'signed out', locale: 'en' });
-  const page = app.page;
+async function visible(locator: Locator): Promise<void> {
+  await locator.first().waitFor({ state: 'visible', timeout: 15_000 });
+  expect(await locator.first().isVisible()).toBe(true);
+}
 
-  await expect(page.getByRole('img', { name: 'Friendpod' }).isVisible()).resolves.toBe(true);
-  await expect(page.getByText('18+ only', { exact: true }).isVisible()).resolves.toBe(true);
-  expect(await readText(page.getByRole('heading', { level: 1 }))).toBe('Small groups. Real meetups.');
-  await expect(page.getByText('There’s room for you.', { exact: true }).isVisible()).resolves.toBe(true);
-
-  const language = page.getByRole('radiogroup', { name: 'Language' });
-  await expect(language.isVisible()).resolves.toBe(true);
-  expect(await language.getByRole('radio').count()).toBe(2);
-  await expect(language.getByRole('radio', { name: 'Dansk' }).isVisible()).resolves.toBe(true);
-  await expect(language.getByRole('radio', { name: 'English' }).isVisible()).resolves.toBe(true);
-
-  await app.saveScreen('the-welcome-in-english.png');
-});
-
-test('Switching the welcome to Danish', async () => {
-  await using app = await openApp({ route: '/', world: 'signed out', locale: 'en' });
-  const page = app.page;
-
-  await page.getByRole('radiogroup', { name: 'Language' }).getByRole('radio', { name: 'Dansk' }).click();
-
+async function headlineReads(page: Page, expected: string): Promise<void> {
   const heading = page.getByRole('heading', { level: 1 });
-  await page.waitForFunction(
-    () => (document.querySelector('[role="heading"][aria-level="1"], h1')?.textContent ?? '').includes('Små grupper.'),
-  );
-  expect(await readText(heading)).toBe('Små grupper. Rigtige møder.');
-  await expect(page.getByText('Kun 18+', { exact: true }).isVisible()).resolves.toBe(true);
-  await expect(page.getByText('Fortsæt med e-mail', { exact: true }).isVisible()).resolves.toBe(true);
+  const deadline = Date.now() + 15_000;
+  let last = '';
+  while (Date.now() < deadline) {
+    if ((await heading.count()) > 0) {
+      last = normalize(await heading.first().textContent());
+      if (last === expected) {
+        break;
+      }
+    }
+    await page.waitForTimeout(100);
+  }
+  expect(last).toBe(expected);
+}
 
-  await page.getByRole('radiogroup', { name: 'Sprog' }).getByRole('radio', { name: 'English' }).click();
+async function languageSwitchOffers(page: Page, groupName: string): Promise<void> {
+  const group = page.getByRole('radiogroup', { name: groupName, exact: true });
+  await visible(group);
+  await visible(group.getByRole('radio', { name: 'Dansk', exact: true }));
+  await visible(group.getByRole('radio', { name: 'English', exact: true }));
+  expect(await group.getByRole('radio').count()).toBe(2);
+}
 
-  await page.waitForFunction(
-    () => (document.querySelector('[role="heading"][aria-level="1"], h1')?.textContent ?? '').includes('Small groups.'),
-  );
-  expect(await readText(heading)).toBe('Small groups. Real meetups.');
+test(
+  'The welcome in English',
+  async () => {
+    await using app = await openApp({ route: '/', world: 'signed out', locale: 'en' });
+    const page = app.page;
 
-  await app.saveScreen('switching-the-welcome-to-danish.png');
-});
+    await visible(page.getByRole('img', { name: 'Friendpod', exact: true }));
+    await visible(page.getByText('18+ only', { exact: true }));
+    await headlineReads(page, 'Small groups. Real meetups.');
+    await visible(page.getByText('There’s room for you.', { exact: true }));
+    await languageSwitchOffers(page, 'Language');
 
-test('The welcome in Danish', async () => {
-  await using app = await openApp({ route: '/', world: 'signed out', locale: 'da' });
-  const page = app.page;
+    await app.saveScreen('the-welcome-in-english.png');
+  },
+  TIMEOUT,
+);
 
-  await expect(page.getByText('Kun 18+', { exact: true }).isVisible()).resolves.toBe(true);
-  expect(await readText(page.getByRole('heading', { level: 1 }))).toBe('Små grupper. Rigtige møder.');
-  await expect(page.getByText('Der er plads til dig.', { exact: true }).isVisible()).resolves.toBe(true);
+test(
+  'Switching the welcome to Danish',
+  async () => {
+    await using app = await openApp({ route: '/', world: 'signed out', locale: 'en' });
+    const page = app.page;
 
-  const language = page.getByRole('radiogroup', { name: 'Sprog' });
-  await expect(language.isVisible()).resolves.toBe(true);
-  expect(await language.getByRole('radio').count()).toBe(2);
-  await expect(language.getByRole('radio', { name: 'Dansk' }).isVisible()).resolves.toBe(true);
-  await expect(language.getByRole('radio', { name: 'English' }).isVisible()).resolves.toBe(true);
+    await headlineReads(page, 'Small groups. Real meetups.');
 
-  await app.saveScreen('the-welcome-in-danish.png');
-});
+    await page.getByRole('radio', { name: 'Dansk', exact: true }).click();
+    await headlineReads(page, 'Små grupper. Rigtige møder.');
+    await visible(page.getByText('Kun 18+', { exact: true }));
+    await visible(page.getByText('Fortsæt med e-mail', { exact: true }));
+
+    await page.getByRole('radio', { name: 'English', exact: true }).click();
+    await headlineReads(page, 'Small groups. Real meetups.');
+
+    await app.saveScreen('switching-the-welcome-to-danish.png');
+  },
+  TIMEOUT,
+);
+
+test(
+  'The welcome in Danish',
+  async () => {
+    await using app = await openApp({ route: '/', world: 'signed out', locale: 'da' });
+    const page = app.page;
+
+    await visible(page.getByText('Kun 18+', { exact: true }));
+    await headlineReads(page, 'Små grupper. Rigtige møder.');
+    await visible(page.getByText('Der er plads til dig.', { exact: true }));
+    await languageSwitchOffers(page, 'Sprog');
+
+    await app.saveScreen('the-welcome-in-danish.png');
+  },
+  TIMEOUT,
+);

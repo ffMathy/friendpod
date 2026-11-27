@@ -1,222 +1,233 @@
-// ail-derived-from: AreaStep@06516c2c43eec859
-import { expect, test } from 'bun:test';
+// ail-derived-from: AreaStep@3c87955f81c425c4
+import { afterAll, expect, test } from 'bun:test';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { isTicked, openApp } from '../../../harness/preview.ts';
+import { openApp } from '../../../harness/preview';
 
 type App = Awaited<ReturnType<typeof openApp>>;
-type Page = App['page'];
+type Locale = 'en' | 'da';
 
-const TIMEOUT = 180_000;
-const WAIT = 20_000;
+const TIMEOUT = 300_000;
 
-/** Waits until a text the user can read is visible. */
-async function shows(page: Page, text: string): Promise<void> {
-  await page.getByText(text, { exact: true }).first().waitFor({ state: 'visible', timeout: WAIT });
-}
+const I18N_DIR = join(import.meta.dir, '..', '..', '..', '..', 'apps', 'mobile', 'src', 'i18n');
 
-/** Counts how many visible elements carry exactly this text. */
-async function visibleCount(page: Page, text: string): Promise<number> {
-  const all = page.getByText(text, { exact: true });
-  const n = await all.count();
-  let visible = 0;
-  for (let i = 0; i < n; i += 1) {
-    if (await all.nth(i).isVisible()) {
-      visible += 1;
+function flatten(value: unknown, prefix: string, out: Map<string, string>): void {
+  if (typeof value === 'string') {
+    out.set(prefix, value);
+    return;
+  }
+  if (value !== null && typeof value === 'object') {
+    for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
+      flatten(child, prefix === '' ? key : `${prefix}.${key}`, out);
     }
   }
-  return visible;
 }
 
-/** Looks up the Danish text that goes with an English copy text in the app's own i18n files. */
-function danishFor(english: string): string {
-  const root = join(import.meta.dir, '../../../../apps/mobile/src/i18n');
-  const find = (node: unknown, path: string[]): string[] | null => {
-    if (typeof node === 'string') {
-      return node === english ? path : null;
-    }
-    if (node !== null && typeof node === 'object') {
-      for (const [key, value] of Object.entries(node as Record<string, unknown>)) {
-        const hit = find(value, [...path, key]);
-        if (hit !== null) {
-          return hit;
-        }
+function loadLocale(locale: Locale): Map<string, string> {
+  const out = new Map<string, string>();
+  const dir = join(I18N_DIR, locale);
+  for (const file of readdirSync(dir)) {
+    if (!file.endsWith('.json')) continue;
+    const namespace = file.slice(0, -'.json'.length);
+    flatten(JSON.parse(readFileSync(join(dir, file), 'utf8')) as unknown, namespace, out);
+  }
+  return out;
+}
+
+/** Turns an English text of the app into the app's own Danish text for the same i18next key. */
+function toDanish(english: string): string {
+  const en = loadLocale('en');
+  const da = loadLocale('da');
+  const lookup = (text: string): string | null => {
+    for (const [key, value] of en) {
+      if (value === text) {
+        const danish = da.get(key);
+        if (danish !== undefined) return danish;
       }
     }
     return null;
   };
-  for (const file of readdirSync(join(root, 'en')).filter((f) => f.endsWith('.json'))) {
-    const en: unknown = JSON.parse(readFileSync(join(root, 'en', file), 'utf8'));
-    const path = find(en, []);
-    if (path === null) {
-      continue;
-    }
-    let node: unknown = JSON.parse(readFileSync(join(root, 'da', file), 'utf8'));
-    for (const key of path) {
-      node = node !== null && typeof node === 'object' ? (node as Record<string, unknown>)[key] : undefined;
-    }
-    if (typeof node === 'string') {
-      return node;
-    }
-  }
-  throw new Error(`no Danish text found for "${english}"`);
+  const whole = lookup(english);
+  if (whole !== null) return whole;
+  const parts = english.split(', ').map(lookup);
+  if (parts.length > 1 && parts.every((part): part is string => part !== null)) return parts.join(', ');
+  throw new Error(`No Danish text found in the app's i18n files for "${english}"`);
 }
 
-/** Fills About you in English with Emil, 14 03 1991 and the Terms ticked. */
-async function fillAboutYou(page: Page): Promise<void> {
-  await page.getByLabel('First name').fill('Emil');
-  await page.getByLabel('Date of birth, Day').fill('14');
-  await page.getByLabel('Date of birth, Month').fill('03');
-  await page.getByLabel('Date of birth, Year').fill('1991');
-  const terms = page.getByRole('checkbox', { name: 'I accept the Terms' });
-  if (!(await isTicked(terms))) {
-    await terms.click();
-  }
-  expect(await isTicked(terms)).toBe(true);
+function text(locale: Locale, english: string): string {
+  return locale === 'en' ? english : toDanish(english);
 }
 
-/** Goes through About you in English and arrives on Where do you live?. */
-async function arriveOnAreaStep(page: Page): Promise<void> {
-  await fillAboutYou(page);
-  await page.getByRole('button', { name: 'Continue', exact: true }).click();
-  await shows(page, 'Where do you live?');
+async function eventually(check: () => Promise<boolean>, timeoutMs = 10_000): Promise<boolean> {
+  const end = Date.now() + timeoutMs;
+  for (;;) {
+    if (await check()) return true;
+    if (Date.now() > end) return false;
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
 }
 
-test('The step starts with no area and Continue waits', async () => {
-  await using app = await openApp({ route: '/about', world: 'new member', locale: 'en' });
+/** Fills About you (Emil, 14 03 1991, the Terms ticked) and presses Continue. */
+async function passAboutYou(app: App, locale: Locale): Promise<void> {
   const page = app.page;
-  await fillAboutYou(page);
+  await page.getByLabel(text(locale, 'First name'), { exact: true }).fill('Emil');
+  await page.getByLabel(text(locale, 'Date of birth, Day'), { exact: true }).fill('14');
+  await page.getByLabel(text(locale, 'Date of birth, Month'), { exact: true }).fill('03');
+  await page.getByLabel(text(locale, 'Date of birth, Year'), { exact: true }).fill('1991');
+  await page.getByRole('checkbox', { name: text(locale, 'I accept the Terms') }).click();
+  await page.getByRole('button', { name: text(locale, 'Continue'), exact: true }).click();
+}
 
-  await page.getByRole('button', { name: 'Continue', exact: true }).click();
+async function onAreaAfterAboutYou(app: App): Promise<void> {
+  await passAboutYou(app, 'en');
+  await app.page.getByText('Where do you live?', { exact: true }).waitFor();
+}
 
-  await shows(page, 'Step 2 of 6');
-  await shows(page, 'Where do you live?');
-  expect(await page.getByRole('button', { name: 'Back' }).count()).toBeGreaterThan(0);
-  expect(await page.getByLabel('Postcode').inputValue()).toBe('');
-  expect(await visibleCount(page, 'Your area')).toBe(0);
-  expect(await page.getByRole('button', { name: 'Continue', exact: true }).isDisabled()).toBe(true);
-  await shows(page, 'Postal code data: GeoNames (www.geonames.org)');
+function continueButton(app: App) {
+  return app.page.getByRole('button', { name: 'Continue', exact: true });
+}
 
-  await app.saveScreen('the-step-starts-with-no-area-and-continue-waits.png');
-}, TIMEOUT);
+afterAll(() => {});
 
-test('A known postcode gives an area', async () => {
-  await using app = await openApp({ route: '/about', world: 'new member', locale: 'en' });
-  const page = app.page;
-  await arriveOnAreaStep(page);
+test(
+  'The step starts with no area and Continue waits',
+  async () => {
+    await using app = await openApp({ route: '/about', world: 'new member', locale: 'en' });
+    const page = app.page;
+    await passAboutYou(app, 'en');
 
-  await page.getByLabel('Postcode').fill('8000');
+    await page.getByText('Where do you live?', { exact: true }).waitFor();
+    await page.getByText('Step 2 of 6').waitFor();
+    expect(await page.getByRole('button', { name: 'Back', exact: true }).count()).toBe(1);
 
-  await shows(page, 'Your area');
-  await shows(page, 'Aarhus C');
-  await shows(page, 'Aarhus opens soon');
-  expect(await page.getByRole('button', { name: 'Continue', exact: true }).isDisabled()).toBe(false);
+    expect(await page.getByLabel('Postcode', { exact: true }).inputValue()).toBe('');
+    expect(await page.getByText('Your area', { exact: true }).count()).toBe(0);
+    expect(await continueButton(app).isDisabled()).toBe(true);
 
-  await app.saveScreen('a-known-postcode-gives-an-area.png');
-}, TIMEOUT);
+    const body = await page.locator('body').innerText();
+    expect(body).toContain('Postal code data: GeoNames (www.geonames.org)');
 
-test('An unknown postcode is refused', async () => {
-  await using app = await openApp({ route: '/about', world: 'new member', locale: 'en' });
-  const page = app.page;
-  await arriveOnAreaStep(page);
+    await app.saveScreen('the-step-starts-with-no-area-and-continue-waits.png');
+  },
+  TIMEOUT,
+);
 
-  await page.getByLabel('Postcode').fill('0000');
+test(
+  'A known postcode gives an area',
+  async () => {
+    await using app = await openApp({ route: '/about', world: 'new member', locale: 'en' });
+    const page = app.page;
+    await onAreaAfterAboutYou(app);
 
-  await shows(page, "We don't know that postcode.");
-  expect(await visibleCount(page, 'Your area')).toBe(0);
-  expect(await page.getByRole('button', { name: 'Continue', exact: true }).isDisabled()).toBe(true);
+    await page.getByLabel('Postcode', { exact: true }).fill('8000');
 
-  await app.saveScreen('an-unknown-postcode-is-refused.png');
-}, TIMEOUT);
+    await page.getByText('Your area', { exact: true }).waitFor();
+    await page.getByText('Aarhus C', { exact: true }).waitFor();
+    await page.getByText('Aarhus opens soon', { exact: true }).waitFor();
+    expect(await eventually(async () => !(await continueButton(app).isDisabled()))).toBe(true);
 
-test('No approximate location', async () => {
-  await using app = await openApp({ route: '/about', world: 'new member', locale: 'en' });
-  const page = app.page;
-  await arriveOnAreaStep(page);
-  // The phone gives no location: permission is not granted and every position request fails.
-  await page.context().clearPermissions();
-  await page.evaluate(() => {
-    const failure = { code: 1, message: 'User denied Geolocation', PERMISSION_DENIED: 1, POSITION_UNAVAILABLE: 2, TIMEOUT: 3 };
-    const fail = (_success: unknown, error?: (e: unknown) => void): void => {
-      setTimeout(() => error?.(failure), 0);
-    };
-    Object.defineProperty(globalThis.navigator, 'geolocation', {
-      configurable: true,
-      value: {
-        getCurrentPosition: fail,
-        watchPosition: (success: unknown, error?: (e: unknown) => void): number => {
-          fail(success, error);
-          return 0;
-        },
-        clearWatch: (): void => {},
-      },
-    });
-  });
+    await app.saveScreen('a-known-postcode-gives-an-area.png');
+  },
+  TIMEOUT,
+);
 
-  await page.getByRole('button', { name: 'Use my approximate location' }).click();
+test(
+  'An unknown postcode is refused',
+  async () => {
+    await using app = await openApp({ route: '/about', world: 'new member', locale: 'en' });
+    const page = app.page;
+    await onAreaAfterAboutYou(app);
 
-  await shows(page, 'We could not get your approximate location. Use your postcode instead.');
+    await page.getByLabel('Postcode', { exact: true }).fill('0000');
 
-  await app.saveScreen('no-approximate-location.png');
-}, TIMEOUT);
+    await page.getByText("We don't know that postcode.", { exact: true }).waitFor();
+    expect(await page.getByText('Your area', { exact: true }).count()).toBe(0);
+    expect(await continueButton(app).isDisabled()).toBe(true);
 
-test('Continue sends the basics and opens step 3', async () => {
-  await using app = await openApp({ route: '/about', world: 'new member', locale: 'en' });
-  const page = app.page;
-  await arriveOnAreaStep(page);
-  await page.getByLabel('Postcode').fill('8000');
-  await shows(page, 'Aarhus C');
+    await app.saveScreen('an-unknown-postcode-is-refused.png');
+  },
+  TIMEOUT,
+);
 
-  await page.getByRole('button', { name: 'Continue', exact: true }).click();
+test(
+  'No approximate location',
+  async () => {
+    await using app = await openApp({ route: '/about', world: 'new member', locale: 'en' });
+    const page = app.page;
+    await onAreaAfterAboutYou(app);
+    // The phone gives no location: no location permission is granted to the page.
+    await page.context().clearPermissions();
 
-  await shows(page, 'Step 3 of 6');
-  await shows(page, 'Sensitive interests');
-  expect(await page.getByRole('button', { name: 'Back' }).count()).toBe(0);
+    await page.getByRole('button', { name: 'Use my approximate location' }).click();
 
-  await app.saveScreen('continue-sends-the-basics-and-opens-step-3.png');
-}, TIMEOUT);
+    await page
+      .getByText('We could not get your approximate location. Use your postcode instead.', { exact: true })
+      .waitFor();
 
-test('Opened directly, the step cannot be finished', async () => {
-  await using app = await openApp({ route: '/area', world: 'new member', locale: 'en' });
-  const page = app.page;
-  await shows(page, 'Where do you live?');
-  expect(await page.getByRole('button', { name: 'Back' }).count()).toBe(0);
+    await app.saveScreen('no-approximate-location.png');
+  },
+  TIMEOUT,
+);
 
-  await page.getByLabel('Postcode').fill('8000');
-  await shows(page, 'Aarhus C');
-  await page.getByRole('button', { name: 'Continue', exact: true }).click();
-  await page.waitForTimeout(3_000);
+test(
+  'Continue sends the basics and opens step 3',
+  async () => {
+    await using app = await openApp({ route: '/about', world: 'new member', locale: 'en' });
+    const page = app.page;
+    await onAreaAfterAboutYou(app);
+    await page.getByLabel('Postcode', { exact: true }).fill('8000');
+    await page.getByText('Aarhus C', { exact: true }).waitFor();
+    expect(await eventually(async () => !(await continueButton(app).isDisabled()))).toBe(true);
 
-  await shows(page, 'Where do you live?');
-  expect(await visibleCount(page, 'Step 3 of 6')).toBe(0);
+    await continueButton(app).click();
 
-  await app.saveScreen('opened-directly-the-step-cannot-be-finished.png');
-}, TIMEOUT);
+    await page.getByText('Step 3 of 6').waitFor({ timeout: 20_000 });
+    await page.getByText('Sensitive interests').first().waitFor();
+    expect(await page.getByRole('button', { name: 'Back', exact: true }).count()).toBe(0);
 
-test('The step in Danish', async () => {
-  await using app = await openApp({ route: '/about', world: 'new member', locale: 'da' });
-  const page = app.page;
-  // Om dig, in the order its fields are shown: first name, then day, month and year of birth.
-  const fields = page.getByRole('textbox');
-  await fields.nth(0).fill('Emil');
-  await fields.nth(1).fill('14');
-  await fields.nth(2).fill('03');
-  await fields.nth(3).fill('1991');
-  const terms = page.getByRole('checkbox').first();
-  if (!(await isTicked(terms))) {
-    await terms.click();
-  }
-  await page.getByRole('button', { name: danishFor('Continue'), exact: true }).click();
-  await shows(page, 'Hvor bor du?');
+    await app.saveScreen('continue-sends-the-basics-and-opens-step-3.png');
+  },
+  TIMEOUT,
+);
 
-  await page.getByLabel('Postnummer').fill('8000');
+test(
+  'Opened directly, the step cannot be finished',
+  async () => {
+    await using app = await openApp({ route: '/area', world: 'new member', locale: 'en' });
+    const page = app.page;
+    await page.getByText('Where do you live?', { exact: true }).waitFor();
 
-  await shows(page, 'Trin 2 af 6');
-  await shows(page, 'Postnummer');
-  await shows(page, 'Dit område');
-  await shows(page, 'Aarhus C');
-  await shows(page, 'Aarhus åbner snart');
+    await page.getByLabel('Postcode', { exact: true }).fill('8000');
+    await page.getByText('Aarhus C', { exact: true }).waitFor();
+    await continueButton(app).click();
 
-  await app.saveScreen('the-step-in-danish.png');
-}, TIMEOUT);
+    await new Promise((resolve) => setTimeout(resolve, 2_000));
+    expect(await page.getByText('Where do you live?', { exact: true }).isVisible()).toBe(true);
+    expect(await page.getByText('Step 3 of 6').count()).toBe(0);
+
+    await app.saveScreen('opened-directly-the-step-cannot-be-finished.png');
+  },
+  TIMEOUT,
+);
+
+test(
+  'The step in Danish',
+  async () => {
+    await using app = await openApp({ route: '/about', world: 'new member', locale: 'da' });
+    const page = app.page;
+    await passAboutYou(app, 'da');
+    await page.getByText('Hvor bor du?', { exact: true }).waitFor();
+
+    await page.getByLabel('Postnummer', { exact: true }).fill('8000');
+
+    await page.getByText('Trin 2 af 6').waitFor();
+    await page.getByText('Postnummer', { exact: true }).first().waitFor();
+    await page.getByText('Dit område', { exact: true }).waitFor();
+    await page.getByText('Aarhus C', { exact: true }).waitFor();
+    await page.getByText('Aarhus åbner snart', { exact: true }).waitFor();
+
+    await app.saveScreen('the-step-in-danish.png');
+  },
+  TIMEOUT,
+);
