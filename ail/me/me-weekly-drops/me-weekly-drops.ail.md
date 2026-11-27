@@ -24,7 +24,7 @@ node MeWeeklyDrops : view   level: experience
     Scenario: Skipping a week says when it applies
       Given a member this week, on Me
       When they press Skip this week
-      Then Weekly drops says Applies from week 46
+      Then Weekly drops says Applies from week 46 (the status line changes once the server has applied the skip, which the web preview does not do)
 
     Scenario: Weekly drops in Danish
       Given a member this week whose app is in Danish, on Me
@@ -46,7 +46,7 @@ node MeWeeklyDrops : view   level: experience
     A white card (color.surface, border.hairline color.border, radius.card, padding space.card), its parts 12px apart.
     "Weekly drops" in type.eyebrow, 800, upper case, color.text.muted; the status line: a color.text.secondary icon and the text in type.small.text, color.text.secondary.
     The two choices as size.chip pills 8px apart: selected color.ink with color.on.ink text, the other color.surface with a border.control color.border.strong border, type.chip, 700.
-    The actions in one row 8px apart, sharing its width: white secondary buttons (size.button.small, radius.pill, border.control color.border.strong, type.label, 700, color.text).
+    The actions in one row 8px apart, sharing its width: white secondary buttons (size.button.small, taller where a Danish label wraps onto two lines, radius.pill, border.control color.border.strong, type.label, 700, color.text).
     Applies from week N in type.caption, color.text.muted.
   copy
     me.participation    "Weekly drops"                   da "Ugentlige drops"

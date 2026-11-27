@@ -46,7 +46,7 @@ node PlanOption : view   level: experience
     A white card (color.surface) with a border.hairline color.border border and radius.card, 14px padding (16px at the bottom).
     Top row: the time in type.card.title, 800, color.text; at its right, when it leads, "Leading" in a color.ink pill with color.on.ink text, type.caption 700.
     Place row (at least size.hit tall): a pin in the pod's deep colour, "name, address" in type.small.text, color.text.secondary, and "Open map" as an underlined color.link link at the right.
-    Under a border.hairline color.separator rule: up to five size.badge faces overlapping by 10px, each ringed, in the pod's deep colour; the count in type.caption 700, color.text.secondary;
+    Under a border.hairline color.separator rule: up to five size.badge faces overlapping by 10px, each ringed, in the pod's deep colour, except the member's own You face, drawn in color.ink; the count in type.caption 700, color.text.secondary;
       at the right Yes and No, each size.hit tall, at least 64px wide, radius.pill: white with a border.control color.border.strong border,
       or, when chosen, color.ink with color.on.ink text and a tick before the word.
   copy

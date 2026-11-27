@@ -65,7 +65,7 @@ node LockedMeetupPlan : flow   level: experience
       under it a tick and the status in type.caption, 700, color.text.secondary, wrapping to two lines.
     The plan card: color.surface, a border.hairline color.border border, radius.card, space.card padding. "PLAN" in type.eyebrow, 700, color.text.muted, with "Meeting safely"
       (a shield, type.caption 700, underlined color.link) at its right; the time in type.card.title, 800; a pin in the pod's deep colour and "name · address" in type.small.text, color.text.secondary;
-      "Open in Maps" and "Add to calendar" side by side, size.hit tall, white with a border.control color.border.strong border and radius.pill; then the answer in a tinted inset.
+      "Open in Maps" and "Add to calendar" side by side, size.hit tall, white with a border.control color.border.strong border and radius.pill; then the answer: while it is pending, in a tinted inset; once the member has answered, on the card's white under a border.hairline color.separator rule, with You're coming. and a full-width Can't make it button.
     The members card under it, as on the pod page.
   copy
     plan.lockedTitle      "Your meetup"   da "Jeres møde"

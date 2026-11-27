@@ -1,4 +1,4 @@
-// ail-derived-from: MeWeeklyDrops@988c95cbd38cd81b
+// ail-derived-from: MeWeeklyDrops@f9e8d616f0bf7176
 import { describe, expect, test } from 'bun:test';
 
 import { openApp } from '../../../harness/preview';

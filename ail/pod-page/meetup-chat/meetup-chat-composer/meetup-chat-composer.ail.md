@@ -65,7 +65,7 @@ node MeetupChatComposer : flow   level: experience
     decide a refusal stays shown while the member edits the text
       because "unknown, confirm with the owner: should a refusal disappear once the text changes, as the contact-details warning does?"
   look
-    A row 8px apart: the field (min size.input.compact, at most 120px tall as it grows, radius.md, border.control color.field border,
+    A row 8px apart: the field (min size.input.compact, at most 120px tall as it grows on a phone; in the web preview it keeps its minimum height and its text scrolls, radius.md, border.control color.field border,
       color.surface, type.body.small, color.text, 12px side padding, the placeholder in color.text.muted) and Send (size.input.compact tall,
       radius.md, color.primary, pressed color.primary.pressed, "Send" in type.button, color.on.primary, with an 18px arrow after it);
       Send stays solid color.primary while the chat is open, even with nothing to send yet, as the storyboard draws it.

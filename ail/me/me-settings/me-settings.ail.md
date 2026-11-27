@@ -37,6 +37,8 @@ node MeSettings : flow   level: experience
       Then it reads Mig above Indstillinger, with Vilkår, Privatlivserklæring, Licenser and Log ud
 
   how
+    decide the language control does not follow the new choice until Settings opens again
+      because "unknown, confirm with the owner: this looks like a bug; should Dansk show as chosen at once?"
     decide the language is a choice of Dansk and English, each named in its own language, and the choice is saved on the profile before the app switches
       because pushes and the drop use the profile's language too ("apps/mobile/app/settings/index.tsx"); the UI language follows the phone and can be switched (DESIGN §3.1 step 1)
     decide Privacy is listed here as a plain row, and on Me with its summary
@@ -52,7 +54,7 @@ node MeSettings : flow   level: experience
       "Me" in type.eyebrow, 800, upper case, color.text.muted, then "Settings" in font.display, type.title, 800, color.text.
     General and Legal: white list cards (color.surface, border.hairline color.border, radius.card) with their eyebrow in type.eyebrow, 800, upper case, color.text.muted;
       rows at least 56px tall, label in type.body, 600, color.text, border.hairline color.separator between them; General's rows each with a color.text.secondary icon (globe, bell, lock), Legal's none.
-    Language: a segmented control at the right of its row, a color.surface pill with a border.hairline color.border ring; the chosen one color.ink with color.on.ink text, type.label, 700.
+    Language: a segmented control at the right of its row, a color.surface pill with a border.hairline color.border ring; the chosen one color.ink with color.on.ink text, type.label, 700. Right after choosing Dansk the page is in Danish while the control still shows English as chosen.
     Sign out: full width, size.button.medium, radius.pill, color.surface with border.control color.border.strong and type.button, 700, color.text.
     Friendpod's four-tab bar at the foot with Me selected.
   copy

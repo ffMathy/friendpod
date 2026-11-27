@@ -51,7 +51,7 @@ node InterestsStepChips : view   level: experience
       ordinary chips on their pod colour's tint (pod.tomat.tint for brætspil, pod.solsikke.tint for sourdough, pod.fjord.tint for far på barsel) with a border.hairline border,
       a size.dot dot in the colour's base ringed in its deep, and color.text;
       private chips color.private.bg with a border.control color.private.border border, a lock and color.private.text; an unsettled chip dashed in color.field, without colour.
-    The options: a card under the chips with the question in type.small, color.text.secondary, and the action as an underlined color.link link.
+    The options: a card under the chips with the question in type.small, color.text.secondary, and the action as a white secondary pill button (border.control color.border.strong, radius.pill, type.label, 700, color.text), with a lock icon on Keep this private.
   copy
     interests.yours               "Your interests"   da "Dine interesser"
     interests.addedCount_other    "{{count}} added"  da "{{count}} tilføjet"

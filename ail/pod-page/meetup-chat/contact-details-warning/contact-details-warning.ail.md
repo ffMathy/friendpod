@@ -55,6 +55,8 @@ node ContactDetailsWarning : flow   level: experience
       And it offers Send alligevel and Ret
 
   how
+    decide Send keeps its normal look while the warning holds it back
+      because "unknown, confirm with the owner: should Send look disabled while it cannot be pressed?"
     decide the server decides whether to warn, not the phone
       because only the server knows whether the meeting time has passed ("apps/mobile/src/features/chat/useSendMessage.ts")
     decide a warning, not a refusal, and only before the meetup
@@ -64,6 +66,7 @@ node ContactDetailsWarning : flow   level: experience
     decide the warning is a note with the needs-you marker, above the field
       because it is a question only the writer can answer (DESIGN decision 2, quoted in "apps/mobile/app/pod/[podId]/chat.tsx")
   look
+    While the warning shows, Send keeps its normal filled color.primary look, though it cannot be pressed.
     Above the field: a color.inset note with radius.lg, 11px by 12px padding: a row of the needs-you marker (color.needs.you, ringed)
       and the text in type.small.text, color.text, "You haven't met yet." in 700; under it, 10px apart, two buttons 44px tall,
       8px apart, sharing the row: Send anyway (color.surface, border.control color.border.strong, color.text) and Edit (color.primary, color.on.primary).

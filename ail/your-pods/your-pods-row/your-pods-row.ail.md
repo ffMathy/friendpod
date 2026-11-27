@@ -64,7 +64,7 @@ node YourPodsRow : view   level: experience
     A white card (color.surface, border.hairline color.border, radius.card), 14px top and bottom and space.card at the sides, its parts 12px apart in one line.
     On the left the other members' initials in size.badge discs, overlapping 10px, in the pod's deep colour (pod.*.deep) with white letters; before confirmation a disc in the pod's tint (pod.*.tint).
     Then a size.dot dot in the pod's colour (pod.*.base) and the theme in font.display, type.pod.name, 800, color.text; under it the state in type.caption, color.text.muted, on an 18px line.
-    A 20px chevron in color.text.muted at the end. A private pod: a border.control color.private.border border, a 14px lock in color.private.text for the dot, and color.private.fill discs (their lock in color.text.secondary).
+    A 20px chevron in color.text.muted at the end. A private pod: a border.control color.private.border border, a 14px lock in color.private.text for the dot, and a white (color.private.bg) disc with a border.control color.private.border ring around its lock.
   copy
     pods.openToAnyone       "Open to anyone"                 da "Åben for at møde alle"
     pods.privateInterest    "Private interest"               da "Privat interesse"
