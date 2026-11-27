@@ -50,7 +50,7 @@ node MeetupTimePicker : view   level: experience
     Two equal fields side by side, space.dob apart, 2px below the header: each a label (type.label, 700, color.text) 6px over a size.input.compact box with
       radius.md, a border.control color.field border, filled color.page like the form around it, the value in type.body (color.text, or color.text.muted for the hint) and a calendar or clock icon at the right.
     Each sheet: a color.surface panel with rounded top corners over color.scrim, a handle, the title in font.display, type.headline, 700, and a close cross;
-      the choices as size.chip chips with radius.pill, 8px apart and wrapping: white with a border.control color.border.strong border, or filled when chosen; a greyed chip cannot be pressed.
+      the choices as chips size.hit tall (44px, the touch target) with radius.pill, 8px apart and wrapping: white with a border.control color.border.strong border, or filled when chosen; a greyed chip cannot be pressed.
   copy
     plan.date        "Day"   da "Dag"
     plan.dateHint    "Pick a day"   da "Vælg dag"
