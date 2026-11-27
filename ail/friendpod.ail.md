@@ -95,8 +95,9 @@ catalog
     color.field=#8A857A  color.track=#DDD8CD  color.primary=#1B6452  color.primary.pressed=#174F42  color.on.primary=#FFFFFF  color.link=#174F42
     color.tab.active=#174F42  color.tab.active.bg=#E1EFE9  color.tab.inactive=#4A514C
     color.house=#1B6452  color.on.house=#FFFFFF  color.field.pill=#FFFFFF  color.on.field.pill=#18211D
-    color.ink=#18211D  color.on.ink=#FFFFFF  color.needs.you=#FFD84D  color.on.needs.you=#18211D
+    color.ink=#18211D  color.on.ink=#FFFFFF  color.needs.you=#FFD84D  color.on.needs.you=#18211D  color.inset=#F6F3EC
     color.danger=#C41E3A  color.private.bg=#FFFFFF  color.private.border=#18211D  color.private.fill=#3A423D
+    color.inset=#F6F3EC  color.private.text=#18211D
     color.scrim=rgba(24,33,29,0.5)  color.disabled=#DDD8CD  color.disabled.text=#4A514C  color.switch.thumb=#FFFFFF
     pod.solsikke.base=#FFD84D  pod.solsikke.deep=#6A4900  pod.solsikke.tint=#FFF1C2
     pod.blad.base=#9FD05E  pod.blad.deep=#395500  pod.blad.tint=#E6F3D4
@@ -113,7 +114,7 @@ catalog
     size.input=52px  size.input.compact=52px  size.chip=36px  size.tag=32px  size.badge=28px  size.badge.small=24px
     size.segment=6px  size.seat=44px  size.pod.badge=48px  size.dot=10px  size.tab.bar=64px  size.icon=24px  size.checkbox=24px
     font.display=Bricolage Grotesque  font.body=Plus Jakarta Sans
-    type.display.xl=56px/58px  type.display.l=44px/46px  type.title=30px/32px  type.title.compact=28px/30px  type.title.modal=26px/28px
+    type.display.xl=56px/58px  type.display.xl48=48px/50px  type.heading=15px/22px  type.display.l=44px/46px  type.title=30px/32px  type.title.compact=28px/30px  type.title.modal=26px/28px
     type.headline=22px/26px  type.pod.name=18px/22px  type.card.title=18px/24px  type.stat=20px/26px
     type.body=16px/24px  type.lede=15px/22px  type.body.small=15px/22px  type.label=15px/20px  type.button=17px
     type.small=13px  type.small.text=14px/20px  type.chip=14px/18px  type.caption=13px  type.caption.text=13px/20px  type.eyebrow=12px/16px  type.micro=12px/16px
