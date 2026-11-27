@@ -24,6 +24,7 @@ server function is built and tested; what is still open is listed in [What is st
 | `tools/sim/` | Synthetic-city simulation harness, thin-market runs and matcher benchmarks (§6.9) | workspace |
 | `tools/admin/` | Admin CLI (§9 Admin access, §13 Backups): launch areas, funnel (cells under 10 suppressed, §6.8), sanctions list/lift, reports list, and `restore replay-ledger`, which runs the server's replay entry points (`functions/src/replay`) with `UID_HMAC_KEY` | workspace |
 | `scripts/` | Root CI helpers (`check-functions-discovery.ts`) | root |
+| `ail/`, `ail.config.json`, `checks/` | The AIL spec of the app (being written in reverse from the app, one slice at a time) and its checks: end-to-end checks in `checks/e2e/`, derived screen checks in `checks/derived/`, the shared harness in `checks/harness/`; see [AIL](#ail) | root (`checks/` is a standalone npm project) |
 | `firebase.json`, `.firebaserc`, `firestore.rules`, `storage.rules`, `firestore.indexes.json` | Firebase configuration, rules, indexes and TTL policies (§7–§9) | root |
 | `hosting/public/` | Static privacy and account-deletion pages, and the shared city page `/c/{areaId}` (`c/index.html`, rewritten for `/c/**`; city name from the path, store links, no tracking) | root |
 | `.github/` | CI (`ci.yml`), calibration and deploy workflows, shared setup action (§13) | root |
@@ -138,6 +139,23 @@ in the iOS app and as uncompressed Android assets, which the app copies once int
 before every native build (local or EAS); see [apps/mobile/README.md](../apps/mobile/README.md). Building
 `prototypes.bin` and the nightly calibration gate need an offline tool with the pinned model that does not exist yet
 (`.github/workflows/calibration.yml`). Model weights are never committed.
+
+### AIL
+
+`ail/` holds the app's spec in AIL (`*.ail.md`). So far it covers onboarding step 1, About you. The spec is the
+source of truth for what it covers: change the spec, then run `ail build`, which compiles what changed and runs every
+check, the end-to-end checks included.
+
+```sh
+npm ci --prefix checks            # Playwright for the checks (Chromium must already be installed for that version)
+ail adopt                         # start the app as run.legacy says, run checks/e2e against it, stop it
+ail build                         # compile what changed, then check everything
+```
+
+The app runs for the checks as its web preview (`scripts/ail/run-legacy.sh`: build `apps/mobile/preview` into
+`.ail/legacy/build` and serve it on port 8090), because a native build needs a simulator or a device.
+`checks/e2e/data.ts` maps the worlds a scenario's Given names (for example "a new member") to the preview's fixture
+scenarios; it is the only file that knows about them.
 
 ## Firebase configuration
 

@@ -45,3 +45,6 @@ tools/sim/out/
 .idea/
 .vscode/*
 !.vscode/extensions.json
+
+# AIL working files (preview builds, verify scratch)
+.ail/

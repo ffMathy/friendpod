@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "nodes": {
+    "AboutYouRules": {
+      "hash": "1170816287330509100921ce04827b4647ddfb789996055c520a9f35d4cd7958",
+      "spec": "6894fabaf4400cfe246fd7ca23bb6d426100a40ee22d49b8391467b2a8b8605e",
+      "files": {},
+      "by": "adopted",
+      "adopted": true
+    }
+  },
+  "glue": {}
+}
