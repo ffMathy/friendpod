@@ -405,7 +405,7 @@ Timers are absolute timestamps in `podState.timers`, computed in Europe/Copenhag
 | Interests per user | max 20 (sensitive included); min 3 to be matched; nudge to 5 | [MAT] |
 | Starred interests | max 3 (s = 1.0 instead of 0.8) | [MAT] |
 | Interest adds | `addInterests`: 30 calls/hour, 100 items/day per user; accounts younger than 24 h half that; ≤ 10 items per call | [A] |
-| First name | 1–30 characters | [A] |
+| First name | 1 character or more, no upper limit (owner, 2026-11-27) | [A] |
 | About me | 0–140 characters; contact details (`CONTACT_INFO`) and blocklisted text (`BLOCKLIST`) refused, no "send anyway" | F19 |
 | Options | 2–3 per pod (the planner asks for 2–3; max 3; brief; a single option can still win, §3.5), ≤ 2 per member ([MAT] allowed 6 per pod), within 14 days, 08–22; the place is a Google Places pick of a public type (F23). The extension round allows options up to the same limits | brief, [MAT] |
 | Report text | ≤ 500 characters | [A] |

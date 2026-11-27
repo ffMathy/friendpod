@@ -144,7 +144,7 @@ export type PodCardDoc = z.infer<typeof podCardDocSchema>;
 
 export const userBlockDocSchema = z.object({
   /** As shown in the shared pod's roster; empty if the pod was never confirmed. */
-  firstName: z.string().max(30),
+  firstName: z.string(),
   podId: podIdSchema,
   since: timestampSchema,
 });

@@ -31,26 +31,28 @@ that knows that. `run.legacy` builds the preview and serves it
 ## Target
 
 The app as it is built today. `ail build` compiles `fn` and `data` nodes into
-`apps/mobile/src/gen/`; flows and views stay hand-written in `apps/mobile/app`
+`packages/core/src/gen/`, which `@friendpod/core` re-exports, so the app and
+the server share them; flows and views stay hand-written in `apps/mobile/app`
 and `apps/mobile/src`, and are proven by their end-to-end checks. A node moves
 to generated code once it is built: its hand-written counterpart is deleted in
 the same change.
 
 ```ail
 target
-  code         TypeScript 6 in strict mode, ES modules, no `any`; Expo SDK 58 with expo-router, React Native 0.88 and React 19 function components; React Native Firebase 27 for Auth, Firestore, Functions and Storage
+  code         TypeScript 6 in strict mode with noUncheckedIndexedAccess (tsconfig.base.json): an element of a list, an entry of a map and a group of a regular-expression match may be undefined and are checked before use, never asserted with `!`; ES modules, no `any`; Expo SDK 58 with expo-router, React Native 0.88 and React 19 function components; React Native Firebase 27 for Auth, Firestore, Functions and Storage
   libs         @friendpod/core (zod schemas and shared rules, consumed as source), react-i18next for every user-visible text
-  structure    rules shared with the server live in packages/core; screens are expo-router routes in apps/mobile/app; components and features in apps/mobile/src
+  structure    rules shared with the server live in packages/core, generated ones in packages/core/src/gen (re-exported from packages/core/src/index.ts by hand); generated code imports nothing outside its own folder except other generated nodes; screens are expo-router routes in apps/mobile/app; components and features in apps/mobile/src
   naming       lowerCamelCase functions and fields, UpperCamelCase types and components, UPPER_CASE constants; files in kebab-case
   exports      named exports only; export every name `what` mentions and nothing else except types
   absence      `nothing` is null
+  time         `time` is a JavaScript Date; calendar days are read in its local time (getFullYear, getMonth, getDate)
   copy         user-visible text is never written in code: each `copy` key is an i18next key in apps/mobile/src/i18n/{en,da}/*.json, with both an English and a Danish text
   styling      React Native StyleSheet with the values of apps/mobile/src/components/theme.ts; design tokens are its Colors, Radius, Size and Layout
   comments     one doc comment per export quoting the clause it implements
   formatting   2-space indent, single quotes, semicolons, trailing commas, lines up to 120 characters (eslint at the root)
-  path.fn      apps/mobile/src/gen/{dir}/{kebab}.ts
-  path.data    apps/mobile/src/gen/{dir}/{kebab}.ts
-  generated    apps/mobile/src/gen/**
+  path.fn      packages/core/src/gen/{dir}/{kebab}.ts
+  path.data    packages/core/src/gen/{dir}/{kebab}.ts
+  generated    packages/core/src/gen/**
   tests        bun test in TypeScript; flows and views are written by hand, so their checks drive the app's web preview in Chromium with Playwright
   checks.path  checks/derived/{dir}/{kebab}.check.ts
   checks.run   bun test ./checks/derived/{dir}/{kebab}.check.ts
@@ -93,15 +95,16 @@ catalog
 
 ```ail
 node Friendpod : system   level: product
-  why   Friendship for groups instead of pairs: small groups of strangers who
-        share an interest and live near each other meet in person, with no
+  why   An app for finding friend groups: small groups of strangers who share
+        an interest and live near each other meet in person, with no
         open-ended chat, no public profile and no swiping.
-        because "unknown, confirm with the owner: who is it for, and what problem made it worth building?"
+        because no app exists for finding friend groups (the owner, 27 November 2026)
   what
     1. Joining asks only for the basics: a first name, a birth date that shows
        the person is an adult, and accepting the Terms.                        refined-by: AboutYou
   children AboutYou
   sources
+    Interview: the owner, 27 November 2026 ("An app for finding friend groups. No such existing app exists.")
     docs/OVERVIEW.md "What we are building" and the founder interview of 2026-11-04; docs/DESIGN.md §3.1 (onboarding)
     README.md: "Small groups. Real meetups."
 ```

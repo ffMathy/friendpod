@@ -1,4 +1,4 @@
-// ail-derived-from: AboutYou@26c05d9381ba4e34
+// ail-derived-from: AboutYou@25b3223a1f0f2e89
 // End-to-end check of AboutYou (ail/onboarding/about-you): each test is one of its scenarios, by name, played through
 // the running app as a user would, with what the user sees: labels, roles and the copy texts.
 import { afterAll, expect, setDefaultTimeout, test } from 'bun:test';
@@ -49,16 +49,18 @@ test('A first name with a digit is refused', async () => {
   await enterBirthDate(page, '14', '03', '1991');
   await terms(page).click();
   await page.getByLabel('First name', { exact: true }).fill('Emil2');
-  await page.getByText('Use 1–30 letters. No contact details.', { exact: true }).waitFor();
+  await page.getByText('Use letters only. No contact details.', { exact: true }).waitFor();
   expect(await continueButton(page).isDisabled()).toBe(true);
 });
 
-test('A first name with a hyphen and an apostrophe is accepted', async () => {
+test('A long first name is accepted', async () => {
   await using app = await onAboutYou();
   const { page } = app;
-  await page.getByLabel('First name', { exact: true }).fill('Anne-Marie O’Brien');
+  const name = 'Maria Josefine Augusta Wilhelmine Charlotte';
+  await page.getByLabel('First name', { exact: true }).fill(name);
   await page.waitForTimeout(200);
-  expect(await page.getByText('Use 1–30 letters. No contact details.').count()).toBe(0);
+  expect(await page.getByLabel('First name', { exact: true }).inputValue()).toBe(name);
+  expect(await page.getByText('Use letters only. No contact details.').count()).toBe(0);
 });
 
 test('Going back from the first step signs out', async () => {
@@ -76,5 +78,5 @@ test('The step in Danish', async () => {
     expect(await page.getByText(text, { exact: true }).isVisible()).toBe(true);
   }
   await page.getByLabel('Fornavn', { exact: true }).fill('Emil2');
-  await page.getByText('Brug 1–30 bogstaver. Ingen kontaktoplysninger.', { exact: true }).waitFor();
+  await page.getByText('Brug kun bogstaver. Ingen kontaktoplysninger.', { exact: true }).waitFor();
 });

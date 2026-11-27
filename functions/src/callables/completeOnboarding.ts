@@ -12,6 +12,7 @@ import {
   AVAILABILITY_ALL,
   DEFAULT_RADIUS_KM,
   DROP_TIME_ZONE,
+  MAX_PLAUSIBLE_AGE,
   MIN_AGE,
   defaultAgeRange,
   emailHash,
@@ -42,8 +43,6 @@ import type { AppDeps } from '../lib/runtime';
 type Input = CallableInput<'completeOnboarding'>;
 type Output = CallableOutput<'completeOnboarding'>;
 
-/** Above this the date of birth is treated as a typo, not an age. */
-const MAX_PLAUSIBLE_AGE = 120;
 const GRPC_ALREADY_EXISTS = 6;
 
 type MarkerRef = ReturnType<ReturnType<typeof docs>['underageMarker']>;

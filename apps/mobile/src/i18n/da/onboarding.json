@@ -5,7 +5,7 @@
       "lede": "Kun det mest nødvendige. Ingen ser det, før I er i en bekræftet pod sammen.",
       "firstName": "Fornavn",
       "firstNameHelp": "Kun dem, der er i en bekræftet pod med dig, kan se det.",
-      "firstNameInvalid": "Brug 1–30 bogstaver. Ingen kontaktoplysninger.",
+      "firstNameInvalid": "Brug kun bogstaver. Ingen kontaktoplysninger.",
       "dob": "Fødselsdato",
       "day": "Dag",
       "month": "Måned",

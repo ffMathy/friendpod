@@ -2,11 +2,11 @@
   "version": 1,
   "nodes": {
     "AboutYouRules": {
-      "hash": "1170816287330509100921ce04827b4647ddfb789996055c520a9f35d4cd7958",
-      "spec": "6894fabaf4400cfe246fd7ca23bb6d426100a40ee22d49b8391467b2a8b8605e",
-      "files": {},
-      "by": "adopted",
-      "adopted": true
+      "hash": "8c4e4c4f01c9180bbe960940970748a3817f075444d3b1ed49f9e4f0be7f6123",
+      "files": {
+        "packages/core/src/gen/onboarding/about-you/about-you-rules/about-you-rules.ts": "7788933cf21c6cf445825b5522b93728810ec7aa67db027ec0102232b2493c43"
+      },
+      "by": "claude-code"
     }
   },
   "glue": {},

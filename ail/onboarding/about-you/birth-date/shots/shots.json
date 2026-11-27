@@ -6,12 +6,8 @@
       "file": "01-a-date-that-does-not-exist-is-refused.png"
     },
     {
-      "test": "Someone under 18 is told, and may still continue",
-      "file": "02-someone-under-18-is-told-and-may-still-continue.png"
-    },
-    {
       "test": "Turning 18 today is old enough",
-      "file": "03-turning-18-today-is-old-enough.png"
+      "file": "05-turning-18-today-is-old-enough.png"
     }
   ]
 }

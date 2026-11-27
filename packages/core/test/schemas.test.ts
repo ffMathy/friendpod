@@ -163,7 +163,7 @@ describe('document schemas (§8)', () => {
     expect(firstNameSchema.safeParse("O'Neil").success).toBe(true);
     expect(firstNameSchema.safeParse('anna@x.dk').success).toBe(false);
     expect(firstNameSchema.safeParse('Anna 12345678').success).toBe(false);
-    expect(firstNameSchema.safeParse('x'.repeat(31)).success).toBe(false);
+    expect(firstNameSchema.safeParse('x'.repeat(31)).success).toBe(true); // no length limit (owner, 2026-11-27)
     expect(weekIdSchema.safeParse('2025-W53').success).toBe(false);
   });
 

@@ -7,9 +7,8 @@ are children of their own.
 
 ```ail
 node AboutYou : flow   level: experience
-  why   A new member gives only what pods need before they can be matched:
-        the name pod members will see, proof of being an adult, and consent to
-        the Terms as a contract (DESIGN §3.1 steps 3–5).                        <- Friendpod
+  why   A new member gives only what pods need: the name pod members will see, proof of
+        being an adult, and consent to the Terms as a contract (DESIGN §3.1 steps 3–5).   <- Friendpod
   what
     Scenario: The step starts empty and Continue waits
       Given a new member who has just signed in
@@ -30,13 +29,14 @@ node AboutYou : flow   level: experience
     Scenario: A first name with a digit is refused
       Given a new member on About you with the birth date 14 03 1991 and the Terms ticked
       When they enter the first name Emil2
-      Then the step says Use 1–30 letters. No contact details.
+      Then the step says Use letters only. No contact details.
       And Continue cannot be pressed
 
-    Scenario: A first name with a hyphen and an apostrophe is accepted
+    Scenario: A long first name is accepted
       Given a new member on About you
-      When they enter the first name Anne-Marie O’Brien
-      Then no message is shown about the name
+      When they enter the first name Maria Josefine Augusta Wilhelmine Charlotte
+      Then the whole name shows in the field
+      And no message is shown about the name
 
     Scenario: Going back from the first step signs out
       Given a new member who has just signed in, on About you
@@ -48,14 +48,15 @@ node AboutYou : flow   level: experience
       When About you opens
       Then it reads Trin 1 af 6, Om dig and Fornavn
       When they enter the first name Emil2
-      Then the step says Brug 1–30 bogstaver. Ingen kontaktoplysninger.
+      Then the step says Brug kun bogstaver. Ingen kontaktoplysninger.
 
   how
     decide the first name, the birth date and the Terms are one step, not three
-      because the storyboards draw six onboarding steps, and onb-about holds all three (pull request 4)
-      rejected a step each, as DESIGN §3.1 numbers them, because the storyboards' six steps replaced them
-    decide Continue needs a first name the rules accept, a real birth date and the Terms ticked, and nothing more
-      because the server repeats every check and is authoritative (DESIGN §3.1 step 6)
+      because the storyboards draw six onboarding steps, and onb-about holds all three (pull request 4), replacing a step each as DESIGN §3.1 numbers them
+    decide Continue needs a first name the rules accept, a plausible adult birth date and the Terms ticked, and nothing more
+      because the step refuses what the server would refuse, and the server repeats every check and is authoritative (DESIGN §3.1 step 6)
+    decide the first-name field has no length limit
+      because the owner removed the 30-character limit (27 November 2026)
     decide Back on this step signs out and returns to the welcome screen when there is no earlier step to return to
       because nothing has been saved yet, so leaving step 1 means leaving the sign-in (about.tsx)
     decide nothing is sent to the server from this step
@@ -67,7 +68,6 @@ node AboutYou : flow   level: experience
     Title "About you" in font.display, type.title, 700, color.text; the lede 4px under it in font.body, type.lede, color.text.secondary.
     First name: label (type.label, 700, color.text) over a size.input white (color.surface) input with a border.field color.field border and radius.input;
       the helper under it in type.small, color.text.secondary. With an error the border is border.strong color.danger, with the message in type.small, 700, color.danger.
-    Then the birth date block and the Terms block.
     Continue pinned at the bottom, 20px above the edge: full width, size.button tall, radius.pill, type.button in font.body 700;
       color.primary with color.on.primary text when it can be pressed, color.disabled with color.disabled.text when it cannot.
   copy
@@ -76,14 +76,13 @@ node AboutYou : flow   level: experience
     onboarding.about.lede              "Just the basics. Nobody sees this until you're in a confirmed pod together."   da "Kun det mest nødvendige. Ingen ser det, før I er i en bekræftet pod sammen."
     onboarding.about.firstName         "First name"                                         da "Fornavn"
     onboarding.about.firstNameHelp     "Only people in a confirmed pod with you see it."    da "Kun dem, der er i en bekræftet pod med dig, kan se det."
-    onboarding.about.firstNameInvalid  "Use 1–30 letters. No contact details."             da "Brug 1–30 bogstaver. Ingen kontaktoplysninger."
+    onboarding.about.firstNameInvalid  "Use letters only. No contact details."             da "Brug kun bogstaver. Ingen kontaktoplysninger."
     common.continue                    "Continue"                                           da "Fortsæt"
     common.back                        "Back"                                               da "Tilbage"
   binds
     state    firstName: text, starting at the draft's first name or ""
-    events   Continue, when firstNameFrom(firstName) and BirthDate's date are something and Terms is ticked, stores { firstName: the cleaned name, dob: the birth date, legalAccepted: true } in the onboarding draft and opens step 2 (the area route)
+    events   Continue (under the birth date and Terms blocks), when firstNameFrom(firstName) and BirthDate's date are something and Terms is ticked, stores { firstName: the cleaned name, dob: the birth date, legalAccepted: true } in the onboarding draft and opens step 2 (the area route)
     events   Back returns to the previous screen when there is one, else signs out
-    draft    the onboarding draft is kept in memory for the six steps and is sent by step 2
   uses AboutYouRules, BirthDate, TermsAcceptance
   children AboutYouRules, BirthDate, TermsAcceptance
   sources
@@ -91,5 +90,6 @@ node AboutYou : flow   level: experience
     Design: DESIGN §3.1 steps 3–6
     Pull request: "https://github.com/ffMathy/friendpod/pull/4" ("onboarding as the storyboards' 6 steps")
     Screens: driven in the web preview, world onboarding-start (4 November 2026 19:55), in English and Danish, on 27 November 2026
+    Interview: the owner, 27 November 2026: remove the first-name limit
     No tickets: friendpod has no issues, and Asana has no Friendpod project
 ```
