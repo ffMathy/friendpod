@@ -1,3 +1,4 @@
+// ail-derived-from: PrivatePodPage@099ba2114749f7eb
 // End-to-end check of PrivatePodPage (ail/pod-page/private-pod-page): each test is one of its scenarios, by name,
 // played through the running app as a user would, with what the user sees: labels, roles, copy texts and colours.
 import { afterAll, expect, setDefaultTimeout, test } from 'bun:test';

@@ -1,3 +1,4 @@
+// ail-derived-from: GivePrivateInterestConsent@20fd20e731a979b3
 // End-to-end check of GivePrivateInterestConsent (ail/me/privacy-and-data/give-private-interest-consent): each test is
 // one of its scenarios, by name, played through the running app as a user would, with what the user sees.
 import { afterAll, expect, setDefaultTimeout, test } from 'bun:test';

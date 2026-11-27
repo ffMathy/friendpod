@@ -1,3 +1,4 @@
+// ail-derived-from: EmailLinkConfirmAddress@7815a53493aab7b4
 // End-to-end check of EmailLinkConfirmAddress (ail/sign-in/email-link-landing/email-link-confirm-address): each test
 // is one of its scenarios, by name, played through the running app as a user would, with what the user sees.
 import { afterAll, expect, setDefaultTimeout, test } from 'bun:test';

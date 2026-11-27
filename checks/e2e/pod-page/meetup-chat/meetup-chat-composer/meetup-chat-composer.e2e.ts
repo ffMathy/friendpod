@@ -1,3 +1,4 @@
+// ail-derived-from: MeetupChatComposer@c2d021146aac2123
 // End-to-end check of MeetupChatComposer (ail/pod-page/meetup-chat/meetup-chat-composer): each test is one of its
 // scenarios, by name, played through the running app as a user would, with what the user sees.
 import { afterAll, expect, setDefaultTimeout, test } from 'bun:test';

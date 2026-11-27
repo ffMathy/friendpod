@@ -1,3 +1,4 @@
+// ail-derived-from: InterestList@4034a7077f1b2b7b
 // End-to-end check of InterestList (ail/interests/interest-list): each test is one of its scenarios, by name, played
 // through the running app as a user would, with what the user sees: labels, roles and the copy texts.
 import { afterAll, expect, setDefaultTimeout, test } from 'bun:test';

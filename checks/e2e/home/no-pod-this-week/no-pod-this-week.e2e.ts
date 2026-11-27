@@ -1,3 +1,4 @@
+// ail-derived-from: NoPodThisWeek@69d3b8114b8fe271
 // End-to-end check of NoPodThisWeek (ail/home/no-pod-this-week): each test is one of its scenarios, by name, played
 // through the running app as a user would, with what the user sees: roles, labels and the copy texts.
 import { afterAll, expect, setDefaultTimeout, test } from 'bun:test';

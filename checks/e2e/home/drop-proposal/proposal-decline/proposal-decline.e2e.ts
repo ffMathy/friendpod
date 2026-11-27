@@ -1,3 +1,4 @@
+// ail-derived-from: ProposalDecline@0bcef545c0618e4b
 // End-to-end check of ProposalDecline (ail/home/drop-proposal/proposal-decline): each test is one of its scenarios, by
 // name, played through the running app as a user would, with what the user sees: roles, labels and the copy texts.
 import { afterAll, expect, setDefaultTimeout, test } from 'bun:test';

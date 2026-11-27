@@ -1,77 +1,89 @@
-// ail-derived-from: FinalStep@fa7cd2d64a47f5a7
-import { expect, test } from 'bun:test';
+// ail-derived-from: FinalStep@932d6e31757880ca
+import { describe, expect, test } from 'bun:test';
 
 import { isTicked, openApp } from '../../../harness/preview';
 
-const ROUTE = '/almost-done';
-const WORLD = 'member on the last onboarding step';
-const PLEDGE =
-  "I'll meet in public places, treat people with respect, and use Report if something feels wrong.";
+const PLEDGE = "I'll meet in public places, treat people with respect, and use Report if something feels wrong.";
+const TIMEOUT = 180_000;
 
-test('Finish waits for the safety pledge', async () => {
-  await using app = await openApp({ route: ROUTE, world: WORLD, locale: 'en' });
-  const page = app.page;
+async function eventually(check: () => Promise<boolean>, timeoutMs = 15_000): Promise<boolean> {
+  const end = Date.now() + timeoutMs;
+  for (;;) {
+    if (await check()) {
+      return true;
+    }
+    if (Date.now() > end) {
+      return false;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+}
 
-  await page.getByText('Almost done', { exact: true }).first().waitFor();
-  const body = await page.locator('body').innerText();
-  expect(body).toContain('Step 6 of 6');
-  expect(body).toContain('Almost done');
+describe('FinalStep', () => {
+  test(
+    'Finish waits for the safety pledge',
+    async () => {
+      await using app = await openApp({ route: '/almost-done', world: 'member on the last onboarding step', locale: 'en' });
+      const page = app.page;
 
-  const pledge = page.getByRole('checkbox', { name: PLEDGE });
-  await pledge.waitFor();
-  expect(await isTicked(pledge)).toBe(false);
+      await page.getByText('Almost done', { exact: true }).first().waitFor({ state: 'visible', timeout: 30_000 });
+      await page.getByText('Step 6 of 6').first().waitFor({ state: 'visible' });
 
-  const finish = page.getByRole('button', { name: 'Finish', exact: true });
-  expect(await finish.isDisabled()).toBe(true);
+      const pledge = page.getByRole('checkbox', { name: PLEDGE });
+      await pledge.waitFor({ state: 'visible' });
+      expect(await isTicked(pledge)).toBe(false);
 
-  await pledge.click();
-  await page.waitForFunction(
-    () => {
-      const buttons = Array.from(document.querySelectorAll('[role="button"], button'));
-      const b = buttons.find((el) => (el.textContent ?? '').trim() === 'Finish');
-      if (b === undefined) return false;
-      return b.getAttribute('aria-disabled') !== 'true' && !(b as HTMLButtonElement).disabled;
+      const finish = page.getByRole('button', { name: 'Finish', exact: true });
+      await finish.waitFor({ state: 'visible' });
+      expect(await finish.isDisabled()).toBe(true);
+
+      await pledge.click();
+      expect(await eventually(async () => !(await finish.isDisabled()))).toBe(true);
+
+      await app.saveScreen('finish-waits-for-the-safety-pledge.png');
     },
-    undefined,
-    { timeout: 5000 },
-  ).catch(() => undefined);
-  expect(await finish.isDisabled()).toBe(false);
+    TIMEOUT,
+  );
 
-  await app.saveScreen('finish-waits-for-the-safety-pledge.png');
-});
+  test(
+    'Finishing opens Home',
+    async () => {
+      await using app = await openApp({ route: '/almost-done', world: 'member on the last onboarding step', locale: 'en' });
+      const page = app.page;
 
-test('Finishing opens Home', async () => {
-  await using app = await openApp({ route: ROUTE, world: WORLD, locale: 'en' });
-  const page = app.page;
+      await page.getByText('Almost done', { exact: true }).first().waitFor({ state: 'visible', timeout: 30_000 });
 
-  await page.getByText('Almost done', { exact: true }).first().waitFor();
-  const pledge = page.getByRole('checkbox', { name: PLEDGE });
-  await pledge.waitFor();
-  await pledge.click();
+      const pledge = page.getByRole('checkbox', { name: PLEDGE });
+      await pledge.waitFor({ state: 'visible' });
+      await pledge.click();
 
-  const finish = page.getByRole('button', { name: 'Finish', exact: true });
-  await finish.click();
+      const finish = page.getByRole('button', { name: 'Finish', exact: true });
+      expect(await eventually(async () => !(await finish.isDisabled()))).toBe(true);
+      await finish.click();
 
-  await page.getByText('This week', { exact: true }).first().waitFor({ timeout: 15000 });
-  await page.getByRole('checkbox', { name: PLEDGE }).waitFor({ state: 'detached', timeout: 15000 });
-  expect(page.url()).not.toContain('almost-done');
-  expect(await page.getByText('This week', { exact: true }).first().isVisible()).toBe(true);
+      expect(await eventually(async () => !new URL(page.url()).pathname.includes('almost-done'), 30_000)).toBe(true);
+      await page.getByText('This week', { exact: true }).first().waitFor({ state: 'visible', timeout: 30_000 });
 
-  await app.saveScreen('finishing-opens-home.png');
-});
+      await app.saveScreen('finishing-opens-home.png');
+    },
+    TIMEOUT,
+  );
 
-test('The step in Danish', async () => {
-  await using app = await openApp({ route: ROUTE, world: WORLD, locale: 'da' });
-  const page = app.page;
+  test(
+    'The step in Danish',
+    async () => {
+      await using app = await openApp({ route: '/almost-done', world: 'member on the last onboarding step', locale: 'da' });
+      const page = app.page;
 
-  await page.getByText('Næsten færdig', { exact: true }).first().waitFor();
-  const body = await page.locator('body').innerText();
-  expect(body).toContain('Næsten færdig');
-  expect(body).toContain('Trin 6 af 6');
+      await page.getByText('Næsten færdig', { exact: true }).first().waitFor({ state: 'visible', timeout: 30_000 });
+      await page.getByText('Trin 6 af 6').first().waitFor({ state: 'visible' });
 
-  const finish = page.getByRole('button', { name: 'Færdig', exact: true });
-  await finish.waitFor();
-  expect(await finish.isDisabled()).toBe(true);
+      const finish = page.getByRole('button', { name: 'Færdig', exact: true });
+      await finish.waitFor({ state: 'visible' });
+      expect(await finish.isDisabled()).toBe(true);
 
-  await app.saveScreen('the-step-in-danish.png');
+      await app.saveScreen('the-step-in-danish.png');
+    },
+    TIMEOUT,
+  );
 });

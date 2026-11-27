@@ -1,3 +1,4 @@
+// ail-derived-from: PodMenu@ac9176ff10c02c9f
 // End-to-end check of PodMenu (ail/pod-page/pod-menu): each test is one of its scenarios, by name, played through the
 // running app as a user would, with what the user sees: labels, roles and the copy texts.
 import { afterAll, expect, setDefaultTimeout, test } from 'bun:test';

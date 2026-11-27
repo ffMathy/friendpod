@@ -1,3 +1,4 @@
+// ail-derived-from: InterestsStep@b82f22f198da5535
 // End-to-end check of InterestsStep (ail/onboarding/interests-step): each test is one of its scenarios, by name,
 // played through the running app as a user would, with what the user sees: labels, roles and the copy texts.
 import { afterAll, expect, setDefaultTimeout, test } from 'bun:test';

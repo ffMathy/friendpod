@@ -1,3 +1,4 @@
+// ail-derived-from: WithdrawPrivateInterestConsent@d4c5f7a9a4d1098c
 // End-to-end check of WithdrawPrivateInterestConsent (ail/me/privacy-and-data/withdraw-private-interest-consent): each
 // test is one of its scenarios, by name, played through the running app as a user would, with what the user sees.
 import { afterAll, expect, setDefaultTimeout, test } from 'bun:test';
