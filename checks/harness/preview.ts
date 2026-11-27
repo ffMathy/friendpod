@@ -1,6 +1,6 @@
 // Renders the app's own screens for the checks: the web preview (apps/mobile/preview) in a headless Chromium, at
 // the storyboards' 390×844. With AIL_APP_URL set (the end-to-end checks, run.legacy), it uses the app already running
-// there; otherwise (the derived checks) it builds the preview into .ail/preview once per run and serves it itself.
+// there; otherwise (the derived checks) it builds the preview once per run, into a folder of its own under .ail/preview, and serves it itself.
 //
 //   await using app = await openApp({ route: '/about', world: 'new member', locale: 'en' });
 //   await app.page.getByLabel('First name').fill('Emil');
@@ -9,13 +9,15 @@
 // Playwright with Chromium must be loadable as `playwright` (as apps/mobile/preview/README.md requires).
 import { afterAll, setDefaultTimeout } from 'bun:test';
 import { spawnSync } from 'node:child_process';
-import { mkdirSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { chromium, type Browser, type Locator, type Page } from 'playwright';
 import { urlFor, type World } from '../e2e/data.ts';
 
 const repo = resolve(import.meta.dir, '..', '..');
-const BUILD = join(repo, '.ail', 'preview');
+const PREVIEWS = join(repo, '.ail', 'preview');
+/** This run's own build, so checks that run at the same time never rebuild each other's preview mid-test. */
+let build: string | null = null;
 
 // Every check that uses the harness gets these: the first test also builds the preview, which takes a while, and the
 // shared browser (and preview server) are closed once the file's tests are done.
@@ -31,8 +33,9 @@ function appUrl(): Promise<string> {
   if (process.env.AIL_APP_URL) return Promise.resolve(process.env.AIL_APP_URL);
   base ??= (async () => {
     // Built once per run, so the checks always see the app's current code (Metro's cache keeps it quick).
-    mkdirSync(BUILD, { recursive: true });
-    const r = spawnSync('node', ['preview/shoot.mjs', '--build-only', '--build-dir', BUILD], {
+    mkdirSync(PREVIEWS, { recursive: true });
+    build = mkdtempSync(join(PREVIEWS, 'run-'));
+    const r = spawnSync('node', ['preview/shoot.mjs', '--build-only', '--build-dir', build], {
       cwd: join(repo, 'apps', 'mobile'),
       stdio: 'ignore',
     });
@@ -40,7 +43,7 @@ function appUrl(): Promise<string> {
     const { serve } = (await import(join(repo, 'apps', 'mobile', 'preview', 'serve.mjs'))) as {
       serve: (dir: string, port?: number) => Promise<{ url: string; close: () => Promise<void> }>;
     };
-    const started = await serve(BUILD, 0);
+    const started = await serve(build, 0);
     server = started;
     return started.url;
   })();
@@ -93,5 +96,7 @@ export async function closeApps(): Promise<void> {
   browser = null;
   await server?.close();
   server = null;
+  if (build) rmSync(build, { recursive: true, force: true });
+  build = null;
   base = null;
 }

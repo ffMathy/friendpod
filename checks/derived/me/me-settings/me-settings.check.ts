@@ -135,7 +135,7 @@ describe('MeSettings', () => {
         await expectVisible(row);
         await row.first().click();
         await page.waitForURL(/\/settings\/notifications(\?|$)/);
-        await expectVisible(page.getByText('Notifications', { exact: true }));
+        await expectVisible(page.getByRole('heading', { name: 'Notifications', exact: true }));
         await expectVisible(page.getByText('Know when your drop arrives', { exact: true }));
       }
       {
@@ -145,7 +145,7 @@ describe('MeSettings', () => {
         await expectVisible(row);
         await row.first().click();
         await page.waitForURL(/\/settings\/privacy(\?|$)/);
-        await expectVisible(page.getByText('Privacy', { exact: true }));
+        await expectVisible(page.getByRole('heading', { name: 'Privacy', exact: true }));
         await expectVisible(page.getByText("What you've agreed to", { exact: true }));
       }
       {
@@ -155,7 +155,7 @@ describe('MeSettings', () => {
         await expectVisible(row);
         await row.first().click();
         await page.waitForURL(/\/info\/legal\/terms(\?|$)/);
-        await expectVisible(page.getByText('Terms', { exact: true }));
+        await expectVisible(page.getByRole('heading', { name: 'Terms', exact: true }));
         await expectVisible(page.getByText(/\bDraft\b/));
 
         await app.saveScreen('the-rows-open-their-pages.png');

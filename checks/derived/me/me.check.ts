@@ -6,9 +6,17 @@ import { openApp } from '../../harness/preview';
 
 const TIMEOUT = 180_000;
 
-/** The visible text of the whole page, so text composed from several elements can be read as one. */
+/**
+ * The visible text of the whole page, so text composed from several elements can be read as one; no-break spaces
+ * (which keep the parts of the preferences summary together) read as spaces.
+ */
 async function pageText(page: Page): Promise<string> {
-  return page.locator('body').innerText();
+  return (await page.locator('body').innerText()).replace(/\u00a0/g, ' ');
+}
+
+/** Whether the page shows `words`, ignoring case: the cards' eyebrows are drawn in upper case. */
+function showsIgnoringCase(text: string, words: string): boolean {
+  return text.toLowerCase().includes(words.toLowerCase());
 }
 
 /** Waits until Me has loaded its account card. */
@@ -29,14 +37,14 @@ describe('Me', () => {
       expect(text).toContain('Emil');
       expect(text).toContain('Aarhus C');
       expect(text).toContain('Attended 2 of 2 meetups');
-      expect(text).toContain('Your account');
+      expect(showsIgnoringCase(text, 'Your account')).toBe(true);
       expect(text).toContain('Pod preferences');
       expect(text).toContain('Ages 28–42 · about 10 km');
       expect(text).toContain('Danish, English');
       for (const row of ['Privacy', 'Messages from Friendpod', 'Settings']) {
         expect(await page.getByText(row, { exact: true }).first().isVisible()).toBe(true);
       }
-      expect(text).toContain('Good to know');
+      expect(showsIgnoringCase(text, 'Good to know')).toBe(true);
       for (const row of ['How matching works', 'Meeting safely', 'Private interests']) {
         expect(await page.getByText(row, { exact: true }).first().isVisible()).toBe(true);
       }
@@ -58,7 +66,7 @@ describe('Me', () => {
 
       await page.getByText('Change preferences', { exact: true }).first().click();
       await page.waitForURL(/\/settings\/preferences(\?.*)?$/);
-      await page.getByText('Pod preferences', { exact: true }).first().waitFor({ state: 'visible' });
+      await page.getByRole('heading', { name: 'Pod preferences', exact: true }).first().waitFor({ state: 'visible' });
 
       await app.saveScreen('a-setting-that-kept-a-new-member-out-is-named.png');
     },
@@ -76,15 +84,16 @@ describe('Me', () => {
         { label: 'Pod preferences', url: /\/settings\/preferences(\?.*)?$/, back: 'Back' },
         { label: 'Messages from Friendpod', url: /\/settings\/notices(\?.*)?$/, back: 'Back' },
         { label: 'Settings', url: /\/settings(\?.*)?$/, back: 'Back' },
-        { label: 'Privacy', url: /\/settings\/privacy(\?.*)?$/, back: 'Me' },
+        // On Privacy, Back is the "Me" above the title.
+        { label: 'Privacy', url: /\/settings\/privacy(\?.*)?$/, back: 'Back: Me' },
       ];
 
       for (const row of rows) {
         await page.getByText(row.label, { exact: true }).first().click();
         await page.waitForURL(row.url);
 
-        const back = page.getByText(row.back, { exact: true }).first();
-        const title = page.getByText(row.label, { exact: true }).first();
+        const back = page.getByRole('button', { name: row.back, exact: true }).first();
+        const title = page.getByRole('heading', { name: row.label, exact: true }).first();
         await back.waitFor({ state: 'visible' });
         await title.waitFor({ state: 'visible' });
         const backBox = await back.boundingBox();
@@ -115,7 +124,7 @@ describe('Me', () => {
       expect(await page.getByText('Mig', { exact: true }).first().isVisible()).toBe(true);
       const text = await pageText(page);
       expect(text).toContain('Ingen møder endnu');
-      expect(text).toContain('Din konto');
+      expect(showsIgnoringCase(text, 'Din konto')).toBe(true);
       expect(text).toContain('Ønsker til pods');
       expect(text).toContain('28–42 år · ca. 10 km');
       expect(text).toContain('Dansk, Engelsk');

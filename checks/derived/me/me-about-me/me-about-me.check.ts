@@ -91,7 +91,8 @@ test(
 
     const field = page.getByRole('textbox', { name: 'Om mig' });
     await field.waitFor();
-    await page.getByText('53 / 140').first().waitFor();
+    // The saved sentence has loaded (in Danish it is the world's Danish sentence, not the English one).
+    await page.getByText(/^[1-9]\d* \/ 140$/).first().waitFor();
 
     await field.fill('Ring på 12345678');
 

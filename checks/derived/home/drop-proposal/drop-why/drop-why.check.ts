@@ -79,7 +79,7 @@ test(
     await using app = await openApp({ route: '/', world: WORLD, locale: 'en' });
     const page = app.page;
 
-    await page.getByRole('button', { name: 'Why this pod?' }).first().click();
+    await page.getByRole('link', { name: 'Why this pod?', exact: true }).first().click();
     await waitForTexts(page, [THEME_EN]);
 
     await page.getByRole('button', { name: 'Close' }).first().click();
@@ -99,7 +99,7 @@ test(
     await using app = await openApp({ route: '/', world: WORLD, locale: 'en' });
     const page = app.page;
 
-    await page.getByRole('button', { name: 'Why this pod?' }).first().click();
+    await page.getByRole('link', { name: 'Why this pod?', exact: true }).first().click();
     await waitForTexts(page, [THEME_EN]);
     await page.getByText('Why this pod', { exact: true }).first().waitFor({ state: 'visible' });
 

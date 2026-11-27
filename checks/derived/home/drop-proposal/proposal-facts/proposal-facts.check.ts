@@ -31,23 +31,29 @@ test('The facts of the brætspil proposal', async () => {
 
   // Then the card shows You and four open seats.
   // The seats are hidden from screen readers, so they are found as they look: size.seat (44px) circles,
-  // You with its text, the open ones dashed.
+  // You with its text, the open ones drawn with a dashed ring.
   const seats: SeatCounts = await page.evaluate(() => {
     const isSeat = (el: Element): boolean => {
       const rect = el.getBoundingClientRect();
       return Math.abs(rect.width - 44) < 1 && Math.abs(rect.height - 44) < 1;
     };
+    const dashed = (el: Element): boolean => {
+      if (window.getComputedStyle(el).borderTopStyle === 'dashed') return true;
+      return Array.from(el.querySelectorAll('circle')).some((c) => {
+        const dash = c.getAttribute('stroke-dasharray') ?? window.getComputedStyle(c).strokeDasharray;
+        return dash !== '' && dash !== 'none';
+      });
+    };
     let you = 0;
     let open = 0;
     for (const el of Array.from(document.querySelectorAll('*'))) {
-      if (!isSeat(el)) {
+      if (!isSeat(el) || (el.parentElement !== null && isSeat(el.parentElement))) {
         continue;
       }
-      const style = window.getComputedStyle(el);
       const text = (el.textContent ?? '').trim();
       if (text === 'You') {
         you += 1;
-      } else if (text === '' && style.borderTopStyle === 'dashed') {
+      } else if (text === '' && dashed(el)) {
         open += 1;
       }
     }

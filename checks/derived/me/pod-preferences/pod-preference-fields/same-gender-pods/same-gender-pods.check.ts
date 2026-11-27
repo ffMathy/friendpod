@@ -80,7 +80,12 @@ test(
     await using app = await openApp({ route: ROUTE, world: WORLD, locale: 'en' });
     await openSheet(app, 'Same-gender pods only');
 
-    await app.page.getByRole('dialog').getByRole('button', { name: 'Cancel', exact: true }).click();
+    // The close cross is also named Cancel; the Cancel button is the one that reads Cancel.
+    await app.page
+      .getByRole('dialog')
+      .getByRole('button', { name: 'Cancel', exact: true })
+      .filter({ hasText: 'Cancel' })
+      .click();
 
     await app.page.getByRole('dialog').waitFor({ state: 'hidden' });
     await app.page.getByRole('switch', { name: 'Same-gender pods only' }).waitFor({ state: 'visible' });

@@ -6,13 +6,17 @@ import { openApp } from '../../../harness/preview.ts';
 
 const TIMEOUT = 180_000;
 
-/** The innermost element that holds both the card's title and its Edit link: the Your interests card. */
+/**
+ * The Your interests card: the element around its header row, the innermost element that holds both the title and
+ * its Edit link.
+ */
 function interestsCard(page: Page, title: RegExp, editLabel: string): Locator {
   return page
     .locator('div')
     .filter({ has: page.getByText(title) })
     .filter({ has: page.getByRole('link', { name: editLabel, exact: true }) })
-    .last();
+    .last()
+    .locator('xpath=..');
 }
 
 test(
@@ -39,8 +43,7 @@ test(
       .filter({ hasNot: page.getByText('sourdough', { exact: true }) });
     expect(await brætspilChip.count()).toBeGreaterThanOrEqual(1);
 
-    const cardText = (await card.textContent()) ?? '';
-    expect(cardText).toMatch(/\b1 private interest(?!s)/);
+    await card.getByText('1 private interest', { exact: true }).first().waitFor({ state: 'visible' });
 
     const pageText = (await page.locator('body').textContent()) ?? '';
     expect(pageText.toLowerCase()).not.toContain('gravid');
@@ -82,8 +85,7 @@ test(
     const edit = card.getByRole('link', { name: 'Ret dine interesser', exact: true });
     expect(((await edit.textContent()) ?? '').trim()).toBe('Ret');
 
-    const cardText = (await card.textContent()) ?? '';
-    expect(cardText).toMatch(/\b1 privat interesse(?!r)/);
+    await card.getByText('1 privat interesse', { exact: true }).first().waitFor({ state: 'visible' });
 
     await app.saveScreen('your-interests-in-danish.png');
   },

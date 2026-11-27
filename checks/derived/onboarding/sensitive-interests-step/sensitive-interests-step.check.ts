@@ -5,6 +5,15 @@ import { isTicked, openApp } from '../../../harness/preview';
 
 const TIMEOUT = 180_000;
 
+/** Waits until `condition` holds, checking every 100 ms (bun's expect has no poll). */
+async function waitUntil(condition: () => Promise<boolean>, message: string, timeout = 15_000): Promise<void> {
+  const end = Date.now() + timeout;
+  while (!(await condition())) {
+    if (Date.now() > end) throw new Error(`timed out waiting until ${message}`);
+    await new Promise((r) => setTimeout(r, 100));
+  }
+}
+
 const TICK_TEXT =
   'I explicitly consent to Friendpod processing interests that may reveal sensitive information about me, ' +
   'for the purposes above.';
@@ -53,7 +62,8 @@ test(
     await box.click();
 
     const agree = page.getByRole('button', { name: 'I agree', exact: true });
-    await expect.poll(async () => await agree.isDisabled()).toBe(false);
+    await waitUntil(async () => !(await agree.isDisabled()), 'I agree can be pressed');
+    expect(await agree.isDisabled()).toBe(false);
 
     await agree.click();
 

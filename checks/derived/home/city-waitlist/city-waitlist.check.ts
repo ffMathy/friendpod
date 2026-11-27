@@ -98,8 +98,10 @@ test(
     await using app = await openApp({ route: '/', world: WORLD, locale: 'en' });
     const page = app.page;
 
-    const copy = page.getByRole('button', { name: 'Copy', exact: true });
+    // The button shows Copy; screen readers hear it as Copy invite link (WaitlistShareCard's role).
+    const copy = page.getByRole('button', { name: 'Copy invite link', exact: true });
     await shown(copy);
+    expect(((await copy.first().textContent()) ?? '').trim()).toBe('Copy');
     await copy.first().click();
 
     await shown(page.getByRole('button', { name: 'Copied', exact: true }));
@@ -159,7 +161,10 @@ test(
 
     await shown(exactText(page, 'Hjælp Odense med at åbne hurtigere'));
     await shown(page.getByRole('button', { name: 'Del invitationslink', exact: true }));
-    await shown(page.getByRole('button', { name: 'Kopiér', exact: true }));
+    // The button shows Kopiér; screen readers hear it as Kopiér invitationslink (WaitlistShareCard's role).
+    const copy = page.getByRole('button', { name: 'Kopiér invitationslink', exact: true });
+    await shown(copy);
+    expect(((await copy.first().textContent()) ?? '').trim()).toBe('Kopiér');
     await shown(exactText(page, 'Mens du venter'));
     await shown(pressable(page, 'Profil og indstillinger'));
 

@@ -102,7 +102,8 @@ test(
     await okay.click();
     await expectPageText(page, 'Your pods');
 
-    const pod = page.getByText('brætspil', { exact: true }).first();
+    // The pod's row under Your pods (an interest chip brætspil also shows, under What we'll match on).
+    const pod = page.getByRole('link', { name: /^brætspil\b/ }).first();
     await pod.waitFor({ state: 'visible' });
     await pod.click();
 
