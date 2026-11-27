@@ -116,7 +116,7 @@ catalog
     font.display=Bricolage Grotesque  font.body=Plus Jakarta Sans
     type.display.xl=56px/58px  type.display.xl48=48px/50px  type.heading=15px/22px  type.display.l=44px/46px  type.title=30px/32px  type.title.compact=28px/30px  type.title.modal=26px/28px
     type.headline=22px/26px  type.pod.name=18px/22px  type.card.title=18px/24px  type.stat=20px/26px
-    type.body=16px/24px  type.lede=15px/22px  type.body.small=15px/22px  type.label=15px/20px  type.button=17px
+    type.body=16px/24px  type.lede=15px/22px  type.body.small=15px/22px  type.label=15px/20px  type.button=16px/20px
     type.small=13px  type.small.text=14px/20px  type.chip=14px/18px  type.caption=13px  type.caption.text=13px/20px  type.eyebrow=12px/16px  type.micro=12px/16px
 ```
 
